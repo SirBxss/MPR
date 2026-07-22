@@ -5,7 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.lane_residuals import Path2D, plot_path_pair_and_residual, residual_vector
+from lane_residuals import Path2D, plot_path_pair_and_residual, residual_vector
 
 
 def main() -> None:
