@@ -9,6 +9,7 @@ from lane_residuals import Path2D, plot_path_pair_and_residual, residual_vector
 
 
 def main() -> None:
+    "source_stations = np.linspace(0.0, 50.0, 101)"
     source_stations = np.linspace(0.0, 50.0, 101)
     ground_truth = Path2D(
         s=source_stations,
@@ -41,7 +42,7 @@ def main() -> None:
     plt.close(figure)
 
     print("Evaluation stations [m]:", evaluation_stations)
-    print("Residual vector [m]:     ", np.round(residual, 4))
+    print("Residual vector [m]:", np.round(residual, 4))
     print("Figure written to:", output_path)
 
 

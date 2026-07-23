@@ -93,6 +93,8 @@ class GaussianResidualModel:
                 f"received {values.shape[1]}"
             )
 
+        """log p(e) =-1/2*[Hlog(2π)+log∣Σ∣+(e−μ)⊤Σ−1(e−μ)]"""
+
         cholesky = np.linalg.cholesky(self.covariance)
         centered = values - self.mean
         whitened = np.linalg.solve(cholesky, centered.T).T
