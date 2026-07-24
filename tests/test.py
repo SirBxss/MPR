@@ -1,13 +1,11 @@
 import numpy as np
 
-"stations = np.array([0.0, 5.0, 10.0])"
-stations = np.array([10.0, 15.0, 20.0])
-
+stations = np.array([0.0, 5.0, 10.0])
 # Reference path at 45 degrees
 reference = np.column_stack(
     (
-        stations / np.sqrt(4.0),
-        stations / np.sqrt(4.0),
+        stations / np.sqrt(2.0),
+        stations / np.sqrt(2.0),
     )
 )
 

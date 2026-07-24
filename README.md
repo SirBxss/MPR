@@ -1,154 +1,239 @@
-# Minimal Lane-Residual Model
+# Minimal Path-Residual Model (MPR)
 
-This deliberately small project implements the first complete statistical
-baseline for lane-estimation error. Version 0.1 converted aligned path pairs
-into residual vectors. Version 0.2 fits one **unconditional multivariate
-Gaussian** to those vectors.
+MPR is a deliberately small project for understanding path discrepancies
+before transferring the workflow to the larger LEEM thesis implementation.
 
-The implementation is separate from the larger LEEM experiment repository so
-that every assumption can be understood and tested before adding conditions,
-latent regimes, neural networks, or planner integration.
-
-## Version 0.2 scope
-
-Included:
-
-- one ground-truth path and one estimated path per sample;
-- shared longitudinal reference coordinate `s` and explicit stations;
-- signed lateral residuals along the ground-truth left normal;
-- an `N x H` residual matrix;
-- maximum-likelihood Gaussian mean and covariance fitting;
-- explicit diagonal covariance regularization;
-- joint log-density, mean test NLL, and correlated path sampling;
-- residual and Gaussian diagnostic figures;
-- twelve focused unit tests.
-
-Still excluded:
-
-- condition variables such as weather, speed, curvature, or sensor status;
-- time dependence between consecutive path pairs;
-- mixture distributions, HMMs, GANs, or other complex models;
-- automatic geometric path matching;
-- planner integration.
-
-## Mathematical definition
-
-For path-pair sample `i`, let the aligned ground-truth and estimated positions
-at reference station `s` be
+Version 0.3 adds the missing real-data bridge:
 
 ```text
-p_gt_i(s)  = [x_gt_i(s),  y_gt_i(s)]
-p_est_i(s) = [x_est_i(s), y_est_i(s)].
+MCAP
+→ embedded Protobuf decoding
+→ synchronized map/sensor road frames
+→ ego-segment selection
+→ shared reference-station assignment
+→ 11-dimensional residual vectors
+→ descriptive multivariate Gaussian fit
 ```
 
-The ground-truth unit tangent and left unit normal are
+The Gaussian and residual definitions from Version 0.2 remain unchanged.
+
+## Scientific interpretation
+
+The initial configured comparison is:
 
 ```text
-t_gt_i(s) = d p_gt_i(s) / ds / ||d p_gt_i(s) / ds||
-n_gt_i(s) = [-t_y(s), t_x(s)].
+surrogate reference: /adp/road_lane_map_based
+estimate:            /adp/lane_topology_sensor_based
+schema:              Adp.Perception.Road
 ```
 
-The signed lateral residual is
+This output must be described as:
+
+> sensor-based versus map-based lane-path discrepancy
+
+The map-based topic has not been established as ground truth. Consequently,
+Version 0.3 does not support a claim about absolute sensor error or sensor
+accuracy. BMW signal documentation or supervisor confirmation is required
+before changing that interpretation.
+
+The two paths must also be expressed in the same local coordinate frame.
+Processing is intentionally blocked until the operator explicitly confirms
+that assumption with `--assume-same-frame`.
+
+## Residual definition
+
+For a reference path and an estimated path at shared reference station `s`,
 
 ```text
-e_i(s) = n_gt_i(s)^T [p_est_i(s) - p_gt_i(s)].
+p_ref(s) = [x_ref(s), y_ref(s)]
+p_est(s) = [x_est(s), y_est(s)].
 ```
 
-Positive therefore means that the estimated path lies to the **left** of the
-ground-truth path with respect to increasing `s`. The evaluation stations are
-always passed explicitly; this project does not silently assume 21 stations.
+The reference left unit normal is
 
-For `N` independent path pairs evaluated at `H` common stations, the residual
-vectors form
+```text
+n_ref(s) = [-t_y(s), t_x(s)],
+```
+
+and the signed lateral discrepancy is
+
+```text
+e(s) = n_ref(s)^T [p_est(s) - p_ref(s)].
+```
+
+Positive values lie to the left of the reference path with respect to
+increasing `s`.
+
+The real-data pipeline uses:
+
+```text
+s = [0, 5, 10, ..., 50] m
+```
+
+so one accepted road-frame pair produces one vector in `R^11`.
+
+## How correspondence is established
+
+The two MCAP topics do not automatically provide identical point stations.
+Version 0.3 therefore performs these steps before calculating a residual:
+
+1. Select the ego-lane segment using message metadata when available.
+2. Otherwise select the valid segment nearest the ego origin. Coverage is only
+   a tie-breaker, so a longer adjacent lane does not replace the likely ego lane.
+3. Recompute geometric arc length along the map-based segment.
+4. Define `s=0` by projecting the local ego origin `(0, 0)` onto that segment.
+5. Project every sensor-based vertex onto the reference polyline.
+6. Assign each sensor vertex the corresponding projected reference station.
+7. Reject non-monotonic, truncated, distant, or otherwise invalid path pairs.
+8. Interpolate both paths at the explicit evaluation stations.
+
+This preprocessing establishes the shared-`s` assumption required by the
+existing `Path2D` and `residual_vector` implementation.
+
+## Installation
+
+Create or activate the project virtual environment and run:
+
+```bash
+python -m pip install -e ".[mcap]"
+```
+
+The `mcap` extra installs:
+
+- `mcap`;
+- `mcap-protobuf-support`;
+- `protobuf`.
+
+The core synthetic geometry and Gaussian tests do not require these optional
+packages.
+
+## First MCAP run
+
+Start with one recording and at most 100 accepted frame pairs:
+
+```powershell
+mpr-mcap `
+  ".\data\mcap_data\2025-05-27_13-48-41_2025-05-27_13-49-01_MCAP_000054.mcap" `
+  --assume-same-frame `
+  --max-samples 100 `
+  --output-directory ".\outputs\mcap_v03"
+```
+
+Equivalent module command:
+
+```powershell
+python -m lane_residuals.cli `
+  ".\data\mcap_data\your_recording.mcap" `
+  --assume-same-frame
+```
+
+Do not add `--assume-same-frame` merely to bypass the guard. First confirm from
+the signal documentation or a trusted visualization that both topics use the
+same origin, axes, handedness, and units.
+
+## Generated local outputs
+
+The command writes:
+
+| File | Purpose |
+|---|---|
+| `residual_dataset.npz` | Stations, residual matrix, timestamps, sync deltas |
+| `records.csv` | Row-level provenance and preprocessing diagnostics |
+| `summary.json` | Acceptance/rejection audit, means, standard deviations |
+| `mcap_diagnostics.png` | Path overlay, residuals, timing, rejections |
+| `gaussian_model.npz` | Descriptive fitted mean and covariance |
+| `gaussian_diagnostics.png` | Marginal interval and spatial correlation |
+| `gaussian_summary.json` | Fit settings and in-sample NLL |
+
+The Gaussian fit is descriptive and in-sample. Its reported NLL is not a
+generalization result. A valid train/test comparison requires recording-session
+groups and is deliberately postponed until geometry is validated.
+
+All raw MCAP and derived outputs are ignored by Git. They may contain
+BMW-confidential information and must not be pushed to the public repository.
+
+## Rejection audit
+
+The pipeline records stable rejection reasons, including:
+
+- insufficient reference or estimate coverage;
+- non-monotonic estimate-to-reference projection;
+- excessive projection distance;
+- implausibly large residual;
+- invalid or degenerate path geometry;
+- missing usable lane segments.
+
+Rejections are evidence about the data and assumptions. They must be inspected,
+not silently discarded.
+
+## Gaussian baseline
+
+For `N` accepted path pairs with `H=11` stations, the matrix is:
 
 ```text
 E = [e_1^T; ...; e_N^T] in R^(N x H).
 ```
 
-The unconditional model assumes
+The unconditional model assumes:
 
 ```text
-e_i ~ N(mu, Sigma), independently for i = 1, ..., N.
+e_i ~ N(mu, Sigma), independently across accepted path-pair rows.
 ```
 
-The fitted maximum-likelihood parameters are
+Maximum-likelihood estimates are:
 
 ```text
 mu_hat    = (1 / N) sum_i e_i
 Sigma_hat = (1 / N) sum_i (e_i - mu_hat)(e_i - mu_hat)^T + lambda I.
 ```
 
-The divisor is `N`, because this is the likelihood estimator, not the unbiased
-sample-covariance estimator. `lambda` is an explicitly reported diagonal
-regularization in squared residual units. It prevents numerical failure when
-the empirical covariance is singular or nearly singular.
+The covariance captures dependence between look-ahead stations within one
+residual path. It does not model temporal dependence between consecutive
+frames.
 
-## Central data assumption
+## Tests
 
-`s` is the shared ground-truth reference station assigned to the path points.
-It is not recomputed independently for the estimated path. Consequently,
-ground-truth and estimated positions with the same `s` are assumed to
-correspond.
-
-This assumption is suitable for the first experiment if the source data is
-already aligned. If real data does not provide such correspondence, path
-matching must become a separate preprocessing step and be validated before
-statistical modelling.
-
-## Install and run
-
-From this directory:
+After installation:
 
 ```bash
-python -m pip install -e .
 python -m unittest discover -s tests -v
-python examples/run_demo.py
-python examples/run_gaussian_demo.py
 ```
 
-The first demonstration writes `outputs/residual_demo.png`. The Gaussian
-demonstration uses independent synthetic training and test matrices, writes
-`outputs/gaussian_demo.png`, and prints the test negative log-likelihood.
+The tests cover:
+
+- residual sign and geometry;
+- Gaussian fitting, likelihood, and correlated sampling;
+- dynamic road-message extraction;
+- timestamp and metadata preservation;
+- one-to-one synchronization;
+- ego-segment selection;
+- polyline projection and shared station assignment;
+- rejection reporting and saved dataset structure.
 
 ## Package layout
 
 ```text
-src/lane_residuals/residuals.py  path validation and residual calculation
-src/lane_residuals/gaussian.py   unconditional Gaussian fit, NLL, and sampling
-src/lane_residuals/plotting.py   geometry and Gaussian diagnostics
-examples/run_demo.py             deterministic residual-geometry example
-examples/run_gaussian_demo.py    controlled statistical example
-tests/                            definition and sign-convention tests
+src/lane_residuals/residuals.py      Path2D and signed residual definition
+src/lane_residuals/gaussian.py       Unconditional Gaussian model
+src/lane_residuals/mcap_io.py        Streaming Protobuf MCAP road decoder
+src/lane_residuals/preprocessing.py  Sync, selection, projection, dataset audit
+src/lane_residuals/plotting.py       Geometry, extraction, Gaussian diagnostics
+src/lane_residuals/cli.py            mpr-mcap command
+tests/                               Focused regression tests
 ```
 
-## Interpretation limits
+## Required validation before all ten files
 
-- The Gaussian is **unconditional**: every path pair shares the same mean and
-  covariance regardless of driving conditions.
-- The covariance represents dependence between stations within one residual
-  path. Independence is assumed only between different rows/path pairs.
-- NLL values are comparable only when models use the same residual definition,
-  units, dimension, and evaluation stations.
-- A continuous density can exceed one, so its log-density can be positive and
-  the resulting NLL can be negative. Lower test NLL is still better when the
-  comparison is otherwise valid.
-- The plotted 95% interval is marginal at each station. It is not a 95%
-  simultaneous coverage region for the entire residual path.
-- Regularization affects likelihood and sampling and must therefore be selected
-  without test-set leakage and reported in experiments.
+For the first 100 accepted pairs:
 
-## Next checkpoint after Version 0.2
+1. Inspect several map/sensor path overlays.
+2. Confirm left/right sign convention.
+3. Check that `s=0` is at the ego position.
+4. Inspect timestamp differences.
+5. Review all rejection categories and rates.
+6. Check mean, spread, and spatial correlation for obvious geometric failures.
+7. Confirm the semantic role and coordinate frame of both topics.
 
-Before interpreting this baseline on real data, replace or supplement the demo
-with representative path pairs and answer:
-
-1. Are the two paths already expressed in the same coordinate system?
-2. Does the data provide a common reference station or another correspondence?
-3. Is the left-positive sign convention correct for the project?
-4. Which station range is available reliably across samples?
-5. Are any path pairs invalid, truncated, or geometrically ambiguous?
-
-Then create a drive/sequence-aware train-validation-test split, fit only on the
-training rows, select regularization on validation data, and report test NLL
-plus calibration and covariance diagnostics. The next model should be added
-only after this baseline has been validated and its failures are identified.
+Only then process all ten MCAP chunks. The chunks belong to two contiguous
+recording sessions, so individual chunks must not be randomly split between
+training and testing.

@@ -1,6 +1,17 @@
 __pycache__/
 *.py[cod]
 .venv/
+venv/
 *.egg-info/
-outputs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
 .idea/
+
+# Raw or derived driving data must remain local.
+*.mcap
+*.mcap.zst
+data/
+outputs/
+*.npz
