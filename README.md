@@ -3,12 +3,13 @@
 MPR is a deliberately small project for understanding path discrepancies
 before transferring the workflow to the larger LEEM thesis implementation.
 
-Version 0.3 adds the missing real-data bridge:
+Version 0.3.1 adds the missing real-data bridge:
 
 ```text
 MCAP
 → embedded Protobuf decoding
 → synchronized map/sensor road frames
+→ drive-path extraction or paired-boundary centreline construction
 → ego-segment selection
 → shared reference-station assignment
 → 11-dimensional residual vectors
@@ -32,7 +33,7 @@ This output must be described as:
 > sensor-based versus map-based lane-path discrepancy
 
 The map-based topic has not been established as ground truth. Consequently,
-Version 0.3 does not support a claim about absolute sensor error or sensor
+Version 0.3.1 does not support a claim about absolute sensor error or sensor
 accuracy. BMW signal documentation or supervisor confirmation is required
 before changing that interpretation.
 
@@ -75,17 +76,20 @@ so one accepted road-frame pair produces one vector in `R^11`.
 ## How correspondence is established
 
 The two MCAP topics do not automatically provide identical point stations.
-Version 0.3 therefore performs these steps before calculating a residual:
+Version 0.3.1 therefore performs these steps before calculating a residual:
 
-1. Select the ego-lane segment using message metadata when available.
-2. Otherwise select the valid segment nearest the ego origin. Coverage is only
+1. Extract a provided drive path when its range is valid.
+2. If a sensor-topology segment has no drive path, construct its centreline by
+   resampling and averaging its paired left/right lane boundaries.
+3. Select the ego-lane segment using message metadata when available.
+4. Otherwise select the valid segment nearest the ego origin. Coverage is only
    a tie-breaker, so a longer adjacent lane does not replace the likely ego lane.
-3. Recompute geometric arc length along the map-based segment.
-4. Define `s=0` by projecting the local ego origin `(0, 0)` onto that segment.
-5. Project every sensor-based vertex onto the reference polyline.
-6. Assign each sensor vertex the corresponding projected reference station.
-7. Reject non-monotonic, truncated, distant, or otherwise invalid path pairs.
-8. Interpolate both paths at the explicit evaluation stations.
+5. Recompute geometric arc length along the map-based segment.
+6. Define `s=0` by projecting the local ego origin `(0, 0)` onto that segment.
+7. Project every sensor-based vertex onto the reference polyline.
+8. Assign each sensor vertex the corresponding projected reference station.
+9. Reject non-monotonic, truncated, distant, or otherwise invalid path pairs.
+10. Interpolate both paths at the explicit evaluation stations.
 
 This preprocessing establishes the shared-`s` assumption required by the
 existing `Path2D` and `residual_vector` implementation.
@@ -165,6 +169,11 @@ The pipeline records stable rejection reasons, including:
 
 Rejections are evidence about the data and assumptions. They must be inspected,
 not silently discarded.
+
+`records.csv` and `summary.json` explicitly report whether each selected path
+came from a provided `drive_path` or was constructed from
+`paired_boundaries`. The boundary-derived sensor centreline is a deterministic
+preprocessing result, not a separately measured ground-truth path.
 
 ## Gaussian baseline
 

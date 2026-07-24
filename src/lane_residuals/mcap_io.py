@@ -10,9 +10,10 @@ the structure of opaque binary payloads.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Iterator, Mapping, Sequence
+from typing import Any, Iterable, Iterator, Literal, Mapping, Sequence
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -20,6 +21,7 @@ from numpy.typing import ArrayLike
 from .residuals import FloatArray
 
 MetadataValue = bool | int | float | str
+GeometrySource = Literal["drive_path", "paired_boundaries"]
 
 
 class McapDependencyError(ImportError):
@@ -51,6 +53,7 @@ class RoadSegment:
     curvature: ArrayLike | None = None
     is_ego: bool | None = None
     quality: MetadataValue | None = None
+    geometry_source: GeometrySource = "drive_path"
 
     def __post_init__(self) -> None:
         x = _finite_vector(self.x, name="x")
@@ -79,6 +82,10 @@ class RoadSegment:
             raise RoadMessageError("segment_id must be an integer")
         if self.is_ego is not None and not isinstance(self.is_ego, (bool, np.bool_)):
             raise RoadMessageError("is_ego must be bool or None")
+        if self.geometry_source not in ("drive_path", "paired_boundaries"):
+            raise RoadMessageError(
+                'geometry_source must be "drive_path" or "paired_boundaries"'
+            )
 
         object.__setattr__(self, "segment_id", int(self.segment_id))
         object.__setattr__(self, "x", x)
@@ -256,6 +263,168 @@ def _geometric_arc_length(x: FloatArray, y: FloatArray) -> FloatArray:
     return np.concatenate(([0.0], np.cumsum(increments)))
 
 
+def _valid_pool_range(
+    range_value: Any,
+    *,
+    pool_length: int,
+    minimum_size: int,
+) -> tuple[int, int] | None:
+    if range_value is None:
+        return None
+    try:
+        start = int(_get_attr(range_value, ("start", "start_")))
+        size = int(_get_attr(range_value, ("size", "size_")))
+    except (RoadMessageError, TypeError, ValueError, OverflowError):
+        return None
+    end = start + size
+    if start < 0 or size < minimum_size or end > pool_length:
+        return None
+    return start, end
+
+
+def _optional_numeric_pool(
+    values: Sequence[Any],
+    names: Sequence[str],
+) -> FloatArray | None:
+    extracted: list[float] = []
+    for value in values:
+        item = _get_attr(value, names, default=None)
+        if item is None:
+            return None
+        try:
+            extracted.append(_mean(item))
+        except (RoadMessageError, TypeError, ValueError, OverflowError):
+            return None
+    array = np.asarray(extracted, dtype=np.float64)
+    return array if np.all(np.isfinite(array)) else None
+
+
+def _coordinate_pool(vertices: Sequence[Any]) -> tuple[FloatArray, FloatArray]:
+    try:
+        x = np.asarray(
+            [_mean(_get_attr(vertex, ("x", "x_"))) for vertex in vertices],
+            dtype=np.float64,
+        )
+        y = np.asarray(
+            [_mean(_get_attr(vertex, ("y", "y_"))) for vertex in vertices],
+            dtype=np.float64,
+        )
+    except (TypeError, ValueError, OverflowError) as error:
+        raise RoadMessageError("vertex pool contains unreadable coordinates") from error
+    return x, y
+
+
+def _concatenate_polylines(polylines: Sequence[FloatArray]) -> FloatArray:
+    if not polylines:
+        raise RoadMessageError("boundary range contains no valid geometry")
+    result = np.asarray(polylines[0], dtype=np.float64)
+    for raw_polyline in polylines[1:]:
+        polyline = np.asarray(raw_polyline, dtype=np.float64)
+        if np.linalg.norm(result[-1] - polyline[-1]) < np.linalg.norm(
+            result[-1] - polyline[0]
+        ):
+            polyline = polyline[::-1]
+        if np.linalg.norm(result[-1] - polyline[0]) <= 1e-6:
+            polyline = polyline[1:]
+        if len(polyline):
+            result = np.vstack((result, polyline))
+    if len(result) < 2:
+        raise RoadMessageError("boundary geometry has fewer than two points")
+    return result
+
+
+def _boundary_polyline(
+    lane_segment: Any,
+    *,
+    side: Literal["left", "right"],
+    boundary_pool: Sequence[Any],
+    boundary_points: FloatArray,
+) -> FloatArray:
+    ranges = _get_attr(
+        lane_segment,
+        (
+            f"{side}_lane_boundary_ranges",
+            f"{side}_lane_boundary_ranges_",
+        ),
+        default=None,
+    )
+    if ranges is None:
+        raise RoadMessageError(f"{side} lane-boundary ranges are missing")
+
+    # Sensor topology normally uses camera_based. The later fallbacks keep the
+    # parser useful for road variants that expose only map/artificial geometry.
+    for source_name in ("camera_based", "map_based", "artificial"):
+        pool_range = _valid_pool_range(
+            _get_attr(
+                ranges,
+                (source_name, f"{source_name}_"),
+                default=None,
+            ),
+            pool_length=len(boundary_pool),
+            minimum_size=1,
+        )
+        if pool_range is None:
+            continue
+
+        polylines: list[FloatArray] = []
+        for boundary in boundary_pool[slice(*pool_range)]:
+            geometry_range = _valid_pool_range(
+                _get_attr(boundary, ("geometry", "geometry_"), default=None),
+                pool_length=len(boundary_points),
+                minimum_size=2,
+            )
+            if geometry_range is None:
+                continue
+            points = boundary_points[slice(*geometry_range)]
+            if len(points) >= 2 and np.all(np.isfinite(points)):
+                polylines.append(points)
+        if polylines:
+            return _concatenate_polylines(polylines)
+
+    raise RoadMessageError(f"{side} lane boundary has no usable geometry")
+
+
+def _midpoint_path(left: FloatArray, right: FloatArray) -> FloatArray:
+    left_s = _geometric_arc_length(left[:, 0], left[:, 1])
+    right_s = _geometric_arc_length(right[:, 0], right[:, 1])
+    if left_s[-1] <= 1e-9 or right_s[-1] <= 1e-9:
+        raise RoadMessageError("lane boundary geometry is degenerate")
+
+    same_direction_cost = np.linalg.norm(left[0] - right[0]) + np.linalg.norm(
+        left[-1] - right[-1]
+    )
+    reversed_cost = np.linalg.norm(left[0] - right[-1]) + np.linalg.norm(
+        left[-1] - right[0]
+    )
+    if reversed_cost < same_direction_cost:
+        right = right[::-1]
+        right_s = _geometric_arc_length(right[:, 0], right[:, 1])
+
+    sample_count = max(len(left), len(right))
+    normalized_station = np.linspace(0.0, 1.0, sample_count)
+    left_normalized = left_s / left_s[-1]
+    right_normalized = right_s / right_s[-1]
+    left_sampled = np.column_stack(
+        (
+            np.interp(normalized_station, left_normalized, left[:, 0]),
+            np.interp(normalized_station, left_normalized, left[:, 1]),
+        )
+    )
+    right_sampled = np.column_stack(
+        (
+            np.interp(normalized_station, right_normalized, right[:, 0]),
+            np.interp(normalized_station, right_normalized, right[:, 1]),
+        )
+    )
+    widths = np.linalg.norm(left_sampled - right_sampled, axis=1)
+    median_width = float(np.median(widths))
+    if not np.isfinite(median_width) or not 1.0 <= median_width <= 10.0:
+        raise RoadMessageError(
+            f"paired boundaries imply implausible median width {median_width:.3f} m"
+        )
+    return 0.5 * (left_sampled + right_sampled)
+
+
 def road_frame_from_message(
     message: Any,
     *,
@@ -275,43 +444,24 @@ def road_frame_from_message(
         _get_attr(
             message,
             ("polyline_vertex_pool", "polyline_vertex_pool_"),
+            default=(),
         )
     )
     lane_segments = tuple(
         _get_attr(message, ("lane_segments", "lane_segments_"))
     )
-    if not vertices:
-        raise RoadMessageError("polyline vertex pool is empty")
     if not lane_segments:
         raise RoadMessageError("lane segment list is empty")
 
-    x_pool = np.asarray(
-        [_mean(_get_attr(vertex, ("x", "x_"))) for vertex in vertices],
-        dtype=np.float64,
+    x_pool, y_pool = (
+        _coordinate_pool(vertices)
+        if vertices
+        else (np.empty(0, dtype=np.float64), np.empty(0, dtype=np.float64))
     )
-    y_pool = np.asarray(
-        [_mean(_get_attr(vertex, ("y", "y_"))) for vertex in vertices],
-        dtype=np.float64,
-    )
-
-    heading_values = [
-        _get_attr(vertex, ("heading", "heading_"), default=None)
-        for vertex in vertices
-    ]
-    heading_pool = (
-        np.asarray([_mean(value) for value in heading_values], dtype=np.float64)
-        if all(value is not None for value in heading_values)
-        else None
-    )
-
-    curvature_values = [
-        _get_attr(vertex, ("curvature", "curvature_"), default=None)
-        for vertex in vertices
-    ]
-    curvature_pool = (
-        np.asarray([_mean(value) for value in curvature_values], dtype=np.float64)
-        if all(value is not None for value in curvature_values)
-        else None
+    heading_pool = _optional_numeric_pool(vertices, ("heading", "heading_"))
+    curvature_pool = _optional_numeric_pool(
+        vertices,
+        ("curvature", "curvature_"),
     )
 
     arc_pool_raw = _get_attr(
@@ -325,9 +475,27 @@ def road_frame_from_message(
         else None
     )
     if arc_pool is not None and len(arc_pool) != len(vertices):
-        raise RoadMessageError(
-            "polyline arc-length pool does not match the vertex-pool length"
+        arc_pool = None
+
+    boundary_vertices = tuple(
+        _get_attr(
+            message,
+            ("boundary_vertex_pool", "boundary_vertex_pool_"),
+            default=(),
         )
+    )
+    boundary_pool = tuple(
+        _get_attr(
+            message,
+            ("lane_boundary_pool", "lane_boundary_pool_"),
+            default=(),
+        )
+    )
+    if boundary_vertices:
+        boundary_x, boundary_y = _coordinate_pool(boundary_vertices)
+        boundary_points = np.column_stack((boundary_x, boundary_y))
+    else:
+        boundary_points = np.empty((0, 2), dtype=np.float64)
 
     ego_segment_id = _optional_metadata(
         message,
@@ -345,26 +513,72 @@ def road_frame_from_message(
     if not isinstance(ego_segment_id, int):
         ego_segment_id = None
 
-    extracted: list[RoadSegment] = []
-    for lane_segment in lane_segments:
-        segment_id = int(_get_attr(lane_segment, ("id", "id_")))
-        drive_path_range = _get_attr(
-            lane_segment,
-            ("drive_path_range", "drive_path_range_"),
-        )
-        start = int(_get_attr(drive_path_range, ("start", "start_")))
-        size = int(_get_attr(drive_path_range, ("size", "size_")))
-        end = start + size
-        if start < 0 or size < 2 or end > len(vertices):
-            continue
+    ego_indices_raw = _get_attr(
+        message,
+        (
+            "ego_lane_segment_indices",
+            "ego_lane_segment_indices_",
+        ),
+        default=(),
+    )
+    try:
+        ego_indices = {int(index) for index in ego_indices_raw}
+    except (TypeError, ValueError, OverflowError):
+        ego_indices = set()
 
-        x = x_pool[start:end]
-        y = y_pool[start:end]
-        arc_length = (
-            arc_pool[start:end]
-            if arc_pool is not None
-            else _geometric_arc_length(x, y)
+    extracted: list[RoadSegment] = []
+    rejection_reasons: Counter[str] = Counter()
+    for segment_index, lane_segment in enumerate(lane_segments):
+        segment_id = int(_get_attr(lane_segment, ("id", "id_")))
+        drive_path_range = _valid_pool_range(
+            _get_attr(
+                lane_segment,
+                ("drive_path_range", "drive_path_range_"),
+                default=None,
+            ),
+            pool_length=len(vertices),
+            minimum_size=2,
         )
+        geometry_source: GeometrySource
+        if drive_path_range is not None:
+            start, end = drive_path_range
+            x = x_pool[start:end]
+            y = y_pool[start:end]
+            arc_length = (
+                arc_pool[start:end]
+                if arc_pool is not None
+                else _geometric_arc_length(x, y)
+            )
+            heading = None if heading_pool is None else heading_pool[start:end]
+            curvature = (
+                None if curvature_pool is None else curvature_pool[start:end]
+            )
+            geometry_source = "drive_path"
+        else:
+            try:
+                left = _boundary_polyline(
+                    lane_segment,
+                    side="left",
+                    boundary_pool=boundary_pool,
+                    boundary_points=boundary_points,
+                )
+                right = _boundary_polyline(
+                    lane_segment,
+                    side="right",
+                    boundary_pool=boundary_pool,
+                    boundary_points=boundary_points,
+                )
+                midpoint = _midpoint_path(left, right)
+            except RoadMessageError as error:
+                rejection_reasons[str(error)] += 1
+                continue
+            x = midpoint[:, 0]
+            y = midpoint[:, 1]
+            arc_length = _geometric_arc_length(x, y)
+            heading = None
+            curvature = None
+            geometry_source = "paired_boundaries"
+
         is_ego = _optional_bool(
             lane_segment,
             (
@@ -382,6 +596,8 @@ def road_frame_from_message(
         )
         if ego_segment_id is not None:
             is_ego = segment_id == ego_segment_id
+        elif ego_indices:
+            is_ego = segment_index in ego_indices
 
         quality = _optional_metadata(
             lane_segment,
@@ -403,22 +619,25 @@ def road_frame_from_message(
                     x=x,
                     y=y,
                     arc_length=arc_length,
-                    heading=None if heading_pool is None else heading_pool[start:end],
-                    curvature=(
-                        None
-                        if curvature_pool is None
-                        else curvature_pool[start:end]
-                    ),
+                    heading=heading,
+                    curvature=curvature,
                     is_ego=is_ego,
                     quality=quality,
+                    geometry_source=geometry_source,
                 )
             )
-        except RoadMessageError:
+        except RoadMessageError as error:
             # One malformed range must not discard every usable segment in the frame.
+            rejection_reasons[str(error)] += 1
             continue
 
     if not extracted:
-        raise RoadMessageError("message contains no valid road segments")
+        details = ", ".join(
+            f"{count}x {reason}"
+            for reason, count in rejection_reasons.most_common(3)
+        )
+        suffix = f": {details}" if details else ""
+        raise RoadMessageError(f"message contains no valid road segments{suffix}")
 
     metadata: list[tuple[str, MetadataValue]] = []
     for output_name, aliases in (
@@ -427,6 +646,8 @@ def road_frame_from_message(
             (
                 "quality",
                 "quality_",
+                "event_data_qualifier",
+                "event_data_qualifier_",
                 "qualifier",
                 "qualifier_",
                 "data_quality",
@@ -475,11 +696,16 @@ def road_frames_from_decoded_messages(
     if not requested:
         raise ValueError("topics must not be empty")
     grouped: dict[str, list[RoadFrame]] = {topic: [] for topic in requested}
+    decoded_counts: Counter[str] = Counter()
+    rejection_reasons: dict[str, Counter[str]] = {
+        topic: Counter() for topic in requested
+    }
 
     for schema, channel, message, decoded in decoded_messages:
         topic = str(channel.topic)
         if topic not in grouped:
             continue
+        decoded_counts[topic] += 1
         schema_name = str(schema.name)
         if schema_name != expected_schema_name:
             raise RoadMessageError(
@@ -499,12 +725,22 @@ def road_frames_from_decoded_messages(
                 publish_time_ns=message.publish_time,
                 sequence=getattr(message, "sequence", 0),
             )
-        except RoadMessageError:
+        except RoadMessageError as error:
+            rejection_reasons[topic][str(error)] += 1
             continue
         grouped[topic].append(frame)
 
-    for frames in grouped.values():
+    for topic, frames in grouped.items():
         frames.sort(key=lambda frame: frame.log_time_ns)
+        if decoded_counts[topic] and not frames:
+            details = "; ".join(
+                f"{count}x {reason}"
+                for reason, count in rejection_reasons[topic].most_common(3)
+            )
+            raise RoadMessageError(
+                f'topic "{topic}" had {decoded_counts[topic]} decoded messages, '
+                f"but all failed road extraction: {details}"
+            )
     return grouped
 
 

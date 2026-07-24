@@ -1,6 +1,6 @@
 """Road-frame synchronization and conversion to residual vectors.
 
-Version 0.3 treats the map-based road as a *surrogate reference*, not as
+Version 0.3.1 treats the map-based road as a *surrogate reference*, not as
 ground truth.  Sensor-path vertices are projected onto the selected reference
 polyline so that both paths use one shared longitudinal coordinate before the
 existing residual definition is applied.
@@ -82,6 +82,8 @@ class ResidualRecord:
     synchronization_delta_ms: float
     reference_segment_id: int
     estimate_segment_id: int
+    reference_geometry_source: str
+    estimate_geometry_source: str
     reference_selection: str
     estimate_selection: str
     estimate_points_retained_fraction: float
@@ -621,6 +623,12 @@ def build_residual_dataset(
                 synchronization_delta_ms=pair.delta_ns / 1_000_000.0,
                 reference_segment_id=selected_reference.segment.segment_id,
                 estimate_segment_id=selected_estimate.segment.segment_id,
+                reference_geometry_source=(
+                    selected_reference.segment.geometry_source
+                ),
+                estimate_geometry_source=(
+                    selected_estimate.segment.geometry_source
+                ),
                 reference_selection=selected_reference.method,
                 estimate_selection=selected_estimate.method,
                 estimate_points_retained_fraction=retained_fraction,
@@ -770,6 +778,12 @@ def save_residual_dataset(
     estimate_selection_counts = Counter(
         record.estimate_selection for record in dataset.records
     )
+    reference_geometry_source_counts = Counter(
+        record.reference_geometry_source for record in dataset.records
+    )
+    estimate_geometry_source_counts = Counter(
+        record.estimate_geometry_source for record in dataset.records
+    )
     summary = {
         "interpretation": (
             "sensor-based versus map-based lane-path discrepancy; "
@@ -796,6 +810,12 @@ def save_residual_dataset(
         },
         "reference_selection_counts": dict(reference_selection_counts),
         "estimate_selection_counts": dict(estimate_selection_counts),
+        "reference_geometry_source_counts": dict(
+            reference_geometry_source_counts
+        ),
+        "estimate_geometry_source_counts": dict(
+            estimate_geometry_source_counts
+        ),
         "extraction_report": dataset.report.to_dict(),
     }
     summary_path = destination / "summary.json"

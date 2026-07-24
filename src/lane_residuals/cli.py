@@ -97,7 +97,7 @@ def _stations(start: float, stop: float, step: float) -> np.ndarray:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the v0.3 MCAP-to-Gaussian checkpoint."""
+    """Run the v0.3.1 MCAP-to-Gaussian checkpoint."""
 
     parser = _parser()
     arguments = parser.parse_args(argv)
