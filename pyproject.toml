@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.3.1"
-description = "MCAP lane-path discrepancy extraction and Gaussian modelling"
+version = "0.3.2"
+description = "MCAP lane-association audit, path discrepancy extraction, and Gaussian modelling"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

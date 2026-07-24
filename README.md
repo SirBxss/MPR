@@ -3,14 +3,17 @@
 MPR is a deliberately small project for understanding path discrepancies
 before transferring the workflow to the larger LEEM thesis implementation.
 
-Version 0.3.1 adds the missing real-data bridge:
+Version 0.3.2 adds a lane-association audit before the real-data result is
+interpreted:
 
 ```text
 MCAP
 → embedded Protobuf decoding
-→ synchronized map/sensor road frames
+→ source-time synchronization of map/sensor road frames
 → drive-path extraction or paired-boundary centreline construction
-→ ego-segment selection
+→ all-candidate inventory and labelled lane-association audit
+→ ego-segment selection with explicit provenance
+→ 20/30/40/50 m geometric coverage analysis
 → shared reference-station assignment
 → 11-dimensional residual vectors
 → descriptive multivariate Gaussian fit
@@ -33,13 +36,18 @@ This output must be described as:
 > sensor-based versus map-based lane-path discrepancy
 
 The map-based topic has not been established as ground truth. Consequently,
-Version 0.3.1 does not support a claim about absolute sensor error or sensor
+Version 0.3.2 does not support a claim about absolute sensor error or sensor
 accuracy. BMW signal documentation or supervisor confirmation is required
 before changing that interpretation.
 
 The two paths must also be expressed in the same local coordinate frame.
 Processing is intentionally blocked until the operator explicitly confirms
 that assumption with `--assume-same-frame`.
+
+The real v0.3.1 checkpoint selected every sensor segment with
+`nearest_origin_fallback` and produced an approximately one-lane-width
+discrepancy. Version 0.3.2 therefore treats lane association as unresolved. It
+does not use that Gaussian fit as model-performance evidence.
 
 ## Residual definition
 
@@ -76,20 +84,24 @@ so one accepted road-frame pair produces one vector in `R^11`.
 ## How correspondence is established
 
 The two MCAP topics do not automatically provide identical point stations.
-Version 0.3.1 therefore performs these steps before calculating a residual:
-
+Version 0.3.2 therefore performs these steps before calculating a residual:
 1. Extract a provided drive path when its range is valid.
 2. If a sensor-topology segment has no drive path, construct its centreline by
    resampling and averaging its paired left/right lane boundaries.
-3. Select the ego-lane segment using message metadata when available.
-4. Otherwise select the valid segment nearest the ego origin. Coverage is only
+3. Pair frames by embedded source timestamp by default while also reporting
+   the MCAP-log-time difference.
+4. Inventory every map and sensor candidate with its segment ID, ego flag,
+   geometry source, point count, origin distance, and forward coverage.
+5. Select the ego-lane segment using message metadata when available.
+6. Otherwise select the valid segment nearest the ego origin. Coverage is only
    a tie-breaker, so a longer adjacent lane does not replace the likely ego lane.
-5. Recompute geometric arc length along the map-based segment.
-6. Define `s=0` by projecting the local ego origin `(0, 0)` onto that segment.
-7. Project every sensor-based vertex onto the reference polyline.
-8. Assign each sensor vertex the corresponding projected reference station.
-9. Reject non-monotonic, truncated, distant, or otherwise invalid path pairs.
-10. Interpolate both paths at the explicit evaluation stations.
+7. Recompute geometric arc length along the map-based segment.
+8. Define `s=0` by projecting the local ego origin `(0, 0)` onto that segment.
+9. Project every sensor-based vertex onto the reference polyline.
+10. Assign each sensor vertex the corresponding projected reference station.
+11. Count geometric coverage independently at 20, 30, 40, and 50 m.
+12. Reject non-monotonic, truncated, distant, or otherwise invalid path pairs.
+13. Interpolate both paths at the explicit evaluation stations.
 
 This preprocessing establishes the shared-`s` assumption required by the
 existing `Path2D` and `residual_vector` implementation.
@@ -120,7 +132,7 @@ mpr-mcap `
   ".\data\mcap_data\2025-05-27_13-48-41_2025-05-27_13-49-01_MCAP_000054.mcap" `
   --assume-same-frame `
   --max-samples 100 `
-  --output-directory ".\outputs\mcap_v03"
+  --output-directory ".\outputs\mcap_v032"
 ```
 
 Equivalent module command:
@@ -128,7 +140,9 @@ Equivalent module command:
 ```powershell
 python -m lane_residuals.cli `
   ".\data\mcap_data\your_recording.mcap" `
-  --assume-same-frame
+  --assume-same-frame `
+  --time-basis source `
+  --audit-horizons 20 30 40 50
 ```
 
 Do not add `--assume-same-frame` merely to bypass the guard. First confirm from
@@ -143,15 +157,26 @@ The command writes:
 |---|---|
 | `residual_dataset.npz` | Stations, residual matrix, timestamps, sync deltas |
 | `records.csv` | Row-level provenance and preprocessing diagnostics |
-| `summary.json` | Acceptance/rejection audit, means, standard deviations |
-| `mcap_diagnostics.png` | Path overlay, residuals, timing, rejections |
-| `gaussian_model.npz` | Descriptive fitted mean and covariance |
-| `gaussian_diagnostics.png` | Marginal interval and spatial correlation |
-| `gaussian_summary.json` | Fit settings and in-sample NLL |
+| `pair_audit.csv` | Every considered pair, both time deltas, selected IDs, coverage, and rejection |
+| `candidate_segments.csv` | Every map/sensor segment candidate and selection evidence |
+| `summary.json` | Acceptance, timing, lane-selection, and horizon-coverage audit |
+| `mcap_diagnostics.png` | Cropped path overlay, residuals, timing, rejections, horizons, selection methods |
+| `lane_association_audit.png` | Labelled map/sensor candidate segments; `*` marks each selection |
+| `gaussian_model.npz` | Optional descriptive fitted mean and covariance |
+| `gaussian_diagnostics.png` | Optional marginal interval and spatial correlation |
+| `gaussian_summary.json` | Optional fit settings and in-sample NLL |
 
 The Gaussian fit is descriptive and in-sample. Its reported NLL is not a
 generalization result. A valid train/test comparison requires recording-session
 groups and is deliberately postponed until geometry is validated.
+
+Version 0.3.2 does not fit the Gaussian by default. After the labelled lane
+association is confirmed, add `--fit-gaussian` to generate the three Gaussian
+outputs.
+
+If no pair survives the configured 50 m checks, v0.3.2 still writes the pair,
+candidate, timing, rejection, and horizon audits. This is intentional: failed
+association or coverage must remain inspectable.
 
 All raw MCAP and derived outputs are ignored by Git. They may contain
 BMW-confidential information and must not be pushed to the public repository.
@@ -169,6 +194,10 @@ The pipeline records stable rejection reasons, including:
 
 Rejections are evidence about the data and assumptions. They must be inspected,
 not silently discarded.
+
+`horizon_coverage` in `summary.json` answers a narrower question: whether the
+selected paths geometrically reach 20, 30, 40, or 50 m. It does not establish
+that the selected lanes correspond or that their discrepancy is plausible.
 
 `records.csv` and `summary.json` explicitly report whether each selected path
 came from a provided `drive_path` or was constructed from
@@ -215,7 +244,10 @@ The tests cover:
 - dynamic road-message extraction;
 - timestamp and metadata preservation;
 - one-to-one synchronization;
+- source-time default pairing with separate source/log delta reporting;
 - ego-segment selection;
+- all-candidate lane-association records;
+- 20/30/40/50 m coverage counts, including rejected pairs;
 - polyline projection and shared station assignment;
 - rejection reporting and saved dataset structure.
 
@@ -235,13 +267,16 @@ tests/                               Focused regression tests
 
 For the first 100 accepted pairs:
 
-1. Inspect several map/sensor path overlays.
-2. Confirm left/right sign convention.
-3. Check that `s=0` is at the ego position.
-4. Inspect timestamp differences.
-5. Review all rejection categories and rates.
-6. Check mean, spread, and spatial correlation for obvious geometric failures.
+1. Inspect `lane_association_audit.png` and verify the labelled map/sensor IDs.
+2. Confirm whether map segment `2343141540299302401` corresponds to sensor
+   segment `3` in the first recording.
+3. Inspect source-time and log-time differences separately.
+4. Compare the 20, 30, 40, and 50 m geometric-coverage counts.
+5. Confirm left/right sign convention and check that `s=0` is at the ego position.
+6. Review all rejection categories and rates.
 7. Confirm the semantic role and coordinate frame of both topics.
+8. Only after association is validated, interpret the residual mean, spread,
+   covariance, or Gaussian fit.
 
 Only then process all ten MCAP chunks. The chunks belong to two contiguous
 recording sessions, so individual chunks must not be randomly split between

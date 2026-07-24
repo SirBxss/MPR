@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from lane_residuals import (
@@ -11,6 +12,8 @@ from lane_residuals import (
     build_residual_dataset,
     build_residual_dataset_from_mcap,
     estimate_path_on_reference,
+    plot_lane_association_audit,
+    plot_mcap_dataset_diagnostics,
     project_points_to_polyline,
     reference_path_from_segment,
     save_residual_dataset,
@@ -147,6 +150,140 @@ class PreprocessingTests(unittest.TestCase):
         self.assertEqual(result.pairs[0].delta_ns, 1_000_000)
         self.assertEqual(result.unmatched_reference, 1)
         self.assertEqual(result.unmatched_estimate, 2)
+
+    def test_source_time_is_default_and_both_time_deltas_are_audited(self) -> None:
+        reference_segment = _segment(1, y=0.0, is_ego=True)
+        estimate_segment = _segment(2, y=0.2, is_ego=True)
+        reference = RoadFrame(
+            topic="/reference",
+            schema_name="Adp.Perception.Road",
+            log_time_ns=100_000_000,
+            publish_time_ns=100_000_000,
+            sequence=0,
+            source_time_ns=80_000_000,
+            segments=(reference_segment,),
+        )
+        estimate = RoadFrame(
+            topic="/estimate",
+            schema_name="Adp.Perception.Road",
+            log_time_ns=100_000_000,
+            publish_time_ns=100_000_000,
+            sequence=0,
+            source_time_ns=104_000_000,
+            segments=(estimate_segment,),
+        )
+
+        dataset = build_residual_dataset(
+            [reference],
+            [estimate],
+            recording_id="source-time-test",
+            max_delta_ms=30.0,
+            max_samples=None,
+        )
+
+        self.assertEqual(dataset.report.time_basis, "source")
+        self.assertEqual(dataset.records[0].synchronization_delta_ms, 24.0)
+        self.assertEqual(dataset.records[0].source_time_delta_ms, 24.0)
+        self.assertEqual(dataset.records[0].log_time_delta_ms, 0.0)
+        self.assertEqual(dataset.pair_audit_records[0].source_time_delta_ms, 24.0)
+
+    def test_candidate_and_horizon_audits_keep_rejected_pairs(self) -> None:
+        reference_frames = [
+            _frame(
+                "/reference",
+                index * 100_000_000,
+                (
+                    _segment(10, y=0.0, is_ego=True),
+                    _segment(11, y=3.5, is_ego=False),
+                ),
+            )
+            for index in range(2)
+        ]
+        estimate_frames = [
+            _frame(
+                "/estimate",
+                0,
+                (
+                    _segment(20, y=0.2, x_stop=30.0),
+                    _segment(21, y=3.7),
+                ),
+            ),
+            _frame(
+                "/estimate",
+                100_000_000,
+                (
+                    _segment(20, y=0.2),
+                    _segment(21, y=3.7),
+                ),
+            ),
+        ]
+
+        dataset = build_residual_dataset(
+            reference_frames,
+            estimate_frames,
+            recording_id="audit-test",
+            max_samples=None,
+            n_association_examples=4,
+        )
+
+        self.assertEqual(dataset.residuals.shape, (1, 11))
+        self.assertEqual(len(dataset.pair_audit_records), 2)
+        self.assertEqual(len(dataset.candidate_records), 8)
+        self.assertEqual(
+            dataset.pair_audit_records[0].rejection_reason,
+            "insufficient_estimate_coverage",
+        )
+        self.assertEqual(dataset.pair_audit_records[1].accepted, True)
+        self.assertEqual(
+            dataset.horizon_coverage_counts(),
+            {20.0: 2, 30.0: 2, 40.0: 1, 50.0: 1},
+        )
+        selected_estimates = [
+            record
+            for record in dataset.candidate_records
+            if record.role == "estimate" and record.selected
+        ]
+        self.assertEqual(
+            [record.segment_id for record in selected_estimates],
+            [20, 20],
+        )
+
+        diagnostics, _ = plot_mcap_dataset_diagnostics(dataset)
+        association, _ = plot_lane_association_audit(dataset)
+        plt.close(diagnostics)
+        plt.close(association)
+
+    def test_zero_accepted_pairs_still_save_the_association_audit(self) -> None:
+        dataset = build_residual_dataset(
+            [_frame("/reference", 0, (_segment(1, y=0.0, is_ego=True),))],
+            [
+                _frame(
+                    "/estimate",
+                    0,
+                    (
+                        _segment(
+                            2,
+                            y=0.2,
+                            x_stop=20.0,
+                            is_ego=True,
+                        ),
+                    ),
+                )
+            ],
+            recording_id="all-rejected",
+            max_samples=None,
+        )
+
+        self.assertEqual(dataset.residuals.shape, (0, 11))
+        self.assertEqual(len(dataset.pair_audit_records), 1)
+        self.assertEqual(len(dataset.association_examples), 1)
+
+        with tempfile.TemporaryDirectory() as directory:
+            written = save_residual_dataset(dataset, directory)
+            summary = json.loads(Path(written["summary"]).read_text("utf-8"))
+            self.assertIsNone(summary["mean_residual_m"])
+            self.assertTrue(Path(written["pair_audit"]).is_file())
+            self.assertTrue(Path(written["candidate_segments"]).is_file())
 
     def test_dataset_recovers_offset_and_reports_short_path_rejection(self) -> None:
         reference_frames = []

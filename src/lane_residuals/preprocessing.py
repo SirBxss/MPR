@@ -1,9 +1,9 @@
-"""Road-frame synchronization and conversion to residual vectors.
+"""Road-frame synchronization, lane-association audit, and residual extraction.
 
-Version 0.3.1 treats the map-based road as a *surrogate reference*, not as
-ground truth.  Sensor-path vertices are projected onto the selected reference
-polyline so that both paths use one shared longitudinal coordinate before the
-existing residual definition is applied.
+Version 0.3.2 treats the map-based road as a *surrogate reference*, not as
+ground truth.  It preserves every lane candidate before selecting one, uses
+embedded source timestamps by default, and reports geometric coverage at
+multiple horizons before the residual model is interpreted.
 """
 
 from __future__ import annotations
@@ -24,6 +24,7 @@ from .residuals import FloatArray, Path2D, residual_vector
 DEFAULT_REFERENCE_TOPIC = "/adp/road_lane_map_based"
 DEFAULT_ESTIMATE_TOPIC = "/adp/lane_topology_sensor_based"
 DEFAULT_STATIONS = np.arange(0.0, 50.1, 5.0)
+DEFAULT_AUDIT_HORIZONS = (20.0, 30.0, 40.0, 50.0)
 
 
 class FrameRejection(ValueError):
@@ -59,6 +60,23 @@ class SynchronizedRoadFramePair:
     estimate: RoadFrame
     delta_ns: int
 
+    @property
+    def log_delta_ns(self) -> int:
+        """Return estimate minus reference MCAP log time."""
+
+        return self.estimate.log_time_ns - self.reference.log_time_ns
+
+    @property
+    def source_delta_ns(self) -> int | None:
+        """Return estimate minus reference embedded source time when available."""
+
+        if (
+            self.reference.source_time_ns is None
+            or self.estimate.source_time_ns is None
+        ):
+            return None
+        return self.estimate.source_time_ns - self.reference.source_time_ns
+
 
 @dataclass(frozen=True)
 class SynchronizationResult:
@@ -80,6 +98,8 @@ class ResidualRecord:
     reference_source_time_ns: int | None
     estimate_source_time_ns: int | None
     synchronization_delta_ms: float
+    log_time_delta_ms: float
+    source_time_delta_ms: float | None
     reference_segment_id: int
     estimate_segment_id: int
     reference_geometry_source: str
@@ -88,6 +108,66 @@ class ResidualRecord:
     estimate_selection: str
     estimate_points_retained_fraction: float
     maximum_projection_distance_m: float
+
+
+@dataclass(frozen=True)
+class CandidateSegmentRecord:
+    """Geometry and selection evidence for one lane-segment candidate."""
+
+    recording_id: str
+    pair_index: int
+    role: Literal["reference", "estimate"]
+    log_time_ns: int
+    source_time_ns: int | None
+    segment_id: int
+    selected: bool
+    selection_method: str
+    is_ego: bool | None
+    geometry_source: str
+    quality: object | None
+    point_count: int
+    origin_distance_m: float
+    station_start_m: float
+    station_end_m: float
+    forward_coverage_m: float
+
+
+@dataclass(frozen=True)
+class PairAuditRecord:
+    """Synchronization, association, coverage, and rejection evidence per pair."""
+
+    recording_id: str
+    pair_index: int
+    synchronization_basis: str
+    synchronization_delta_ms: float
+    log_time_delta_ms: float
+    source_time_delta_ms: float | None
+    reference_segment_id: int | None
+    estimate_segment_id: int | None
+    reference_selection: str
+    estimate_selection: str
+    reference_forward_coverage_m: float | None
+    estimate_forward_coverage_m: float | None
+    common_forward_coverage_m: float | None
+    estimate_points_retained_fraction: float | None
+    maximum_projection_distance_m: float | None
+    maximum_absolute_residual_m: float | None
+    accepted: bool
+    rejection_reason: str
+
+
+@dataclass(frozen=True)
+class LaneAssociationExample:
+    """All candidates for one synchronized pair retained for labelled plotting."""
+
+    pair_index: int
+    reference_segments: tuple[RoadSegment, ...]
+    estimate_segments: tuple[RoadSegment, ...]
+    selected_reference_segment_id: int | None
+    selected_estimate_segment_id: int | None
+    source_time_delta_ms: float | None
+    accepted: bool
+    rejection_reason: str
 
 
 @dataclass(frozen=True)
@@ -145,6 +225,10 @@ class ResidualDataset:
     residuals: FloatArray
     records: tuple[ResidualRecord, ...]
     examples: tuple[PathPairExample, ...]
+    candidate_records: tuple[CandidateSegmentRecord, ...]
+    pair_audit_records: tuple[PairAuditRecord, ...]
+    association_examples: tuple[LaneAssociationExample, ...]
+    audit_horizons_m: tuple[float, ...]
     report: ExtractionReport
     reference_topic: str
     estimate_topic: str
@@ -152,6 +236,7 @@ class ResidualDataset:
     def __post_init__(self) -> None:
         stations = np.asarray(self.stations, dtype=np.float64)
         residuals = np.asarray(self.residuals, dtype=np.float64)
+        audit_horizons = np.asarray(self.audit_horizons_m, dtype=np.float64)
         if stations.ndim != 1 or len(stations) == 0:
             raise ValueError("stations must be a nonempty one-dimensional array")
         if residuals.ndim != 2 or residuals.shape[1] != len(stations):
@@ -160,8 +245,35 @@ class ResidualDataset:
             raise ValueError("one ResidualRecord is required for every residual row")
         if not np.all(np.isfinite(stations)) or not np.all(np.isfinite(residuals)):
             raise ValueError("stations and residuals must contain only finite values")
+        if (
+            audit_horizons.ndim != 1
+            or len(audit_horizons) == 0
+            or not np.all(np.isfinite(audit_horizons))
+            or np.any(audit_horizons <= 0.0)
+            or np.any(np.diff(audit_horizons) <= 0.0)
+        ):
+            raise ValueError(
+                "audit_horizons_m must be finite, positive, and strictly increasing"
+            )
         object.__setattr__(self, "stations", stations)
         object.__setattr__(self, "residuals", residuals)
+        object.__setattr__(
+            self,
+            "audit_horizons_m",
+            tuple(float(value) for value in audit_horizons),
+        )
+
+    def horizon_coverage_counts(self) -> dict[float, int]:
+        """Count geometrically usable synchronized pairs at each audit horizon."""
+
+        return {
+            horizon: sum(
+                record.common_forward_coverage_m is not None
+                and record.common_forward_coverage_m >= horizon - 1e-9
+                for record in self.pair_audit_records
+            )
+            for horizon in self.audit_horizons_m
+        }
 
 
 def _polyline_geometry(points: ArrayLike) -> tuple[FloatArray, FloatArray]:
@@ -398,6 +510,60 @@ def select_ego_segment(
     )
 
 
+def candidate_segment_records(
+    frame: RoadFrame,
+    *,
+    recording_id: str,
+    pair_index: int,
+    role: Literal["reference", "estimate"],
+    selected: SelectedRoadSegment | None,
+) -> tuple[CandidateSegmentRecord, ...]:
+    """Describe every segment in a frame without discarding adjacent lanes."""
+
+    records: list[CandidateSegmentRecord] = []
+    selected_id = None if selected is None else selected.segment.segment_id
+    selection_method = "" if selected is None else selected.method
+    for segment in frame.segments:
+        try:
+            path = reference_path_from_segment(segment)
+            origin_distance = float(
+                project_points_to_polyline(
+                    segment.points,
+                    [[0.0, 0.0]],
+                ).distances[0]
+            )
+        except (ValueError, FloatingPointError):
+            continue
+        records.append(
+            CandidateSegmentRecord(
+                recording_id=recording_id,
+                pair_index=pair_index,
+                role=role,
+                log_time_ns=frame.log_time_ns,
+                source_time_ns=frame.source_time_ns,
+                segment_id=segment.segment_id,
+                selected=segment.segment_id == selected_id,
+                selection_method=(
+                    selection_method if segment.segment_id == selected_id else ""
+                ),
+                is_ego=segment.is_ego,
+                geometry_source=segment.geometry_source,
+                quality=segment.quality,
+                point_count=len(segment.x),
+                origin_distance_m=origin_distance,
+                station_start_m=float(path.s[0]),
+                station_end_m=float(path.s[-1]),
+                forward_coverage_m=max(0.0, float(path.s[-1])),
+            )
+        )
+    return tuple(records)
+
+
+def _source_delta_ms(pair: SynchronizedRoadFramePair) -> float | None:
+    delta_ns = pair.source_delta_ns
+    return None if delta_ns is None else delta_ns / 1_000_000.0
+
+
 def _frame_time_ns(
     frame: RoadFrame,
     basis: Literal["log", "source"],
@@ -410,7 +576,7 @@ def synchronize_road_frames(
     estimate_frames: Sequence[RoadFrame],
     *,
     max_delta_ms: float = 50.0,
-    time_basis: Literal["log", "source"] = "log",
+    time_basis: Literal["log", "source"] = "source",
 ) -> SynchronizationResult:
     """Greedily create ordered, one-to-one nearest timestamp matches."""
 
@@ -509,16 +675,19 @@ def build_residual_dataset(
     reference_topic: str = DEFAULT_REFERENCE_TOPIC,
     estimate_topic: str = DEFAULT_ESTIMATE_TOPIC,
     max_delta_ms: float = 50.0,
-    time_basis: Literal["log", "source"] = "log",
+    time_basis: Literal["log", "source"] = "source",
     max_samples: int | None = 100,
     max_projection_distance_m: float = 5.0,
     max_absolute_residual_m: float = 5.0,
     minimum_retained_fraction: float = 0.8,
     n_examples: int = 4,
+    audit_horizons_m: Sequence[float] = DEFAULT_AUDIT_HORIZONS,
+    n_association_examples: int = 6,
 ) -> ResidualDataset:
-    """Convert synchronized road frames into an ``N x H`` residual dataset."""
+    """Convert synchronized road frames into residuals plus association evidence."""
 
     station_array = np.asarray(stations, dtype=np.float64)
+    audit_horizons = np.asarray(audit_horizons_m, dtype=np.float64)
     if (
         station_array.ndim != 1
         or len(station_array) == 0
@@ -526,8 +695,20 @@ def build_residual_dataset(
         or np.any(np.diff(station_array) <= 0.0)
     ):
         raise ValueError("stations must be finite and strictly increasing")
+    if (
+        audit_horizons.ndim != 1
+        or len(audit_horizons) == 0
+        or not np.all(np.isfinite(audit_horizons))
+        or np.any(audit_horizons <= 0.0)
+        or np.any(np.diff(audit_horizons) <= 0.0)
+    ):
+        raise ValueError(
+            "audit_horizons_m must be finite, positive, and strictly increasing"
+        )
     if max_samples is not None and max_samples < 1:
         raise ValueError("max_samples must be at least one or None")
+    if n_examples < 0 or n_association_examples < 0:
+        raise ValueError("example counts must be nonnegative")
     if max_projection_distance_m <= 0.0 or max_absolute_residual_m <= 0.0:
         raise ValueError("distance and residual limits must be positive")
 
@@ -541,12 +722,30 @@ def build_residual_dataset(
     residual_rows: list[FloatArray] = []
     records: list[ResidualRecord] = []
     examples: list[PathPairExample] = []
+    candidate_records: list[CandidateSegmentRecord] = []
+    pair_audit_records: list[PairAuditRecord] = []
+    accepted_association_examples: list[LaneAssociationExample] = []
+    rejected_association_examples: list[LaneAssociationExample] = []
     considered = 0
 
-    for pair in synchronization.pairs:
+    for pair_index, pair in enumerate(synchronization.pairs):
         if max_samples is not None and len(residual_rows) >= max_samples:
             break
         considered += 1
+        selected_reference: SelectedRoadSegment | None = None
+        selected_estimate: SelectedRoadSegment | None = None
+        reference_path: Path2D | None = None
+        estimate_path: Path2D | None = None
+        projection_distances: FloatArray | None = None
+        retained_fraction: float | None = None
+        reference_forward_coverage: float | None = None
+        estimate_forward_coverage: float | None = None
+        common_forward_coverage: float | None = None
+        maximum_projection_distance: float | None = None
+        maximum_absolute_residual: float | None = None
+        residual: FloatArray | None = None
+        rejection_reason = ""
+
         try:
             selected_reference = select_ego_segment(
                 pair.reference,
@@ -559,11 +758,6 @@ def build_residual_dataset(
             reference_path = reference_path_from_segment(
                 selected_reference.segment
             )
-            _check_path_coverage(
-                reference_path,
-                station_array,
-                role="reference",
-            )
             estimate_path, projection_distances, retained_fraction = (
                 estimate_path_on_reference(
                     selected_estimate.segment,
@@ -571,23 +765,41 @@ def build_residual_dataset(
                     minimum_retained_fraction=minimum_retained_fraction,
                 )
             )
+            reference_forward_coverage = max(0.0, float(reference_path.s[-1]))
+            estimate_forward_coverage = max(0.0, float(estimate_path.s[-1]))
+            common_forward_coverage = min(
+                reference_forward_coverage,
+                estimate_forward_coverage,
+            )
+
+            available_stop = min(
+                float(station_array[-1]),
+                common_forward_coverage,
+            )
+            relevant = (estimate_path.s >= station_array[0] - 1e-9) & (
+                estimate_path.s <= available_stop + 1e-9
+            )
+            if np.any(relevant):
+                maximum_projection_distance = float(
+                    np.max(projection_distances[relevant])
+                )
+
+            _check_path_coverage(
+                reference_path,
+                station_array,
+                role="reference",
+            )
             _check_path_coverage(
                 estimate_path,
                 station_array,
                 role="estimate",
             )
 
-            relevant = (estimate_path.s >= station_array[0]) & (
-                estimate_path.s <= station_array[-1]
-            )
-            if not np.any(relevant):
+            if maximum_projection_distance is None:
                 raise FrameRejection(
                     "no_relevant_estimate_points",
                     "no estimate vertices project into the evaluation range",
                 )
-            maximum_projection_distance = float(
-                np.max(projection_distances[relevant])
-            )
             if maximum_projection_distance > max_projection_distance_m:
                 raise FrameRejection(
                     "projection_distance_too_large",
@@ -600,18 +812,110 @@ def build_residual_dataset(
                 estimate_path,
                 station_array,
             )
-            if float(np.max(np.abs(residual))) > max_absolute_residual_m:
+            maximum_absolute_residual = float(np.max(np.abs(residual)))
+            if maximum_absolute_residual > max_absolute_residual_m:
                 raise FrameRejection(
                     "absolute_residual_too_large",
                     "residual magnitude exceeds the configured plausibility limit",
                 )
         except FrameRejection as error:
+            rejection_reason = error.reason
             rejection_counts[error.reason] += 1
-            continue
         except (ValueError, FloatingPointError):
+            rejection_reason = "invalid_geometry"
             rejection_counts["invalid_geometry"] += 1
+
+        candidate_records.extend(
+            candidate_segment_records(
+                pair.reference,
+                recording_id=recording_id,
+                pair_index=pair_index,
+                role="reference",
+                selected=selected_reference,
+            )
+        )
+        candidate_records.extend(
+            candidate_segment_records(
+                pair.estimate,
+                recording_id=recording_id,
+                pair_index=pair_index,
+                role="estimate",
+                selected=selected_estimate,
+            )
+        )
+
+        accepted = rejection_reason == ""
+        pair_audit_records.append(
+            PairAuditRecord(
+                recording_id=recording_id,
+                pair_index=pair_index,
+                synchronization_basis=time_basis,
+                synchronization_delta_ms=pair.delta_ns / 1_000_000.0,
+                log_time_delta_ms=pair.log_delta_ns / 1_000_000.0,
+                source_time_delta_ms=_source_delta_ms(pair),
+                reference_segment_id=(
+                    None
+                    if selected_reference is None
+                    else selected_reference.segment.segment_id
+                ),
+                estimate_segment_id=(
+                    None
+                    if selected_estimate is None
+                    else selected_estimate.segment.segment_id
+                ),
+                reference_selection=(
+                    "" if selected_reference is None else selected_reference.method
+                ),
+                estimate_selection=(
+                    "" if selected_estimate is None else selected_estimate.method
+                ),
+                reference_forward_coverage_m=reference_forward_coverage,
+                estimate_forward_coverage_m=estimate_forward_coverage,
+                common_forward_coverage_m=common_forward_coverage,
+                estimate_points_retained_fraction=retained_fraction,
+                maximum_projection_distance_m=maximum_projection_distance,
+                maximum_absolute_residual_m=maximum_absolute_residual,
+                accepted=accepted,
+                rejection_reason=rejection_reason,
+            )
+        )
+
+        association_example = LaneAssociationExample(
+            pair_index=pair_index,
+            reference_segments=pair.reference.segments,
+            estimate_segments=pair.estimate.segments,
+            selected_reference_segment_id=(
+                None
+                if selected_reference is None
+                else selected_reference.segment.segment_id
+            ),
+            selected_estimate_segment_id=(
+                None
+                if selected_estimate is None
+                else selected_estimate.segment.segment_id
+            ),
+            source_time_delta_ms=_source_delta_ms(pair),
+            accepted=accepted,
+            rejection_reason=rejection_reason,
+        )
+        association_target = (
+            accepted_association_examples if accepted else rejected_association_examples
+        )
+        if len(association_target) < n_association_examples:
+            association_target.append(association_example)
+
+        if not accepted:
             continue
 
+        assert (
+            selected_reference is not None
+            and selected_estimate is not None
+            and reference_path is not None
+            and estimate_path is not None
+            and residual is not None
+            and retained_fraction is not None
+            and maximum_projection_distance is not None
+        )
         residual_rows.append(residual)
         records.append(
             ResidualRecord(
@@ -621,6 +925,8 @@ def build_residual_dataset(
                 reference_source_time_ns=pair.reference.source_time_ns,
                 estimate_source_time_ns=pair.estimate.source_time_ns,
                 synchronization_delta_ms=pair.delta_ns / 1_000_000.0,
+                log_time_delta_ms=pair.log_delta_ns / 1_000_000.0,
+                source_time_delta_ms=_source_delta_ms(pair),
                 reference_segment_id=selected_reference.segment.segment_id,
                 estimate_segment_id=selected_estimate.segment.segment_id,
                 reference_geometry_source=(
@@ -657,17 +963,35 @@ def build_residual_dataset(
         max_time_delta_ms=max_delta_ms,
         rejection_counts=tuple(sorted(rejection_counts.items())),
     )
-    if not residual_rows:
-        raise FrameRejection(
-            "no_valid_path_pairs",
-            f"no valid path pairs were extracted; report={report.to_dict()}",
+
+    accepted_limit = (n_association_examples + 1) // 2
+    rejected_limit = n_association_examples - accepted_limit
+    association_examples = (
+        accepted_association_examples[:accepted_limit]
+        + rejected_association_examples[:rejected_limit]
+    )
+    if len(association_examples) < n_association_examples:
+        unused_accepted = accepted_association_examples[accepted_limit:]
+        unused_rejected = rejected_association_examples[rejected_limit:]
+        association_examples.extend(
+            (unused_accepted + unused_rejected)[
+                : n_association_examples - len(association_examples)
+            ]
         )
 
     return ResidualDataset(
         stations=station_array,
-        residuals=np.vstack(residual_rows),
+        residuals=(
+            np.vstack(residual_rows)
+            if residual_rows
+            else np.empty((0, len(station_array)), dtype=np.float64)
+        ),
         records=tuple(records),
         examples=tuple(examples),
+        candidate_records=tuple(candidate_records),
+        pair_audit_records=tuple(pair_audit_records),
+        association_examples=tuple(association_examples),
+        audit_horizons_m=tuple(float(value) for value in audit_horizons),
         report=report,
         reference_topic=reference_topic,
         estimate_topic=estimate_topic,
@@ -682,10 +1006,12 @@ def build_residual_dataset_from_mcap(
     estimate_topic: str = DEFAULT_ESTIMATE_TOPIC,
     stations: ArrayLike = DEFAULT_STATIONS,
     max_delta_ms: float = 50.0,
-    time_basis: Literal["log", "source"] = "log",
+    time_basis: Literal["log", "source"] = "source",
     max_samples: int | None = 100,
     max_projection_distance_m: float = 5.0,
     max_absolute_residual_m: float = 5.0,
+    audit_horizons_m: Sequence[float] = DEFAULT_AUDIT_HORIZONS,
+    n_association_examples: int = 6,
 ) -> ResidualDataset:
     """Decode one MCAP and create residuals for two same-frame road topics."""
 
@@ -721,6 +1047,8 @@ def build_residual_dataset_from_mcap(
         max_samples=max_samples,
         max_projection_distance_m=max_projection_distance_m,
         max_absolute_residual_m=max_absolute_residual_m,
+        audit_horizons_m=audit_horizons_m,
+        n_association_examples=n_association_examples,
     )
 
 
@@ -746,8 +1074,39 @@ def save_residual_dataset(
             [record.estimate_log_time_ns for record in dataset.records],
             dtype=np.int64,
         ),
+        reference_source_time_ns=np.asarray(
+            [
+                -1
+                if record.reference_source_time_ns is None
+                else record.reference_source_time_ns
+                for record in dataset.records
+            ],
+            dtype=np.int64,
+        ),
+        estimate_source_time_ns=np.asarray(
+            [
+                -1
+                if record.estimate_source_time_ns is None
+                else record.estimate_source_time_ns
+                for record in dataset.records
+            ],
+            dtype=np.int64,
+        ),
         synchronization_delta_ms=np.asarray(
             [record.synchronization_delta_ms for record in dataset.records],
+            dtype=np.float64,
+        ),
+        log_time_delta_ms=np.asarray(
+            [record.log_time_delta_ms for record in dataset.records],
+            dtype=np.float64,
+        ),
+        source_time_delta_ms=np.asarray(
+            [
+                np.nan
+                if record.source_time_delta_ms is None
+                else record.source_time_delta_ms
+                for record in dataset.records
+            ],
             dtype=np.float64,
         ),
     )
@@ -762,12 +1121,32 @@ def save_residual_dataset(
                 {field_name: getattr(record, field_name) for field_name in field_names}
             )
 
-    absolute_sync_deltas = np.abs(
-        np.asarray(
-            [record.synchronization_delta_ms for record in dataset.records],
-            dtype=np.float64,
-        )
-    )
+    pair_audit_path = destination / "pair_audit.csv"
+    pair_field_names = list(PairAuditRecord.__dataclass_fields__)
+    with pair_audit_path.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=pair_field_names)
+        writer.writeheader()
+        for record in dataset.pair_audit_records:
+            writer.writerow(
+                {
+                    field_name: getattr(record, field_name)
+                    for field_name in pair_field_names
+                }
+            )
+
+    candidate_path = destination / "candidate_segments.csv"
+    candidate_field_names = list(CandidateSegmentRecord.__dataclass_fields__)
+    with candidate_path.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=candidate_field_names)
+        writer.writeheader()
+        for record in dataset.candidate_records:
+            writer.writerow(
+                {
+                    field_name: getattr(record, field_name)
+                    for field_name in candidate_field_names
+                }
+            )
+
     projection_distances = np.asarray(
         [record.maximum_projection_distance_m for record in dataset.records],
         dtype=np.float64,
@@ -784,6 +1163,59 @@ def save_residual_dataset(
     estimate_geometry_source_counts = Counter(
         record.estimate_geometry_source for record in dataset.records
     )
+    all_reference_selection_counts = Counter(
+        record.reference_selection
+        for record in dataset.pair_audit_records
+        if record.reference_selection
+    )
+    all_estimate_selection_counts = Counter(
+        record.estimate_selection
+        for record in dataset.pair_audit_records
+        if record.estimate_selection
+    )
+    selected_segment_pairs = Counter(
+        f"{record.reference_segment_id}->{record.estimate_segment_id}"
+        for record in dataset.pair_audit_records
+        if record.reference_segment_id is not None
+        and record.estimate_segment_id is not None
+    )
+
+    def delta_summary(values: Sequence[float | None]) -> dict[str, float | int] | None:
+        array = np.asarray(
+            [value for value in values if value is not None],
+            dtype=np.float64,
+        )
+        array = array[np.isfinite(array)]
+        if len(array) == 0:
+            return None
+        return {
+            "count": int(len(array)),
+            "median_signed": float(np.median(array)),
+            "median_absolute": float(np.median(np.abs(array))),
+            "maximum_absolute": float(np.max(np.abs(array))),
+        }
+
+    horizon_counts = dataset.horizon_coverage_counts()
+    horizon_denominator = len(dataset.pair_audit_records)
+    horizon_summary = {
+        f"{horizon:g}": {
+            "geometric_pair_count": count,
+            "fraction_of_considered_pairs": (
+                count / horizon_denominator if horizon_denominator else 0.0
+            ),
+        }
+        for horizon, count in horizon_counts.items()
+    }
+    mean_residual = (
+        np.mean(dataset.residuals, axis=0).tolist()
+        if len(dataset.residuals)
+        else None
+    )
+    standard_deviation = (
+        np.std(dataset.residuals, axis=0).tolist()
+        if len(dataset.residuals)
+        else None
+    )
     summary = {
         "interpretation": (
             "sensor-based versus map-based lane-path discrepancy; "
@@ -793,29 +1225,60 @@ def save_residual_dataset(
         "estimate_topic": dataset.estimate_topic,
         "stations_m": dataset.stations.tolist(),
         "matrix_shape": list(dataset.residuals.shape),
-        "mean_residual_m": np.mean(dataset.residuals, axis=0).tolist(),
-        "standard_deviation_m": np.std(dataset.residuals, axis=0).tolist(),
+        "mean_residual_m": mean_residual,
+        "standard_deviation_m": standard_deviation,
         "accepted_fraction_of_considered_pairs": (
             dataset.report.accepted_pairs / dataset.report.pairs_considered
             if dataset.report.pairs_considered
             else 0.0
         ),
-        "absolute_synchronization_delta_ms": {
-            "median": float(np.median(absolute_sync_deltas)),
-            "maximum": float(np.max(absolute_sync_deltas)),
+        "synchronization": {
+            "pairing_basis": dataset.report.time_basis,
+            "basis_delta_ms": delta_summary(
+                [
+                    record.synchronization_delta_ms
+                    for record in dataset.pair_audit_records
+                ]
+            ),
+            "log_time_delta_ms": delta_summary(
+                [record.log_time_delta_ms for record in dataset.pair_audit_records]
+            ),
+            "source_time_delta_ms": delta_summary(
+                [
+                    record.source_time_delta_ms
+                    for record in dataset.pair_audit_records
+                ]
+            ),
         },
-        "maximum_projection_distance_m": {
-            "median": float(np.median(projection_distances)),
-            "maximum": float(np.max(projection_distances)),
-        },
+        "maximum_projection_distance_m": (
+            {
+                "median": float(np.median(projection_distances)),
+                "maximum": float(np.max(projection_distances)),
+            }
+            if len(projection_distances)
+            else None
+        ),
         "reference_selection_counts": dict(reference_selection_counts),
         "estimate_selection_counts": dict(estimate_selection_counts),
+        "all_pair_reference_selection_counts": dict(
+            all_reference_selection_counts
+        ),
+        "all_pair_estimate_selection_counts": dict(all_estimate_selection_counts),
+        "selected_segment_pair_counts": dict(selected_segment_pairs),
         "reference_geometry_source_counts": dict(
             reference_geometry_source_counts
         ),
         "estimate_geometry_source_counts": dict(
             estimate_geometry_source_counts
         ),
+        "horizon_coverage": {
+            "definition": (
+                "selected reference and estimate paths geometrically cover the "
+                "horizon; this is not a correctness or plausibility test"
+            ),
+            "considered_pairs": horizon_denominator,
+            "horizons_m": horizon_summary,
+        },
         "extraction_report": dataset.report.to_dict(),
     }
     summary_path = destination / "summary.json"
@@ -826,5 +1289,7 @@ def save_residual_dataset(
     return {
         "residuals": residual_path,
         "records": records_path,
+        "pair_audit": pair_audit_path,
+        "candidate_segments": candidate_path,
         "summary": summary_path,
     }
