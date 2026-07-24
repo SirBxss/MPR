@@ -208,7 +208,7 @@ The tests cover:
 - one-to-one synchronization;
 - ego-segment selection;
 - polyline projection and shared station assignment;
-- rejection reporting and saved dataset structure.
+
 
 ## Package layout
 
