@@ -85,6 +85,7 @@ Version 0.3 therefore performs these steps before calculating a residual:
 5. Project every sensor-based vertex onto the reference polyline.
 6. Assign each sensor vertex the corresponding projected reference station.
 7. Reject non-monotonic, truncated, distant, or otherwise invalid path pairs.
+8. Interpolate both paths at the explicit evaluation stations.
 
 This preprocessing establishes the shared-`s` assumption required by the
 existing `Path2D` and `residual_vector` implementation.
