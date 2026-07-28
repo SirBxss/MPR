@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from lane_residuals import RoadMessageError, road_frame_from_message
+from lane_residuals import road_frame_from_message, topic_probe_from_summary
 from lane_residuals.mcap_io import road_frames_from_decoded_messages
 
 
@@ -162,16 +162,24 @@ class McapRoadMessageTests(unittest.TestCase):
             ],
         )
 
-        with self.assertRaisesRegex(RoadMessageError, "no valid road segments"):
-            road_frame_from_message(
-                message,
-                topic="/road",
-                schema_name="Adp.Perception.Road",
-                log_time_ns=1,
-                publish_time_ns=1,
-            )
+        frame = road_frame_from_message(
+            message,
+            topic="/road",
+            schema_name="Adp.Perception.Road",
+            log_time_ns=1,
+            publish_time_ns=1,
+        )
 
-    def test_all_rejected_decoded_messages_report_the_real_reason(self) -> None:
+        self.assertEqual(frame.segments, ())
+        self.assertEqual(len(frame.segment_extractions), 1)
+        extraction = frame.segment_extractions[0]
+        self.assertFalse(extraction.reconstruction_succeeded)
+        self.assertIn(
+            "left lane-boundary ranges are missing",
+            extraction.failure_reason,
+        )
+
+    def test_all_rejected_decoded_messages_remain_auditable(self) -> None:
         schema = SimpleNamespace(name="Adp.Perception.Road")
         channel = SimpleNamespace(
             topic="/sensor",
@@ -194,14 +202,101 @@ class McapRoadMessageTests(unittest.TestCase):
             ],
         )
 
-        with self.assertRaisesRegex(
-            RoadMessageError,
-            "1 decoded messages.*left lane-boundary ranges are missing",
-        ):
-            road_frames_from_decoded_messages(
-                [(schema, channel, mcap_message, invalid)],
-                topics=["/sensor"],
-            )
+        grouped = road_frames_from_decoded_messages(
+            [(schema, channel, mcap_message, invalid)],
+            topics=["/sensor"],
+        )
+
+        self.assertEqual(len(grouped["/sensor"]), 1)
+        extraction = grouped["/sensor"][0].segment_extractions[0]
+        self.assertFalse(extraction.reconstruction_succeeded)
+        self.assertEqual(extraction.segment_id, 1)
+        self.assertIn("left lane-boundary", extraction.failure_reason)
+
+    def test_failed_ego_segment_and_surviving_adjacent_lane_are_both_kept(self) -> None:
+        message = SimpleNamespace(
+            ego_lane_segment_indices=[0],
+            polyline_vertex_pool=[
+                _vertex(-5.0, 3.5),
+                _vertex(60.0, 3.5),
+            ],
+            polyline_arc_length_pool=[0.0, 65.0],
+            boundary_vertex_pool=[],
+            lane_boundary_pool=[],
+            lane_segments=[
+                SimpleNamespace(
+                    id=10,
+                    drive_path_range=_range(2**63 - 1, 0),
+                ),
+                SimpleNamespace(
+                    id=11,
+                    drive_path_range=_range(0, 2),
+                ),
+            ],
+        )
+
+        frame = road_frame_from_message(
+            message,
+            topic="/sensor",
+            schema_name="Adp.Perception.Road",
+            log_time_ns=1,
+            publish_time_ns=1,
+        )
+
+        self.assertEqual(
+            [(item.segment_id, item.is_ego) for item in frame.segments],
+            [(11, False)],
+        )
+        self.assertTrue(frame.ego_metadata_present)
+        self.assertEqual(
+            [
+                (
+                    item.segment_id,
+                    item.is_ego,
+                    item.reconstruction_succeeded,
+                )
+                for item in frame.segment_extractions
+            ],
+            [(10, True, False), (11, False, True)],
+        )
+
+    def test_direct_path_topic_probe_reports_encoding_without_decoding(self) -> None:
+        summary = SimpleNamespace(
+            channels={
+                7: SimpleNamespace(
+                    topic="/em/road/ego_lane_path",
+                    schema_id=3,
+                    message_encoding="ros1",
+                ),
+                8: SimpleNamespace(
+                    topic="/adp/estimated_drive_paths",
+                    schema_id=4,
+                    message_encoding="protobuf",
+                ),
+            },
+            schemas={
+                3: SimpleNamespace(name="road_msgs/Road", encoding="ros1msg"),
+                4: SimpleNamespace(
+                    name="Adp.Perception.EstimatedDrivePaths",
+                    encoding="protobuf",
+                ),
+            },
+            statistics=SimpleNamespace(
+                channel_message_counts={7: 251, 8: 251},
+            ),
+        )
+
+        records = topic_probe_from_summary(summary)
+
+        self.assertEqual([record.message_count for record in records], [251, 251])
+        self.assertEqual(records[0].message_encodings, ("ros1",))
+        self.assertEqual(
+            records[1].schema_names,
+            ("Adp.Perception.EstimatedDrivePaths",),
+        )
+        self.assertFalse(any(
+            record.supported_by_current_road_decoder for record in records
+        ))
 
 
 if __name__ == "__main__":

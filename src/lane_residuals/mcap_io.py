@@ -22,6 +22,10 @@ from .residuals import FloatArray
 
 MetadataValue = bool | int | float | str
 GeometrySource = Literal["drive_path", "paired_boundaries"]
+DEFAULT_DIRECT_PATH_TOPICS = (
+    "/em/road/ego_lane_path",
+    "/adp/estimated_drive_paths",
+)
 
 
 class McapDependencyError(ImportError):
@@ -30,6 +34,32 @@ class McapDependencyError(ImportError):
 
 class RoadMessageError(ValueError):
     """Raised when a decoded message is not a usable road-model message."""
+
+
+@dataclass(frozen=True)
+class TopicProbeRecord:
+    """Container-level metadata for a candidate direct path topic."""
+
+    topic: str
+    present: bool
+    message_count: int
+    schema_names: tuple[str, ...]
+    schema_encodings: tuple[str, ...]
+    message_encodings: tuple[str, ...]
+    supported_by_current_road_decoder: bool
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "topic": self.topic,
+            "present": self.present,
+            "message_count": self.message_count,
+            "schema_names": list(self.schema_names),
+            "schema_encodings": list(self.schema_encodings),
+            "message_encodings": list(self.message_encodings),
+            "supported_by_current_road_decoder": (
+                self.supported_by_current_road_decoder
+            ),
+        }
 
 
 def _finite_vector(values: ArrayLike, *, name: str) -> FloatArray:
@@ -54,6 +84,7 @@ class RoadSegment:
     is_ego: bool | None = None
     quality: MetadataValue | None = None
     geometry_source: GeometrySource = "drive_path"
+    source_index: int | None = None
 
     def __post_init__(self) -> None:
         x = _finite_vector(self.x, name="x")
@@ -86,6 +117,12 @@ class RoadSegment:
             raise RoadMessageError(
                 'geometry_source must be "drive_path" or "paired_boundaries"'
             )
+        if self.source_index is not None and (
+            isinstance(self.source_index, bool)
+            or not isinstance(self.source_index, (int, np.integer))
+            or int(self.source_index) < 0
+        ):
+            raise RoadMessageError("source_index must be a nonnegative integer or None")
 
         object.__setattr__(self, "segment_id", int(self.segment_id))
         object.__setattr__(self, "x", x)
@@ -98,12 +135,70 @@ class RoadSegment:
             "is_ego",
             None if self.is_ego is None else bool(self.is_ego),
         )
+        object.__setattr__(
+            self,
+            "source_index",
+            None if self.source_index is None else int(self.source_index),
+        )
 
     @property
     def points(self) -> FloatArray:
         """Return centreline coordinates with shape ``(n_points, 2)``."""
 
         return np.column_stack((self.x, self.y))
+
+
+@dataclass(frozen=True)
+class SegmentExtraction:
+    """Outcome for one original lane segment, including failed reconstruction."""
+
+    segment_index: int
+    segment_id: int | None
+    is_ego: bool | None
+    quality: MetadataValue | None
+    reconstruction_succeeded: bool
+    geometry_source: GeometrySource | None
+    failure_reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if (
+            isinstance(self.segment_index, bool)
+            or not isinstance(self.segment_index, (int, np.integer))
+            or int(self.segment_index) < 0
+        ):
+            raise RoadMessageError("segment_index must be a nonnegative integer")
+        if self.segment_id is not None and (
+            isinstance(self.segment_id, bool)
+            or not isinstance(self.segment_id, (int, np.integer))
+        ):
+            raise RoadMessageError("segment_id must be an integer or None")
+        if self.is_ego is not None and not isinstance(self.is_ego, (bool, np.bool_)):
+            raise RoadMessageError("is_ego must be bool or None")
+        if self.reconstruction_succeeded:
+            if self.segment_id is None or self.geometry_source is None:
+                raise RoadMessageError(
+                    "successful segment extraction requires an id and geometry source"
+                )
+            if self.failure_reason is not None:
+                raise RoadMessageError(
+                    "successful segment extraction cannot have a failure reason"
+                )
+        elif not self.failure_reason:
+            raise RoadMessageError(
+                "failed segment extraction requires a failure reason"
+            )
+
+        object.__setattr__(self, "segment_index", int(self.segment_index))
+        object.__setattr__(
+            self,
+            "segment_id",
+            None if self.segment_id is None else int(self.segment_id),
+        )
+        object.__setattr__(
+            self,
+            "is_ego",
+            None if self.is_ego is None else bool(self.is_ego),
+        )
 
 
 @dataclass(frozen=True)
@@ -117,6 +212,7 @@ class RoadFrame:
     sequence: int
     source_time_ns: int | None
     segments: tuple[RoadSegment, ...]
+    segment_extractions: tuple[SegmentExtraction, ...] = ()
     metadata: tuple[tuple[str, MetadataValue], ...] = ()
 
     def __post_init__(self) -> None:
@@ -128,14 +224,27 @@ class RoadFrame:
             raise RoadMessageError("MCAP timestamps must be nonnegative")
         if self.source_time_ns is not None and self.source_time_ns < 0:
             raise RoadMessageError("source_time_ns must be nonnegative")
-        if not self.segments:
-            raise RoadMessageError("a road frame must contain at least one valid segment")
+        if not self.segments and not self.segment_extractions:
+            raise RoadMessageError(
+                "a road frame must contain segment geometry or extraction evidence"
+            )
 
     @property
     def metadata_dict(self) -> dict[str, MetadataValue]:
         """Return preserved message metadata as a regular dictionary."""
 
         return dict(self.metadata)
+
+    @property
+    def ego_metadata_present(self) -> bool:
+        """Whether the message explicitly classified any original segment."""
+
+        if self.segment_extractions:
+            return any(
+                extraction.is_ego is not None
+                for extraction in self.segment_extractions
+            )
+        return any(segment.is_ego is not None for segment in self.segments)
 
 
 _MISSING = object()
@@ -425,6 +534,54 @@ def _midpoint_path(left: FloatArray, right: FloatArray) -> FloatArray:
     return 0.5 * (left_sampled + right_sampled)
 
 
+def _segment_ego_status(
+    lane_segment: Any,
+    *,
+    segment_index: int,
+    segment_id: int | None,
+    ego_segment_id: int | None,
+    ego_indices: set[int],
+) -> bool | None:
+    """Resolve explicit ego classification before attempting reconstruction."""
+
+    segment_flag = _optional_bool(
+        lane_segment,
+        (
+            "is_ego_lane",
+            "is_ego_lane_",
+            "ego_lane",
+            "ego_lane_",
+            "is_host_lane",
+            "is_host_lane_",
+            "is_ego",
+            "is_ego_",
+            "is_current_lane",
+            "is_current_lane_",
+        ),
+    )
+    if ego_segment_id is not None:
+        return segment_id == ego_segment_id if segment_id is not None else None
+    if ego_indices:
+        return segment_index in ego_indices
+    return segment_flag
+
+
+def _segment_quality(lane_segment: Any) -> MetadataValue | None:
+    return _optional_metadata(
+        lane_segment,
+        (
+            "quality",
+            "quality_",
+            "qualifier",
+            "qualifier_",
+            "data_quality",
+            "data_quality_",
+            "validity",
+            "validity_",
+        ),
+    )
+
+
 def road_frame_from_message(
     message: Any,
     *,
@@ -527,9 +684,41 @@ def road_frame_from_message(
         ego_indices = set()
 
     extracted: list[RoadSegment] = []
+    extraction_records: list[SegmentExtraction] = []
     rejection_reasons: Counter[str] = Counter()
     for segment_index, lane_segment in enumerate(lane_segments):
-        segment_id = int(_get_attr(lane_segment, ("id", "id_")))
+        try:
+            segment_id = int(_get_attr(lane_segment, ("id", "id_")))
+        except (RoadMessageError, TypeError, ValueError, OverflowError):
+            reason = "segment id is missing or invalid"
+            rejection_reasons[reason] += 1
+            extraction_records.append(
+                SegmentExtraction(
+                    segment_index=segment_index,
+                    segment_id=None,
+                    is_ego=_segment_ego_status(
+                        lane_segment,
+                        segment_index=segment_index,
+                        segment_id=None,
+                        ego_segment_id=ego_segment_id,
+                        ego_indices=ego_indices,
+                    ),
+                    quality=_segment_quality(lane_segment),
+                    reconstruction_succeeded=False,
+                    geometry_source=None,
+                    failure_reason=reason,
+                )
+            )
+            continue
+
+        is_ego = _segment_ego_status(
+            lane_segment,
+            segment_index=segment_index,
+            segment_id=segment_id,
+            ego_segment_id=ego_segment_id,
+            ego_indices=ego_indices,
+        )
+        quality = _segment_quality(lane_segment)
         drive_path_range = _valid_pool_range(
             _get_attr(
                 lane_segment,
@@ -570,7 +759,19 @@ def road_frame_from_message(
                 )
                 midpoint = _midpoint_path(left, right)
             except RoadMessageError as error:
-                rejection_reasons[str(error)] += 1
+                reason = str(error)
+                rejection_reasons[reason] += 1
+                extraction_records.append(
+                    SegmentExtraction(
+                        segment_index=segment_index,
+                        segment_id=segment_id,
+                        is_ego=is_ego,
+                        quality=quality,
+                        reconstruction_succeeded=False,
+                        geometry_source=None,
+                        failure_reason=reason,
+                    )
+                )
                 continue
             x = midpoint[:, 0]
             y = midpoint[:, 1]
@@ -579,65 +780,46 @@ def road_frame_from_message(
             curvature = None
             geometry_source = "paired_boundaries"
 
-        is_ego = _optional_bool(
-            lane_segment,
-            (
-                "is_ego_lane",
-                "is_ego_lane_",
-                "ego_lane",
-                "ego_lane_",
-                "is_host_lane",
-                "is_host_lane_",
-                "is_ego",
-                "is_ego_",
-                "is_current_lane",
-                "is_current_lane_",
-            ),
-        )
-        if ego_segment_id is not None:
-            is_ego = segment_id == ego_segment_id
-        elif ego_indices:
-            is_ego = segment_index in ego_indices
-
-        quality = _optional_metadata(
-            lane_segment,
-            (
-                "quality",
-                "quality_",
-                "qualifier",
-                "qualifier_",
-                "data_quality",
-                "data_quality_",
-                "validity",
-                "validity_",
-            ),
-        )
         try:
-            extracted.append(
-                RoadSegment(
-                    segment_id=segment_id,
-                    x=x,
-                    y=y,
-                    arc_length=arc_length,
-                    heading=heading,
-                    curvature=curvature,
-                    is_ego=is_ego,
-                    quality=quality,
-                    geometry_source=geometry_source,
-                )
+            segment = RoadSegment(
+                segment_id=segment_id,
+                x=x,
+                y=y,
+                arc_length=arc_length,
+                heading=heading,
+                curvature=curvature,
+                is_ego=is_ego,
+                quality=quality,
+                geometry_source=geometry_source,
+                source_index=segment_index,
             )
         except RoadMessageError as error:
             # One malformed range must not discard every usable segment in the frame.
-            rejection_reasons[str(error)] += 1
+            reason = str(error)
+            rejection_reasons[reason] += 1
+            extraction_records.append(
+                SegmentExtraction(
+                    segment_index=segment_index,
+                    segment_id=segment_id,
+                    is_ego=is_ego,
+                    quality=quality,
+                    reconstruction_succeeded=False,
+                    geometry_source=geometry_source,
+                    failure_reason=reason,
+                )
+            )
             continue
-
-    if not extracted:
-        details = ", ".join(
-            f"{count}x {reason}"
-            for reason, count in rejection_reasons.most_common(3)
+        extracted.append(segment)
+        extraction_records.append(
+            SegmentExtraction(
+                segment_index=segment_index,
+                segment_id=segment_id,
+                is_ego=is_ego,
+                quality=quality,
+                reconstruction_succeeded=True,
+                geometry_source=geometry_source,
+            )
         )
-        suffix = f": {details}" if details else ""
-        raise RoadMessageError(f"message contains no valid road segments{suffix}")
 
     metadata: list[tuple[str, MetadataValue]] = []
     for output_name, aliases in (
@@ -680,6 +862,7 @@ def road_frame_from_message(
         sequence=int(sequence),
         source_time_ns=_source_time_ns(message),
         segments=tuple(extracted),
+        segment_extractions=tuple(extraction_records),
         metadata=tuple(metadata),
     )
 
@@ -784,3 +967,96 @@ def load_road_frames(
         topics=topics,
         expected_schema_name=expected_schema_name,
     )
+
+
+def topic_probe_from_summary(
+    summary: Any,
+    *,
+    topics: Sequence[str] = DEFAULT_DIRECT_PATH_TOPICS,
+) -> tuple[TopicProbeRecord, ...]:
+    """Build a candidate-topic inventory from an MCAP summary object."""
+
+    requested = tuple(dict.fromkeys(str(topic) for topic in topics))
+    if not requested or any(not topic for topic in requested):
+        raise ValueError("topics must contain at least one nonempty topic name")
+
+    channels = getattr(summary, "channels", {}) or {}
+    schemas = getattr(summary, "schemas", {}) or {}
+    statistics = getattr(summary, "statistics", None)
+    channel_counts = (
+        getattr(statistics, "channel_message_counts", {}) or {}
+        if statistics is not None
+        else {}
+    )
+
+    records: list[TopicProbeRecord] = []
+    for topic in requested:
+        matching_channels = [
+            (channel_id, channel)
+            for channel_id, channel in channels.items()
+            if str(getattr(channel, "topic", "")) == topic
+        ]
+        schema_names: set[str] = set()
+        schema_encodings: set[str] = set()
+        message_encodings: set[str] = set()
+        message_count = 0
+
+        for channel_id, channel in matching_channels:
+            message_count += int(channel_counts.get(channel_id, 0))
+            message_encoding = str(
+                getattr(channel, "message_encoding", "")
+            )
+            if message_encoding:
+                message_encodings.add(message_encoding)
+            schema_id = getattr(channel, "schema_id", None)
+            schema = schemas.get(schema_id)
+            if schema is None:
+                continue
+            schema_name = str(getattr(schema, "name", ""))
+            schema_encoding = str(getattr(schema, "encoding", ""))
+            if schema_name:
+                schema_names.add(schema_name)
+            if schema_encoding:
+                schema_encodings.add(schema_encoding)
+
+        records.append(
+            TopicProbeRecord(
+                topic=topic,
+                present=bool(matching_channels),
+                message_count=message_count,
+                schema_names=tuple(sorted(schema_names)),
+                schema_encodings=tuple(sorted(schema_encodings)),
+                message_encodings=tuple(sorted(message_encodings)),
+                supported_by_current_road_decoder=(
+                    schema_names == {"Adp.Perception.Road"}
+                    and {value.lower() for value in message_encodings}
+                    == {"protobuf"}
+                ),
+            )
+        )
+    return tuple(records)
+
+
+def inspect_mcap_topics(
+    path: str | Path,
+    *,
+    topics: Sequence[str] = DEFAULT_DIRECT_PATH_TOPICS,
+) -> tuple[TopicProbeRecord, ...]:
+    """Inspect candidate path topics without decoding their message payloads."""
+
+    try:
+        from mcap.reader import make_reader
+    except ImportError as error:
+        raise McapDependencyError(
+            'MCAP inspection requires the optional "mcap" dependencies; '
+            'install with pip install -e ".[mcap]"'
+        ) from error
+
+    source = Path(path)
+    if not source.is_file():
+        raise FileNotFoundError(source)
+    with source.open("rb") as stream:
+        summary = make_reader(stream).get_summary()
+    if summary is None:
+        raise RoadMessageError("MCAP file has no readable summary")
+    return topic_probe_from_summary(summary, topics=topics)

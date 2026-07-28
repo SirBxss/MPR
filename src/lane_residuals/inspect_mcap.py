@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import base64
 import csv
 import json
@@ -7,6 +8,7 @@ import shutil
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import TextIO
 from zipfile import ZipFile
 
 from mcap.reader import make_reader
@@ -15,10 +17,6 @@ from mcap.reader import make_reader
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-
-INPUT_PATH = Path(
-    r"C:\Users\q679381\OneDrive - BMW Group\Thesis\Data\mcap_data.zip"
-)
 
 # Number of sample messages saved from each channel/topic.
 SAMPLES_PER_CHANNEL = 3
@@ -30,8 +28,36 @@ BINARY_PREVIEW_BYTES = 100
 INCLUDE_PAYLOAD_SAMPLES = True
 
 
+def parse_arguments() -> argparse.Namespace:
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        description=(
+            "Inspect one MCAP file, all MCAP files in a directory, "
+            "or all MCAP files contained in a ZIP archive."
+        )
+    )
+
+    parser.add_argument(
+        "input_path",
+        type=Path,
+        help="Path to a .mcap file, directory, or .zip archive.",
+    )
+
+    parser.add_argument(
+        "--output-directory",
+        type=Path,
+        default=Path.cwd() / "outputs" / "mcap_inspection",
+        help=(
+            "Base directory for generated results. "
+            "Default: ./outputs/mcap_inspection"
+        ),
+    )
+
+    return parser.parse_args()
+
+
 def timestamp_to_text(timestamp_ns: int) -> str:
-    """Convert nanoseconds since Unix epoch to readable UTC time."""
+    """Convert nanoseconds since the Unix epoch to readable UTC time."""
     if timestamp_ns <= 0:
         return ""
 
@@ -46,7 +72,7 @@ def timestamp_to_text(timestamp_ns: int) -> str:
 
 
 def is_probably_text(data: bytes) -> bool:
-    """Return True when most bytes look like readable text."""
+    """Return True when most bytes appear to be readable text."""
     if not data:
         return True
 
@@ -67,7 +93,7 @@ def payload_preview(data: bytes, message_encoding: str) -> dict:
     JSON and readable text are shown directly. Binary messages are represented
     by hexadecimal and Base64 previews.
     """
-    result = {
+    result: dict = {
         "payload_size_bytes": len(data),
         "preview_type": "",
         "preview": "",
@@ -85,18 +111,15 @@ def payload_preview(data: bytes, message_encoding: str) -> dict:
             pass
 
     if is_probably_text(data):
-        try:
-            text = data.decode("utf-8", errors="replace")
+        text = data.decode("utf-8", errors="replace")
 
-            result["preview_type"] = "text"
-            result["preview"] = text[:3000]
+        result["preview_type"] = "text"
+        result["preview"] = text[:3000]
 
-            if len(text) > 3000:
-                result["preview_truncated"] = True
+        if len(text) > 3000:
+            result["preview_truncated"] = True
 
-            return result
-        except Exception:
-            pass
+        return result
 
     binary_preview = data[:BINARY_PREVIEW_BYTES]
 
@@ -130,24 +153,23 @@ def schema_to_text(schema_data: bytes) -> str:
     )
 
 
-def prepare_input(input_path: Path) -> list[Path]:
+def prepare_input(
+    input_path: Path,
+    extraction_directory: Path,
+) -> list[Path]:
     """
     Return all MCAP files represented by the input.
 
-    The input can be:
+    Supported input types:
     - one .mcap file
     - a directory containing MCAP files
-    - a ZIP file containing MCAP files
+    - a ZIP archive containing MCAP files
     """
     if not input_path.exists():
         raise FileNotFoundError(f"Input does not exist: {input_path}")
 
     if input_path.is_file() and input_path.suffix.lower() == ".zip":
-        extraction_directory = (
-            input_path.parent / f"{input_path.stem}_extracted"
-        )
-
-        extraction_directory.mkdir(parents=True, exist_ok=True)
+        extraction_directory.mkdir(parents=True, exist_ok=False)
 
         print(f"Extracting ZIP to:\n{extraction_directory}")
 
@@ -164,7 +186,8 @@ def prepare_input(input_path: Path) -> list[Path]:
 
     else:
         raise ValueError(
-            "INPUT_PATH must point to a .zip file, .mcap file, or directory."
+            "The input path must point to a .zip file, .mcap file, "
+            "or directory."
         )
 
     if not mcap_files:
@@ -177,19 +200,21 @@ def prepare_input(input_path: Path) -> list[Path]:
 
 def inspect_mcap(
     mcap_path: Path,
-    samples_file,
-    schemas_file,
+    samples_file: TextIO,
+    schemas_file: TextIO,
 ) -> tuple[list[dict], list[str]]:
     """Inspect one MCAP file and return topic statistics and report lines."""
     topic_statistics: dict[int, dict] = {}
     samples_saved: defaultdict[int, int] = defaultdict(int)
     schemas_written: set[int] = set()
 
+    file_size_mib = mcap_path.stat().st_size / (1024 * 1024)
+
     report_lines = [
         "=" * 100,
         f"FILE: {mcap_path.name}",
         f"PATH: {mcap_path}",
-        f"SIZE: {mcap_path.stat().st_size / (1024 * 1024):.2f} MiB",
+        f"SIZE: {file_size_mib:.2f} MiB",
     ]
 
     with mcap_path.open("rb") as stream:
@@ -213,10 +238,7 @@ def inspect_mcap(
             if channel_id not in topic_statistics:
                 topic_statistics[channel_id] = {
                     "file": mcap_path.name,
-                    "file_size_mib": round(
-                        mcap_path.stat().st_size / (1024 * 1024),
-                        3,
-                    ),
+                    "file_size_mib": round(file_size_mib, 3),
                     "channel_id": channel_id,
                     "topic": channel.topic,
                     "schema_id": schema_id,
@@ -310,7 +332,7 @@ def inspect_mcap(
 
                 samples_saved[channel_id] += 1
 
-    rows = []
+    rows: list[dict] = []
 
     for stats in topic_statistics.values():
         message_count = stats["message_count"]
@@ -366,16 +388,87 @@ def inspect_mcap(
     return rows, report_lines
 
 
+def write_topics_csv(
+    topics_csv_path: Path,
+    rows: list[dict],
+) -> None:
+    """Write topic statistics to CSV."""
+    fieldnames = [
+        "file",
+        "file_size_mib",
+        "channel_id",
+        "topic",
+        "schema_id",
+        "schema_name",
+        "schema_encoding",
+        "message_encoding",
+        "message_count",
+        "first_log_time_ns",
+        "first_log_time_utc",
+        "last_log_time_ns",
+        "last_log_time_utc",
+        "duration_seconds",
+        "minimum_payload_bytes",
+        "average_payload_bytes",
+        "maximum_payload_bytes",
+        "total_payload_bytes",
+        "channel_metadata",
+    ]
+
+    with topics_csv_path.open(
+        "w",
+        newline="",
+        encoding="utf-8-sig",
+    ) as csv_file:
+        writer = csv.DictWriter(
+            csv_file,
+            fieldnames=fieldnames,
+        )
+
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def main() -> None:
-    mcap_files = prepare_input(INPUT_PATH)
+    """Run the MCAP inspection workflow."""
+    args = parse_arguments()
 
-    output_directory = INPUT_PATH.parent / "mcap_inspection_output"
+    input_path = args.input_path.expanduser().resolve()
+    base_output_directory = (
+        args.output_directory.expanduser().resolve()
+    )
 
-    # Remove only the previously generated output directory.
-    if output_directory.exists():
-        shutil.rmtree(output_directory)
+    input_name = (
+        input_path.stem
+        if input_path.is_file()
+        else input_path.name
+    )
 
-    output_directory.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    output_directory = (
+        base_output_directory
+        / f"{input_name}_{timestamp}"
+    )
+
+    output_directory.mkdir(parents=True, exist_ok=False)
+
+    extraction_directory = output_directory / "extracted"
+
+    print(f"Input:\n{input_path}")
+    print(f"\nInspection output directory:\n{output_directory}")
+
+    try:
+        mcap_files = prepare_input(
+            input_path=input_path,
+            extraction_directory=extraction_directory,
+        )
+    except Exception:
+        # Remove the newly created empty run directory when input preparation
+        # fails. This does not touch previous results.
+        if output_directory.exists():
+            shutil.rmtree(output_directory, ignore_errors=True)
+        raise
 
     report_path = output_directory / "mcap_report.txt"
     topics_csv_path = output_directory / "mcap_topics.csv"
@@ -383,9 +476,10 @@ def main() -> None:
     schemas_path = output_directory / "mcap_schemas.txt"
 
     all_topic_rows: list[dict] = []
+
     complete_report: list[str] = [
         "MCAP INSPECTION REPORT",
-        f"Input: {INPUT_PATH}",
+        f"Input: {input_path}",
         f"Number of MCAP files: {len(mcap_files)}",
         "",
     ]
@@ -396,15 +490,18 @@ def main() -> None:
     ):
         schemas_file.write("MCAP SCHEMAS\n")
 
-        for index, mcap_path in enumerate(mcap_files, start=1):
+        for index, current_mcap_path in enumerate(
+            mcap_files,
+            start=1,
+        ):
             print(
                 f"[{index}/{len(mcap_files)}] "
-                f"Inspecting {mcap_path.name}"
+                f"Inspecting {current_mcap_path.name}"
             )
 
             try:
                 rows, report_lines = inspect_mcap(
-                    mcap_path,
+                    current_mcap_path,
                     samples_file,
                     schemas_file,
                 )
@@ -414,11 +511,12 @@ def main() -> None:
 
             except Exception as error:
                 error_text = (
-                    f"ERROR while reading {mcap_path}: "
+                    f"ERROR while reading {current_mcap_path}: "
                     f"{type(error).__name__}: {error}"
                 )
 
                 print(error_text)
+
                 complete_report.extend(
                     [
                         "=" * 100,
@@ -432,46 +530,13 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    if all_topic_rows:
-        fieldnames = [
-            "file",
-            "file_size_mib",
-            "channel_id",
-            "topic",
-            "schema_id",
-            "schema_name",
-            "schema_encoding",
-            "message_encoding",
-            "message_count",
-            "first_log_time_ns",
-            "first_log_time_utc",
-            "last_log_time_ns",
-            "last_log_time_utc",
-            "duration_seconds",
-            "minimum_payload_bytes",
-            "average_payload_bytes",
-            "maximum_payload_bytes",
-            "total_payload_bytes",
-            "channel_metadata",
-        ]
-
-        with topics_csv_path.open(
-            "w",
-            newline="",
-            encoding="utf-8-sig",
-        ) as csv_file:
-            writer = csv.DictWriter(
-                csv_file,
-                fieldnames=fieldnames,
-            )
-
-            writer.writeheader()
-            writer.writerows(all_topic_rows)
-
-    bundle_base_path = INPUT_PATH.parent / "mcap_inspection_bundle"
+    write_topics_csv(
+        topics_csv_path=topics_csv_path,
+        rows=all_topic_rows,
+    )
 
     bundle_path = shutil.make_archive(
-        str(bundle_base_path),
+        str(output_directory),
         "zip",
         root_dir=output_directory,
     )

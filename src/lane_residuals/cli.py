@@ -11,7 +11,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from .gaussian import fit_gaussian_residual_model
-from .mcap_io import McapDependencyError
+from .mcap_io import (
+    DEFAULT_DIRECT_PATH_TOPICS,
+    McapDependencyError,
+    inspect_mcap_topics,
+)
 from .plotting import (
     plot_gaussian_residual_model,
     plot_lane_association_audit,
@@ -39,7 +43,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-directory",
         type=Path,
-        default=Path("outputs") / "mcap_v032",
+        default=Path("outputs") / "mcap_v033",
     )
     parser.add_argument(
         "--reference-topic",
@@ -58,7 +62,7 @@ def _parser() -> argparse.ArgumentParser:
         "--time-basis",
         choices=("log", "source"),
         default="source",
-        help="Timestamp used for pairing; source time is the v0.3.2 default.",
+        help="Timestamp used for pairing; source time is the v0.3.3 default.",
     )
     parser.add_argument(
         "--audit-horizons",
@@ -73,6 +77,25 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=6,
         help="Maximum labelled candidate-pair panels to retain.",
+    )
+    parser.add_argument(
+        "--allow-estimate-fallback",
+        action="store_true",
+        help=(
+            "Diagnostic override: allow nearest-origin estimate selection only "
+            "when the message has no ego metadata. Fallback residuals must not "
+            "be used for model fitting."
+        ),
+    )
+    parser.add_argument(
+        "--path-source-topics",
+        nargs="+",
+        default=list(DEFAULT_DIRECT_PATH_TOPICS),
+        metavar="TOPIC",
+        help=(
+            "Candidate direct-path topics to inventory at container level. "
+            "Their payloads are not yet used as residual paths."
+        ),
     )
     parser.add_argument(
         "--max-projection-distance-m",
@@ -95,7 +118,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "Opt in to the descriptive Gaussian only after lane association "
-            "has been inspected. The v0.3.2 audit does not fit it by default."
+            "has been inspected. The v0.3.3 audit does not fit it by default."
         ),
     )
     parser.add_argument(
@@ -123,7 +146,7 @@ def _stations(start: float, stop: float, step: float) -> np.ndarray:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the v0.3.2 MCAP lane-association and residual checkpoint."""
+    """Run the v0.3.3 MCAP lane-association and residual checkpoint."""
 
     parser = _parser()
     arguments = parser.parse_args(argv)
@@ -146,6 +169,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             max_absolute_residual_m=arguments.max_absolute_residual_m,
             audit_horizons_m=arguments.audit_horizons,
             n_association_examples=arguments.association_examples,
+            require_estimate_ego_metadata=not arguments.allow_estimate_fallback,
+        )
+        path_source_probe = inspect_mcap_topics(
+            arguments.mcap_file,
+            topics=arguments.path_source_topics,
         )
     except (FileNotFoundError, ValueError, FrameRejection, McapDependencyError) as error:
         parser.exit(2, f"error: {error}\n")
@@ -153,6 +181,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     output_directory = arguments.output_directory
     output_directory.mkdir(parents=True, exist_ok=True)
     written = save_residual_dataset(dataset, output_directory)
+    path_source_probe_path = output_directory / "path_source_candidates.json"
+    with path_source_probe_path.open("w", encoding="utf-8") as stream:
+        json.dump(
+            {
+                "interpretation": (
+                    "container-level inventory only; candidate payloads are not "
+                    "yet decoded into residual paths"
+                ),
+                "topics": [record.to_dict() for record in path_source_probe],
+            },
+            stream,
+            indent=2,
+        )
+        stream.write("\n")
+    written["path_source_candidates"] = path_source_probe_path
 
     diagnostics, _ = plot_mcap_dataset_diagnostics(dataset)
     diagnostics_path = output_directory / "mcap_diagnostics.png"
@@ -168,7 +211,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         written["lane_association_audit"] = association_path
 
     model_summary: dict[str, object] | None = None
-    if arguments.fit_gaussian and len(dataset.residuals) >= 2:
+    fallback_residuals = any(
+        record.estimate_selection != "metadata" for record in dataset.records
+    )
+    if arguments.fit_gaussian and fallback_residuals:
+        print(
+            "Gaussian not fitted: accepted residuals include non-metadata "
+            "estimate selection."
+        )
+    elif arguments.fit_gaussian and len(dataset.residuals) >= 2:
         model = fit_gaussian_residual_model(
             dataset.residuals,
             regularization=arguments.regularization,

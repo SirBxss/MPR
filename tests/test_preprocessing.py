@@ -9,6 +9,7 @@ import numpy as np
 from lane_residuals import (
     RoadFrame,
     RoadSegment,
+    SegmentExtraction,
     build_residual_dataset,
     build_residual_dataset_from_mcap,
     estimate_path_on_reference,
@@ -204,16 +205,16 @@ class PreprocessingTests(unittest.TestCase):
                 "/estimate",
                 0,
                 (
-                    _segment(20, y=0.2, x_stop=30.0),
-                    _segment(21, y=3.7),
+                    _segment(20, y=0.2, x_stop=30.0, is_ego=True),
+                    _segment(21, y=3.7, is_ego=False),
                 ),
             ),
             _frame(
                 "/estimate",
                 100_000_000,
                 (
-                    _segment(20, y=0.2),
-                    _segment(21, y=3.7),
+                    _segment(20, y=0.2, is_ego=True),
+                    _segment(21, y=3.7, is_ego=False),
                 ),
             ),
         ]
@@ -252,6 +253,147 @@ class PreprocessingTests(unittest.TestCase):
         association, _ = plot_lane_association_audit(dataset)
         plt.close(diagnostics)
         plt.close(association)
+
+    def test_failed_explicit_ego_is_not_replaced_by_adjacent_segment(self) -> None:
+        adjacent = RoadSegment(
+            segment_id=11,
+            x=np.linspace(-5.0, 60.0, 66),
+            y=np.full(66, 3.5),
+            arc_length=np.linspace(0.0, 65.0, 66),
+            is_ego=False,
+            source_index=1,
+        )
+        estimate = RoadFrame(
+            topic="/estimate",
+            schema_name="Adp.Perception.Road",
+            log_time_ns=0,
+            publish_time_ns=0,
+            sequence=0,
+            source_time_ns=1_000,
+            segments=(adjacent,),
+            segment_extractions=(
+                SegmentExtraction(
+                    segment_index=0,
+                    segment_id=10,
+                    is_ego=True,
+                    quality=None,
+                    reconstruction_succeeded=False,
+                    geometry_source=None,
+                    failure_reason="left lane boundary has no usable geometry",
+                ),
+                SegmentExtraction(
+                    segment_index=1,
+                    segment_id=11,
+                    is_ego=False,
+                    quality=None,
+                    reconstruction_succeeded=True,
+                    geometry_source="drive_path",
+                ),
+            ),
+        )
+        reference = _frame(
+            "/reference",
+            0,
+            (_segment(1, y=0.0, is_ego=True),),
+        )
+
+        dataset = build_residual_dataset(
+            [reference],
+            [estimate],
+            recording_id="failed-ego",
+            max_samples=None,
+        )
+
+        self.assertEqual(dataset.residuals.shape, (0, 11))
+        self.assertEqual(
+            dataset.pair_audit_records[0].rejection_reason,
+            "ego_segment_unavailable",
+        )
+        self.assertIsNone(dataset.pair_audit_records[0].estimate_segment_id)
+        estimate_candidates = [
+            item for item in dataset.candidate_records if item.role == "estimate"
+        ]
+        self.assertEqual(len(estimate_candidates), 2)
+        self.assertFalse(estimate_candidates[0].reconstruction_succeeded)
+        self.assertTrue(estimate_candidates[0].is_ego)
+        self.assertTrue(estimate_candidates[1].reconstruction_succeeded)
+        self.assertFalse(estimate_candidates[1].is_ego)
+        self.assertFalse(any(item.selected for item in estimate_candidates))
+
+    def test_strict_estimate_metadata_can_only_be_overridden_for_audit(self) -> None:
+        reference = _frame(
+            "/reference",
+            0,
+            (_segment(1, y=0.0, is_ego=True),),
+        )
+        estimate = _frame(
+            "/estimate",
+            0,
+            (_segment(2, y=0.2),),
+        )
+
+        strict = build_residual_dataset(
+            [reference],
+            [estimate],
+            recording_id="strict",
+            max_samples=None,
+        )
+        diagnostic_override = build_residual_dataset(
+            [reference],
+            [estimate],
+            recording_id="override",
+            max_samples=None,
+            require_estimate_ego_metadata=False,
+        )
+
+        self.assertEqual(
+            strict.pair_audit_records[0].rejection_reason,
+            "ego_metadata_missing",
+        )
+        self.assertEqual(diagnostic_override.residuals.shape, (1, 11))
+        self.assertEqual(
+            diagnostic_override.records[0].estimate_selection,
+            "nearest_origin_fallback",
+        )
+
+    def test_horizon_coverage_requires_path_to_start_at_or_before_zero(self) -> None:
+        reference = _frame(
+            "/reference",
+            0,
+            (_segment(1, y=0.0, is_ego=True),),
+        )
+        estimate = _frame(
+            "/estimate",
+            0,
+            (
+                _segment(
+                    2,
+                    y=0.2,
+                    x_start=5.0,
+                    x_stop=60.0,
+                    is_ego=True,
+                ),
+            ),
+        )
+
+        dataset = build_residual_dataset(
+            [reference],
+            [estimate],
+            recording_id="missing-origin",
+            max_samples=None,
+        )
+
+        audit = dataset.pair_audit_records[0]
+        self.assertGreater(audit.common_station_start_m, 0.0)
+        self.assertGreaterEqual(audit.common_station_end_m, 50.0)
+        self.assertEqual(
+            dataset.horizon_coverage_counts(),
+            {20.0: 0, 30.0: 0, 40.0: 0, 50.0: 0},
+        )
+        self.assertEqual(
+            audit.rejection_reason,
+            "insufficient_estimate_coverage",
+        )
 
     def test_zero_accepted_pairs_still_save_the_association_audit(self) -> None:
         dataset = build_residual_dataset(

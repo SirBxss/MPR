@@ -323,7 +323,7 @@ def plot_mcap_dataset_diagnostics(
     horizon_labels = [f"{horizon:g}" for horizon in horizon_counts]
     horizon_values = list(horizon_counts.values())
     horizon_axis.bar(horizon_labels, horizon_values)
-    horizon_axis.set_title("Geometric coverage by horizon")
+    horizon_axis.set_title("Two-sided coverage (s≤0 and s≥h)")
     horizon_axis.set_xlabel("Forward horizon [m]")
     horizon_axis.set_ylabel("Synchronized pairs")
     horizon_axis.grid(axis="y", alpha=0.25)
@@ -359,7 +359,7 @@ def plot_mcap_dataset_diagnostics(
     selection_axis.grid(axis="x", alpha=0.25)
 
     figure.suptitle(
-        "MCAP v0.3.2 audit — map-based data is not confirmed ground truth",
+        "MCAP v0.3.3 audit — map-based data is not confirmed ground truth",
         fontsize=13,
     )
     figure.tight_layout()
@@ -375,7 +375,7 @@ def plot_lane_association_audit(
     if not examples:
         raise ValueError("dataset must retain at least one association example")
 
-    n_columns = 2
+    n_columns = min(2, len(examples))
     n_rows = int(np.ceil(len(examples) / n_columns))
     figure, axes = plt.subplots(
         n_rows,
@@ -389,6 +389,7 @@ def plot_lane_association_audit(
 
     for axis, example in zip(flat_axes, examples):
         plotted_y: list[float] = []
+        omitted_distant = 0
         for segments, color, prefix, selected_id, label_offset in (
             (
                 example.reference_segments,
@@ -412,6 +413,14 @@ def plot_lane_association_audit(
                 selected = segment.segment_id == selected_id
                 x = segment.x[in_window]
                 y = segment.y[in_window]
+                minimum_ego_distance = float(np.min(np.hypot(x, y)))
+                if (
+                    minimum_ego_distance > 25.0
+                    and not selected
+                    and segment.is_ego is not True
+                ):
+                    omitted_distant += 1
+                    continue
                 plotted_y.extend(y.tolist())
                 axis.plot(
                     x,
@@ -441,6 +450,16 @@ def plot_lane_association_audit(
                     },
                 )
         axis.scatter([0.0], [0.0], color="black", marker="x", label="Ego origin")
+        if omitted_distant:
+            axis.text(
+                0.01,
+                0.01,
+                f"{omitted_distant} distant candidate(s) omitted",
+                transform=axis.transAxes,
+                fontsize=7,
+                color="0.35",
+                va="bottom",
+            )
         status = "accepted" if example.accepted else example.rejection_reason
         source_delta = (
             "missing"
@@ -465,7 +484,7 @@ def plot_lane_association_audit(
         axis.set_visible(False)
 
     figure.suptitle(
-        "Lane-association audit: all candidates labelled; * marks selection",
+        "Lane-association audit: near-ego candidates labelled; * marks selection",
         fontsize=13,
     )
     figure.tight_layout()

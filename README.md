@@ -3,17 +3,17 @@
 MPR is a deliberately small project for understanding path discrepancies
 before transferring the workflow to the larger LEEM thesis implementation.
 
-Version 0.3.2 adds a lane-association audit before the real-data result is
-interpreted:
+Version 0.3.3 makes the lane-association audit fail safely before any real-data
+result is interpreted:
 
 ```text
 MCAP
 → embedded Protobuf decoding
 → source-time synchronization of map/sensor road frames
 → drive-path extraction or paired-boundary centreline construction
-→ all-candidate inventory and labelled lane-association audit
-→ ego-segment selection with explicit provenance
-→ 20/30/40/50 m geometric coverage analysis
+→ all-original-segment inventory, including reconstruction failures
+→ strict metadata-confirmed sensor ego-segment selection
+→ 20/30/40/50 m two-sided geometric coverage analysis
 → shared reference-station assignment
 → 11-dimensional residual vectors
 → descriptive multivariate Gaussian fit
@@ -36,7 +36,7 @@ This output must be described as:
 > sensor-based versus map-based lane-path discrepancy
 
 The map-based topic has not been established as ground truth. Consequently,
-Version 0.3.2 does not support a claim about absolute sensor error or sensor
+Version 0.3.3 does not support a claim about absolute sensor error or sensor
 accuracy. BMW signal documentation or supervisor confirmation is required
 before changing that interpretation.
 
@@ -44,10 +44,16 @@ The two paths must also be expressed in the same local coordinate frame.
 Processing is intentionally blocked until the operator explicitly confirms
 that assumption with `--assume-same-frame`.
 
-The real v0.3.1 checkpoint selected every sensor segment with
-`nearest_origin_fallback` and produced an approximately one-lane-width
-discrepancy. Version 0.3.2 therefore treats lane association as unresolved. It
-does not use that Gaussian fit as model-performance evidence.
+The v0.3.2 audit showed that all 16 accepted pairs used explicitly non-ego
+fallback sensor segments and produced an approximately one-lane-width
+discrepancy. The metadata-confirmed sensor ego segments were short or failed
+reconstruction. Those 16 vectors are invalid for modelling and must be
+discarded.
+
+Version 0.3.3 therefore rejects a frame as `ego_segment_unavailable` when ego
+metadata points to geometry that cannot be reconstructed. It never substitutes
+a surviving adjacent lane. When ego metadata is entirely absent, the estimate
+is rejected as `ego_metadata_missing` by default.
 
 ## Residual definition
 
@@ -84,22 +90,24 @@ so one accepted road-frame pair produces one vector in `R^11`.
 ## How correspondence is established
 
 The two MCAP topics do not automatically provide identical point stations.
-Version 0.3.2 therefore performs these steps before calculating a residual:
+Version 0.3.3 therefore performs these steps before calculating a residual:
+
 1. Extract a provided drive path when its range is valid.
 2. If a sensor-topology segment has no drive path, construct its centreline by
    resampling and averaging its paired left/right lane boundaries.
 3. Pair frames by embedded source timestamp by default while also reporting
    the MCAP-log-time difference.
-4. Inventory every map and sensor candidate with its segment ID, ego flag,
-   geometry source, point count, origin distance, and forward coverage.
-5. Select the ego-lane segment using message metadata when available.
-6. Otherwise select the valid segment nearest the ego origin. Coverage is only
-   a tie-breaker, so a longer adjacent lane does not replace the likely ego lane.
+4. Inventory every original map and sensor segment, including failed
+   reconstructions and their boundary/range failure reasons.
+5. Select the ego-lane segment using message metadata.
+6. Reject the sensor frame when the metadata-confirmed ego segment is
+   unavailable, or when ego metadata is missing.
 7. Recompute geometric arc length along the map-based segment.
 8. Define `s=0` by projecting the local ego origin `(0, 0)` onto that segment.
 9. Project every sensor-based vertex onto the reference polyline.
 10. Assign each sensor vertex the corresponding projected reference station.
-11. Count geometric coverage independently at 20, 30, 40, and 50 m.
+11. Count coverage independently at 20, 30, 40, and 50 m only when the common
+    selected-path range satisfies both `s_min <= 0` and `s_max >= horizon`.
 12. Reject non-monotonic, truncated, distant, or otherwise invalid path pairs.
 13. Interpolate both paths at the explicit evaluation stations.
 
@@ -132,7 +140,7 @@ mpr-mcap `
   ".\data\mcap_data\2025-05-27_13-48-41_2025-05-27_13-49-01_MCAP_000054.mcap" `
   --assume-same-frame `
   --max-samples 100 `
-  --output-directory ".\outputs\mcap_v032"
+  --output-directory ".\outputs\mcap_v033"
 ```
 
 Equivalent module command:
@@ -160,6 +168,7 @@ The command writes:
 | `pair_audit.csv` | Every considered pair, both time deltas, selected IDs, coverage, and rejection |
 | `candidate_segments.csv` | Every map/sensor segment candidate and selection evidence |
 | `summary.json` | Acceptance, timing, lane-selection, and horizon-coverage audit |
+| `path_source_candidates.json` | Container metadata for direct ego/path topic candidates |
 | `mcap_diagnostics.png` | Cropped path overlay, residuals, timing, rejections, horizons, selection methods |
 | `lane_association_audit.png` | Labelled map/sensor candidate segments; `*` marks each selection |
 | `gaussian_model.npz` | Optional descriptive fitted mean and covariance |
@@ -170,13 +179,17 @@ The Gaussian fit is descriptive and in-sample. Its reported NLL is not a
 generalization result. A valid train/test comparison requires recording-session
 groups and is deliberately postponed until geometry is validated.
 
-Version 0.3.2 does not fit the Gaussian by default. After the labelled lane
+Version 0.3.3 does not fit the Gaussian by default. After the labelled lane
 association is confirmed, add `--fit-gaussian` to generate the three Gaussian
 outputs.
 
-If no pair survives the configured 50 m checks, v0.3.2 still writes the pair,
+If no pair survives the configured 50 m checks, v0.3.3 still writes the pair,
 candidate, timing, rejection, and horizon audits. This is intentional: failed
 association or coverage must remain inspectable.
+
+`--allow-estimate-fallback` is available only for diagnostic comparison when a
+message contains no ego metadata. The CLI refuses to fit a Gaussian if accepted
+rows include such fallback selection.
 
 All raw MCAP and derived outputs are ignored by Git. They may contain
 BMW-confidential information and must not be pushed to the public repository.
@@ -191,18 +204,36 @@ The pipeline records stable rejection reasons, including:
 - implausibly large residual;
 - invalid or degenerate path geometry;
 - missing usable lane segments.
+- unavailable explicitly identified ego segments;
+- missing estimate ego metadata.
 
 Rejections are evidence about the data and assumptions. They must be inspected,
 not silently discarded.
 
 `horizon_coverage` in `summary.json` answers a narrower question: whether the
-selected paths geometrically reach 20, 30, 40, or 50 m. It does not establish
-that the selected lanes correspond or that their discrepancy is plausible.
+common path range begins at or before zero and reaches 20, 30, 40, or 50 m. It
+does not establish that the selected lanes correspond or that their discrepancy
+is plausible.
 
 `records.csv` and `summary.json` explicitly report whether each selected path
 came from a provided `drive_path` or was constructed from
 `paired_boundaries`. The boundary-derived sensor centreline is a deterministic
 preprocessing result, not a separately measured ground-truth path.
+
+## Direct path-source candidates
+
+Each run also inventories:
+
+```text
+/em/road/ego_lane_path       road_msgs/Road (ROS1)
+/adp/estimated_drive_paths   Adp.Perception.EstimatedDrivePaths (Protobuf)
+```
+
+Their message counts and encodings are written to
+`path_source_candidates.json`. Version 0.3.3 does not yet decode either into
+`Path2D`: the first needs ROS1 message decoding and the second needs a
+schema-specific path extractor. The inventory prevents us from silently
+treating a different schema as `Adp.Perception.Road`.
 
 ## Gaussian baseline
 
@@ -246,8 +277,10 @@ The tests cover:
 - one-to-one synchronization;
 - source-time default pairing with separate source/log delta reporting;
 - ego-segment selection;
-- all-candidate lane-association records;
-- 20/30/40/50 m coverage counts, including rejected pairs;
+- strict rejection of failed or missing estimate ego metadata;
+- successful and failed original-segment audit records;
+- two-sided 20/30/40/50 m coverage counts, including rejected pairs;
+- container-level inventory of direct path-source candidates;
 - polyline projection and shared station assignment;
 - rejection reporting and saved dataset structure.
 
@@ -268,8 +301,7 @@ tests/                               Focused regression tests
 For the first 100 accepted pairs:
 
 1. Inspect `lane_association_audit.png` and verify the labelled map/sensor IDs.
-2. Confirm whether map segment `2343141540299302401` corresponds to sensor
-   segment `3` in the first recording.
+2. Verify that only metadata-confirmed ego sensor geometry can be accepted.
 3. Inspect source-time and log-time differences separately.
 4. Compare the 20, 30, 40, and 50 m geometric-coverage counts.
 5. Confirm left/right sign convention and check that `s=0` is at the ego position.

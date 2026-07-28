@@ -1,9 +1,9 @@
 """Road-frame synchronization, lane-association audit, and residual extraction.
 
-Version 0.3.2 treats the map-based road as a *surrogate reference*, not as
-ground truth.  It preserves every lane candidate before selecting one, uses
-embedded source timestamps by default, and reports geometric coverage at
-multiple horizons before the residual model is interpreted.
+Version 0.3.3 treats the map-based road as a *surrogate reference*, not as
+ground truth. It preserves successful and failed original lane candidates,
+prevents non-ego fallback from replacing an unavailable ego segment, and
+requires both the start and end of each path to cover an audit horizon.
 """
 
 from __future__ import annotations
@@ -119,17 +119,20 @@ class CandidateSegmentRecord:
     role: Literal["reference", "estimate"]
     log_time_ns: int
     source_time_ns: int | None
-    segment_id: int
+    segment_index: int
+    segment_id: int | None
+    reconstruction_succeeded: bool
+    reconstruction_failure_reason: str
     selected: bool
     selection_method: str
     is_ego: bool | None
     geometry_source: str
     quality: object | None
     point_count: int
-    origin_distance_m: float
-    station_start_m: float
-    station_end_m: float
-    forward_coverage_m: float
+    origin_distance_m: float | None
+    station_start_m: float | None
+    station_end_m: float | None
+    covers_origin: bool | None
 
 
 @dataclass(frozen=True)
@@ -146,9 +149,12 @@ class PairAuditRecord:
     estimate_segment_id: int | None
     reference_selection: str
     estimate_selection: str
-    reference_forward_coverage_m: float | None
-    estimate_forward_coverage_m: float | None
-    common_forward_coverage_m: float | None
+    reference_station_start_m: float | None
+    reference_station_end_m: float | None
+    estimate_station_start_m: float | None
+    estimate_station_end_m: float | None
+    common_station_start_m: float | None
+    common_station_end_m: float | None
     estimate_points_retained_fraction: float | None
     maximum_projection_distance_m: float | None
     maximum_absolute_residual_m: float | None
@@ -232,6 +238,7 @@ class ResidualDataset:
     report: ExtractionReport
     reference_topic: str
     estimate_topic: str
+    require_estimate_ego_metadata: bool
 
     def __post_init__(self) -> None:
         stations = np.asarray(self.stations, dtype=np.float64)
@@ -264,12 +271,14 @@ class ResidualDataset:
         )
 
     def horizon_coverage_counts(self) -> dict[float, int]:
-        """Count geometrically usable synchronized pairs at each audit horizon."""
+        """Count pairs whose common range covers both ``s=0`` and the horizon."""
 
         return {
             horizon: sum(
-                record.common_forward_coverage_m is not None
-                and record.common_forward_coverage_m >= horizon - 1e-9
+                record.common_station_start_m is not None
+                and record.common_station_end_m is not None
+                and record.common_station_start_m <= 0.0 + 1e-9
+                and record.common_station_end_m >= horizon - 1e-9
                 for record in self.pair_audit_records
             )
             for horizon in self.audit_horizons_m
@@ -478,15 +487,44 @@ def select_ego_segment(
     frame: RoadFrame,
     *,
     stations: ArrayLike = DEFAULT_STATIONS,
+    require_ego_metadata: bool = False,
 ) -> SelectedRoadSegment:
-    """Select the ego segment from metadata, falling back to geometry."""
+    """Select an ego segment without replacing failed explicit ego metadata."""
 
     station_array = np.asarray(stations, dtype=np.float64)
     if station_array.ndim != 1 or len(station_array) == 0:
         raise ValueError("stations must be a nonempty one-dimensional array")
 
     metadata_candidates = [segment for segment in frame.segments if segment.is_ego]
-    candidates = metadata_candidates if metadata_candidates else list(frame.segments)
+    if metadata_candidates:
+        candidates = metadata_candidates
+        selection_method: Literal["metadata", "nearest_origin_fallback"] = "metadata"
+    elif frame.ego_metadata_present:
+        failed_ego = [
+            extraction
+            for extraction in frame.segment_extractions
+            if extraction.is_ego and not extraction.reconstruction_succeeded
+        ]
+        details = "; ".join(
+            f"index {item.segment_index}, id {item.segment_id}: "
+            f"{item.failure_reason}"
+            for item in failed_ego[:3]
+        )
+        suffix = f" ({details})" if details else ""
+        raise FrameRejection(
+            "ego_segment_unavailable",
+            f'explicit ego metadata on "{frame.topic}" does not identify a '
+            f"successfully reconstructed segment{suffix}",
+        )
+    elif require_ego_metadata:
+        raise FrameRejection(
+            "ego_metadata_missing",
+            f'frame on topic "{frame.topic}" has no explicit ego-segment metadata',
+        )
+    else:
+        candidates = list(frame.segments)
+        selection_method = "nearest_origin_fallback"
+
     scored: list[tuple[tuple[float, float, int], RoadSegment]] = []
     for segment in candidates:
         try:
@@ -506,7 +544,7 @@ def select_ego_segment(
     scored.sort(key=lambda item: item[0])
     return SelectedRoadSegment(
         segment=scored[0][1],
-        method="metadata" if metadata_candidates else "nearest_origin_fallback",
+        method=selection_method,
     )
 
 
@@ -518,12 +556,140 @@ def candidate_segment_records(
     role: Literal["reference", "estimate"],
     selected: SelectedRoadSegment | None,
 ) -> tuple[CandidateSegmentRecord, ...]:
-    """Describe every segment in a frame without discarding adjacent lanes."""
+    """Describe every original segment, including reconstruction failures."""
 
     records: list[CandidateSegmentRecord] = []
     selected_id = None if selected is None else selected.segment.segment_id
+    selected_source_index = (
+        None if selected is None else selected.segment.source_index
+    )
     selection_method = "" if selected is None else selected.method
-    for segment in frame.segments:
+
+    def is_selected(segment: RoadSegment, segment_index: int) -> bool:
+        if selected is None:
+            return False
+        if selected_source_index is not None:
+            return segment_index == selected_source_index
+        return segment.segment_id == selected_id
+
+    if frame.segment_extractions:
+        extraction_items = frame.segment_extractions
+        segment_by_index = {
+            segment.source_index: segment
+            for segment in frame.segments
+            if segment.source_index is not None
+        }
+    else:
+        extraction_items = ()
+        segment_by_index = {}
+
+    for extraction in extraction_items:
+        segment = segment_by_index.get(extraction.segment_index)
+        selected_flag = (
+            segment is not None
+            and is_selected(segment, extraction.segment_index)
+        )
+        if segment is None:
+            records.append(
+                CandidateSegmentRecord(
+                    recording_id=recording_id,
+                    pair_index=pair_index,
+                    role=role,
+                    log_time_ns=frame.log_time_ns,
+                    source_time_ns=frame.source_time_ns,
+                    segment_index=extraction.segment_index,
+                    segment_id=extraction.segment_id,
+                    reconstruction_succeeded=False,
+                    reconstruction_failure_reason=(
+                        extraction.failure_reason or "unknown reconstruction failure"
+                    ),
+                    selected=False,
+                    selection_method="",
+                    is_ego=extraction.is_ego,
+                    geometry_source=(
+                        ""
+                        if extraction.geometry_source is None
+                        else extraction.geometry_source
+                    ),
+                    quality=extraction.quality,
+                    point_count=0,
+                    origin_distance_m=None,
+                    station_start_m=None,
+                    station_end_m=None,
+                    covers_origin=None,
+                )
+            )
+            continue
+        try:
+            path = reference_path_from_segment(segment)
+            origin_distance = float(
+                project_points_to_polyline(
+                    segment.points,
+                    [[0.0, 0.0]],
+                ).distances[0]
+            )
+        except (ValueError, FloatingPointError):
+            records.append(
+                CandidateSegmentRecord(
+                    recording_id=recording_id,
+                    pair_index=pair_index,
+                    role=role,
+                    log_time_ns=frame.log_time_ns,
+                    source_time_ns=frame.source_time_ns,
+                    segment_index=extraction.segment_index,
+                    segment_id=extraction.segment_id,
+                    reconstruction_succeeded=False,
+                    reconstruction_failure_reason=(
+                        "reconstructed geometry is invalid during path audit"
+                    ),
+                    selected=False,
+                    selection_method="",
+                    is_ego=extraction.is_ego,
+                    geometry_source=(
+                        ""
+                        if extraction.geometry_source is None
+                        else extraction.geometry_source
+                    ),
+                    quality=extraction.quality,
+                    point_count=len(segment.x),
+                    origin_distance_m=None,
+                    station_start_m=None,
+                    station_end_m=None,
+                    covers_origin=None,
+                )
+            )
+            continue
+        records.append(
+            CandidateSegmentRecord(
+                recording_id=recording_id,
+                pair_index=pair_index,
+                role=role,
+                log_time_ns=frame.log_time_ns,
+                source_time_ns=frame.source_time_ns,
+                segment_index=extraction.segment_index,
+                segment_id=extraction.segment_id,
+                reconstruction_succeeded=True,
+                reconstruction_failure_reason="",
+                selected=selected_flag,
+                selection_method=(
+                    selection_method if selected_flag else ""
+                ),
+                is_ego=extraction.is_ego,
+                geometry_source=segment.geometry_source,
+                quality=extraction.quality,
+                point_count=len(segment.x),
+                origin_distance_m=origin_distance,
+                station_start_m=float(path.s[0]),
+                station_end_m=float(path.s[-1]),
+                covers_origin=bool(path.s[0] <= 0.0 <= path.s[-1]),
+            )
+        )
+
+    if extraction_items:
+        return tuple(records)
+
+    for segment_index, segment in enumerate(frame.segments):
+        selected_flag = is_selected(segment, segment_index)
         try:
             path = reference_path_from_segment(segment)
             origin_distance = float(
@@ -541,11 +707,12 @@ def candidate_segment_records(
                 role=role,
                 log_time_ns=frame.log_time_ns,
                 source_time_ns=frame.source_time_ns,
+                segment_index=segment_index,
                 segment_id=segment.segment_id,
-                selected=segment.segment_id == selected_id,
-                selection_method=(
-                    selection_method if segment.segment_id == selected_id else ""
-                ),
+                reconstruction_succeeded=True,
+                reconstruction_failure_reason="",
+                selected=selected_flag,
+                selection_method=selection_method if selected_flag else "",
                 is_ego=segment.is_ego,
                 geometry_source=segment.geometry_source,
                 quality=segment.quality,
@@ -553,7 +720,7 @@ def candidate_segment_records(
                 origin_distance_m=origin_distance,
                 station_start_m=float(path.s[0]),
                 station_end_m=float(path.s[-1]),
-                forward_coverage_m=max(0.0, float(path.s[-1])),
+                covers_origin=bool(path.s[0] <= 0.0 <= path.s[-1]),
             )
         )
     return tuple(records)
@@ -683,6 +850,7 @@ def build_residual_dataset(
     n_examples: int = 4,
     audit_horizons_m: Sequence[float] = DEFAULT_AUDIT_HORIZONS,
     n_association_examples: int = 6,
+    require_estimate_ego_metadata: bool = True,
 ) -> ResidualDataset:
     """Convert synchronized road frames into residuals plus association evidence."""
 
@@ -738,9 +906,12 @@ def build_residual_dataset(
         estimate_path: Path2D | None = None
         projection_distances: FloatArray | None = None
         retained_fraction: float | None = None
-        reference_forward_coverage: float | None = None
-        estimate_forward_coverage: float | None = None
-        common_forward_coverage: float | None = None
+        reference_station_start: float | None = None
+        reference_station_end: float | None = None
+        estimate_station_start: float | None = None
+        estimate_station_end: float | None = None
+        common_station_start: float | None = None
+        common_station_end: float | None = None
         maximum_projection_distance: float | None = None
         maximum_absolute_residual: float | None = None
         residual: FloatArray | None = None
@@ -754,6 +925,7 @@ def build_residual_dataset(
             selected_estimate = select_ego_segment(
                 pair.estimate,
                 stations=station_array,
+                require_ego_metadata=require_estimate_ego_metadata,
             )
             reference_path = reference_path_from_segment(
                 selected_reference.segment
@@ -765,18 +937,28 @@ def build_residual_dataset(
                     minimum_retained_fraction=minimum_retained_fraction,
                 )
             )
-            reference_forward_coverage = max(0.0, float(reference_path.s[-1]))
-            estimate_forward_coverage = max(0.0, float(estimate_path.s[-1]))
-            common_forward_coverage = min(
-                reference_forward_coverage,
-                estimate_forward_coverage,
+            reference_station_start = float(reference_path.s[0])
+            reference_station_end = float(reference_path.s[-1])
+            estimate_station_start = float(estimate_path.s[0])
+            estimate_station_end = float(estimate_path.s[-1])
+            common_station_start = max(
+                reference_station_start,
+                estimate_station_start,
+            )
+            common_station_end = min(
+                reference_station_end,
+                estimate_station_end,
             )
 
             available_stop = min(
                 float(station_array[-1]),
-                common_forward_coverage,
+                common_station_end,
             )
-            relevant = (estimate_path.s >= station_array[0] - 1e-9) & (
+            available_start = max(
+                float(station_array[0]),
+                common_station_start,
+            )
+            relevant = (estimate_path.s >= available_start - 1e-9) & (
                 estimate_path.s <= available_stop + 1e-9
             )
             if np.any(relevant):
@@ -869,9 +1051,12 @@ def build_residual_dataset(
                 estimate_selection=(
                     "" if selected_estimate is None else selected_estimate.method
                 ),
-                reference_forward_coverage_m=reference_forward_coverage,
-                estimate_forward_coverage_m=estimate_forward_coverage,
-                common_forward_coverage_m=common_forward_coverage,
+                reference_station_start_m=reference_station_start,
+                reference_station_end_m=reference_station_end,
+                estimate_station_start_m=estimate_station_start,
+                estimate_station_end_m=estimate_station_end,
+                common_station_start_m=common_station_start,
+                common_station_end_m=common_station_end,
                 estimate_points_retained_fraction=retained_fraction,
                 maximum_projection_distance_m=maximum_projection_distance,
                 maximum_absolute_residual_m=maximum_absolute_residual,
@@ -995,6 +1180,7 @@ def build_residual_dataset(
         report=report,
         reference_topic=reference_topic,
         estimate_topic=estimate_topic,
+        require_estimate_ego_metadata=require_estimate_ego_metadata,
     )
 
 
@@ -1012,6 +1198,7 @@ def build_residual_dataset_from_mcap(
     max_absolute_residual_m: float = 5.0,
     audit_horizons_m: Sequence[float] = DEFAULT_AUDIT_HORIZONS,
     n_association_examples: int = 6,
+    require_estimate_ego_metadata: bool = True,
 ) -> ResidualDataset:
     """Decode one MCAP and create residuals for two same-frame road topics."""
 
@@ -1049,6 +1236,7 @@ def build_residual_dataset_from_mcap(
         max_absolute_residual_m=max_absolute_residual_m,
         audit_horizons_m=audit_horizons_m,
         n_association_examples=n_association_examples,
+        require_estimate_ego_metadata=require_estimate_ego_metadata,
     )
 
 
@@ -1179,6 +1367,26 @@ def save_residual_dataset(
         if record.reference_segment_id is not None
         and record.estimate_segment_id is not None
     )
+    reconstruction_summary: dict[str, dict[str, object]] = {}
+    for role in ("reference", "estimate"):
+        role_records = [
+            record for record in dataset.candidate_records if record.role == role
+        ]
+        failures = Counter(
+            record.reconstruction_failure_reason
+            for record in role_records
+            if not record.reconstruction_succeeded
+        )
+        reconstruction_summary[role] = {
+            "original_segment_count": len(role_records),
+            "reconstructed_segment_count": sum(
+                record.reconstruction_succeeded for record in role_records
+            ),
+            "failed_segment_count": sum(
+                not record.reconstruction_succeeded for record in role_records
+            ),
+            "failure_reasons": dict(failures),
+        }
 
     def delta_summary(values: Sequence[float | None]) -> dict[str, float | int] | None:
         array = np.asarray(
@@ -1223,6 +1431,9 @@ def save_residual_dataset(
         ),
         "reference_topic": dataset.reference_topic,
         "estimate_topic": dataset.estimate_topic,
+        "estimate_ego_metadata_required": (
+            dataset.require_estimate_ego_metadata
+        ),
         "stations_m": dataset.stations.tolist(),
         "matrix_shape": list(dataset.residuals.shape),
         "mean_residual_m": mean_residual,
@@ -1271,10 +1482,11 @@ def save_residual_dataset(
         "estimate_geometry_source_counts": dict(
             estimate_geometry_source_counts
         ),
+        "segment_reconstruction": reconstruction_summary,
         "horizon_coverage": {
             "definition": (
-                "selected reference and estimate paths geometrically cover the "
-                "horizon; this is not a correctness or plausibility test"
+                "the common selected-path range satisfies s_min <= 0 and "
+                "s_max >= horizon; this is not a correctness or plausibility test"
             ),
             "considered_pairs": horizon_denominator,
             "horizons_m": horizon_summary,

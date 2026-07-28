@@ -2,12 +2,17 @@
 
 from .gaussian import GaussianResidualModel, fit_gaussian_residual_model
 from .mcap_io import (
+    DEFAULT_DIRECT_PATH_TOPICS,
     McapDependencyError,
     RoadFrame,
     RoadMessageError,
     RoadSegment,
+    SegmentExtraction,
+    TopicProbeRecord,
+    inspect_mcap_topics,
     load_road_frames,
     road_frame_from_message,
+    topic_probe_from_summary,
 )
 from .plotting import (
     plot_gaussian_residual_model,
@@ -40,6 +45,7 @@ from .residuals import Path2D, residual_matrix, residual_vector
 
 __all__ = [
     "DEFAULT_AUDIT_HORIZONS",
+    "DEFAULT_DIRECT_PATH_TOPICS",
     "DEFAULT_ESTIMATE_TOPIC",
     "DEFAULT_REFERENCE_TOPIC",
     "DEFAULT_STATIONS",
@@ -55,11 +61,14 @@ __all__ = [
     "RoadFrame",
     "RoadMessageError",
     "RoadSegment",
+    "SegmentExtraction",
+    "TopicProbeRecord",
     "build_residual_dataset",
     "build_residual_dataset_from_mcap",
     "candidate_segment_records",
     "estimate_path_on_reference",
     "fit_gaussian_residual_model",
+    "inspect_mcap_topics",
     "load_road_frames",
     "plot_gaussian_residual_model",
     "plot_lane_association_audit",
@@ -73,4 +82,5 @@ __all__ = [
     "save_residual_dataset",
     "select_ego_segment",
     "synchronize_road_frames",
+    "topic_probe_from_summary",
 ]
