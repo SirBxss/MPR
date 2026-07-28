@@ -3,8 +3,8 @@
 MPR is a deliberately small project for understanding path discrepancies
 before transferring the workflow to the larger LEEM thesis implementation.
 
-Version 0.3.3 makes the lane-association audit fail safely before any real-data
-result is interpreted:
+Version 0.3.4 keeps the v0.3.3 fail-safe lane audit and adds an evidence-first
+probe for the production estimated-drive-path Protobuf schema:
 
 ```text
 MCAP
@@ -14,6 +14,7 @@ MCAP
 → all-original-segment inventory, including reconstruction failures
 → strict metadata-confirmed sensor ego-segment selection
 → 20/30/40/50 m two-sided geometric coverage analysis
+→ decoded direct-path schema and field-presence audit
 → shared reference-station assignment
 → 11-dimensional residual vectors
 → descriptive multivariate Gaussian fit
@@ -36,7 +37,7 @@ This output must be described as:
 > sensor-based versus map-based lane-path discrepancy
 
 The map-based topic has not been established as ground truth. Consequently,
-Version 0.3.3 does not support a claim about absolute sensor error or sensor
+Version 0.3.4 does not support a claim about absolute sensor error or sensor
 accuracy. BMW signal documentation or supervisor confirmation is required
 before changing that interpretation.
 
@@ -50,7 +51,7 @@ discrepancy. The metadata-confirmed sensor ego segments were short or failed
 reconstruction. Those 16 vectors are invalid for modelling and must be
 discarded.
 
-Version 0.3.3 therefore rejects a frame as `ego_segment_unavailable` when ego
+Version 0.3.4 therefore rejects a frame as `ego_segment_unavailable` when ego
 metadata points to geometry that cannot be reconstructed. It never substitutes
 a surviving adjacent lane. When ego metadata is entirely absent, the estimate
 is rejected as `ego_metadata_missing` by default.
@@ -90,7 +91,7 @@ so one accepted road-frame pair produces one vector in `R^11`.
 ## How correspondence is established
 
 The two MCAP topics do not automatically provide identical point stations.
-Version 0.3.3 therefore performs these steps before calculating a residual:
+Version 0.3.4 therefore performs these steps before calculating a residual:
 
 1. Extract a provided drive path when its range is valid.
 2. If a sensor-topology segment has no drive path, construct its centreline by
@@ -133,14 +134,14 @@ packages.
 
 ## First MCAP run
 
-Start with one recording and at most 100 accepted frame pairs:
+Start with one recording and audit at most 100 synchronized pairs:
 
 ```powershell
 mpr-mcap `
   ".\data\mcap_data\2025-05-27_13-48-41_2025-05-27_13-49-01_MCAP_000054.mcap" `
   --assume-same-frame `
-  --max-samples 100 `
-  --output-directory ".\outputs\mcap_v033"
+  --max-pairs 100 `
+  --output-directory ".\outputs\mcap_v034"
 ```
 
 Equivalent module command:
@@ -169,6 +170,7 @@ The command writes:
 | `candidate_segments.csv` | Every map/sensor segment candidate and selection evidence |
 | `summary.json` | Acceptance, timing, lane-selection, and horizon-coverage audit |
 | `path_source_candidates.json` | Container metadata for direct ego/path topic candidates |
+| `estimated_drive_paths_structure.json` | Separate descriptor/presence report from `mpr-probe-path-source` |
 | `mcap_diagnostics.png` | Cropped path overlay, residuals, timing, rejections, horizons, selection methods |
 | `lane_association_audit.png` | Labelled map/sensor candidate segments; `*` marks each selection |
 | `gaussian_model.npz` | Optional descriptive fitted mean and covariance |
@@ -179,11 +181,11 @@ The Gaussian fit is descriptive and in-sample. Its reported NLL is not a
 generalization result. A valid train/test comparison requires recording-session
 groups and is deliberately postponed until geometry is validated.
 
-Version 0.3.3 does not fit the Gaussian by default. After the labelled lane
+Version 0.3.4 does not fit the Gaussian by default. After the labelled lane
 association is confirmed, add `--fit-gaussian` to generate the three Gaussian
 outputs.
 
-If no pair survives the configured 50 m checks, v0.3.3 still writes the pair,
+If no pair survives the configured 50 m checks, v0.3.4 still writes the pair,
 candidate, timing, rejection, and horizon audits. This is intentional: failed
 association or coverage must remain inspectable.
 
@@ -210,6 +212,14 @@ The pipeline records stable rejection reasons, including:
 Rejections are evidence about the data and assumptions. They must be inspected,
 not silently discarded.
 
+Detailed reconstruction text remains in `candidate_segments.csv`, while
+`summary.json` aggregates stable codes such as `implausible_lane_width`. This
+prevents one summary key per measured boundary width.
+
+`summary.json` also reports decoded, retained, and discarded message counts for
+each road topic. This makes pre-synchronization losses, such as empty road
+messages, explicit.
+
 `horizon_coverage` in `summary.json` answers a narrower question: whether the
 common path range begins at or before zero and reaches 20, 30, 40, or 50 m. It
 does not establish that the selected lanes correspond or that their discrepancy
@@ -230,10 +240,33 @@ Each run also inventories:
 ```
 
 Their message counts and encodings are written to
-`path_source_candidates.json`. Version 0.3.3 does not yet decode either into
-`Path2D`: the first needs ROS1 message decoding and the second needs a
-schema-specific path extractor. The inventory prevents us from silently
-treating a different schema as `Adp.Perception.Road`.
+`path_source_candidates.json`. The first still needs ROS1 message decoding.
+Version 0.3.4 decodes the second only for structural inspection; it does not yet
+convert it into `Path2D`.
+
+Run the production Protobuf probe independently:
+
+```powershell
+python -m lane_residuals.path_probe_cli `
+  ".\data\mcap_data\2025-05-27_13-48-41_2025-05-27_13-49-01_MCAP_000054.mcap" `
+  --max-messages 20 `
+  --output ".\outputs\mcap_v034\estimated_drive_paths_structure.json"
+```
+
+The report contains:
+
+- nested production field paths and Protobuf types;
+- enum symbols and observed enum names;
+- oneof membership;
+- field-presence counts;
+- repeated-field length ranges;
+- conservative candidates for keep-lane role, status/error, timestamp, initial
+  pose/curvature, segment lengths, and curvature changes.
+
+It exports no raw scalar numeric values or coordinates. The geometry converter
+must only be implemented after these production fields are confirmed. The
+similar ROS debug schema is useful context but is not accepted as proof that the
+production Protobuf uses identical fields.
 
 ## Gaussian baseline
 
@@ -281,6 +314,9 @@ The tests cover:
 - successful and failed original-segment audit records;
 - two-sided 20/30/40/50 m coverage counts, including rejected pairs;
 - container-level inventory of direct path-source candidates;
+- descriptor-driven direct-path inspection without numeric payload export;
+- bounded pair auditing even when zero residuals are accepted;
+- stable reconstruction failure codes and message-load diagnostics;
 - polyline projection and shared station assignment;
 - rejection reporting and saved dataset structure.
 
@@ -290,6 +326,8 @@ The tests cover:
 src/lane_residuals/residuals.py      Path2D and signed residual definition
 src/lane_residuals/gaussian.py       Unconditional Gaussian model
 src/lane_residuals/mcap_io.py        Streaming Protobuf MCAP road decoder
+src/lane_residuals/path_source_probe.py  Direct-path schema/presence audit
+src/lane_residuals/path_probe_cli.py     mpr-probe-path-source command
 src/lane_residuals/preprocessing.py  Sync, selection, projection, dataset audit
 src/lane_residuals/plotting.py       Geometry, extraction, Gaussian diagnostics
 src/lane_residuals/cli.py            mpr-mcap command
@@ -298,7 +336,7 @@ tests/                               Focused regression tests
 
 ## Required validation before all ten files
 
-For the first 100 accepted pairs:
+For the first 100 synchronized pairs:
 
 1. Inspect `lane_association_audit.png` and verify the labelled map/sensor IDs.
 2. Verify that only metadata-confirmed ego sensor geometry can be accepted.
@@ -309,6 +347,10 @@ For the first 100 accepted pairs:
 7. Confirm the semantic role and coordinate frame of both topics.
 8. Only after association is validated, interpret the residual mean, spread,
    covariance, or Gaussian fit.
+
+Before implementing `/adp/estimated_drive_paths` geometry, inspect
+`estimated_drive_paths_structure.json` and confirm the keep-lane, validity,
+timestamp, initial-pose/curvature, segment-length, and curvature-change paths.
 
 Only then process all ten MCAP chunks. The chunks belong to two contiguous
 recording sessions, so individual chunks must not be randomly split between

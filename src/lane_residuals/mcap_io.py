@@ -47,6 +47,7 @@ class TopicProbeRecord:
     schema_encodings: tuple[str, ...]
     message_encodings: tuple[str, ...]
     supported_by_current_road_decoder: bool
+    supported_by_structure_probe: bool
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -59,7 +60,39 @@ class TopicProbeRecord:
             "supported_by_current_road_decoder": (
                 self.supported_by_current_road_decoder
             ),
+            "supported_by_structure_probe": self.supported_by_structure_probe,
         }
+
+
+@dataclass(frozen=True)
+class RoadTopicLoadReport:
+    """Decoded, retained, and discarded message counts for one road topic."""
+
+    topic: str
+    decoded_messages: int
+    retained_frames: int
+    discard_reasons: tuple[tuple[str, int], ...]
+
+    @property
+    def discarded_messages(self) -> int:
+        return self.decoded_messages - self.retained_frames
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "topic": self.topic,
+            "decoded_messages": self.decoded_messages,
+            "retained_frames": self.retained_frames,
+            "discarded_messages": self.discarded_messages,
+            "discard_reasons": dict(self.discard_reasons),
+        }
+
+
+@dataclass(frozen=True)
+class RoadFrameLoadResult:
+    """Road frames plus message-level extraction diagnostics."""
+
+    frames_by_topic: dict[str, list["RoadFrame"]]
+    topic_reports: tuple[RoadTopicLoadReport, ...]
 
 
 def _finite_vector(values: ArrayLike, *, name: str) -> FloatArray:
@@ -158,6 +191,7 @@ class SegmentExtraction:
     quality: MetadataValue | None
     reconstruction_succeeded: bool
     geometry_source: GeometrySource | None
+    failure_code: str | None = None
     failure_reason: str | None = None
 
     def __post_init__(self) -> None:
@@ -179,13 +213,13 @@ class SegmentExtraction:
                 raise RoadMessageError(
                     "successful segment extraction requires an id and geometry source"
                 )
-            if self.failure_reason is not None:
+            if self.failure_code is not None or self.failure_reason is not None:
                 raise RoadMessageError(
-                    "successful segment extraction cannot have a failure reason"
+                    "successful segment extraction cannot have failure metadata"
                 )
-        elif not self.failure_reason:
+        elif not self.failure_code or not self.failure_reason:
             raise RoadMessageError(
-                "failed segment extraction requires a failure reason"
+                "failed segment extraction requires a failure code and reason"
             )
 
         object.__setattr__(self, "segment_index", int(self.segment_index))
@@ -534,6 +568,29 @@ def _midpoint_path(left: FloatArray, right: FloatArray) -> FloatArray:
     return 0.5 * (left_sampled + right_sampled)
 
 
+def _road_failure_code(reason: str) -> str:
+    """Map detailed reconstruction text to a stable aggregation code."""
+
+    normalized = reason.lower()
+    if "lane segment list is empty" in normalized:
+        return "lane_segments_empty"
+    if "segment id is missing or invalid" in normalized:
+        return "segment_id_invalid"
+    if "lane-boundary ranges are missing" in normalized:
+        return "lane_boundary_ranges_missing"
+    if "lane boundary has no usable geometry" in normalized:
+        return "lane_boundary_geometry_unavailable"
+    if "implausible median width" in normalized:
+        return "implausible_lane_width"
+    if "degenerate" in normalized:
+        return "degenerate_geometry"
+    if "fewer than two points" in normalized or "at least two points" in normalized:
+        return "insufficient_geometry_points"
+    if "unreadable coordinates" in normalized or "finite" in normalized:
+        return "invalid_geometry_values"
+    return "road_message_or_segment_invalid"
+
+
 def _segment_ego_status(
     lane_segment: Any,
     *,
@@ -706,6 +763,7 @@ def road_frame_from_message(
                     quality=_segment_quality(lane_segment),
                     reconstruction_succeeded=False,
                     geometry_source=None,
+                    failure_code=_road_failure_code(reason),
                     failure_reason=reason,
                 )
             )
@@ -769,6 +827,7 @@ def road_frame_from_message(
                         quality=quality,
                         reconstruction_succeeded=False,
                         geometry_source=None,
+                        failure_code=_road_failure_code(reason),
                         failure_reason=reason,
                     )
                 )
@@ -805,6 +864,7 @@ def road_frame_from_message(
                     quality=quality,
                     reconstruction_succeeded=False,
                     geometry_source=geometry_source,
+                    failure_code=_road_failure_code(reason),
                     failure_reason=reason,
                 )
             )
@@ -867,13 +927,13 @@ def road_frame_from_message(
     )
 
 
-def road_frames_from_decoded_messages(
+def road_frame_load_result_from_decoded_messages(
     decoded_messages: Iterable[tuple[Any, Any, Any, Any]],
     *,
     topics: Sequence[str],
     expected_schema_name: str = "Adp.Perception.Road",
-) -> dict[str, list[RoadFrame]]:
-    """Convert decoded MCAP tuples into road frames grouped by topic."""
+) -> RoadFrameLoadResult:
+    """Convert decoded tuples and retain message-level discard diagnostics."""
 
     requested = tuple(dict.fromkeys(topics))
     if not requested:
@@ -909,22 +969,51 @@ def road_frames_from_decoded_messages(
                 sequence=getattr(message, "sequence", 0),
             )
         except RoadMessageError as error:
-            rejection_reasons[topic][str(error)] += 1
+            rejection_reasons[topic][_road_failure_code(str(error))] += 1
             continue
         grouped[topic].append(frame)
 
+    reports: list[RoadTopicLoadReport] = []
     for topic, frames in grouped.items():
         frames.sort(key=lambda frame: frame.log_time_ns)
+        reports.append(
+            RoadTopicLoadReport(
+                topic=topic,
+                decoded_messages=decoded_counts[topic],
+                retained_frames=len(frames),
+                discard_reasons=tuple(
+                    sorted(rejection_reasons[topic].items())
+                ),
+            )
+        )
         if decoded_counts[topic] and not frames:
             details = "; ".join(
-                f"{count}x {reason}"
-                for reason, count in rejection_reasons[topic].most_common(3)
+                f"{count}x {code}"
+                for code, count in rejection_reasons[topic].most_common(3)
             )
             raise RoadMessageError(
                 f'topic "{topic}" had {decoded_counts[topic]} decoded messages, '
                 f"but all failed road extraction: {details}"
             )
-    return grouped
+    return RoadFrameLoadResult(
+        frames_by_topic=grouped,
+        topic_reports=tuple(reports),
+    )
+
+
+def road_frames_from_decoded_messages(
+    decoded_messages: Iterable[tuple[Any, Any, Any, Any]],
+    *,
+    topics: Sequence[str],
+    expected_schema_name: str = "Adp.Perception.Road",
+) -> dict[str, list[RoadFrame]]:
+    """Convert decoded MCAP tuples into road frames grouped by topic."""
+
+    return road_frame_load_result_from_decoded_messages(
+        decoded_messages,
+        topics=topics,
+        expected_schema_name=expected_schema_name,
+    ).frames_by_topic
 
 
 def _iter_decoded_mcap_messages(
@@ -962,7 +1051,25 @@ def load_road_frames(
     source = Path(path)
     if not source.is_file():
         raise FileNotFoundError(f"MCAP file not found: {source}")
-    return road_frames_from_decoded_messages(
+    return load_road_frame_result(
+        source,
+        topics=topics,
+        expected_schema_name=expected_schema_name,
+    ).frames_by_topic
+
+
+def load_road_frame_result(
+    path: str | Path,
+    *,
+    topics: Sequence[str],
+    expected_schema_name: str = "Adp.Perception.Road",
+) -> RoadFrameLoadResult:
+    """Stream selected road topics and preserve message discard evidence."""
+
+    source = Path(path)
+    if not source.is_file():
+        raise FileNotFoundError(f"MCAP file not found: {source}")
+    return road_frame_load_result_from_decoded_messages(
         _iter_decoded_mcap_messages(source, topics=topics),
         topics=topics,
         expected_schema_name=expected_schema_name,
@@ -1029,6 +1136,11 @@ def topic_probe_from_summary(
                 message_encodings=tuple(sorted(message_encodings)),
                 supported_by_current_road_decoder=(
                     schema_names == {"Adp.Perception.Road"}
+                    and {value.lower() for value in message_encodings}
+                    == {"protobuf"}
+                ),
+                supported_by_structure_probe=(
+                    schema_names == {"Adp.Perception.EstimatedDrivePaths"}
                     and {value.lower() for value in message_encodings}
                     == {"protobuf"}
                 ),

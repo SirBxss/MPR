@@ -279,6 +279,7 @@ class PreprocessingTests(unittest.TestCase):
                     quality=None,
                     reconstruction_succeeded=False,
                     geometry_source=None,
+                    failure_code="lane_boundary_geometry_unavailable",
                     failure_reason="left lane boundary has no usable geometry",
                 ),
                 SegmentExtraction(
@@ -394,6 +395,38 @@ class PreprocessingTests(unittest.TestCase):
             audit.rejection_reason,
             "insufficient_estimate_coverage",
         )
+
+    def test_max_pairs_bounds_a_zero_acceptance_audit(self) -> None:
+        references = [
+            _frame(
+                "/reference",
+                index * 100_000_000,
+                (_segment(1, y=0.0, is_ego=True),),
+            )
+            for index in range(5)
+        ]
+        estimates = [
+            _frame(
+                "/estimate",
+                index * 100_000_000,
+                (_segment(2, y=0.2, is_ego=False),),
+            )
+            for index in range(5)
+        ]
+
+        dataset = build_residual_dataset(
+            references,
+            estimates,
+            recording_id="bounded-audit",
+            max_samples=None,
+            max_pairs=2,
+        )
+
+        self.assertEqual(dataset.report.synchronized_pairs, 5)
+        self.assertEqual(dataset.report.pairs_considered, 2)
+        self.assertEqual(dataset.report.unconsidered_synchronized_pairs, 3)
+        self.assertEqual(len(dataset.pair_audit_records), 2)
+        self.assertEqual(dataset.residuals.shape, (0, 11))
 
     def test_zero_accepted_pairs_still_save_the_association_audit(self) -> None:
         dataset = build_residual_dataset(

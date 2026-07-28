@@ -14,6 +14,7 @@ from .gaussian import fit_gaussian_residual_model
 from .mcap_io import (
     DEFAULT_DIRECT_PATH_TOPICS,
     McapDependencyError,
+    RoadMessageError,
     inspect_mcap_topics,
 )
 from .plotting import (
@@ -43,7 +44,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-directory",
         type=Path,
-        default=Path("outputs") / "mcap_v033",
+        default=Path("outputs") / "mcap_v034",
     )
     parser.add_argument(
         "--reference-topic",
@@ -56,13 +57,30 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--station-start", type=float, default=0.0)
     parser.add_argument("--station-stop", type=float, default=50.0)
     parser.add_argument("--station-step", type=float, default=5.0)
-    parser.add_argument("--max-samples", type=int, default=100)
+    parser.add_argument(
+        "--max-pairs",
+        type=int,
+        default=100,
+        help=(
+            "Maximum synchronized pairs to audit, including rejected pairs. "
+            "This bounds zero-accepted diagnostic runs."
+        ),
+    )
+    parser.add_argument(
+        "--max-samples",
+        type=int,
+        default=None,
+        help=(
+            "Optional maximum accepted residual vectors. This does not bound "
+            "rejected pairs; use --max-pairs for that."
+        ),
+    )
     parser.add_argument("--max-time-delta-ms", type=float, default=50.0)
     parser.add_argument(
         "--time-basis",
         choices=("log", "source"),
         default="source",
-        help="Timestamp used for pairing; source time is the v0.3.3 default.",
+        help="Timestamp used for pairing; source time is the v0.3.4 default.",
     )
     parser.add_argument(
         "--audit-horizons",
@@ -118,7 +136,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "Opt in to the descriptive Gaussian only after lane association "
-            "has been inspected. The v0.3.3 audit does not fit it by default."
+            "has been inspected. The v0.3.4 audit does not fit it by default."
         ),
     )
     parser.add_argument(
@@ -146,7 +164,7 @@ def _stations(start: float, stop: float, step: float) -> np.ndarray:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the v0.3.3 MCAP lane-association and residual checkpoint."""
+    """Run the v0.3.4 MCAP lane-association and residual checkpoint."""
 
     parser = _parser()
     arguments = parser.parse_args(argv)
@@ -165,6 +183,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             max_delta_ms=arguments.max_time_delta_ms,
             time_basis=arguments.time_basis,
             max_samples=arguments.max_samples,
+            max_pairs=arguments.max_pairs,
             max_projection_distance_m=arguments.max_projection_distance_m,
             max_absolute_residual_m=arguments.max_absolute_residual_m,
             audit_horizons_m=arguments.audit_horizons,
@@ -175,7 +194,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             arguments.mcap_file,
             topics=arguments.path_source_topics,
         )
-    except (FileNotFoundError, ValueError, FrameRejection, McapDependencyError) as error:
+    except (
+        FileNotFoundError,
+        ValueError,
+        FrameRejection,
+        McapDependencyError,
+        RoadMessageError,
+    ) as error:
         parser.exit(2, f"error: {error}\n")
 
     output_directory = arguments.output_directory

@@ -3,7 +3,11 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from lane_residuals import road_frame_from_message, topic_probe_from_summary
+from lane_residuals import (
+    road_frame_from_message,
+    road_frame_load_result_from_decoded_messages,
+    topic_probe_from_summary,
+)
 from lane_residuals.mcap_io import road_frames_from_decoded_messages
 
 
@@ -114,6 +118,47 @@ class McapRoadMessageTests(unittest.TestCase):
         np.testing.assert_allclose(segment.x, x)
         np.testing.assert_allclose(segment.y, 0.0, atol=1e-12)
 
+    def test_implausible_boundary_width_has_stable_failure_code(self) -> None:
+        x = np.linspace(-5.0, 60.0, 14)
+        message = SimpleNamespace(
+            ego_lane_segment_indices=[0],
+            polyline_vertex_pool=[],
+            polyline_arc_length_pool=[],
+            boundary_vertex_pool=[
+                *[_vertex(value, 8.0) for value in x],
+                *[_vertex(value, -8.0) for value in x],
+            ],
+            lane_boundary_pool=[
+                SimpleNamespace(geometry=_range(0, len(x))),
+                SimpleNamespace(geometry=_range(len(x), len(x))),
+            ],
+            lane_segments=[
+                SimpleNamespace(
+                    id=10,
+                    drive_path_range=_range(2**63 - 1, 0),
+                    left_lane_boundary_ranges=SimpleNamespace(
+                        camera_based=_range(0, 1),
+                    ),
+                    right_lane_boundary_ranges=SimpleNamespace(
+                        camera_based=_range(1, 1),
+                    ),
+                )
+            ],
+        )
+
+        frame = road_frame_from_message(
+            message,
+            topic="/sensor",
+            schema_name="Adp.Perception.Road",
+            log_time_ns=1,
+            publish_time_ns=1,
+        )
+
+        self.assertEqual(frame.segments, ())
+        extraction = frame.segment_extractions[0]
+        self.assertEqual(extraction.failure_code, "implausible_lane_width")
+        self.assertIn("16.000 m", extraction.failure_reason)
+
     def test_message_level_ego_segment_id_is_used(self) -> None:
         message = SimpleNamespace(
             time_stamp=100,
@@ -213,6 +258,44 @@ class McapRoadMessageTests(unittest.TestCase):
         self.assertEqual(extraction.segment_id, 1)
         self.assertIn("left lane-boundary", extraction.failure_reason)
 
+    def test_topic_load_report_explains_discarded_messages(self) -> None:
+        schema = SimpleNamespace(name="Adp.Perception.Road")
+        channel = SimpleNamespace(
+            topic="/reference",
+            message_encoding="protobuf",
+        )
+        mcap_message = SimpleNamespace(
+            log_time=1,
+            publish_time=1,
+            sequence=0,
+        )
+        valid = SimpleNamespace(
+            polyline_vertex_pool=[_vertex(0.0, 0.0), _vertex(1.0, 0.0)],
+            polyline_arc_length_pool=[0.0, 1.0],
+            lane_segments=[
+                SimpleNamespace(id=1, drive_path_range=_range(0, 2))
+            ],
+        )
+        empty = SimpleNamespace(
+            polyline_vertex_pool=[],
+            lane_segments=[],
+        )
+
+        result = road_frame_load_result_from_decoded_messages(
+            [
+                (schema, channel, mcap_message, valid),
+                (schema, channel, mcap_message, empty),
+            ],
+            topics=["/reference"],
+        )
+
+        self.assertEqual(len(result.frames_by_topic["/reference"]), 1)
+        report = result.topic_reports[0]
+        self.assertEqual(report.decoded_messages, 2)
+        self.assertEqual(report.retained_frames, 1)
+        self.assertEqual(report.discarded_messages, 1)
+        self.assertEqual(dict(report.discard_reasons), {"lane_segments_empty": 1})
+
     def test_failed_ego_segment_and_surviving_adjacent_lane_are_both_kept(self) -> None:
         message = SimpleNamespace(
             ego_lane_segment_indices=[0],
@@ -297,6 +380,8 @@ class McapRoadMessageTests(unittest.TestCase):
         self.assertFalse(any(
             record.supported_by_current_road_decoder for record in records
         ))
+        self.assertFalse(records[0].supported_by_structure_probe)
+        self.assertTrue(records[1].supported_by_structure_probe)
 
 
 if __name__ == "__main__":

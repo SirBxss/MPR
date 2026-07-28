@@ -1,6 +1,6 @@
 """Road-frame synchronization, lane-association audit, and residual extraction.
 
-Version 0.3.3 treats the map-based road as a *surrogate reference*, not as
+Version 0.3.4 treats the map-based road as a *surrogate reference*, not as
 ground truth. It preserves successful and failed original lane candidates,
 prevents non-ego fallback from replacing an unavailable ego segment, and
 requires both the start and end of each path to cover an audit horizon.
@@ -18,7 +18,12 @@ from typing import Literal, Sequence
 import numpy as np
 from numpy.typing import ArrayLike
 
-from .mcap_io import RoadFrame, RoadSegment, load_road_frames
+from .mcap_io import (
+    RoadFrame,
+    RoadSegment,
+    RoadTopicLoadReport,
+    load_road_frame_result,
+)
 from .residuals import FloatArray, Path2D, residual_vector
 
 DEFAULT_REFERENCE_TOPIC = "/adp/road_lane_map_based"
@@ -122,6 +127,7 @@ class CandidateSegmentRecord:
     segment_index: int
     segment_id: int | None
     reconstruction_succeeded: bool
+    reconstruction_failure_code: str
     reconstruction_failure_reason: str
     selected: bool
     selection_method: str
@@ -239,6 +245,7 @@ class ResidualDataset:
     reference_topic: str
     estimate_topic: str
     require_estimate_ego_metadata: bool
+    topic_load_reports: tuple[RoadTopicLoadReport, ...] = ()
 
     def __post_init__(self) -> None:
         stations = np.asarray(self.stations, dtype=np.float64)
@@ -600,6 +607,9 @@ def candidate_segment_records(
                     segment_index=extraction.segment_index,
                     segment_id=extraction.segment_id,
                     reconstruction_succeeded=False,
+                    reconstruction_failure_code=(
+                        extraction.failure_code or "unknown_reconstruction_failure"
+                    ),
                     reconstruction_failure_reason=(
                         extraction.failure_reason or "unknown reconstruction failure"
                     ),
@@ -639,6 +649,7 @@ def candidate_segment_records(
                     segment_index=extraction.segment_index,
                     segment_id=extraction.segment_id,
                     reconstruction_succeeded=False,
+                    reconstruction_failure_code="invalid_reconstructed_geometry",
                     reconstruction_failure_reason=(
                         "reconstructed geometry is invalid during path audit"
                     ),
@@ -669,6 +680,7 @@ def candidate_segment_records(
                 segment_index=extraction.segment_index,
                 segment_id=extraction.segment_id,
                 reconstruction_succeeded=True,
+                reconstruction_failure_code="",
                 reconstruction_failure_reason="",
                 selected=selected_flag,
                 selection_method=(
@@ -710,6 +722,7 @@ def candidate_segment_records(
                 segment_index=segment_index,
                 segment_id=segment.segment_id,
                 reconstruction_succeeded=True,
+                reconstruction_failure_code="",
                 reconstruction_failure_reason="",
                 selected=selected_flag,
                 selection_method=selection_method if selected_flag else "",
@@ -844,6 +857,7 @@ def build_residual_dataset(
     max_delta_ms: float = 50.0,
     time_basis: Literal["log", "source"] = "source",
     max_samples: int | None = 100,
+    max_pairs: int | None = None,
     max_projection_distance_m: float = 5.0,
     max_absolute_residual_m: float = 5.0,
     minimum_retained_fraction: float = 0.8,
@@ -851,6 +865,7 @@ def build_residual_dataset(
     audit_horizons_m: Sequence[float] = DEFAULT_AUDIT_HORIZONS,
     n_association_examples: int = 6,
     require_estimate_ego_metadata: bool = True,
+    topic_load_reports: Sequence[RoadTopicLoadReport] = (),
 ) -> ResidualDataset:
     """Convert synchronized road frames into residuals plus association evidence."""
 
@@ -875,6 +890,8 @@ def build_residual_dataset(
         )
     if max_samples is not None and max_samples < 1:
         raise ValueError("max_samples must be at least one or None")
+    if max_pairs is not None and max_pairs < 1:
+        raise ValueError("max_pairs must be at least one or None")
     if n_examples < 0 or n_association_examples < 0:
         raise ValueError("example counts must be nonnegative")
     if max_projection_distance_m <= 0.0 or max_absolute_residual_m <= 0.0:
@@ -897,6 +914,8 @@ def build_residual_dataset(
     considered = 0
 
     for pair_index, pair in enumerate(synchronization.pairs):
+        if max_pairs is not None and considered >= max_pairs:
+            break
         if max_samples is not None and len(residual_rows) >= max_samples:
             break
         considered += 1
@@ -1181,6 +1200,7 @@ def build_residual_dataset(
         reference_topic=reference_topic,
         estimate_topic=estimate_topic,
         require_estimate_ego_metadata=require_estimate_ego_metadata,
+        topic_load_reports=tuple(topic_load_reports),
     )
 
 
@@ -1194,6 +1214,7 @@ def build_residual_dataset_from_mcap(
     max_delta_ms: float = 50.0,
     time_basis: Literal["log", "source"] = "source",
     max_samples: int | None = 100,
+    max_pairs: int | None = None,
     max_projection_distance_m: float = 5.0,
     max_absolute_residual_m: float = 5.0,
     audit_horizons_m: Sequence[float] = DEFAULT_AUDIT_HORIZONS,
@@ -1208,10 +1229,11 @@ def build_residual_dataset_from_mcap(
             "only after verifying both road topics use the same coordinate frame"
         )
     source = Path(path)
-    grouped = load_road_frames(
+    load_result = load_road_frame_result(
         source,
         topics=(reference_topic, estimate_topic),
     )
+    grouped = load_result.frames_by_topic
     if not grouped[reference_topic]:
         raise FrameRejection(
             "reference_topic_empty",
@@ -1232,11 +1254,13 @@ def build_residual_dataset_from_mcap(
         max_delta_ms=max_delta_ms,
         time_basis=time_basis,
         max_samples=max_samples,
+        max_pairs=max_pairs,
         max_projection_distance_m=max_projection_distance_m,
         max_absolute_residual_m=max_absolute_residual_m,
         audit_horizons_m=audit_horizons_m,
         n_association_examples=n_association_examples,
         require_estimate_ego_metadata=require_estimate_ego_metadata,
+        topic_load_reports=load_result.topic_reports,
     )
 
 
@@ -1373,7 +1397,7 @@ def save_residual_dataset(
             record for record in dataset.candidate_records if record.role == role
         ]
         failures = Counter(
-            record.reconstruction_failure_reason
+            record.reconstruction_failure_code
             for record in role_records
             if not record.reconstruction_succeeded
         )
@@ -1385,7 +1409,7 @@ def save_residual_dataset(
             "failed_segment_count": sum(
                 not record.reconstruction_succeeded for record in role_records
             ),
-            "failure_reasons": dict(failures),
+            "failure_codes": dict(failures),
         }
 
     def delta_summary(values: Sequence[float | None]) -> dict[str, float | int] | None:
@@ -1483,6 +1507,10 @@ def save_residual_dataset(
             estimate_geometry_source_counts
         ),
         "segment_reconstruction": reconstruction_summary,
+        "topic_loading": {
+            report.topic: report.to_dict()
+            for report in dataset.topic_load_reports
+        },
         "horizon_coverage": {
             "definition": (
                 "the common selected-path range satisfies s_min <= 0 and "
