@@ -156,7 +156,7 @@ python -m lane_residuals.cli `
 
 Do not add `--assume-same-frame` merely to bypass the guard. First confirm from
 the signal documentation or a trusted visualization that both topics use the
-same origin, axes, handedness, and units.
+same origin, axes, handedness, and unit.
 
 ## Generated local outputs
 
