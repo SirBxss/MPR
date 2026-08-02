@@ -54,6 +54,7 @@ _MESSAGE_TYPE = 11
 _ENUM_TYPE = 14
 _BOOL_TYPE = 8
 _REPEATED_LABEL = 3
+_DEFAULT_MAX_REPEATED_ITEMS_PER_FIELD = 64
 
 
 @dataclass(frozen=True)
@@ -68,12 +69,16 @@ class ProtobufFieldProbe:
     enum_type: str | None
     enum_symbols: tuple[str, ...]
     oneof: str | None
+    is_map: bool
     semantic_tags: tuple[str, ...]
     present_in_sampled_messages: int
     observed_occurrences: int
+    presence_evidence: tuple[str, ...]
     repeated_length_min: int | None
     repeated_length_median: float | None
     repeated_length_max: int | None
+    nested_message_items_inspected: int | None
+    nested_message_items_truncated: int | None
     observed_enum_symbols: tuple[str, ...]
     observed_boolean_values: tuple[bool, ...]
 
@@ -89,9 +94,11 @@ class ProtobufFieldProbe:
             "enum_type": self.enum_type,
             "enum_symbols": list(self.enum_symbols),
             "oneof": self.oneof,
+            "is_map": self.is_map,
             "semantic_tags": list(self.semantic_tags),
             "present_in_sampled_messages": self.present_in_sampled_messages,
             "observed_occurrences": self.observed_occurrences,
+            "presence_evidence": list(self.presence_evidence),
             "repeated_length": (
                 None
                 if self.repeated_length_min is None
@@ -100,6 +107,12 @@ class ProtobufFieldProbe:
                     "median": self.repeated_length_median,
                     "maximum": self.repeated_length_max,
                 }
+            ),
+            "nested_message_items_inspected": (
+                self.nested_message_items_inspected
+            ),
+            "nested_message_items_truncated": (
+                self.nested_message_items_truncated
             ),
             "observed_enum_symbols": list(self.observed_enum_symbols),
             "observed_boolean_values": list(self.observed_boolean_values),
@@ -117,6 +130,7 @@ class ProtobufPathSourceProbe:
     sampled_messages: int
     source_timestamp_present_messages: int
     max_schema_depth: int
+    max_repeated_items_per_field: int
     raw_numeric_values_exported: bool
     fields: tuple[ProtobufFieldProbe, ...]
 
@@ -147,20 +161,30 @@ class ProtobufPathSourceProbe:
                 self.source_timestamp_present_messages
             ),
             "max_schema_depth": self.max_schema_depth,
+            "max_repeated_items_per_field": (
+                self.max_repeated_items_per_field
+            ),
             "raw_numeric_values_exported": self.raw_numeric_values_exported,
             "observed_presence_note": (
                 "Counts prefer Protobuf ListFields() and fall back to "
                 "descriptor-driven inspection for generated wrappers; proto3 "
                 "scalar default values and empty repeated fields may not be "
-                "listed, so zero observed presence is not proof that a schema "
-                "field is unavailable"
+                "listed, descriptor_inferred presence is less certain than "
+                "list_fields presence, and repeated-length summaries are "
+                "conditional on observed non-empty containers; zero observed "
+                "presence is not proof that a schema field is unavailable"
+            ),
+            "map_field_note": (
+                "map containers and lengths are reported, but their synthetic "
+                "entry messages are not recursively inspected"
             ),
             "semantic_candidates": self.semantic_candidates,
             "fields": [field.to_dict() for field in self.fields],
             "next_decision": (
                 "confirm the keep-lane path, validity/error, timestamp, initial "
-                "pose, initial curvature, segment-length, and curvature-change "
-                "field paths before implementing clothoid conversion"
+                "pose, initial curvature, segment-start/boundary semantics, "
+                "curvature-change fields, and index_0 meaning before "
+                "implementing clothoid conversion"
             ),
         }
 
@@ -174,6 +198,9 @@ class _Observation:
     repeated_lengths: list[int]
     enum_symbols: set[str]
     boolean_values: set[bool]
+    presence_evidence: set[str]
+    nested_message_items_inspected: int
+    nested_message_items_truncated: int
 
 
 def _descriptor_full_name(descriptor: Any) -> str | None:
@@ -187,11 +214,26 @@ def _enum_symbols(field: Any) -> tuple[str, ...]:
     return tuple(str(value.name) for value in values)
 
 
+def _field_is_map(field: Any) -> bool:
+    """Return whether a repeated message field represents a Protobuf map."""
+
+    message_type = getattr(field, "message_type", None)
+    get_options = getattr(message_type, "GetOptions", None)
+    if not callable(get_options):
+        return False
+    try:
+        options = get_options()
+    except (TypeError, NotImplementedError):
+        return False
+    return bool(getattr(options, "map_entry", False))
+
+
 def _semantic_tags(path: str, field: Any) -> tuple[str, ...]:
     """Classify candidate fields conservatively from schema evidence."""
 
     normalized = path.lower()
-    compact = normalized.replace("_", "")
+    leaf = normalized.rsplit(".", maxsplit=1)[-1]
+    leaf_compact = leaf.replace("_", "")
     enum_text = " ".join(symbol.lower() for symbol in _enum_symbols(field))
     tags: set[str] = set()
 
@@ -214,28 +256,43 @@ def _semantic_tags(path: str, field: Any) -> tuple[str, ...]:
         )
     ):
         tags.add("validity_or_error")
-    if any(
-        token in compact
-        for token in ("x0", "y0", "initialx", "initialy", "startx", "starty")
-    ):
+    if leaf_compact in {
+        "x0",
+        "y0",
+        "initialx",
+        "initialy",
+        "startx",
+        "starty",
+    }:
         tags.add("initial_position")
-    if any(
-        token in compact
-        for token in ("theta0", "heading0", "yaw0", "initialheading", "initialyaw")
-    ):
+    if leaf_compact in {
+        "theta0",
+        "heading0",
+        "yaw0",
+        "initialheading",
+        "initialyaw",
+    }:
         tags.add("initial_heading")
-    if any(
-        token in compact
-        for token in ("curvature0", "kappa0", "initialcurvature", "initialkappa")
-    ):
+    if leaf_compact in {
+        "curvature0",
+        "kappa0",
+        "initialcurvature",
+        "initialkappa",
+    }:
         tags.add("initial_curvature")
-    if "segmentlength" in compact or "arclength" in compact:
+    if "segmentlength" in leaf_compact or "arclength" in leaf_compact:
         tags.add("segment_lengths")
+    if leaf_compact in {"segmentstarts", "segmentboundaries"}:
+        tags.add("segment_starts_or_boundaries")
     if any(
-        token in compact
+        token in leaf_compact
         for token in ("curvaturechange", "deltacurvature", "curvaturerate")
     ):
         tags.add("curvature_changes")
+    if leaf_compact in {"index0", "startindex", "anchorindex"}:
+        tags.add("index_or_anchor")
+    if leaf_compact in {"topologysource", "roadtopologysource"}:
+        tags.add("topology_source")
     if any(
         token in normalized
         for token in ("drive_path", "drivepath", "spline", "path_estimate")
@@ -295,6 +352,72 @@ def _schema_fields(
 _FIELD_VALUE_MISSING = object()
 
 
+def _descriptor_boolean_flag(field: Any, name: str) -> bool | None:
+    """Read a bool-like descriptor property across Protobuf runtimes.
+
+    Python Protobuf 7 removed ``FieldDescriptor.label``.  Its replacements are
+    normally bool properties, while some descriptor-backed wrappers expose
+    equivalent zero-argument methods.  Returning ``None`` distinguishes an
+    unavailable API from a legitimate ``False`` value.
+    """
+
+    try:
+        value = getattr(field, name)
+    except (AttributeError, NotImplementedError):
+        return None
+    if callable(value):
+        try:
+            value = value()
+        except (TypeError, NotImplementedError):
+            return None
+    if value is None:
+        return None
+    return bool(value)
+
+
+def _legacy_field_label(field: Any) -> int | None:
+    """Return the pre-Protobuf-7 numeric field label when available."""
+
+    try:
+        value = getattr(field, "label")
+    except (AttributeError, NotImplementedError):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def _field_is_repeated(field: Any) -> bool:
+    """Return repeated cardinality using the modern API with legacy fallback."""
+
+    modern = _descriptor_boolean_flag(field, "is_repeated")
+    if modern is not None:
+        return modern
+    return _legacy_field_label(field) == _REPEATED_LABEL
+
+
+def _field_cardinality_name(field: Any) -> str:
+    """Return a stable cardinality name across Protobuf 4 through 7."""
+
+    repeated = _descriptor_boolean_flag(field, "is_repeated")
+    required = _descriptor_boolean_flag(field, "is_required")
+    if repeated is True:
+        return "repeated"
+    if required is True:
+        return "required"
+
+    # Prefer the modern properties even when an older runtime still exposes
+    # deprecated ``label`` and would warn when it is accessed.
+    if repeated is not None or required is not None:
+        return "optional"
+
+    legacy_label = _legacy_field_label(field)
+    if legacy_label is not None:
+        return _LABEL_NAMES.get(legacy_label, f"unknown_{legacy_label}")
+    return "unknown"
+
+
 def _field_value(message: Any, field_name: str) -> Any:
     """Read one generated-field value from a message or wrapper object."""
 
@@ -321,7 +444,7 @@ def _descriptor_field_is_present(
         return False
 
     field_name = str(field.name)
-    repeated = int(getattr(field, "label", 0)) == _REPEATED_LABEL
+    repeated = _field_is_repeated(field)
     if repeated:
         try:
             return len(value) > 0
@@ -365,13 +488,16 @@ def _listed_fields_with_descriptor(
     message: Any,
     *,
     descriptor: Any | None,
-) -> Sequence[tuple[Any, Any]]:
+) -> Sequence[tuple[Any, Any, str]]:
     """Return observed fields from a full Protobuf message or thin wrapper."""
 
     list_fields = getattr(message, "ListFields", None)
     if callable(list_fields):
         try:
-            return tuple(list_fields())
+            return tuple(
+                (field, value, "list_fields")
+                for field, value in list_fields()
+            )
         except (TypeError, NotImplementedError):
             # Continue with descriptor-driven traversal for generated wrappers.
             pass
@@ -387,11 +513,11 @@ def _listed_fields_with_descriptor(
             "nor a usable descriptor"
         )
 
-    observed: list[tuple[Any, Any]] = []
+    observed: list[tuple[Any, Any, str]] = []
     for field in getattr(effective_descriptor, "fields", ()):
         value = _field_value(message, str(field.name))
         if _descriptor_field_is_present(message, field, value):
-            observed.append((field, value))
+            observed.append((field, value, "descriptor_inferred"))
     return tuple(observed)
 
 
@@ -404,7 +530,8 @@ def _enum_symbol(field: Any, value: Any) -> str:
         descriptor = values_by_number.get(int(value))
     except (TypeError, ValueError, OverflowError):
         descriptor = None
-    return str(descriptor.name) if descriptor is not None else f"UNKNOWN_{value}"
+    # Do not leak an unknown numeric payload through a generated symbol name.
+    return str(descriptor.name) if descriptor is not None else "UNKNOWN_ENUM_VALUE"
 
 
 def _observe_message(
@@ -416,9 +543,9 @@ def _observe_message(
     prefix: str = "",
     max_depth: int,
     depth: int = 1,
-    max_repeated_items: int = 16,
+    max_repeated_items: int = _DEFAULT_MAX_REPEATED_ITEMS_PER_FIELD,
 ) -> None:
-    for field, value in _listed_fields_with_descriptor(
+    for field, value, presence_evidence in _listed_fields_with_descriptor(
         message,
         descriptor=descriptor,
     ):
@@ -426,12 +553,13 @@ def _observe_message(
         path = f"{prefix}.{name}" if prefix else name
         observation = observations.setdefault(
             path,
-            _Observation(set(), 0, [], set(), set()),
+            _Observation(set(), 0, [], set(), set(), set(), 0, 0),
         )
         observation.sampled_message_indices.add(sample_index)
         observation.occurrences += 1
+        observation.presence_evidence.add(presence_evidence)
 
-        repeated = int(getattr(field, "label", 0)) == _REPEATED_LABEL
+        repeated = _field_is_repeated(field)
         values: list[Any]
         if repeated:
             values = list(value)
@@ -446,8 +574,18 @@ def _observe_message(
             )
         elif field_type == _BOOL_TYPE:
             observation.boolean_values.update(bool(item) for item in values)
-        elif field_type == _MESSAGE_TYPE and depth < max_depth:
-            for item in values[:max_repeated_items]:
+        elif (
+            field_type == _MESSAGE_TYPE
+            and depth < max_depth
+            and not _field_is_map(field)
+        ):
+            inspected_values = values[:max_repeated_items]
+            observation.nested_message_items_inspected += len(inspected_values)
+            observation.nested_message_items_truncated += max(
+                0,
+                len(values) - len(inspected_values),
+            )
+            for item in inspected_values:
                 _observe_message(
                     item,
                     sample_index=sample_index,
@@ -475,6 +613,9 @@ def probe_decoded_protobuf_messages(
     expected_schema_name: str = DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA,
     max_messages: int = 20,
     max_schema_depth: int = 6,
+    max_repeated_items_per_field: int = (
+        _DEFAULT_MAX_REPEATED_ITEMS_PER_FIELD
+    ),
 ) -> ProtobufPathSourceProbe:
     """Inspect decoded messages without exporting numeric payload values."""
 
@@ -484,6 +625,8 @@ def probe_decoded_protobuf_messages(
         raise ValueError("max_messages must be at least one")
     if max_schema_depth < 1:
         raise ValueError("max_schema_depth must be at least one")
+    if max_repeated_items_per_field < 1:
+        raise ValueError("max_repeated_items_per_field must be at least one")
 
     samples: list[Any] = []
     decoded_seen = 0
@@ -527,13 +670,14 @@ def probe_decoded_protobuf_messages(
             observations=observations,
             descriptor=descriptor,
             max_depth=max_schema_depth,
+            max_repeated_items=max_repeated_items_per_field,
         )
 
     output_fields: list[ProtobufFieldProbe] = []
     for path, field in sorted(fields_by_path.items()):
         observation = observations.get(
             path,
-            _Observation(set(), 0, [], set(), set()),
+            _Observation(set(), 0, [], set(), set(), set(), 0, 0),
         )
         repeated_lengths = observation.repeated_lengths
         message_type = _descriptor_full_name(getattr(field, "message_type", None))
@@ -547,10 +691,7 @@ def probe_decoded_protobuf_messages(
                     int(getattr(field, "type", 0)),
                     f"unknown_{getattr(field, 'type', 0)}",
                 ),
-                label=_LABEL_NAMES.get(
-                    int(getattr(field, "label", 0)),
-                    f"unknown_{getattr(field, 'label', 0)}",
-                ),
+                label=_field_cardinality_name(field),
                 message_type=message_type,
                 enum_type=enum_type,
                 enum_symbols=_enum_symbols(field),
@@ -559,11 +700,15 @@ def probe_decoded_protobuf_messages(
                     if containing_oneof is None
                     else str(containing_oneof.name)
                 ),
+                is_map=_field_is_map(field),
                 semantic_tags=_semantic_tags(path, field),
                 present_in_sampled_messages=len(
                     observation.sampled_message_indices
                 ),
                 observed_occurrences=observation.occurrences,
+                presence_evidence=tuple(
+                    sorted(observation.presence_evidence)
+                ),
                 repeated_length_min=(
                     min(repeated_lengths) if repeated_lengths else None
                 ),
@@ -572,6 +717,24 @@ def probe_decoded_protobuf_messages(
                 ),
                 repeated_length_max=(
                     max(repeated_lengths) if repeated_lengths else None
+                ),
+                nested_message_items_inspected=(
+                    observation.nested_message_items_inspected
+                    if (
+                        _field_is_repeated(field)
+                        and int(getattr(field, "type", 0)) == _MESSAGE_TYPE
+                        and not _field_is_map(field)
+                    )
+                    else None
+                ),
+                nested_message_items_truncated=(
+                    observation.nested_message_items_truncated
+                    if (
+                        _field_is_repeated(field)
+                        and int(getattr(field, "type", 0)) == _MESSAGE_TYPE
+                        and not _field_is_map(field)
+                    )
+                    else None
                 ),
                 observed_enum_symbols=tuple(sorted(observation.enum_symbols)),
                 observed_boolean_values=tuple(
@@ -588,6 +751,7 @@ def probe_decoded_protobuf_messages(
         sampled_messages=len(samples),
         source_timestamp_present_messages=source_timestamp_present,
         max_schema_depth=max_schema_depth,
+        max_repeated_items_per_field=max_repeated_items_per_field,
         raw_numeric_values_exported=False,
         fields=tuple(output_fields),
     )
@@ -600,6 +764,9 @@ def inspect_protobuf_path_source(
     expected_schema_name: str = DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA,
     max_messages: int = 20,
     max_schema_depth: int = 6,
+    max_repeated_items_per_field: int = (
+        _DEFAULT_MAX_REPEATED_ITEMS_PER_FIELD
+    ),
 ) -> ProtobufPathSourceProbe:
     """Decode and structurally inspect one Protobuf path-source topic."""
 
@@ -614,6 +781,7 @@ def inspect_protobuf_path_source(
             expected_schema_name=expected_schema_name,
             max_messages=max_messages,
             max_schema_depth=max_schema_depth,
+            max_repeated_items_per_field=max_repeated_items_per_field,
         )
     except ImportError as error:
         raise McapDependencyError(

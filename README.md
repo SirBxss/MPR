@@ -3,9 +3,11 @@
 MPR is a deliberately small project for understanding path discrepancies
 before transferring the workflow to the larger LEEM thesis implementation.
 
-Version 0.3.5 keeps the v0.3.4 fail-safe lane audit and makes its evidence-first
-production estimated-drive-path probe compatible with both full Google
-Protobuf messages and descriptor-backed generated wrappers:
+Version 0.3.6 keeps the v0.3.4 fail-safe lane audit and makes its evidence-first
+production estimated-drive-path probe compatible with Protobuf 4 through 7,
+full Google Protobuf messages, and descriptor-backed generated wrappers. It
+uses modern descriptor cardinality rather than the removed `label` API, so
+repeated drive-path containers and spline arrays are traversed correctly:
 
 ```text
 MCAP
@@ -242,7 +244,7 @@ Each run also inventories:
 
 Their message counts and encodings are written to
 `path_source_candidates.json`. The first still needs ROS1 message decoding.
-Version 0.3.5 decodes the second only for structural inspection; it does not yet
+Version 0.3.6 decodes the second only for structural inspection; it does not yet
 convert it into `Path2D`.
 
 Run the production Protobuf probe independently:
@@ -251,7 +253,7 @@ Run the production Protobuf probe independently:
 python -m lane_residuals.path_probe_cli `
   ".\data\mcap_data\2025-05-27_13-48-41_2025-05-27_13-49-01_MCAP_000054.mcap" `
   --max-messages 20 `
-  --output ".\outputs\mcap_v035\estimated_drive_paths_structure.json"
+  --output ".\outputs\mcap_v036\estimated_drive_paths_structure.json"
 ```
 
 The report contains:
@@ -261,8 +263,11 @@ The report contains:
 - oneof membership;
 - field-presence counts;
 - repeated-field length ranges;
+- whether presence came from `ListFields()` or descriptor inference;
+- nested-message inspection and truncation counts;
 - conservative candidates for keep-lane role, status/error, timestamp, initial
-  pose/curvature, segment lengths, and curvature changes.
+  pose/curvature, segment starts/boundaries, curvature changes, and the
+  unresolved `index_0` anchor.
 
 It exports no raw scalar numeric values or coordinates. The geometry converter
 must only be implemented after these production fields are confirmed. The
@@ -271,9 +276,16 @@ production Protobuf uses identical fields.
 
 Observed field presence prefers the standard Protobuf `ListFields()` API. When
 the decoder returns a generated wrapper without that method, the probe traverses
-the same schema descriptor and field attributes instead. Proto3 default-valued
-scalars and empty repeated fields can be absent from either presence view, so a
-zero presence count is not proof that a schema field is unavailable.
+the same schema descriptor and field attributes instead. Protobuf 7 uses
+`is_repeated` and `is_required`; older runtimes fall back to `label`. Proto3
+default-valued scalars and empty repeated fields can be absent from either
+presence view, so a zero presence count is not proof that a schema field is
+unavailable.
+
+The probe reports `segment_starts` as boundaries or starts, not automatically
+as segment lengths. It also reports `index_0` as an unresolved index/anchor
+candidate rather than misclassifying it as an initial x-coordinate. These
+semantics must be confirmed before implementing clothoid geometry.
 
 ## Gaussian baseline
 
@@ -357,7 +369,8 @@ For the first 100 synchronized pairs:
 
 Before implementing `/adp/estimated_drive_paths` geometry, inspect
 `estimated_drive_paths_structure.json` and confirm the keep-lane, validity,
-timestamp, initial-pose/curvature, segment-length, and curvature-change paths.
+timestamp, initial-pose/curvature, segment-start/boundary meaning,
+curvature-change paths, and `index_0` semantics.
 
 Only then process all ten MCAP chunks. The chunks belong to two contiguous
 recording sessions, so individual chunks must not be randomly split between

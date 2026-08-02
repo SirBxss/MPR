@@ -34,10 +34,19 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-messages", type=int, default=20)
     parser.add_argument("--max-schema-depth", type=int, default=6)
     parser.add_argument(
+        "--max-repeated-items-per-field",
+        type=int,
+        default=64,
+        help=(
+            "Maximum nested message items inspected per repeated field; "
+            "container lengths are still reported in full."
+        ),
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=Path("outputs")
-        / "mcap_v035"
+        / "mcap_v036"
         / "estimated_drive_paths_structure.json",
     )
     return parser
@@ -55,6 +64,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             expected_schema_name=arguments.expected_schema,
             max_messages=arguments.max_messages,
             max_schema_depth=arguments.max_schema_depth,
+            max_repeated_items_per_field=(
+                arguments.max_repeated_items_per_field
+            ),
         )
         output = save_protobuf_path_source_probe(report, arguments.output)
     except (
