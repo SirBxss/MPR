@@ -37,7 +37,7 @@ def _parser() -> argparse.ArgumentParser:
         "--output",
         type=Path,
         default=Path("outputs")
-        / "mcap_v034"
+        / "mcap_v035"
         / "estimated_drive_paths_structure.json",
     )
     return parser

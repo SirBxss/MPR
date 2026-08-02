@@ -149,9 +149,11 @@ class ProtobufPathSourceProbe:
             "max_schema_depth": self.max_schema_depth,
             "raw_numeric_values_exported": self.raw_numeric_values_exported,
             "observed_presence_note": (
-                "Counts use Protobuf ListFields(); proto3 scalar default values "
-                "and empty repeated fields may not be listed, so zero observed "
-                "presence is not proof that a schema field is unavailable"
+                "Counts prefer Protobuf ListFields() and fall back to "
+                "descriptor-driven inspection for generated wrappers; proto3 "
+                "scalar default values and empty repeated fields may not be "
+                "listed, so zero observed presence is not proof that a schema "
+                "field is unavailable"
             ),
             "semantic_candidates": self.semantic_candidates,
             "fields": [field.to_dict() for field in self.fields],
@@ -290,13 +292,107 @@ def _schema_fields(
     return fields
 
 
-def _listed_fields(message: Any) -> Sequence[tuple[Any, Any]]:
+_FIELD_VALUE_MISSING = object()
+
+
+def _field_value(message: Any, field_name: str) -> Any:
+    """Read one generated-field value from a message or wrapper object."""
+
+    if isinstance(message, Mapping):
+        return message.get(field_name, _FIELD_VALUE_MISSING)
+    return getattr(message, field_name, _FIELD_VALUE_MISSING)
+
+
+def _descriptor_field_is_present(
+    message: Any,
+    field: Any,
+    value: Any,
+) -> bool:
+    """Approximate ``ListFields`` presence for descriptor-backed wrappers.
+
+    Some production decoders expose ``DESCRIPTOR`` and generated attributes but
+    not the complete ``google.protobuf.message.Message`` API.  This fallback
+    deliberately follows normal Protobuf presence semantics where they are
+    available and otherwise treats only non-default scalar values and non-empty
+    repeated values as observed.  No scalar value is written to the report.
+    """
+
+    if value is _FIELD_VALUE_MISSING:
+        return False
+
+    field_name = str(field.name)
+    repeated = int(getattr(field, "label", 0)) == _REPEATED_LABEL
+    if repeated:
+        try:
+            return len(value) > 0
+        except TypeError:
+            return False
+
+    containing_oneof = getattr(field, "containing_oneof", None)
+    which_oneof = getattr(message, "WhichOneof", None)
+    if containing_oneof is not None and callable(which_oneof):
+        try:
+            return which_oneof(str(containing_oneof.name)) == field_name
+        except (TypeError, ValueError, NotImplementedError):
+            pass
+
+    has_field = getattr(message, "HasField", None)
+    if callable(has_field):
+        try:
+            return bool(has_field(field_name))
+        except (TypeError, ValueError, NotImplementedError):
+            # Proto3 scalars without explicit presence raise ValueError.
+            pass
+
+    field_type = int(getattr(field, "type", 0))
+    if field_type == _MESSAGE_TYPE:
+        return value is not None
+
+    if bool(getattr(field, "has_presence", False)):
+        return value is not None
+
+    default = getattr(field, "default_value", _FIELD_VALUE_MISSING)
+    if default is _FIELD_VALUE_MISSING:
+        return value is not None
+    try:
+        differs = value != default
+        return bool(differs)
+    except (TypeError, ValueError):
+        return value is not None
+
+
+def _listed_fields_with_descriptor(
+    message: Any,
+    *,
+    descriptor: Any | None,
+) -> Sequence[tuple[Any, Any]]:
+    """Return observed fields from a full Protobuf message or thin wrapper."""
+
     list_fields = getattr(message, "ListFields", None)
-    if not callable(list_fields):
+    if callable(list_fields):
+        try:
+            return tuple(list_fields())
+        except (TypeError, NotImplementedError):
+            # Continue with descriptor-driven traversal for generated wrappers.
+            pass
+
+    effective_descriptor = (
+        descriptor
+        if descriptor is not None
+        else getattr(message, "DESCRIPTOR", None)
+    )
+    if effective_descriptor is None:
         raise RoadMessageError(
-            "decoded direct-path message does not expose Protobuf ListFields()"
+            "decoded direct-path message exposes neither Protobuf ListFields() "
+            "nor a usable descriptor"
         )
-    return tuple(list_fields())
+
+    observed: list[tuple[Any, Any]] = []
+    for field in getattr(effective_descriptor, "fields", ()):
+        value = _field_value(message, str(field.name))
+        if _descriptor_field_is_present(message, field, value):
+            observed.append((field, value))
+    return tuple(observed)
 
 
 def _enum_symbol(field: Any, value: Any) -> str:
@@ -316,12 +412,16 @@ def _observe_message(
     *,
     sample_index: int,
     observations: dict[str, _Observation],
+    descriptor: Any | None = None,
     prefix: str = "",
     max_depth: int,
     depth: int = 1,
     max_repeated_items: int = 16,
 ) -> None:
-    for field, value in _listed_fields(message):
+    for field, value in _listed_fields_with_descriptor(
+        message,
+        descriptor=descriptor,
+    ):
         name = str(field.name)
         path = f"{prefix}.{name}" if prefix else name
         observation = observations.setdefault(
@@ -352,6 +452,7 @@ def _observe_message(
                     item,
                     sample_index=sample_index,
                     observations=observations,
+                    descriptor=getattr(field, "message_type", None),
                     prefix=path,
                     max_depth=max_depth,
                     depth=depth + 1,
@@ -424,6 +525,7 @@ def probe_decoded_protobuf_messages(
             message,
             sample_index=sample_index,
             observations=observations,
+            descriptor=descriptor,
             max_depth=max_schema_depth,
         )
 

@@ -13,7 +13,7 @@ from lane_residuals import (
 
 def main() -> None:
     rng = np.random.default_rng(21)
-    stations = np.arange(0.0, 50.1, 1.0)
+    stations = np.arange(0.0, 50.1, 5.0)
 
     # Known data-generating distribution used only to verify the implementation.
     true_mean = 0.03 + 0.002 * stations

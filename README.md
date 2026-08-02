@@ -3,8 +3,9 @@
 MPR is a deliberately small project for understanding path discrepancies
 before transferring the workflow to the larger LEEM thesis implementation.
 
-Version 0.3.4 keeps the v0.3.3 fail-safe lane audit and adds an evidence-first
-probe for the production estimated-drive-path Protobuf schema:
+Version 0.3.5 keeps the v0.3.4 fail-safe lane audit and makes its evidence-first
+production estimated-drive-path probe compatible with both full Google
+Protobuf messages and descriptor-backed generated wrappers:
 
 ```text
 MCAP
@@ -241,7 +242,7 @@ Each run also inventories:
 
 Their message counts and encodings are written to
 `path_source_candidates.json`. The first still needs ROS1 message decoding.
-Version 0.3.4 decodes the second only for structural inspection; it does not yet
+Version 0.3.5 decodes the second only for structural inspection; it does not yet
 convert it into `Path2D`.
 
 Run the production Protobuf probe independently:
@@ -250,7 +251,7 @@ Run the production Protobuf probe independently:
 python -m lane_residuals.path_probe_cli `
   ".\data\mcap_data\2025-05-27_13-48-41_2025-05-27_13-49-01_MCAP_000054.mcap" `
   --max-messages 20 `
-  --output ".\outputs\mcap_v034\estimated_drive_paths_structure.json"
+  --output ".\outputs\mcap_v035\estimated_drive_paths_structure.json"
 ```
 
 The report contains:
@@ -267,6 +268,12 @@ It exports no raw scalar numeric values or coordinates. The geometry converter
 must only be implemented after these production fields are confirmed. The
 similar ROS debug schema is useful context but is not accepted as proof that the
 production Protobuf uses identical fields.
+
+Observed field presence prefers the standard Protobuf `ListFields()` API. When
+the decoder returns a generated wrapper without that method, the probe traverses
+the same schema descriptor and field attributes instead. Proto3 default-valued
+scalars and empty repeated fields can be absent from either presence view, so a
+zero presence count is not proof that a schema field is unavailable.
 
 ## Gaussian baseline
 

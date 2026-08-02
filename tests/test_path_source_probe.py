@@ -48,6 +48,32 @@ class _Message:
         return self._listed_fields
 
 
+class _DescriptorOnlyMessage:
+    """Generated-message stand-in without the Google Protobuf ListFields API."""
+
+    def __init__(self, descriptor, values):
+        self.DESCRIPTOR = descriptor
+        for name, value in values.items():
+            setattr(self, name, value)
+
+
+def _as_descriptor_only(message):
+    values = {}
+    for field in message.DESCRIPTOR.fields:
+        if not hasattr(message, field.name):
+            continue
+        value = getattr(message, field.name)
+        if isinstance(value, _Message):
+            value = _as_descriptor_only(value)
+        elif isinstance(value, list):
+            value = [
+                _as_descriptor_only(item) if isinstance(item, _Message) else item
+                for item in value
+            ]
+        values[field.name] = value
+    return _DescriptorOnlyMessage(message.DESCRIPTOR, values)
+
+
 class PathSourceProbeTests(unittest.TestCase):
     def _message(self):
         role_enum = _enum(
@@ -176,6 +202,34 @@ class PathSourceProbeTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "Unexpected.Schema"):
             probe_decoded_protobuf_messages(decoded)
+
+    def test_probe_supports_descriptor_only_generated_wrappers(self):
+        message = _as_descriptor_only(self._message())
+        decoded = [
+            (
+                SimpleNamespace(name="Adp.Perception.EstimatedDrivePaths"),
+                SimpleNamespace(
+                    topic="/adp/estimated_drive_paths",
+                    message_encoding="protobuf",
+                ),
+                SimpleNamespace(log_time=1, publish_time=1),
+                message,
+            )
+        ]
+
+        payload = probe_decoded_protobuf_messages(decoded).to_dict()
+        fields = {field["path"]: field for field in payload["fields"]}
+
+        self.assertFalse(payload["raw_numeric_values_exported"])
+        self.assertEqual(payload["source_timestamp_present_messages"], 1)
+        self.assertEqual(
+            fields["drive_paths.estimate.segment_length"]["repeated_length"],
+            {"minimum": 3, "median": 3.0, "maximum": 3},
+        )
+        self.assertEqual(
+            fields["drive_paths.role"]["observed_enum_symbols"],
+            ["LANE_ROLE_KEEP_LANE"],
+        )
 
 
 if __name__ == "__main__":
