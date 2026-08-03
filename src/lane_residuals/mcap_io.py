@@ -4,8 +4,8 @@ The MCAP dependency is deliberately optional.  The geometry and statistical
 modules can still be installed and tested without MCAP support; install the
 ``mcap`` extra when real recordings are processed.
 
-Only schema-backed Protobuf messages are decoded.  No attempt is made to guess
-the structure of opaque binary payloads.
+Only schema-backed Protobuf and explicitly requested ROS1 messages are decoded.
+No attempt is made to guess the structure of opaque binary payloads.
 """
 
 from __future__ import annotations
@@ -327,6 +327,21 @@ def _get_present_attr(
 
 
 def _mean(value: Any) -> float:
+    invalid_flags = _get_attr(
+        value,
+        ("invalid_flags", "invalid_flags_"),
+        default=None,
+    )
+    if invalid_flags is not None:
+        try:
+            flags = int(invalid_flags)
+        except (TypeError, ValueError, OverflowError) as error:
+            raise RoadMessageError("distributed value has invalid status flags") from error
+        # Bit 0 marks an invalid mean; 255 denotes an unfilled signal in the
+        # embedded road_msgs schema.  Standard Python floats do not expose
+        # this field and continue to be accepted below.
+        if flags == 255 or flags & 1:
+            raise RoadMessageError("distributed value mean is marked invalid")
     mean = _get_attr(value, ("mean", "mean_"), default=value)
     return float(mean)
 
@@ -1021,6 +1036,33 @@ def _iter_decoded_mcap_messages(
     *,
     topics: Sequence[str],
 ) -> Iterator[tuple[Any, Any, Any, Any]]:
+    yield from iter_decoded_mcap_messages(
+        path,
+        topics=topics,
+        include_ros1=False,
+    )
+
+
+def iter_decoded_mcap_messages(
+    path: str | Path,
+    *,
+    topics: Sequence[str],
+    include_ros1: bool = False,
+) -> Iterator[tuple[Any, Any, Any, Any]]:
+    """Stream selected schema-backed messages from one MCAP.
+
+    Protobuf support is always enabled.  ROS1 decoding is opt-in so the
+    existing Protobuf-only commands do not acquire an unnecessary runtime
+    requirement.  The ROS1 factory dynamically consumes the embedded
+    ``ros1msg`` schema and does not require a ROS installation.
+    """
+
+    source = Path(path)
+    if not source.is_file():
+        raise FileNotFoundError(f"MCAP file not found: {source}")
+    requested = tuple(dict.fromkeys(str(topic) for topic in topics))
+    if not requested or any(not topic for topic in requested):
+        raise ValueError("topics must contain at least one nonempty topic")
     try:
         from mcap.reader import NonSeekingReader, SeekingReader
         from mcap_protobuf.decoder import DecoderFactory as ProtobufDecoderFactory
@@ -1029,15 +1071,26 @@ def _iter_decoded_mcap_messages(
             'MCAP support is not installed. Run: pip install -e ".[mcap]"'
         ) from error
 
-    with path.open("rb") as stream:
+    decoder_factories: list[Any] = [ProtobufDecoderFactory()]
+    if include_ros1:
+        try:
+            from mcap_ros1.decoder import DecoderFactory as Ros1DecoderFactory
+        except ImportError as error:
+            raise McapDependencyError(
+                "ROS1 MCAP support is not installed. Run: "
+                'pip install -e ".[mcap]"'
+            ) from error
+        decoder_factories.append(Ros1DecoderFactory())
+
+    with source.open("rb") as stream:
         reader_type = SeekingReader if stream.seekable() else NonSeekingReader
         reader = reader_type(
             stream,
             validate_crcs=False,
-            decoder_factories=[ProtobufDecoderFactory()],
+            decoder_factories=decoder_factories,
             record_size_limit=None,
         )
-        yield from reader.iter_decoded_messages(topics=list(topics))
+        yield from reader.iter_decoded_messages(topics=list(requested))
 
 
 def load_road_frames(

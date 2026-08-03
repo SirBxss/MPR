@@ -33,6 +33,7 @@ from .mcap_io import (
 
 DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC = "/adp/estimated_drive_paths"
 DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA = "Adp.Perception.EstimatedDrivePaths"
+EXPECTED_SENSOR_TOPOLOGY_SYMBOL = "ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY"
 
 _FIELD_TYPE_NAMES = {
     1: "double",
@@ -729,7 +730,7 @@ def _enum_symbol(field: Any, value: Any) -> str:
 
 @dataclass(frozen=True)
 class _JointAuditBindings:
-    """Exact production fields used by the v0.3.7 joint audit."""
+    """Exact production fields used by the joint path-semantic audit."""
 
     drive_paths: Any | None
     topology_source: Any | None
@@ -1232,7 +1233,14 @@ def _audit_joint_path_semantics(
                     structurally_valid_joint_count
                 ),
                 joint_audit_candidate_path_count=candidate_count,
-                safe_for_later_conversion=(candidate_count == 1 and truncated == 0),
+                safe_for_later_conversion=(
+                    not missing_required
+                    and _source_time_ns(message) is not None
+                    and topology_symbol == EXPECTED_SENSOR_TOPOLOGY_SYMBOL
+                    and keep_lane_count == 1
+                    and candidate_count == 1
+                    and truncated == 0
+                ),
             )
         )
 

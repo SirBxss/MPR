@@ -1,7 +1,7 @@
 """Road-frame synchronization, lane-association audit, and residual extraction.
 
-Version 0.3.4 treats the map-based road as a *surrogate reference*, not as
-ground truth. It preserves successful and failed original lane candidates,
+Since version 0.3.4, the map-based road is treated as a *surrogate reference*,
+not as ground truth. The audit preserves successful and failed original lane candidates,
 prevents non-ego fallback from replacing an unavailable ego segment, and
 requires both the start and end of each path to cover an audit horizon.
 """

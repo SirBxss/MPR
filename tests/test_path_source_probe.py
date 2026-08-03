@@ -148,7 +148,10 @@ def _joint_schema(*, explicit_initial_presence=False):
     )
     topology_enum = _enum(
         "Adp.Perception.TopologySource",
-        ["TOPOLOGY_SOURCE_UNKNOWN", "SENSOR_TOPOLOGY"],
+        [
+            "ROAD_TOPOLOGY_SOURCE_UNKNOWN",
+            "ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY",
+        ],
     )
     model_fields = [
         _v7_field(
@@ -1135,6 +1138,37 @@ class PathSourceProbeTests(unittest.TestCase):
         self.assertEqual(joint["summary"]["total_paths"], 0)
         self.assertEqual(joint["summary"]["messages_with_no_keep_lane"], 1)
         self.assertEqual(joint["paths"], [])
+
+    def test_conversion_gate_requires_timestamp_and_expected_topology(self):
+        schema = _joint_schema()
+        path = _joint_path(schema)
+        missing_timestamp = _DescriptorOnlyMessage(
+            schema.root,
+            {
+                "topology_source": 1,
+                "drive_paths": [path],
+            },
+        )
+        wrong_topology = _DescriptorOnlyMessage(
+            schema.root,
+            {
+                "time_stamp": 123456789,
+                "topology_source": 0,
+                "drive_paths": [path],
+            },
+        )
+
+        missing_summary = probe_decoded_protobuf_messages(
+            self._decoded(missing_timestamp)
+        ).to_dict()["joint_path_semantics"]["summary"]
+        topology_summary = probe_decoded_protobuf_messages(
+            self._decoded(wrong_topology)
+        ).to_dict()["joint_path_semantics"]["summary"]
+
+        self.assertEqual(missing_summary["joint_audit_candidate_paths"], 1)
+        self.assertEqual(missing_summary["messages_safe_for_later_conversion"], 0)
+        self.assertEqual(topology_summary["joint_audit_candidate_paths"], 1)
+        self.assertEqual(topology_summary["messages_safe_for_later_conversion"], 0)
 
 
 if __name__ == "__main__":

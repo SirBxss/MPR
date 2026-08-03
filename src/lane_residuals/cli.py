@@ -36,15 +36,15 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Decode map- and sensor-based road topics, audit lane association "
-            "and horizon coverage, calculate residuals, and optionally fit a "
-            "descriptive Gaussian."
+            "and horizon coverage, and calculate diagnostic residuals. Real-data "
+            "Gaussian fitting remains disabled in v0.3.8."
         )
     )
     parser.add_argument("mcap_file", type=Path)
     parser.add_argument(
         "--output-directory",
         type=Path,
-        default=Path("outputs") / "mcap_v034",
+        default=Path("outputs") / "mcap_v038_legacy_association",
     )
     parser.add_argument(
         "--reference-topic",
@@ -80,7 +80,7 @@ def _parser() -> argparse.ArgumentParser:
         "--time-basis",
         choices=("log", "source"),
         default="source",
-        help="Timestamp used for pairing; source time is the v0.3.4 default.",
+        help="Timestamp used for pairing; source time is the fail-closed default.",
     )
     parser.add_argument(
         "--audit-horizons",
@@ -135,8 +135,8 @@ def _parser() -> argparse.ArgumentParser:
         "--fit-gaussian",
         action="store_true",
         help=(
-            "Opt in to the descriptive Gaussian only after lane association "
-            "has been inspected. The v0.3.4 audit does not fit it by default."
+            "Disabled in v0.3.8. Real-data fitting remains blocked until the "
+            "direct-path semantics and selection mechanism are validated."
         ),
     )
     parser.add_argument(
@@ -164,10 +164,16 @@ def _stations(start: float, stop: float, step: float) -> np.ndarray:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the v0.3.4 MCAP lane-association and residual checkpoint."""
+    """Run the legacy lane-association diagnostic with v0.3.8 safety gates."""
 
     parser = _parser()
     arguments = parser.parse_args(argv)
+    if arguments.fit_gaussian:
+        parser.error(
+            "--fit-gaussian is disabled in v0.3.8: estimator availability, "
+            "spline semantics, comparator lineage, and selection bias are not "
+            "yet resolved"
+        )
     try:
         stations = _stations(
             arguments.station_start,

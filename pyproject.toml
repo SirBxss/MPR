@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.3.7"
-description = "MCAP lane-association audit, path discrepancy extraction, and Gaussian modelling"
+version = "0.3.8"
+description = "Fail-closed MCAP path-semantic and geometry validation"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -17,12 +17,14 @@ dependencies = [
 mcap = [
     "mcap>=1.2.1",
     "mcap-protobuf-support>=0.5.2",
+    "mcap-ros1-support>=0.7.2",
     "protobuf>=4.25",
 ]
 
 [project.scripts]
 mpr-mcap = "lane_residuals.cli:main"
 mpr-probe-path-source = "lane_residuals.path_probe_cli:main"
+mpr-validate-path-geometry = "lane_residuals.geometry_validation_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
