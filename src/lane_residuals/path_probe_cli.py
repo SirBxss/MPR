@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from .mcap_io import McapDependencyError, RoadMessageError
 from .path_source_probe import (
@@ -18,8 +18,8 @@ from .path_source_probe import (
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Inspect a direct-path Protobuf schema and observed field presence "
-            "without exporting raw numeric payload values."
+            "Inspect direct-path Protobuf schema/presence and joint per-path "
+            "role/error/model structure without exporting numeric payloads."
         )
     )
     parser.add_argument("mcap_file", type=Path)
@@ -46,8 +46,8 @@ def _parser() -> argparse.ArgumentParser:
         "--output",
         type=Path,
         default=Path("outputs")
-        / "mcap_v036"
-        / "estimated_drive_paths_structure.json",
+        / "mcap_v037"
+        / "estimated_drive_paths_joint_audit.json",
     )
     return parser
 
@@ -64,9 +64,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             expected_schema_name=arguments.expected_schema,
             max_messages=arguments.max_messages,
             max_schema_depth=arguments.max_schema_depth,
-            max_repeated_items_per_field=(
-                arguments.max_repeated_items_per_field
-            ),
+            max_repeated_items_per_field=(arguments.max_repeated_items_per_field),
         )
         output = save_protobuf_path_source_probe(report, arguments.output)
     except (
@@ -77,10 +75,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     ) as error:
         parser.exit(2, f"error: {error}\n")
 
-    print(f"Structural report written to: {output}")
+    joint = report.joint_path_semantics
+    summary = dict(joint.summary_counts)
+    print(f"Joint semantic audit written to: {output}")
+    print(f"Joint audit status: {joint.status}")
     print(
-        "No raw numeric payload values were exported. Review semantic_candidates "
-        "before implementing geometry conversion."
+        "Keep-lane/no-error paths: "
+        f"{summary['keep_lane_no_error_paths']}; "
+        "joint audit candidates: "
+        f"{summary['joint_audit_candidate_paths']}; "
+        "converter-safe sampled messages: "
+        f"{summary['messages_safe_for_later_conversion']}"
+    )
+    print(
+        "No raw numeric payload values were exported. A joint audit candidate "
+        "is not yet permission to implement geometry conversion."
     )
     return 0
 

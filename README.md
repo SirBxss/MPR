@@ -3,11 +3,10 @@
 MPR is a deliberately small project for understanding path discrepancies
 before transferring the workflow to the larger LEEM thesis implementation.
 
-Version 0.3.6 keeps the v0.3.4 fail-safe lane audit and makes its evidence-first
-production estimated-drive-path probe compatible with Protobuf 4 through 7,
-full Google Protobuf messages, and descriptor-backed generated wrappers. It
-uses modern descriptor cardinality rather than the removed `label` API, so
-repeated drive-path containers and spline arrays are traversed correctly:
+Version 0.3.7 keeps the v0.3.6 Protobuf-compatible structural probe and adds a
+privacy-safe joint path-semantic audit. Role, error, model flag, parameter
+presence, array counts, and structural checks are now evaluated on the same
+decoded path instead of being inferred from separate marginal field counts:
 
 ```text
 MCAP
@@ -18,6 +17,7 @@ MCAP
 → strict metadata-confirmed sensor ego-segment selection
 → 20/30/40/50 m two-sided geometric coverage analysis
 → decoded direct-path schema and field-presence audit
+→ joint per-message/per-path role, error, flag, and model-structure audit
 → shared reference-station assignment
 → 11-dimensional residual vectors
 → descriptive multivariate Gaussian fit
@@ -173,7 +173,7 @@ The command writes:
 | `candidate_segments.csv` | Every map/sensor segment candidate and selection evidence |
 | `summary.json` | Acceptance, timing, lane-selection, and horizon-coverage audit |
 | `path_source_candidates.json` | Container metadata for direct ego/path topic candidates |
-| `estimated_drive_paths_structure.json` | Separate descriptor/presence report from `mpr-probe-path-source` |
+| `estimated_drive_paths_joint_audit.json` | Descriptor/presence plus joint per-path semantic audit from `mpr-probe-path-source` |
 | `mcap_diagnostics.png` | Cropped path overlay, residuals, timing, rejections, horizons, selection methods |
 | `lane_association_audit.png` | Labelled map/sensor candidate segments; `*` marks each selection |
 | `gaussian_model.npz` | Optional descriptive fitted mean and covariance |
@@ -244,8 +244,8 @@ Each run also inventories:
 
 Their message counts and encodings are written to
 `path_source_candidates.json`. The first still needs ROS1 message decoding.
-Version 0.3.6 decodes the second only for structural inspection; it does not yet
-convert it into `Path2D`.
+Version 0.3.7 decodes the second only for structural and joint semantic
+inspection; it does not convert it into `Path2D`.
 
 Run the production Protobuf probe independently:
 
@@ -253,7 +253,8 @@ Run the production Protobuf probe independently:
 python -m lane_residuals.path_probe_cli `
   ".\data\mcap_data\2025-05-27_13-48-41_2025-05-27_13-49-01_MCAP_000054.mcap" `
   --max-messages 20 `
-  --output ".\outputs\mcap_v036\estimated_drive_paths_structure.json"
+  --max-repeated-items-per-field 64 `
+  --output ".\outputs\mcap_v037\estimated_drive_paths_joint_audit.json"
 ```
 
 The report contains:
@@ -265,6 +266,13 @@ The report contains:
 - repeated-field length ranges;
 - whether presence came from `ListFields()` or descriptor inference;
 - nested-message inspection and truncation counts;
+- per-message and per-path joint tuples of lane role, error, model-parameter
+  presence, literal model flag, and diagnostic array counts;
+- finite-value, strictly increasing segment-start, and interval-count checks;
+- exact counts of `KEEP_LANE + NO_ERROR` paths and stricter
+  `joint_audit_candidate` paths;
+- ambiguity and truncation guards: a sampled message is converter-safe only
+  when exactly one joint candidate is observed and no path was truncated;
 - conservative candidates for keep-lane role, status/error, timestamp, initial
   pose/curvature, segment starts/boundaries, curvature changes, and the
   unresolved `index_0` anchor.
@@ -286,6 +294,14 @@ The probe reports `segment_starts` as boundaries or starts, not automatically
 as segment lengths. It also reports `index_0` as an unresolved index/anchor
 candidate rather than misclassifying it as an initial x-coordinate. These
 semantics must be confirmed before implementing clothoid geometry.
+
+`joint_audit_candidate` is deliberately a narrow label, not a claim of a valid
+physical path. It requires an exact `LANE_ROLE_KEEP_LANE` and
+`DRIVE_PATH_ERROR_NO_ERROR` tuple, present model parameters, an explicitly true
+`model_parameters_optional_flag`, finite initial parameters and arrays,
+strictly increasing segment starts, and matching interval counts. Spline
+mathematics, coordinate frame, units, signs, `index_0`, and independence from
+map or behavioural constraints remain unresolved.
 
 ## Gaussian baseline
 
@@ -334,6 +350,8 @@ The tests cover:
 - two-sided 20/30/40/50 m coverage counts, including rejected pairs;
 - container-level inventory of direct path-source candidates;
 - descriptor-driven direct-path inspection without numeric payload export;
+- joint path-semantic correlation checks, proto3 default handling, structural
+  spline-array checks, candidate cardinality, and payload-leak regressions;
 - bounded pair auditing even when zero residuals are accepted;
 - stable reconstruction failure codes and message-load diagnostics;
 - polyline projection and shared station assignment;
@@ -368,9 +386,10 @@ For the first 100 synchronized pairs:
    covariance, or Gaussian fit.
 
 Before implementing `/adp/estimated_drive_paths` geometry, inspect
-`estimated_drive_paths_structure.json` and confirm the keep-lane, validity,
-timestamp, initial-pose/curvature, segment-start/boundary meaning,
-curvature-change paths, and `index_0` semantics.
+`estimated_drive_paths_joint_audit.json`. Even if it contains exactly one joint
+candidate per sampled message, confirm timestamp/frame semantics,
+initial-pose/curvature units and signs, segment-start/boundary meaning,
+curvature-change mathematics, `index_0`, and signal independence.
 
 Only then process all ten MCAP chunks. The chunks belong to two contiguous
 recording sessions, so individual chunks must not be randomly split between
