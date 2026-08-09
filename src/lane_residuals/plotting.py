@@ -359,7 +359,7 @@ def plot_mcap_dataset_diagnostics(
     selection_axis.grid(axis="x", alpha=0.25)
 
     figure.suptitle(
-        "MCAP v0.3.8 legacy audit — map-based data is not confirmed ground truth",
+        "MCAP v0.3.9 legacy audit — reference semantics require explicit confirmation",
         fontsize=13,
     )
     figure.tight_layout()

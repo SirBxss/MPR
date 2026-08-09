@@ -71,7 +71,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-directory",
         type=Path,
-        default=Path("outputs") / "mcap_v038",
+        default=Path("outputs") / "mcap_v039_geometry_validation",
     )
     parser.add_argument(
         "--session-map",
@@ -1162,7 +1162,7 @@ def _write_outputs(
     )
     manifest = {
         "purpose": "semantic_geometry_validation",
-        "package_version": "0.3.8",
+        "package_version": "0.3.9",
         "corpus_status": "complete" if corpus_complete else "incomplete",
         "requested_file_count": arguments.expected_file_count,
         "resolved_file_count": len(results),
@@ -1374,7 +1374,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(
         "Semantic decision: "
         f"{summary['semantic_decision']}. "
-        "Training remains prohibited in v0.3.8."
+        "Training remains prohibited in the geometry-validation command."
     )
     return 0 if summary["corpus_complete"] else 3
 

@@ -1,0 +1,86 @@
+{
+  "topics": {
+    "estimate": "/adp/estimated_drive_paths",
+    "estimate_debug": "/em/road/estimated_drive_paths_debug",
+    "map_lane": "/adp/road_lane_map_based",
+    "map_lane_extended": "/adp/road_lane_map_based_extended_output",
+    "map_pose": "/adp/position_on_map_pose_estimate",
+    "lane_position": "/adp/position_on_map_lane_position",
+    "drive_path_position": "/adp/position_on_map_drive_path_position",
+    "lsa_centerline": "/adp/lsa_activity_cdc_data",
+    "odometry": [
+      "/adp/odometry",
+      "/adp/odometry6dof"
+    ],
+    "gnss": [
+      "/em/gnss_positioning_update_position_corrected",
+      "/em/gnss_positioning_update_position_navigation"
+    ],
+    "transforms": [
+      "/tf",
+      "/transform"
+    ],
+    "fused_comparator": "/em/road/ego_lane_path"
+  },
+  "fields": {
+    "distance_to_centerline_m": [
+      "distance_to_centerline",
+      "distance_to_centerline_",
+      "distance_to_centerline.value"
+    ],
+    "distance_to_left_boundary_m": [
+      "distance_to_left_lane_boundary_back_axis",
+      "distance_to_left_lane_boundary_back_axis_",
+      "distance_to_left_lane_boundary_back_axis.value"
+    ],
+    "distance_to_right_boundary_m": [
+      "distance_to_right_lane_boundary_back_axis",
+      "distance_to_right_lane_boundary_back_axis_",
+      "distance_to_right_lane_boundary_back_axis.value"
+    ],
+    "lane_change_left": [
+      "lane_change_to_left_detected",
+      "lane_change_to_left_detected_"
+    ],
+    "lane_change_right": [
+      "lane_change_to_right_detected",
+      "lane_change_to_right_detected_"
+    ],
+    "road_ambiguity_detected": [],
+    "centerline_valid": [],
+    "pose_x_m": [
+      "pose.x",
+      "pose.position.x",
+      "pose_estimate.x",
+      "pose_estimate.position.x",
+      "position.x",
+      "x"
+    ],
+    "pose_y_m": [
+      "pose.y",
+      "pose.position.y",
+      "pose_estimate.y",
+      "pose_estimate.position.y",
+      "position.y",
+      "y"
+    ],
+    "pose_yaw_rad": [
+      "pose.yaw",
+      "pose.heading",
+      "pose_estimate.yaw",
+      "pose_estimate.heading",
+      "orientation.yaw",
+      "yaw",
+      "heading"
+    ],
+    "pose_valid": []
+  },
+  "conventions": {
+    "centerline_positive_is_lane_left": true,
+    "centerline_sign_evidence": "Lichtblick observation: vehicle right of centerline produced a negative value",
+    "pose_is_stable_world_or_map_frame": false,
+    "pose_reference_point_confirmed": false,
+    "candidate_paths_share_estimate_frame": false,
+    "yaw_unit": "radian"
+  }
+}

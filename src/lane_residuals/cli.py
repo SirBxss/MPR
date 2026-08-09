@@ -37,14 +37,14 @@ def _parser() -> argparse.ArgumentParser:
         description=(
             "Decode map- and sensor-based road topics, audit lane association "
             "and horizon coverage, and calculate diagnostic residuals. Real-data "
-            "Gaussian fitting remains disabled in v0.3.8."
+            "Gaussian fitting remains disabled in v0.3.9."
         )
     )
     parser.add_argument("mcap_file", type=Path)
     parser.add_argument(
         "--output-directory",
         type=Path,
-        default=Path("outputs") / "mcap_v038_legacy_association",
+        default=Path("outputs") / "mcap_v039_legacy_association",
     )
     parser.add_argument(
         "--reference-topic",
@@ -135,7 +135,7 @@ def _parser() -> argparse.ArgumentParser:
         "--fit-gaussian",
         action="store_true",
         help=(
-            "Disabled in v0.3.8. Real-data fitting remains blocked until the "
+            "Disabled in v0.3.9. Real-data fitting remains blocked until the "
             "direct-path semantics and selection mechanism are validated."
         ),
     )
@@ -164,13 +164,13 @@ def _stations(start: float, stop: float, step: float) -> np.ndarray:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the legacy lane-association diagnostic with v0.3.8 safety gates."""
+    """Run the legacy lane-association diagnostic with v0.3.9 safety gates."""
 
     parser = _parser()
     arguments = parser.parse_args(argv)
     if arguments.fit_gaussian:
         parser.error(
-            "--fit-gaussian is disabled in v0.3.8: estimator availability, "
+            "--fit-gaussian is disabled in v0.3.9: estimator availability, "
             "spline semantics, comparator lineage, and selection bias are not "
             "yet resolved"
         )
