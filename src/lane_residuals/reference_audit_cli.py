@@ -636,21 +636,21 @@ def _evaluate_estimator_semantics(
         estimate = estimates_by_index[pair.estimate_index]
         debug = debug_by_index[pair.comparator_index]
         status_match = production_error_matches_debug(
-            estimate.error_symbol, debug.keep_lane_error_value
+            estimate.keep_lane_error, debug.keep_lane_error_value
         )
         semantic = None
         curve_status = None
         if estimate.candidate:
-            if estimate.parameters is None or not debug.ready or debug.parameters is None:
+            if not debug.ready or debug.parameters is None:
                 all_candidate_semantics_match = False
                 curve_status = "debug_not_ready"
             else:
-                semantic = compare_production_to_debug(estimate.parameters, debug.parameters)
+                semantic = compare_production_to_debug(estimate.candidate, debug.parameters)
                 all_candidate_semantics_match &= semantic.passed
                 if semantic.passed:
                     try:
                         curves[estimate.message_index] = generate_spline_curve(
-                            estimate.parameters,
+                            estimate.candidate,
                             meaning="curvature_delta",
                             anchor_policy="anchor_zero",
                             max_step_m=max_step_m,
@@ -816,13 +816,13 @@ def _evaluate_candidates(
     reconstructed_ready_count = 0
     both_in_recording = False
     for estimate in result.estimates:
-        state = estimate.state
         time_ns = estimate.source_time_ns
         frame_row: dict[str, Any] = {
             "recording_id": result.recording_id,
             "session_id": result.session_id,
             "estimate_frame_index": estimate.message_index,
-            "estimate_state": state,
+            "estimate_state": estimate.estimator_state,
+            "estimate_conversion_state": estimate.conversion_state,
             "debug_semantics_ready": estimate.message_index in estimate_curves,
             "direct_map_candidate_ready": False,
             "pose_offset_candidate_ready": False,
@@ -1276,6 +1276,7 @@ def _write_outputs(
             "estimate_frame_index",
             "session_relative_source_time_s",
             "estimate_state",
+            "estimate_conversion_state",
             "debug_semantics_ready",
             "direct_map_candidate_ready",
             "pose_offset_candidate_ready",
