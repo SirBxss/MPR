@@ -1,8 +1,14 @@
-# Minimal Path-Residual Model (MPR) v0.3.9
+# Minimal Path-Residual Model (MPR) v0.4.0
 
-Version 0.3.9 is a fail-closed **lane-reference candidate audit** for the LEEM
-master thesis. It replaces the withdrawn implementation that treated
-`ego_lane_path` as provisional ground truth.
+Version 0.4.0 adds a focused **EDP–RLMB pairing audit** to the fail-closed
+lane-reference candidate workflow from v0.3.9. It reconstructs the estimated
+`KEEP_LANE` spline and the metadata-confirmed ego path from
+`/adp/road_lane_map_based`, pairs their source timestamps, places station zero
+at each curve's ego-origin footpoint, and creates raw overlay diagnostics.
+
+It does not promote the map signal to physical ground truth and does not export
+a model-training residual dataset. The earlier implementation that treated
+`ego_lane_path` as provisional ground truth remains withdrawn.
 
 The thesis scope is fixed:
 
@@ -14,7 +20,7 @@ substituted for the lane reference.
 
 ## Signal roles
 
-| Object | v0.3.9 role |
+| Object | v0.4.0 role |
 |---|---|
 | Estimated drive path | Lane estimate being evaluated |
 | Same-estimator debug path | Spline-semantic oracle only |
@@ -26,6 +32,43 @@ substituted for the lane reference.
 
 No single MCAP topic is assumed to be physical ground truth. A final residual
 dataset is forbidden in this version.
+
+## One-file EDP–RLMB pairing audit
+
+Start with one representative MCAP and inspect 20 evenly distributed usable
+pairs:
+
+```powershell
+python -m lane_residuals.pairing_audit_cli `
+  ".\data\mcap_data\one_recording.mcap" `
+  --max-pairs 20 `
+  --output-directory ".\outputs\pairing_audit"
+```
+
+No timestamp validity threshold is applied by default because no production
+synchronization tolerance has been proven. If a tolerance is later justified
+before viewing the confirmatory result, pass it explicitly:
+
+```powershell
+--maximum-pair-delta-ms <predeclared_value>
+```
+
+The command writes:
+
+| File | Purpose |
+|---|---|
+| `pairing_overlays.png` | Raw EDP/RLMB overlays, ego origin, footpoints, and 0–100 m stations |
+| `pairing_audit.csv` | Timestamp deltas, coverage, path direction, origin offsets, and pair status |
+| `diagnostic_disagreement.csv` | Reference-normal disagreement at 5 m stations, explicitly not thesis labels |
+| `pairing_summary.json` | Counts, extraction failures, aggregate offsets, and scientific limitations |
+
+The audit uses geometric arc length independently for each curve. It projects
+`(0,0)` onto both curves and evaluates station `d` at
+`s_ego_footpoint + d`; native spline or map station origins are never assumed
+to coincide. A reversed vertex order is normalized toward positive vehicle x
+and recorded explicitly. No rigid alignment or timestamp motion compensation
+is applied, because either would hide the frame mismatch this audit is intended
+to reveal.
 
 ## What the command does
 
@@ -147,7 +190,7 @@ The direct map-lane candidate is supported only if all gates pass:
   conventions are confirmed;
 - their median lateral disagreement passes a predeclared tolerance.
 
-If only the future driven trajectory is available, v0.3.9 leaves the lane
+If only the future driven trajectory is available, v0.4.0 leaves the lane
 reference unresolved. It does not change the thesis into drive-path prediction.
 
 ## Scientific boundary
