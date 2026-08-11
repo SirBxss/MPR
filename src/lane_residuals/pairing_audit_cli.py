@@ -672,7 +672,7 @@ def run_pairing_audit(
     )
     _plot_pairs(output / "pairing_overlays.png", plots)
     summary = {
-        "version": "0.4.1",
+        "version": "0.4.2",
         "purpose": "estimated_path_vs_map_path_pairing_audit",
         "mcap_filename": arguments.mcap.name,
         "estimate_topic": arguments.estimate_topic,
@@ -733,9 +733,9 @@ def run_pairing_audit(
         "diagnostic_disagreement_is_lane_estimation_error": False,
         "generated_final_residual_dataset": False,
         "next_decision": (
-            "Rerun the two audited MCAPs and verify that invalid geometry prefixes "
-            "remain index-aligned instead of shifting temporal pairs. Then inspect "
-            "the remaining EDP spline and RLMB path-shape hypotheses."
+            "Use the candidate-level EDP transition audit to determine whether "
+            "remaining jumps track candidate ordering, topology identifiers, raw "
+            "spline parameters, confidence changes, or one spline hypothesis."
         ),
         "confidentiality": "Outputs contain BMW-derived measurements and must remain private.",
     }

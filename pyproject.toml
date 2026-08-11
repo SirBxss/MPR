@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.4.1"
+version = "0.4.2"
 description = "Fail-closed lane-reference and path-pairing diagnostics"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,6 +27,7 @@ mpr-probe-path-source = "lane_residuals.path_probe_cli:main"
 mpr-validate-path-geometry = "lane_residuals.geometry_validation_cli:main"
 mpr-audit-reference-candidates = "lane_residuals.reference_audit_cli:main"
 mpr-audit-path-pairing = "lane_residuals.pairing_audit_cli:main"
+mpr-audit-edp-transitions = "lane_residuals.edp_transition_audit_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

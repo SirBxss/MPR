@@ -1,11 +1,12 @@
-# Minimal Path-Residual Model (MPR) v0.4.1
+# Minimal Path-Residual Model (MPR) v0.4.2
 
-Version 0.4.1 fixes the timestamp-association defect found in v0.4.0. Every
-EDP and RLMB message is now retained before geometry validation. The complete
-source-timestamp streams are associated using unique mutual-nearest matches;
-only afterward are estimator, geometry, and station-coverage checks applied.
-An invalid geometry prefix can therefore no longer shift `E0` onto a future
-map message such as `M57`.
+Version 0.4.2 preserves the corrected complete-stream timestamp pairing from
+v0.4.1 and adds a focused EDP candidate-transition audit. It exports every
+candidate in every `EstimatedDrivePaths` message, including candidate index,
+literal lane role and error state, topology IDs, confidence values, raw spline
+parameters, and both unresolved `curvature_rate` and `curvature_delta`
+reconstructions. Consecutive selected KEEP_LANE curves are compared without
+declaring an arbitrary transition threshold.
 
 The command still reconstructs the estimated `KEEP_LANE` spline and the
 metadata-confirmed ego path from `/adp/road_lane_map_based`, places station zero
@@ -25,7 +26,7 @@ substituted for the lane reference.
 
 ## Signal roles
 
-| Object | v0.4.1 role |
+| Object | v0.4.2 role |
 |---|---|
 | Estimated drive path | Lane estimate being evaluated |
 | Same-estimator debug path | Spline-semantic oracle only |
@@ -37,6 +38,48 @@ substituted for the lane reference.
 
 No single MCAP topic is assumed to be physical ground truth. A final residual
 dataset is forbidden in this version.
+
+## EDP candidate-transition audit
+
+Run this diagnostic on the second MCAP first, because its corrected pairing
+audit showed clear EDP geometry regimes:
+
+```bash
+python -m lane_residuals.edp_transition_audit_cli \
+  "data/mcap_data/one_recording.mcap" \
+  --output-directory "outputs/edp_transition_audit"
+```
+
+The default run ranks the four largest non-overlapping selected-path changes
+under the current `curvature_delta` hypothesis. Ranking is exploratory and uses
+no pass/fail threshold. To reproduce the transition windows identified in the
+second audited MCAP, specify their EDP message indices explicitly:
+
+```bash
+python -m lane_residuals.edp_transition_audit_cli \
+  "data/mcap_data/one_recording.mcap" \
+  --transition-centers 92 190 227 247 \
+  --transition-window-radius 3 \
+  --output-directory "outputs/edp_transition_audit_explicit"
+```
+
+The command writes:
+
+| File | Purpose |
+|---|---|
+| `edp_message_inventory.csv` | Every EDP message and its exact KEEP_LANE selection state |
+| `edp_candidate_inventory.csv` | Every candidate, literal metadata, confidence values, topology IDs, and raw spline parameters |
+| `edp_candidate_geometry.csv` | Every reconstructable candidate sampled under both spline hypotheses |
+| `edp_selected_transitions.csv` | Consecutive selected-path changes, including raw and rigid-normalized shape metrics |
+| `edp_transition_windows.png` | All candidate curves around each ranked or explicit transition center |
+| `edp_transition_metrics.png` | Transition metrics across the complete recording under both hypotheses |
+| `edp_transition_summary.json` | Counts, ranked centers, assumptions, and the next scientific decision |
+
+`path_index` is message-local and is never presented as a stable identity.
+`lane_topology_ids` are exported literally as the only confirmed identity-like
+metadata. The lane-role enum is exported literally; no separate
+driving-intention field is claimed. All outputs contain BMW-derived raw values
+and must remain private.
 
 ## One-file EDP–RLMB pairing audit
 
@@ -201,7 +244,7 @@ The direct map-lane candidate is supported only if all gates pass:
   conventions are confirmed;
 - their median lateral disagreement passes a predeclared tolerance.
 
-If only the future driven trajectory is available, v0.4.1 leaves the lane
+If only the future driven trajectory is available, v0.4.2 leaves the lane
 reference unresolved. It does not change the thesis into drive-path prediction.
 
 ## Scientific boundary
