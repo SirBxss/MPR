@@ -1,9 +1,14 @@
-# Minimal Path-Residual Model (MPR) v0.4.0
+# Minimal Path-Residual Model (MPR) v0.4.1
 
-Version 0.4.0 adds a focused **EDP–RLMB pairing audit** to the fail-closed
-lane-reference candidate workflow from v0.3.9. It reconstructs the estimated
-`KEEP_LANE` spline and the metadata-confirmed ego path from
-`/adp/road_lane_map_based`, pairs their source timestamps, places station zero
+Version 0.4.1 fixes the timestamp-association defect found in v0.4.0. Every
+EDP and RLMB message is now retained before geometry validation. The complete
+source-timestamp streams are associated using unique mutual-nearest matches;
+only afterward are estimator, geometry, and station-coverage checks applied.
+An invalid geometry prefix can therefore no longer shift `E0` onto a future
+map message such as `M57`.
+
+The command still reconstructs the estimated `KEEP_LANE` spline and the
+metadata-confirmed ego path from `/adp/road_lane_map_based`, places station zero
 at each curve's ego-origin footpoint, and creates raw overlay diagnostics.
 
 It does not promote the map signal to physical ground truth and does not export
@@ -20,7 +25,7 @@ substituted for the lane reference.
 
 ## Signal roles
 
-| Object | v0.4.0 role |
+| Object | v0.4.1 role |
 |---|---|
 | Estimated drive path | Lane estimate being evaluated |
 | Same-estimator debug path | Spline-semantic oracle only |
@@ -35,8 +40,8 @@ dataset is forbidden in this version.
 
 ## One-file EDP–RLMB pairing audit
 
-Start with one representative MCAP and inspect 20 evenly distributed usable
-pairs:
+Start with one representative MCAP and plot at most 20 evenly distributed
+diagnostic-ready pairs:
 
 ```powershell
 python -m lane_residuals.pairing_audit_cli `
@@ -57,10 +62,17 @@ The command writes:
 
 | File | Purpose |
 |---|---|
+| `message_inventory.csv` | Every EDP/RLMB message, timestamp state, geometry state, failure code, and temporal association |
 | `pairing_overlays.png` | Raw EDP/RLMB overlays, ego origin, footpoints, and 0–100 m stations |
-| `pairing_audit.csv` | Timestamp deltas, coverage, path direction, origin offsets, and pair status |
+| `pairing_audit.csv` | Every accepted mutual-nearest temporal pair, including pairs whose geometry is invalid |
 | `diagnostic_disagreement.csv` | Reference-normal disagreement at 5 m stations, explicitly not thesis labels |
 | `pairing_summary.json` | Counts, extraction failures, aggregate offsets, and scientific limitations |
+
+`--max-pairs` limits only the number of overlay panels. It does not truncate
+`message_inventory.csv`, `pairing_audit.csv`, or the diagnostic station rows.
+Equal-distance timestamp ties and one-sided nearest candidates remain unmatched.
+When `--maximum-pair-delta-ms` is supplied, candidates outside that predeclared
+gate also remain unmatched and are reported in the inventory.
 
 The audit uses geometric arc length independently for each curve. It projects
 `(0,0)` onto both curves and evaluates station `d` at
@@ -87,7 +99,6 @@ The audit:
    p_center_world(t) = p_vehicle_world(t) - d_center(t) * n_left(t)
    ```
 
-   under the explicitly recorded positive-left convention;
 7. transforms future reconstructed points into the estimate frame at `t0`;
 8. rejects incomplete 0–100 m windows, source-time ambiguity, long gaps, lane
    changes, estimator failures, and unconfirmed conventions;
@@ -190,7 +201,7 @@ The direct map-lane candidate is supported only if all gates pass:
   conventions are confirmed;
 - their median lateral disagreement passes a predeclared tolerance.
 
-If only the future driven trajectory is available, v0.4.0 leaves the lane
+If only the future driven trajectory is available, v0.4.1 leaves the lane
 reference unresolved. It does not change the thesis into drive-path prediction.
 
 ## Scientific boundary

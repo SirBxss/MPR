@@ -6,6 +6,7 @@ import numpy as np
 from lane_residuals import (
     road_frame_from_message,
     road_frame_load_result_from_decoded_messages,
+    source_time_ns_from_message,
     topic_probe_from_summary,
 )
 from lane_residuals.mcap_io import road_frames_from_decoded_messages
@@ -29,6 +30,14 @@ def _range(start: int, size: int) -> SimpleNamespace:
 
 
 class McapRoadMessageTests(unittest.TestCase):
+    def test_source_timestamp_can_be_read_without_valid_geometry(self) -> None:
+        message = SimpleNamespace(
+            time_stamp=SimpleNamespace(seconds=12, fractional_seconds=345),
+            lane_segments=[],
+        )
+
+        self.assertEqual(source_time_ns_from_message(message), 12_000_000_345)
+
     def test_road_message_preserves_geometry_timestamps_and_metadata(self) -> None:
         message = SimpleNamespace(
             time_stamp=SimpleNamespace(seconds=12, fractional_seconds=345),

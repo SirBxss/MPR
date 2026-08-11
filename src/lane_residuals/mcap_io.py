@@ -416,6 +416,12 @@ def _source_time_ns(message: Any) -> int | None:
     return _timestamp_object_to_ns(stamp)
 
 
+def source_time_ns_from_message(message: Any) -> int | None:
+    """Return the interface source timestamp without requiring valid geometry."""
+
+    return _source_time_ns(message)
+
+
 def _geometric_arc_length(x: FloatArray, y: FloatArray) -> FloatArray:
     increments = np.hypot(np.diff(x), np.diff(y))
     return np.concatenate(([0.0], np.cumsum(increments)))

@@ -9,6 +9,7 @@ from lane_residuals import (
     compare_ego_relative_paths,
     ego_relative_path_from_points,
     evenly_spaced_indices,
+    mutual_nearest_timestamp_pairs,
     nearest_monotone_pairs_unbounded,
     origin_alignment_metrics,
     sample_ego_relative_path,
@@ -95,6 +96,45 @@ class DiagnosticDisagreementTests(unittest.TestCase):
 
 
 class PairSelectionTests(unittest.TestCase):
+    def test_mutual_nearest_pairing_uses_complete_stream_positions(self) -> None:
+        estimate_times = [26_000_000 + 80_000_000 * index for index in range(60)]
+        map_times = [80_000_000 * index for index in range(60)]
+
+        audit = mutual_nearest_timestamp_pairs(estimate_times, map_times)
+
+        self.assertEqual(len(audit.pairs), 60)
+        self.assertEqual(
+            (audit.pairs[0].first_position, audit.pairs[0].second_position),
+            (0, 0),
+        )
+        self.assertEqual(
+            (audit.pairs[57].first_position, audit.pairs[57].second_position),
+            (57, 57),
+        )
+        self.assertTrue(all(pair.delta_ns == 26_000_000 for pair in audit.pairs))
+
+    def test_non_mutual_candidates_remain_unmatched(self) -> None:
+        audit = mutual_nearest_timestamp_pairs([0, 100], [40])
+
+        self.assertEqual(
+            tuple((pair.first_position, pair.second_position) for pair in audit.pairs),
+            ((0, 0),),
+        )
+        self.assertEqual(audit.unmatched_first_positions, (1,))
+        self.assertEqual(audit.unmatched_second_positions, ())
+
+    def test_explicit_gate_rejects_pair_without_consuming_messages(self) -> None:
+        audit = mutual_nearest_timestamp_pairs(
+            [0],
+            [5_000_000_000],
+            maximum_delta_ns=100_000_000,
+        )
+
+        self.assertEqual(audit.pairs, ())
+        self.assertEqual(len(audit.rejected_by_gate), 1)
+        self.assertEqual(audit.unmatched_first_positions, (0,))
+        self.assertEqual(audit.unmatched_second_positions, (0,))
+
     def test_unbounded_pairing_exposes_signed_delta(self) -> None:
         pairs = nearest_monotone_pairs_unbounded(
             [100_000_000, 200_000_000, 300_000_000],

@@ -319,6 +319,34 @@ class DiagnosticPathDisagreement:
         return float(np.max(np.abs(self.lateral_m)))
 
 
+@dataclass(frozen=True)
+class TimestampPair:
+    """One mutual-nearest association between two complete timestamp streams."""
+
+    first_position: int
+    second_position: int
+    delta_ns: int
+
+
+@dataclass(frozen=True)
+class MutualNearestTimestampAudit:
+    """Fail-closed result of pairing two complete timestamp streams.
+
+    Positions refer to the original input sequences. Messages without source
+    timestamps, equal-distance ties, non-mutual nearest candidates, and pairs
+    rejected by an explicit gate remain visible instead of being discarded.
+    """
+
+    pairs: tuple[TimestampPair, ...]
+    rejected_by_gate: tuple[TimestampPair, ...]
+    unmatched_first_positions: tuple[int, ...]
+    unmatched_second_positions: tuple[int, ...]
+    missing_time_first_positions: tuple[int, ...]
+    missing_time_second_positions: tuple[int, ...]
+    ambiguous_first_positions: tuple[int, ...]
+    ambiguous_second_positions: tuple[int, ...]
+
+
 def compare_ego_relative_paths(
     estimate: EgoRelativePath,
     reference: EgoRelativePath,
@@ -364,6 +392,129 @@ def origin_alignment_metrics(
             _wrap_angle(estimate.origin_heading_rad - reference.origin_heading_rad)
         ),
     }
+
+
+def _unique_nearest_positions(
+    source: Sequence[tuple[int, int]],
+    target: Sequence[tuple[int, int]],
+) -> tuple[dict[int, int], set[int]]:
+    """Map each source position to one uniquely nearest target position."""
+
+    nearest: dict[int, int] = {}
+    ambiguous: set[int] = set()
+    for source_position, source_time_ns in source:
+        distances = [
+            (abs(source_time_ns - target_time_ns), target_position)
+            for target_position, target_time_ns in target
+        ]
+        if not distances:
+            continue
+        minimum_distance = min(distance for distance, _ in distances)
+        candidates = [
+            target_position
+            for distance, target_position in distances
+            if distance == minimum_distance
+        ]
+        if len(candidates) != 1:
+            ambiguous.add(source_position)
+            continue
+        nearest[source_position] = candidates[0]
+    return nearest, ambiguous
+
+
+def mutual_nearest_timestamp_pairs(
+    first_times_ns: Sequence[int | None],
+    second_times_ns: Sequence[int | None],
+    *,
+    maximum_delta_ns: int | None = None,
+) -> MutualNearestTimestampAudit:
+    """Pair complete streams by unique mutual-nearest source timestamps.
+
+    Geometry validity is intentionally absent from this function. An optional
+    gate is applied only after mutual-nearest candidates are identified, so a
+    rejected distant candidate cannot consume either message.
+    """
+
+    if maximum_delta_ns is not None:
+        if isinstance(maximum_delta_ns, bool) or maximum_delta_ns < 0:
+            raise ValueError("maximum_delta_ns must be nonnegative or None")
+        maximum_delta_ns = int(maximum_delta_ns)
+
+    first_valid = [
+        (position, int(value))
+        for position, value in enumerate(first_times_ns)
+        if value is not None
+    ]
+    second_valid = [
+        (position, int(value))
+        for position, value in enumerate(second_times_ns)
+        if value is not None
+    ]
+    missing_first = tuple(
+        position for position, value in enumerate(first_times_ns) if value is None
+    )
+    missing_second = tuple(
+        position for position, value in enumerate(second_times_ns) if value is None
+    )
+
+    first_to_second, ambiguous_first = _unique_nearest_positions(
+        first_valid,
+        second_valid,
+    )
+    second_to_first, ambiguous_second = _unique_nearest_positions(
+        second_valid,
+        first_valid,
+    )
+    first_time_by_position = dict(first_valid)
+    second_time_by_position = dict(second_valid)
+
+    accepted: list[TimestampPair] = []
+    rejected: list[TimestampPair] = []
+    for first_position, second_position in first_to_second.items():
+        if second_to_first.get(second_position) != first_position:
+            continue
+        pair = TimestampPair(
+            first_position=first_position,
+            second_position=second_position,
+            delta_ns=(
+                first_time_by_position[first_position]
+                - second_time_by_position[second_position]
+            ),
+        )
+        if maximum_delta_ns is not None and abs(pair.delta_ns) > maximum_delta_ns:
+            rejected.append(pair)
+        else:
+            accepted.append(pair)
+
+    def ordering(pair: TimestampPair) -> tuple[int, int, int]:
+        return (
+            first_time_by_position[pair.first_position],
+            pair.first_position,
+            pair.second_position,
+        )
+
+    accepted.sort(key=ordering)
+    rejected.sort(key=ordering)
+    paired_first = {pair.first_position for pair in accepted}
+    paired_second = {pair.second_position for pair in accepted}
+    return MutualNearestTimestampAudit(
+        pairs=tuple(accepted),
+        rejected_by_gate=tuple(rejected),
+        unmatched_first_positions=tuple(
+            position
+            for position in range(len(first_times_ns))
+            if position not in paired_first
+        ),
+        unmatched_second_positions=tuple(
+            position
+            for position in range(len(second_times_ns))
+            if position not in paired_second
+        ),
+        missing_time_first_positions=missing_first,
+        missing_time_second_positions=missing_second,
+        ambiguous_first_positions=tuple(sorted(ambiguous_first)),
+        ambiguous_second_positions=tuple(sorted(ambiguous_second)),
+    )
 
 
 def nearest_monotone_pairs_unbounded(

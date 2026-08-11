@@ -24,6 +24,7 @@ from .mcap_io import (
     RoadMessageError,
     iter_decoded_mcap_messages,
     road_frame_from_message,
+    source_time_ns_from_message,
 )
 from .pairing_audit import (
     DEFAULT_PAIRING_STATIONS_M,
@@ -33,7 +34,7 @@ from .pairing_audit import (
     ego_relative_path_from_road_frame,
     ego_relative_path_from_spline,
     evenly_spaced_indices,
-    nearest_monotone_pairs_unbounded,
+    mutual_nearest_timestamp_pairs,
     origin_alignment_metrics,
     sample_ego_relative_path,
 )
@@ -50,10 +51,16 @@ DEFAULT_MAP_SCHEMA = "Adp.Perception.Road"
 @dataclass(frozen=True)
 class _TimedPath:
     message_index: int
-    source_time_ns: int
+    source_time_ns: int | None
     log_time_ns: int
     publish_time_ns: int
-    path: EgoRelativePath = field(repr=False)
+    geometry_state: str
+    failure_code: str | None = None
+    path: EgoRelativePath | None = field(default=None, repr=False)
+
+    @property
+    def geometry_ready(self) -> bool:
+        return self.geometry_state == "geometry_ready" and self.path is not None
 
 
 @dataclass(frozen=True)
@@ -81,7 +88,7 @@ def _parser() -> argparse.ArgumentParser:
         "--max-pairs",
         type=int,
         default=20,
-        help="maximum number of evenly distributed ready pairs to inspect",
+        help="maximum number of evenly distributed diagnostic-ready pairs to plot",
     )
     parser.add_argument(
         "--maximum-pair-delta-ms",
@@ -144,6 +151,8 @@ def _decode_paths(
     max_step_m: float,
     stations_m: Sequence[float],
 ) -> tuple[list[_TimedPath], list[_TimedPath], Counter[str], dict[str, int]]:
+    """Decode every topic message before any temporal association is attempted."""
+
     estimates: list[_TimedPath] = []
     references: list[_TimedPath] = []
     failures: Counter[str] = Counter()
@@ -159,80 +168,96 @@ def _decode_paths(
         encoding = str(getattr(channel, "message_encoding", "")).lower()
         log_time_ns = int(getattr(message, "log_time", 0))
         publish_time_ns = int(getattr(message, "publish_time", 0))
+        source_time_ns = source_time_ns_from_message(decoded)
         if topic == estimate_topic:
             message_index = counts["estimate_messages"]
             counts["estimate_messages"] += 1
-            if schema_name != DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA or encoding != "protobuf":
-                failures["estimate_schema_or_encoding_mismatch"] += 1
-                continue
-            try:
-                frame = estimated_frame_from_message(
-                    decoded,
+            estimate_path: EgoRelativePath | None = None
+            failure_code: str | None = None
+            if (
+                schema_name != DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA
+                or encoding != "protobuf"
+            ):
+                failure_code = "estimate__schema_or_encoding_mismatch"
+            else:
+                try:
+                    frame = estimated_frame_from_message(
+                        decoded,
+                        message_index=message_index,
+                        log_time_ns=log_time_ns,
+                        publish_time_ns=publish_time_ns,
+                    )
+                    source_time_ns = frame.source_time_ns
+                    if not frame.candidate_ready or frame.candidate is None:
+                        failure_code = f"estimate__{frame.conversion_state}"
+                    else:
+                        curve = generate_spline_curve(
+                            frame.candidate,
+                            meaning="curvature_delta",
+                            anchor_policy="anchor_zero",
+                            max_step_m=max_step_m,
+                            extra_stations=stations_m,
+                        )
+                        estimate_path = ego_relative_path_from_spline(curve)
+                except GeometryValidationError as error:
+                    failure_code = f"estimate__{error.code}"
+            if failure_code is not None:
+                failures[failure_code] += 1
+            estimates.append(
+                _TimedPath(
                     message_index=message_index,
+                    source_time_ns=source_time_ns,
                     log_time_ns=log_time_ns,
                     publish_time_ns=publish_time_ns,
+                    geometry_state=(
+                        "geometry_ready"
+                        if estimate_path is not None
+                        else "geometry_not_ready"
+                    ),
+                    failure_code=failure_code,
+                    path=estimate_path,
                 )
-                if not frame.candidate_ready or frame.candidate is None:
-                    failures[f"estimate__{frame.conversion_state}"] += 1
-                    continue
-                curve = generate_spline_curve(
-                    frame.candidate,
-                    meaning="curvature_delta",
-                    anchor_policy="anchor_zero",
-                    max_step_m=max_step_m,
-                    extra_stations=stations_m,
-                )
-                estimate_path = ego_relative_path_from_spline(curve)
-                if frame.source_time_ns is None:
-                    raise GeometryValidationError(
-                        "estimate_source_time_missing",
-                        "estimated path source timestamp is missing",
-                    )
-                estimates.append(
-                    _TimedPath(
-                        message_index=message_index,
-                        source_time_ns=frame.source_time_ns,
-                        log_time_ns=frame.log_time_ns,
-                        publish_time_ns=frame.publish_time_ns,
-                        path=estimate_path,
-                    )
-                )
-            except GeometryValidationError as error:
-                failures[f"estimate__{error.code}"] += 1
+            )
         elif topic == map_topic:
             message_index = counts["map_messages"]
             counts["map_messages"] += 1
+            reference_path: EgoRelativePath | None = None
+            failure_code = None
             if schema_name != DEFAULT_MAP_SCHEMA or encoding != "protobuf":
-                failures["map_schema_or_encoding_mismatch"] += 1
-                continue
-            try:
-                frame = road_frame_from_message(
-                    decoded,
-                    topic=topic,
-                    schema_name=schema_name,
+                failure_code = "map__schema_or_encoding_mismatch"
+            else:
+                try:
+                    frame = road_frame_from_message(
+                        decoded,
+                        topic=topic,
+                        schema_name=schema_name,
+                        log_time_ns=log_time_ns,
+                        publish_time_ns=publish_time_ns,
+                        sequence=message_index,
+                    )
+                    source_time_ns = frame.source_time_ns
+                    reference_path = ego_relative_path_from_road_frame(frame)
+                except (GeometryValidationError, RoadMessageError) as error:
+                    failure_code = (
+                        f"map__{getattr(error, 'code', 'road_message_invalid')}"
+                    )
+            if failure_code is not None:
+                failures[failure_code] += 1
+            references.append(
+                _TimedPath(
+                    message_index=message_index,
+                    source_time_ns=source_time_ns,
                     log_time_ns=log_time_ns,
                     publish_time_ns=publish_time_ns,
-                    sequence=message_index,
+                    geometry_state=(
+                        "geometry_ready"
+                        if reference_path is not None
+                        else "geometry_not_ready"
+                    ),
+                    failure_code=failure_code,
+                    path=reference_path,
                 )
-                if frame.source_time_ns is None:
-                    raise GeometryValidationError(
-                        "map_source_time_missing",
-                        "map path source timestamp is missing",
-                    )
-                reference_path = ego_relative_path_from_road_frame(frame)
-                references.append(
-                    _TimedPath(
-                        message_index=message_index,
-                        source_time_ns=frame.source_time_ns,
-                        log_time_ns=frame.log_time_ns,
-                        publish_time_ns=frame.publish_time_ns,
-                        path=reference_path,
-                    )
-                )
-            except (GeometryValidationError, RoadMessageError) as error:
-                failures[f"map__{getattr(error, 'code', 'road_message_invalid')}"] += 1
-    estimates.sort(key=lambda item: item.source_time_ns)
-    references.sort(key=lambda item: item.source_time_ns)
+            )
     return estimates, references, failures, counts
 
 
@@ -257,6 +282,7 @@ def _write_json(path: Path, payload: Any) -> None:
 
 def _plot_pairs(path: Path, plots: Sequence[_PairPlot]) -> None:
     if not plots:
+        path.unlink(missing_ok=True)
         return
     import matplotlib
 
@@ -333,40 +359,146 @@ def run_pairing_audit(
         max_step_m=arguments.max_step_m,
         stations_m=stations_m,
     )
-    all_pairs = nearest_monotone_pairs_unbounded(
+    maximum_delta_ns = (
+        None
+        if arguments.maximum_pair_delta_ms is None
+        else int(round(arguments.maximum_pair_delta_ms * 1_000_000.0))
+    )
+    timestamp_audit = mutual_nearest_timestamp_pairs(
         [item.source_time_ns for item in estimates],
         [item.source_time_ns for item in references],
+        maximum_delta_ns=maximum_delta_ns,
     )
-    selected_pairs = [
-        all_pairs[index]
-        for index in evenly_spaced_indices(len(all_pairs), arguments.max_pairs)
+
+    accepted_by_estimate = {
+        pair.first_position: pair for pair in timestamp_audit.pairs
+    }
+    accepted_by_map = {
+        pair.second_position: pair for pair in timestamp_audit.pairs
+    }
+    rejected_by_estimate = {
+        pair.first_position: pair for pair in timestamp_audit.rejected_by_gate
+    }
+    rejected_by_map = {
+        pair.second_position: pair for pair in timestamp_audit.rejected_by_gate
+    }
+
+    def inventory_row(
+        *,
+        role: str,
+        position: int,
+        record: _TimedPath,
+    ) -> dict[str, Any]:
+        if role == "estimate":
+            accepted = accepted_by_estimate.get(position)
+            rejected = rejected_by_estimate.get(position)
+            ambiguous = position in timestamp_audit.ambiguous_first_positions
+            missing_time = position in timestamp_audit.missing_time_first_positions
+            counterpart = (
+                references[accepted.second_position]
+                if accepted is not None
+                else references[rejected.second_position]
+                if rejected is not None
+                else None
+            )
+            delta_ns = (
+                accepted.delta_ns
+                if accepted is not None
+                else rejected.delta_ns
+                if rejected is not None
+                else None
+            )
+        else:
+            accepted = accepted_by_map.get(position)
+            rejected = rejected_by_map.get(position)
+            ambiguous = position in timestamp_audit.ambiguous_second_positions
+            missing_time = position in timestamp_audit.missing_time_second_positions
+            counterpart = (
+                estimates[accepted.first_position]
+                if accepted is not None
+                else estimates[rejected.first_position]
+                if rejected is not None
+                else None
+            )
+            delta_ns = (
+                -accepted.delta_ns
+                if accepted is not None
+                else -rejected.delta_ns
+                if rejected is not None
+                else None
+            )
+
+        if accepted is not None:
+            temporal_state = "paired_unique_mutual_nearest"
+        elif rejected is not None:
+            temporal_state = "unmatched_timestamp_gate"
+        elif missing_time:
+            temporal_state = "unmatched_source_time_missing"
+        elif ambiguous:
+            temporal_state = "unmatched_nearest_tie"
+        else:
+            temporal_state = "unmatched_non_mutual_nearest"
+        return {
+            "topic_role": role,
+            "message_index": record.message_index,
+            "source_time_ns_private": record.source_time_ns,
+            "log_time_ns_private": record.log_time_ns,
+            "publish_time_ns_private": record.publish_time_ns,
+            "geometry_state": record.geometry_state,
+            "geometry_failure_code": record.failure_code,
+            "temporal_state": temporal_state,
+            "counterpart_message_index": (
+                None if counterpart is None else counterpart.message_index
+            ),
+            "counterpart_delta_ms": (
+                None if delta_ns is None else delta_ns / 1e6
+            ),
+        }
+
+    inventory_rows = [
+        inventory_row(role="estimate", position=position, record=record)
+        for position, record in enumerate(estimates)
+    ] + [
+        inventory_row(role="map", position=position, record=record)
+        for position, record in enumerate(references)
     ]
     pair_rows: list[dict[str, Any]] = []
     station_rows: list[dict[str, Any]] = []
-    plots: list[_PairPlot] = []
-    ready_deltas: list[float] = []
+    plot_candidates: list[_PairPlot] = []
+    pair_deltas: list[float] = []
     footpoint_separations: list[float] = []
     heading_deltas: list[float] = []
     lateral_rms_values: list[float] = []
-    for pair_index, (estimate_position, reference_position, delta_ns) in enumerate(
-        selected_pairs
-    ):
-        estimate = estimates[estimate_position]
-        reference = references[reference_position]
-        delta_ms = delta_ns / 1e6
-        timestamp_gate_passed: bool | None = None
-        if arguments.maximum_pair_delta_ms is not None:
-            timestamp_gate_passed = (
-                abs(delta_ms) <= arguments.maximum_pair_delta_ms + 1e-12
-            )
-        alignment = origin_alignment_metrics(estimate.path, reference.path)
-        pair_state = "diagnostic_ready_uncompensated"
-        failure_code = None
+    for pair_index, timestamp_pair in enumerate(timestamp_audit.pairs):
+        estimate = estimates[timestamp_pair.first_position]
+        reference = references[timestamp_pair.second_position]
+        delta_ms = timestamp_pair.delta_ns / 1e6
+        alignment = {
+            "estimate_origin_distance_m": None,
+            "reference_origin_distance_m": None,
+            "footpoint_separation_m": None,
+            "footpoint_dx_m": None,
+            "footpoint_dy_m": None,
+            "origin_heading_delta_rad": None,
+        }
+        pair_state: str
+        failure_code: str | None
         disagreement: DiagnosticPathDisagreement | None = None
-        if timestamp_gate_passed is False:
-            pair_state = "timestamp_gate_failed"
-            failure_code = "pair_delta_exceeds_predeclared_gate"
+        if not estimate.geometry_ready and not reference.geometry_ready:
+            pair_state = "both_geometries_not_ready"
+            failure_code = "both_geometries_not_ready"
+        elif not estimate.geometry_ready:
+            pair_state = "estimate_geometry_not_ready"
+            failure_code = estimate.failure_code
+        elif not reference.geometry_ready:
+            pair_state = "map_geometry_not_ready"
+            failure_code = reference.failure_code
         else:
+            assert estimate.path is not None
+            assert reference.path is not None
+            alignment = origin_alignment_metrics(estimate.path, reference.path)
+            pair_state = "diagnostic_ready_uncompensated"
+            failure_code = None
             try:
                 disagreement = compare_ego_relative_paths(
                     estimate.path,
@@ -385,15 +517,37 @@ def run_pairing_audit(
             "source_delta_ms": delta_ms,
             "absolute_source_delta_ms": abs(delta_ms),
             "timestamp_gate_ms": arguments.maximum_pair_delta_ms,
-            "timestamp_gate_passed": timestamp_gate_passed,
+            "timestamp_gate_passed": (
+                None if arguments.maximum_pair_delta_ms is None else True
+            ),
             "pair_state": pair_state,
             "failure_code": failure_code,
-            "estimate_backward_coverage_m": estimate.path.backward_coverage_m,
-            "estimate_forward_coverage_m": estimate.path.forward_coverage_m,
-            "reference_backward_coverage_m": reference.path.backward_coverage_m,
-            "reference_forward_coverage_m": reference.path.forward_coverage_m,
-            "estimate_reversed_to_positive_x": estimate.path.reversed_to_positive_x,
-            "reference_reversed_to_positive_x": reference.path.reversed_to_positive_x,
+            "estimate_geometry_state": estimate.geometry_state,
+            "estimate_geometry_failure_code": estimate.failure_code,
+            "map_geometry_state": reference.geometry_state,
+            "map_geometry_failure_code": reference.failure_code,
+            "estimate_backward_coverage_m": (
+                None if estimate.path is None else estimate.path.backward_coverage_m
+            ),
+            "estimate_forward_coverage_m": (
+                None if estimate.path is None else estimate.path.forward_coverage_m
+            ),
+            "reference_backward_coverage_m": (
+                None if reference.path is None else reference.path.backward_coverage_m
+            ),
+            "reference_forward_coverage_m": (
+                None if reference.path is None else reference.path.forward_coverage_m
+            ),
+            "estimate_reversed_to_positive_x": (
+                None
+                if estimate.path is None
+                else estimate.path.reversed_to_positive_x
+            ),
+            "reference_reversed_to_positive_x": (
+                None
+                if reference.path is None
+                else reference.path.reversed_to_positive_x
+            ),
             **alignment,
             "diagnostic_lateral_rms_m": (
                 None if disagreement is None else disagreement.lateral_rms_m
@@ -403,10 +557,12 @@ def run_pairing_audit(
             ),
         }
         pair_rows.append(row)
-        ready_deltas.append(abs(delta_ms))
-        footpoint_separations.append(alignment["footpoint_separation_m"])
-        heading_deltas.append(abs(alignment["origin_heading_delta_rad"]))
+        pair_deltas.append(abs(delta_ms))
         if disagreement is not None:
+            assert estimate.path is not None
+            assert reference.path is not None
+            footpoint_separations.append(float(alignment["footpoint_separation_m"]))
+            heading_deltas.append(abs(float(alignment["origin_heading_delta_rad"])))
             lateral_rms_values.append(disagreement.lateral_rms_m)
             estimate_sampled = sample_ego_relative_path(estimate.path, stations_m)
             reference_sampled = sample_ego_relative_path(reference.path, stations_m)
@@ -430,7 +586,7 @@ def run_pairing_audit(
                         ),
                     }
                 )
-            plots.append(
+            plot_candidates.append(
                 _PairPlot(
                     title=(
                         f"E{estimate.message_index} / M{reference.message_index}; "
@@ -442,7 +598,31 @@ def run_pairing_audit(
                 )
             )
 
+    plots = [
+        plot_candidates[index]
+        for index in evenly_spaced_indices(
+            len(plot_candidates),
+            arguments.max_pairs,
+        )
+    ]
+
     output = arguments.output_directory
+    _write_csv(
+        output / "message_inventory.csv",
+        (
+            "topic_role",
+            "message_index",
+            "source_time_ns_private",
+            "log_time_ns_private",
+            "publish_time_ns_private",
+            "geometry_state",
+            "geometry_failure_code",
+            "temporal_state",
+            "counterpart_message_index",
+            "counterpart_delta_ms",
+        ),
+        inventory_rows,
+    )
     pair_fields = (
         "pair_index",
         "estimate_message_index",
@@ -455,6 +635,10 @@ def run_pairing_audit(
         "timestamp_gate_passed",
         "pair_state",
         "failure_code",
+        "estimate_geometry_state",
+        "estimate_geometry_failure_code",
+        "map_geometry_state",
+        "map_geometry_failure_code",
         "estimate_backward_coverage_m",
         "estimate_forward_coverage_m",
         "reference_backward_coverage_m",
@@ -488,26 +672,58 @@ def run_pairing_audit(
     )
     _plot_pairs(output / "pairing_overlays.png", plots)
     summary = {
-        "version": "0.4.0",
+        "version": "0.4.1",
         "purpose": "estimated_path_vs_map_path_pairing_audit",
         "mcap_filename": arguments.mcap.name,
         "estimate_topic": arguments.estimate_topic,
         "map_topic": arguments.map_topic,
         **counts,
-        "ready_estimate_geometry_count": len(estimates),
-        "ready_map_geometry_count": len(references),
-        "unbounded_monotone_pair_count": len(all_pairs),
-        "inspected_pair_count": len(selected_pairs),
-        "diagnostic_ready_pair_count": len(station_rows) // len(stations_m),
+        "ready_estimate_geometry_count": sum(
+            record.geometry_ready for record in estimates
+        ),
+        "ready_map_geometry_count": sum(
+            record.geometry_ready for record in references
+        ),
+        "complete_stream_mutual_nearest_pair_count": len(timestamp_audit.pairs),
+        "timestamp_gate_rejected_pair_count": len(
+            timestamp_audit.rejected_by_gate
+        ),
+        "unmatched_estimate_message_count": len(
+            timestamp_audit.unmatched_first_positions
+        ),
+        "unmatched_map_message_count": len(
+            timestamp_audit.unmatched_second_positions
+        ),
+        "missing_estimate_source_time_count": len(
+            timestamp_audit.missing_time_first_positions
+        ),
+        "missing_map_source_time_count": len(
+            timestamp_audit.missing_time_second_positions
+        ),
+        "ambiguous_estimate_nearest_time_count": len(
+            timestamp_audit.ambiguous_first_positions
+        ),
+        "ambiguous_map_nearest_time_count": len(
+            timestamp_audit.ambiguous_second_positions
+        ),
+        "inspected_pair_count": len(pair_rows),
+        "plotted_pair_count": len(plots),
+        "diagnostic_ready_pair_count": len(plot_candidates),
         "extraction_failures": dict(sorted(failures.items())),
         "stations_m": list(stations_m),
-        "timestamp_pairing_basis": "nearest_monotone_source_timestamp",
+        "timestamp_pairing_basis": (
+            "unique mutual-nearest source timestamps on complete topic streams; "
+            "geometry validity is applied only after temporal pairing"
+        ),
+        "pairing_before_geometry_filtering": True,
+        "all_messages_retained_in_inventory": True,
         "estimate_spline_semantics": (
-            "curvature_delta confirmed by the prior v0.3.9 production/debug corpus audit"
+            "curvature_delta is a provisional reconstruction hypothesis; its "
+            "interface semantics remain unresolved"
         ),
         "timestamp_gate_ms": arguments.maximum_pair_delta_ms,
         "timestamp_gate_predeclared": arguments.maximum_pair_delta_ms is not None,
-        "median_absolute_source_delta_ms": _median_or_none(ready_deltas),
+        "median_absolute_source_delta_ms": _median_or_none(pair_deltas),
         "median_footpoint_separation_m": _median_or_none(footpoint_separations),
         "median_absolute_origin_heading_delta_rad": _median_or_none(heading_deltas),
         "median_diagnostic_lateral_rms_m": _median_or_none(lateral_rms_values),
@@ -517,9 +733,9 @@ def run_pairing_audit(
         "diagnostic_disagreement_is_lane_estimation_error": False,
         "generated_final_residual_dataset": False,
         "next_decision": (
-            "Inspect pairing_overlays.png and pairing_audit.csv. Promote the "
-            "comparison only after the coordinate-frame and timestamp semantics "
-            "are accepted from interface evidence."
+            "Rerun the two audited MCAPs and verify that invalid geometry prefixes "
+            "remain index-aligned instead of shifting temporal pairs. Then inspect "
+            "the remaining EDP spline and RLMB path-shape hypotheses."
         ),
         "confidentiality": "Outputs contain BMW-derived measurements and must remain private.",
     }
