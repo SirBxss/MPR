@@ -116,6 +116,7 @@ class EstimatorSemanticEvaluationTests(unittest.TestCase):
 
         self.assertTrue(semantic_valid)
         self.assertEqual(set(curves), {10})
+        self.assertEqual(curves[10].curvature_meaning, "curvature_rate")
         self.assertEqual(len(result.semantic_rows), 2)
         self.assertTrue(all(row["status_correspondence"] for row in result.semantic_rows))
         self.assertEqual(result.semantic_rows[0]["semantic_status"], "semantic_match")
@@ -229,6 +230,12 @@ class ReferenceAuditOutputTests(unittest.TestCase):
             self.assertFalse(summary["thesis_scope_changed"])
             self.assertFalse(summary["generated_final_residual_dataset"])
             self.assertFalse(summary["fitted_statistical_model"])
+            self.assertEqual(summary["version"], "0.4.3")
+            self.assertEqual(
+                summary["estimate_spline_reconstruction"],
+                "curvature_rate",
+            )
+            self.assertFalse(summary["curvature_change_semantics_confirmed"])
             expected = {
                 "reference_source_inventory.json",
                 "decoded_field_catalog.json",

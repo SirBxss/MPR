@@ -222,6 +222,11 @@ class EdpTransitionAuditCliTests(unittest.TestCase):
 
             self.assertEqual(summary["all_candidate_count"], 4)
             self.assertEqual(summary["selected_transition_comparison_count"], 2)
+            self.assertEqual(summary["version"], "0.4.3")
+            self.assertEqual(
+                summary["provisional_pairing_reconstruction"],
+                "curvature_rate",
+            )
             self.assertFalse(summary["generated_final_residual_dataset"])
             self.assertFalse(summary["curvature_change_semantics_confirmed"])
             for name in (

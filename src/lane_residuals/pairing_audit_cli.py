@@ -193,7 +193,7 @@ def _decode_paths(
                     else:
                         curve = generate_spline_curve(
                             frame.candidate,
-                            meaning="curvature_delta",
+                            meaning="curvature_rate",
                             anchor_policy="anchor_zero",
                             max_step_m=max_step_m,
                             extra_stations=stations_m,
@@ -672,7 +672,7 @@ def run_pairing_audit(
     )
     _plot_pairs(output / "pairing_overlays.png", plots)
     summary = {
-        "version": "0.4.2",
+        "version": "0.4.3",
         "purpose": "estimated_path_vs_map_path_pairing_audit",
         "mcap_filename": arguments.mcap.name,
         "estimate_topic": arguments.estimate_topic,
@@ -718,9 +718,12 @@ def run_pairing_audit(
         "pairing_before_geometry_filtering": True,
         "all_messages_retained_in_inventory": True,
         "estimate_spline_semantics": (
-            "curvature_delta is a provisional reconstruction hypothesis; its "
-            "interface semantics remain unresolved"
+            "curvature_rate is the provisional reconstruction selected from "
+            "spline-rollover invariance; official interface semantics remain "
+            "unconfirmed"
         ),
+        "estimate_spline_reconstruction": "curvature_rate",
+        "curvature_change_semantics_confirmed": False,
         "timestamp_gate_ms": arguments.maximum_pair_delta_ms,
         "timestamp_gate_predeclared": arguments.maximum_pair_delta_ms is not None,
         "median_absolute_source_delta_ms": _median_or_none(pair_deltas),
@@ -733,9 +736,8 @@ def run_pairing_audit(
         "diagnostic_disagreement_is_lane_estimation_error": False,
         "generated_final_residual_dataset": False,
         "next_decision": (
-            "Use the candidate-level EDP transition audit to determine whether "
-            "remaining jumps track candidate ordering, topology identifiers, raw "
-            "spline parameters, confidence changes, or one spline hypothesis."
+            "Review remaining curvature-rate EDP-RLMB disagreement and RLMB "
+            "single-segment coverage before any residual-label export."
         ),
         "confidentiality": "Outputs contain BMW-derived measurements and must remain private.",
     }

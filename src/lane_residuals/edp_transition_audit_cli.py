@@ -17,6 +17,9 @@ import numpy as np
 
 from .edp_transition_audit import (
     DEFAULT_EDP_TRANSITION_STATIONS_M,
+    DEFAULT_ROLLOVER_BOUNDARY_ATOL_M,
+    DEFAULT_ROLLOVER_MIN_MATCHED_BOUNDARIES,
+    DEFAULT_ROLLOVER_MIN_MATCHED_SPAN_M,
     EDP_SPLINE_HYPOTHESES,
     CandidateSnapshot,
     SelectedTransition,
@@ -78,8 +81,9 @@ class _MessageRecord:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Export every EstimatedDrivePaths candidate and rank abrupt selected "
-            "KEEP_LANE geometry changes under both unresolved spline hypotheses."
+            "Export every EstimatedDrivePaths candidate, detect spline-window "
+            "rollovers, and compare retained geometry under both unresolved "
+            "curvature hypotheses."
         )
     )
     parser.add_argument("mcap", type=Path, help="one MCAP file to inspect")
@@ -110,7 +114,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--ranking-hypothesis",
         choices=EDP_SPLINE_HYPOTHESES,
-        default="curvature_delta",
+        default="curvature_rate",
     )
     parser.add_argument(
         "--estimate-topic",
@@ -609,9 +613,9 @@ def _plot_transition_metrics(
     import matplotlib.pyplot as plt
 
     metrics = (
-        ("sampled_position_rms_m", "raw sampled curve RMS [m]"),
-        ("rigid_normalized_shape_rms_m", "rigid-normalized shape RMS [m]"),
-        ("endpoint_position_jump_m", "maximum-common-station jump [m]"),
+        ("sampled_position_rms_m", "same-station raw RMS [m]"),
+        ("shift_aware_shape_rms_m", "rollover shift-aware shape RMS [m]"),
+        ("station_shift_m", "detected native-station shift [m]"),
     )
     figure, axes = plt.subplots(3, 1, figsize=(12.0, 9.0), sharex=True)
     for axis, (attribute, label) in zip(axes, metrics):
@@ -634,7 +638,7 @@ def _plot_transition_metrics(
     axes[-1].set_xlabel("current EDP message index")
     axes[0].legend(loc="upper right")
     figure.suptitle(
-        "Consecutive selected KEEP_LANE changes (diagnostic ranking; no threshold)",
+        "Selected KEEP_LANE continuity (rollover-aware; diagnostic only)",
         fontsize=12,
     )
     figure.tight_layout(rect=(0.0, 0.0, 1.0, 0.98))
@@ -660,10 +664,37 @@ def run_edp_transition_audit(
         for record in message.candidate_records
     ]
     candidates = [record.snapshot for record in records]
-    transitions = selected_candidate_transitions(candidates)
+    transitions = selected_candidate_transitions(
+        candidates,
+        max_step_m=arguments.max_step_m,
+    )
+    detected_rollover_centers = tuple(
+        sorted(
+            {
+                item.current_message_index
+                for item in transitions
+                if item.hypothesis == "curvature_rate" and item.rollover_detected
+            }
+        )
+    )
     if arguments.transition_centers:
         centers = tuple(dict.fromkeys(arguments.transition_centers))
         center_selection_basis = "explicit_cli_message_indices"
+    elif detected_rollover_centers:
+        if len(detected_rollover_centers) <= arguments.max_transition_windows:
+            centers = detected_rollover_centers
+        else:
+            positions = np.rint(
+                np.linspace(
+                    0,
+                    len(detected_rollover_centers) - 1,
+                    arguments.max_transition_windows,
+                )
+            ).astype(int)
+            centers = tuple(detected_rollover_centers[index] for index in positions)
+        center_selection_basis = (
+            "evenly_distributed_automatically_detected_rollovers"
+        )
     else:
         centers = rank_transition_centers(
             transitions,
@@ -674,7 +705,7 @@ def run_edp_transition_audit(
             ),
         )
         center_selection_basis = (
-            "largest_non_overlapping_sampled_position_rms_without_threshold"
+            "largest_non_overlapping_valid_same_station_rms_without_jump_threshold"
         )
 
     message_rows = [
@@ -781,9 +812,28 @@ def run_edp_transition_audit(
     )
 
     selected_ready = [item for item in candidates if item.selected_for_pairing_audit]
+    rate_rollovers = [
+        item
+        for item in transitions
+        if item.hypothesis == "curvature_rate" and item.rollover_detected
+    ]
+    delta_rollovers = [
+        item
+        for item in transitions
+        if item.hypothesis == "curvature_delta" and item.rollover_detected
+    ]
+
+    def median_ready(items: Sequence[SelectedTransition], attribute: str) -> float | None:
+        values = [
+            float(value)
+            for item in items
+            if (value := getattr(item, attribute)) is not None
+        ]
+        return None if not values else float(np.median(values))
+
     summary = {
-        "version": "0.4.2",
-        "purpose": "edp_candidate_and_selected_transition_diagnostic",
+        "version": "0.4.3",
+        "purpose": "edp_rollover_and_shift_aware_continuity_diagnostic",
         "mcap_filename": arguments.mcap.name,
         "estimate_topic": arguments.estimate_topic,
         "estimate_message_count": len(messages),
@@ -802,10 +852,36 @@ def run_edp_transition_audit(
             }
         ),
         "selected_transition_comparison_count": len(transitions),
+        "detected_rollover_count": len(detected_rollover_centers),
+        "detected_rollover_centers": list(detected_rollover_centers),
+        "rollover_detector": (
+            "unique longest ordered previous-boundary suffix to current-boundary "
+            "prefix after station rebase; no curve-jump threshold"
+        ),
+        "rollover_minimum_matched_boundary_count": (
+            DEFAULT_ROLLOVER_MIN_MATCHED_BOUNDARIES
+        ),
+        "rollover_minimum_matched_station_span_m": (
+            DEFAULT_ROLLOVER_MIN_MATCHED_SPAN_M
+        ),
+        "rollover_boundary_absolute_tolerance_m": (
+            DEFAULT_ROLLOVER_BOUNDARY_ATOL_M
+        ),
+        "same_station_metrics_invalidated_at_rollover": True,
+        "shift_aware_metric_basis": (
+            "rigid-normalized previous(q + detected_shift) versus current(q) "
+            "on requested stations within both native supports; no extrapolation"
+        ),
+        "median_curvature_rate_rollover_shape_rms_m": median_ready(
+            rate_rollovers, "shift_aware_shape_rms_m"
+        ),
+        "median_curvature_delta_rollover_shape_rms_m": median_ready(
+            delta_rollovers, "shift_aware_shape_rms_m"
+        ),
         "ranked_transition_centers": list(centers),
         "transition_center_selection_basis": center_selection_basis,
         "ranking_hypothesis": arguments.ranking_hypothesis,
-        "transition_threshold_applied": False,
+        "curve_jump_threshold_applied": False,
         "transition_window_radius_messages": arguments.transition_window_radius,
         "every_candidate_exported": True,
         "raw_spline_parameters_exported": True,
@@ -821,14 +897,18 @@ def run_edp_transition_audit(
             "driving-intention field is claimed"
         ),
         "curvature_change_semantics_confirmed": False,
+        "provisional_pairing_reconstruction": "curvature_rate",
+        "curvature_rate_evidence_note": (
+            "rollover invariance provides empirical support only; official "
+            "interface semantics remain unconfirmed"
+        ),
         "coordinate_frame_equivalence_confirmed": False,
         "generated_final_residual_dataset": False,
         "diagnostic_is_lane_estimation_error": False,
         "next_decision": (
-            "Check whether ranked curve jumps coincide with candidate index, "
-            "lane_topology_ids, raw spline parameters, confidence changes, or only "
-            "one curvature hypothesis. Construct an ordered multi-segment RLMB "
-            "ego lane only after this EDP transition evidence is reviewed."
+            "Rerun the same two EDP-RLMB pairing audits with the provisional "
+            "curvature_rate reconstruction, then review remaining disagreement "
+            "before constructing an ordered multi-segment RLMB ego lane."
         ),
         "confidentiality": (
             "Outputs contain BMW-derived raw model parameters and measurements "

@@ -2,8 +2,9 @@
 
 This module deliberately does not define a lane-estimation residual.  It keeps
 all EDP candidates, evaluates both unresolved ``curvature_change`` hypotheses,
-and compares consecutive selected KEEP_LANE curves only to expose abrupt
-changes in the estimate signal itself.
+and distinguishes ordinary consecutive updates from spline-window rollovers.
+Rollover continuity is evaluated at shifted native stations; no physical
+cross-signal correspondence is inferred from this internal representation test.
 """
 
 from __future__ import annotations
@@ -15,11 +16,19 @@ from typing import Sequence
 import numpy as np
 from numpy.typing import NDArray
 
-from .geometry_validation import GeometryValidationError, SplineCurve, SplineParameters
+from .geometry_validation import (
+    GeometryValidationError,
+    SplineCurve,
+    SplineParameters,
+    generate_spline_curve,
+)
 
 FloatArray = NDArray[np.float64]
 DEFAULT_EDP_TRANSITION_STATIONS_M = tuple(float(value) for value in range(0, 101, 5))
 EDP_SPLINE_HYPOTHESES = ("curvature_rate", "curvature_delta")
+DEFAULT_ROLLOVER_BOUNDARY_ATOL_M = 1e-6
+DEFAULT_ROLLOVER_MIN_MATCHED_BOUNDARIES = 3
+DEFAULT_ROLLOVER_MIN_MATCHED_SPAN_M = 50.0
 
 
 def _wrap_angle(value: float) -> float:
@@ -137,12 +146,52 @@ class SelectedTransition:
     theta_0_delta_rad: float
     curvature_0_delta_per_m: float
     confidence_mean_delta: float | None
-    common_station_count: int
-    maximum_common_station_m: float
+    common_station_count: int | None
+    maximum_common_station_m: float | None
     station_zero_position_jump_m: float | None
-    endpoint_position_jump_m: float
-    sampled_position_rms_m: float
-    rigid_normalized_shape_rms_m: float
+    endpoint_position_jump_m: float | None
+    sampled_position_rms_m: float | None
+    rigid_normalized_shape_rms_m: float | None
+    station_correspondence_status: str = "not_assessed"
+    station_correspondence_failure_code: str | None = None
+    rollover_detected: bool = False
+    dropped_interval_count: int | None = None
+    station_shift_m: float | None = None
+    matched_boundary_count: int = 0
+    matched_station_span_m: float = 0.0
+    matched_curvature_change_count: int = 0
+    curvature_change_suffix_rms_raw: float | None = None
+    same_station_metrics_valid: bool = False
+    shift_aware_metric_status: str = "not_applicable"
+    shift_aware_station_count: int | None = None
+    shift_aware_maximum_current_station_m: float | None = None
+    shift_aware_shape_rms_m: float | None = None
+    shift_aware_shape_endpoint_m: float | None = None
+    shift_aware_shape_max_m: float | None = None
+    rate_curvature_at_shift_delta_per_m: float | None = None
+
+
+@dataclass(frozen=True)
+class StationCorrespondence:
+    """Fail-closed suffix-to-prefix correspondence between spline windows."""
+
+    status: str
+    failure_code: str | None
+    rollover_detected: bool
+    dropped_interval_count: int | None
+    station_shift_m: float | None
+    matched_boundary_count: int
+    matched_station_span_m: float
+
+
+@dataclass(frozen=True)
+class _ShiftAwareMetrics:
+    station_count: int
+    maximum_current_station_m: float
+    shape_rms_m: float
+    shape_endpoint_m: float
+    shape_max_m: float
+    rate_curvature_at_shift_delta_per_m: float | None
 
 
 def sample_candidate_curve(
@@ -202,13 +251,287 @@ def _rigid_normalized_shape_rms(
     return float(np.sqrt(np.mean(np.sum(np.square(aligned - previous_points), axis=1))))
 
 
+def detect_station_correspondence(
+    previous: SplineParameters,
+    current: SplineParameters,
+    *,
+    boundary_atol_m: float = DEFAULT_ROLLOVER_BOUNDARY_ATOL_M,
+    minimum_matched_boundaries: int = DEFAULT_ROLLOVER_MIN_MATCHED_BOUNDARIES,
+    minimum_matched_span_m: float = DEFAULT_ROLLOVER_MIN_MATCHED_SPAN_M,
+) -> StationCorrespondence:
+    """Detect a unique ordered suffix-to-prefix station-window rebase.
+
+    The detector uses only the spline boundary sequence.  It does not use a
+    curve-jump threshold, interval-count change, or the unresolved curvature
+    semantics.  Every previous suffix is translated to the current first
+    boundary and its longest matching current prefix is measured.  Ties and
+    short overlaps fail closed.
+    """
+
+    if not math.isfinite(boundary_atol_m) or boundary_atol_m < 0.0:
+        raise ValueError("boundary_atol_m must be finite and nonnegative")
+    if minimum_matched_boundaries < 2:
+        raise ValueError("minimum_matched_boundaries must be at least two")
+    if not math.isfinite(minimum_matched_span_m) or minimum_matched_span_m <= 0.0:
+        raise ValueError("minimum_matched_span_m must be finite and positive")
+
+    previous_boundaries = previous.segment_starts
+    current_boundaries = current.segment_starts
+    candidates: list[tuple[float, int, int]] = []
+    for dropped_count in range(len(previous_boundaries) - 1):
+        translated = (
+            previous_boundaries[dropped_count:]
+            - previous_boundaries[dropped_count]
+            + current_boundaries[0]
+        )
+        maximum_count = min(len(translated), len(current_boundaries))
+        matched_count = 0
+        for index in range(maximum_count):
+            if math.isclose(
+                float(translated[index]),
+                float(current_boundaries[index]),
+                rel_tol=0.0,
+                abs_tol=boundary_atol_m,
+            ):
+                matched_count += 1
+            else:
+                break
+        matched_span = (
+            0.0
+            if matched_count < 2
+            else float(current_boundaries[matched_count - 1] - current_boundaries[0])
+        )
+        candidates.append((matched_span, matched_count, dropped_count))
+
+    best_span = max(item[0] for item in candidates)
+    span_winners = [
+        item
+        for item in candidates
+        if math.isclose(item[0], best_span, rel_tol=0.0, abs_tol=boundary_atol_m)
+    ]
+    best_count = max(item[1] for item in span_winners)
+    winners = [item for item in span_winners if item[1] == best_count]
+    if len(winners) != 1:
+        return StationCorrespondence(
+            status="unassessed",
+            failure_code="rollover_boundary_alignment_ambiguous",
+            rollover_detected=False,
+            dropped_interval_count=None,
+            station_shift_m=None,
+            matched_boundary_count=best_count,
+            matched_station_span_m=best_span,
+        )
+
+    _, matched_count, dropped_count = winners[0]
+    if (
+        matched_count < minimum_matched_boundaries
+        or best_span < minimum_matched_span_m
+    ):
+        return StationCorrespondence(
+            status="unassessed",
+            failure_code="rollover_boundary_overlap_insufficient",
+            rollover_detected=False,
+            dropped_interval_count=None,
+            station_shift_m=None,
+            matched_boundary_count=matched_count,
+            matched_station_span_m=best_span,
+        )
+
+    shift_m = float(
+        previous_boundaries[dropped_count] - current_boundaries[0]
+    )
+    if dropped_count == 0:
+        return StationCorrespondence(
+            status="same_station_window",
+            failure_code=None,
+            rollover_detected=False,
+            dropped_interval_count=0,
+            station_shift_m=0.0,
+            matched_boundary_count=matched_count,
+            matched_station_span_m=best_span,
+        )
+    if shift_m <= boundary_atol_m:
+        return StationCorrespondence(
+            status="unassessed",
+            failure_code="rollover_station_shift_not_positive",
+            rollover_detected=False,
+            dropped_interval_count=None,
+            station_shift_m=None,
+            matched_boundary_count=matched_count,
+            matched_station_span_m=best_span,
+        )
+    return StationCorrespondence(
+        status="rollover_detected",
+        failure_code=None,
+        rollover_detected=True,
+        dropped_interval_count=dropped_count,
+        station_shift_m=shift_m,
+        matched_boundary_count=matched_count,
+        matched_station_span_m=best_span,
+    )
+
+
+def _same_station_metrics(
+    previous_geometry: CandidateGeometry,
+    current_geometry: CandidateGeometry,
+) -> tuple[int, float, float | None, float, float, float]:
+    common_stations = np.intersect1d(
+        previous_geometry.stations_m,
+        current_geometry.stations_m,
+    )
+    if not len(common_stations):
+        raise GeometryValidationError(
+            "edp_transition_no_common_station",
+            "consecutive candidates have no common requested station",
+        )
+    previous_indices = np.searchsorted(previous_geometry.stations_m, common_stations)
+    current_indices = np.searchsorted(current_geometry.stations_m, common_stations)
+    previous_points = previous_geometry.points[previous_indices]
+    current_points = current_geometry.points[current_indices]
+    distances = np.linalg.norm(current_points - previous_points, axis=1)
+    zero_positions = np.flatnonzero(np.isclose(common_stations, 0.0, atol=1e-12))
+    station_zero_jump = (
+        None
+        if not len(zero_positions)
+        else float(distances[int(zero_positions[0])])
+    )
+    return (
+        len(common_stations),
+        float(common_stations[-1]),
+        station_zero_jump,
+        float(distances[-1]),
+        float(np.sqrt(np.mean(np.square(distances)))),
+        _rigid_normalized_shape_rms(
+            previous_points,
+            current_points,
+            float(previous_geometry.heading_rad[previous_indices[0]]),
+            float(current_geometry.heading_rad[current_indices[0]]),
+        ),
+    )
+
+
+def _shift_aware_metrics(
+    previous: CandidateSnapshot,
+    current: CandidateSnapshot,
+    *,
+    hypothesis: str,
+    station_shift_m: float,
+    max_step_m: float,
+) -> _ShiftAwareMetrics:
+    """Compare ``previous(q + shift)`` with ``current(q)`` without extrapolation."""
+
+    assert previous.parameters is not None
+    assert current.parameters is not None
+    current_geometry = current.geometry(hypothesis)
+    if current_geometry is None:
+        raise GeometryValidationError(
+            "edp_rollover_geometry_unavailable",
+            "requested rollover hypothesis is unavailable",
+        )
+    requested = current_geometry.stations_m
+    lower = max(
+        float(current.parameters.segment_starts[0]),
+        float(previous.parameters.segment_starts[0] - station_shift_m),
+    )
+    upper = min(
+        float(current.parameters.segment_starts[-1]),
+        float(previous.parameters.segment_starts[-1] - station_shift_m),
+    )
+    q = requested[(requested >= lower - 1e-9) & (requested <= upper + 1e-9)]
+    if len(q) < 2:
+        raise GeometryValidationError(
+            "edp_rollover_common_coverage_insufficient",
+            "rollover comparison has fewer than two requested stations in common",
+        )
+
+    previous_stations = q + station_shift_m
+    previous_curve = generate_spline_curve(
+        previous.parameters,
+        meaning=hypothesis,
+        anchor_policy="anchor_zero",
+        max_step_m=max_step_m,
+        extra_stations=tuple(float(value) for value in previous_stations),
+    )
+    current_curve = generate_spline_curve(
+        current.parameters,
+        meaning=hypothesis,
+        anchor_policy="anchor_zero",
+        max_step_m=max_step_m,
+        extra_stations=tuple(float(value) for value in q),
+    )
+    previous_points = np.column_stack(
+        (
+            np.interp(previous_stations, previous_curve.s, previous_curve.x),
+            np.interp(previous_stations, previous_curve.s, previous_curve.y),
+        )
+    )
+    current_points = np.column_stack(
+        (
+            np.interp(q, current_curve.s, current_curve.x),
+            np.interp(q, current_curve.s, current_curve.y),
+        )
+    )
+    previous_heading = np.interp(
+        previous_stations,
+        previous_curve.s,
+        np.unwrap(previous_curve.heading),
+    )
+    current_heading = np.interp(
+        q,
+        current_curve.s,
+        np.unwrap(current_curve.heading),
+    )
+    angle = _wrap_angle(float(previous_heading[0] - current_heading[0]))
+    rotation = np.asarray(
+        ((math.cos(angle), -math.sin(angle)), (math.sin(angle), math.cos(angle))),
+        dtype=np.float64,
+    )
+    aligned_current = (
+        (current_points - current_points[0]) @ rotation.T + previous_points[0]
+    )
+    distances = np.linalg.norm(aligned_current - previous_points, axis=1)
+
+    rate_delta = None
+    try:
+        previous_rate = generate_spline_curve(
+            previous.parameters,
+            meaning="curvature_rate",
+            anchor_policy="anchor_zero",
+            max_step_m=max_step_m,
+            extra_stations=(float(previous_stations[0]),),
+        )
+        current_rate = generate_spline_curve(
+            current.parameters,
+            meaning="curvature_rate",
+            anchor_policy="anchor_zero",
+            max_step_m=max_step_m,
+            extra_stations=(float(q[0]),),
+        )
+        rate_delta = float(
+            np.interp(previous_stations[0], previous_rate.s, previous_rate.curvature)
+            - np.interp(q[0], current_rate.s, current_rate.curvature)
+        )
+    except GeometryValidationError:
+        pass
+
+    return _ShiftAwareMetrics(
+        station_count=len(q),
+        maximum_current_station_m=float(q[-1]),
+        shape_rms_m=float(np.sqrt(np.mean(np.square(distances)))),
+        shape_endpoint_m=float(distances[-1]),
+        shape_max_m=float(np.max(distances)),
+        rate_curvature_at_shift_delta_per_m=rate_delta,
+    )
+
+
 def compare_selected_candidates(
     previous: CandidateSnapshot,
     current: CandidateSnapshot,
     *,
     hypothesis: str,
+    max_step_m: float = 0.25,
 ) -> SelectedTransition:
-    """Compare consecutive selected candidates without assigning error semantics."""
+    """Compare consecutive selected candidates without assigning residual semantics."""
 
     if not previous.selected_for_pairing_audit or not current.selected_for_pairing_audit:
         raise GeometryValidationError(
@@ -233,26 +556,6 @@ def compare_selected_candidates(
             "selected transition comparison requires the requested hypothesis",
         )
 
-    common_stations = np.intersect1d(
-        previous_geometry.stations_m,
-        current_geometry.stations_m,
-    )
-    if not len(common_stations):
-        raise GeometryValidationError(
-            "edp_transition_no_common_station",
-            "consecutive candidates have no common requested station",
-        )
-    previous_indices = np.searchsorted(previous_geometry.stations_m, common_stations)
-    current_indices = np.searchsorted(current_geometry.stations_m, common_stations)
-    previous_points = previous_geometry.points[previous_indices]
-    current_points = current_geometry.points[current_indices]
-    differences = current_points - previous_points
-    distances = np.linalg.norm(differences, axis=1)
-    station_zero_jump = None
-    zero_positions = np.flatnonzero(np.isclose(common_stations, 0.0, atol=1e-12))
-    if len(zero_positions):
-        station_zero_jump = float(distances[int(zero_positions[0])])
-
     previous_parameters = previous.parameters
     current_parameters = current.parameters
     source_delta_ms = (
@@ -260,6 +563,89 @@ def compare_selected_candidates(
         if previous.source_time_ns is None or current.source_time_ns is None
         else (current.source_time_ns - previous.source_time_ns) / 1e6
     )
+    topology_source_changed = previous.topology_source != current.topology_source
+    lane_topology_ids_changed = previous.lane_topology_ids != current.lane_topology_ids
+    correspondence = detect_station_correspondence(
+        previous_parameters,
+        current_parameters,
+    )
+    if source_delta_ms is None or source_delta_ms <= 0.0:
+        correspondence = StationCorrespondence(
+            status="unassessed",
+            failure_code="edp_transition_source_time_invalid",
+            rollover_detected=False,
+            dropped_interval_count=None,
+            station_shift_m=None,
+            matched_boundary_count=correspondence.matched_boundary_count,
+            matched_station_span_m=correspondence.matched_station_span_m,
+        )
+    elif (
+        topology_source_changed
+        or lane_topology_ids_changed
+        or previous.role_symbol != current.role_symbol
+    ):
+        correspondence = StationCorrespondence(
+            status="unassessed",
+            failure_code="edp_transition_candidate_identity_changed",
+            rollover_detected=False,
+            dropped_interval_count=None,
+            station_shift_m=None,
+            matched_boundary_count=correspondence.matched_boundary_count,
+            matched_station_span_m=correspondence.matched_station_span_m,
+        )
+
+    common_station_count: int | None = None
+    maximum_common_station_m: float | None = None
+    station_zero_jump: float | None = None
+    endpoint_jump: float | None = None
+    sampled_rms: float | None = None
+    rigid_same_station_rms: float | None = None
+    same_station_metrics_valid = False
+    shift_status = "not_applicable"
+    shift_metrics: _ShiftAwareMetrics | None = None
+    if correspondence.status == "same_station_window":
+        (
+            common_station_count,
+            maximum_common_station_m,
+            station_zero_jump,
+            endpoint_jump,
+            sampled_rms,
+            rigid_same_station_rms,
+        ) = _same_station_metrics(previous_geometry, current_geometry)
+        same_station_metrics_valid = True
+    elif correspondence.rollover_detected:
+        assert correspondence.station_shift_m is not None
+        try:
+            shift_metrics = _shift_aware_metrics(
+                previous,
+                current,
+                hypothesis=hypothesis,
+                station_shift_m=correspondence.station_shift_m,
+                max_step_m=max_step_m,
+            )
+        except GeometryValidationError as error:
+            shift_status = error.code
+        else:
+            shift_status = "ready"
+
+    matched_curvature_count = 0
+    curvature_suffix_rms = None
+    if correspondence.dropped_interval_count is not None:
+        dropped = correspondence.dropped_interval_count
+        matched_curvature_count = min(
+            max(correspondence.matched_boundary_count - 1, 0),
+            len(previous_parameters.curvature_change) - dropped,
+            len(current_parameters.curvature_change),
+        )
+        if matched_curvature_count > 0:
+            difference = (
+                previous_parameters.curvature_change[
+                    dropped : dropped + matched_curvature_count
+                ]
+                - current_parameters.curvature_change[:matched_curvature_count]
+            )
+            curvature_suffix_rms = float(np.sqrt(np.mean(np.square(difference))))
+
     return SelectedTransition(
         previous_message_index=previous.message_index,
         current_message_index=current.message_index,
@@ -267,10 +653,8 @@ def compare_selected_candidates(
         current_path_index=current.path_index,
         hypothesis=hypothesis,
         source_delta_ms=source_delta_ms,
-        topology_source_changed=(previous.topology_source != current.topology_source),
-        lane_topology_ids_changed=(
-            previous.lane_topology_ids != current.lane_topology_ids
-        ),
+        topology_source_changed=topology_source_changed,
+        lane_topology_ids_changed=lane_topology_ids_changed,
         selected_path_index_changed=(previous.path_index != current.path_index),
         interval_count_changed=(
             previous_parameters.interval_count != current_parameters.interval_count
@@ -292,22 +676,52 @@ def compare_selected_candidates(
                 - _mean_or_none(previous.confidences)
             )
         ),
-        common_station_count=len(common_stations),
-        maximum_common_station_m=float(common_stations[-1]),
+        common_station_count=common_station_count,
+        maximum_common_station_m=maximum_common_station_m,
         station_zero_position_jump_m=station_zero_jump,
-        endpoint_position_jump_m=float(distances[-1]),
-        sampled_position_rms_m=float(np.sqrt(np.mean(np.square(distances)))),
-        rigid_normalized_shape_rms_m=_rigid_normalized_shape_rms(
-            previous_points,
-            current_points,
-            float(previous_geometry.heading_rad[previous_indices[0]]),
-            float(current_geometry.heading_rad[current_indices[0]]),
+        endpoint_position_jump_m=endpoint_jump,
+        sampled_position_rms_m=sampled_rms,
+        rigid_normalized_shape_rms_m=rigid_same_station_rms,
+        station_correspondence_status=correspondence.status,
+        station_correspondence_failure_code=correspondence.failure_code,
+        rollover_detected=correspondence.rollover_detected,
+        dropped_interval_count=correspondence.dropped_interval_count,
+        station_shift_m=correspondence.station_shift_m,
+        matched_boundary_count=correspondence.matched_boundary_count,
+        matched_station_span_m=correspondence.matched_station_span_m,
+        matched_curvature_change_count=matched_curvature_count,
+        curvature_change_suffix_rms_raw=curvature_suffix_rms,
+        same_station_metrics_valid=same_station_metrics_valid,
+        shift_aware_metric_status=shift_status,
+        shift_aware_station_count=(
+            None if shift_metrics is None else shift_metrics.station_count
+        ),
+        shift_aware_maximum_current_station_m=(
+            None
+            if shift_metrics is None
+            else shift_metrics.maximum_current_station_m
+        ),
+        shift_aware_shape_rms_m=(
+            None if shift_metrics is None else shift_metrics.shape_rms_m
+        ),
+        shift_aware_shape_endpoint_m=(
+            None if shift_metrics is None else shift_metrics.shape_endpoint_m
+        ),
+        shift_aware_shape_max_m=(
+            None if shift_metrics is None else shift_metrics.shape_max_m
+        ),
+        rate_curvature_at_shift_delta_per_m=(
+            None
+            if shift_metrics is None
+            else shift_metrics.rate_curvature_at_shift_delta_per_m
         ),
     )
 
 
 def selected_candidate_transitions(
     candidates: Sequence[CandidateSnapshot],
+    *,
+    max_step_m: float = 0.25,
 ) -> tuple[SelectedTransition, ...]:
     """Return both-hypothesis comparisons for consecutive ready messages."""
 
@@ -326,6 +740,7 @@ def selected_candidate_transitions(
                         previous,
                         current,
                         hypothesis=hypothesis,
+                        max_step_m=max_step_m,
                     )
                 )
             except GeometryValidationError:
@@ -336,7 +751,7 @@ def selected_candidate_transitions(
 def rank_transition_centers(
     transitions: Sequence[SelectedTransition],
     *,
-    hypothesis: str = "curvature_delta",
+    hypothesis: str = "curvature_rate",
     maximum_centers: int = 4,
     minimum_separation_messages: int = 7,
 ) -> tuple[int, ...]:
@@ -349,9 +764,14 @@ def rank_transition_centers(
     if minimum_separation_messages < 1:
         raise ValueError("minimum_separation_messages must be positive")
     ordered = sorted(
-        (item for item in transitions if item.hypothesis == hypothesis),
+        (
+            item
+            for item in transitions
+            if item.hypothesis == hypothesis
+            and item.sampled_position_rms_m is not None
+        ),
         key=lambda item: (
-            -item.sampled_position_rms_m,
+            -float(item.sampled_position_rms_m),
             item.current_message_index,
         ),
     )

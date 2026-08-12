@@ -651,7 +651,7 @@ def _evaluate_estimator_semantics(
                     try:
                         curves[estimate.message_index] = generate_spline_curve(
                             estimate.candidate,
-                            meaning="curvature_delta",
+                            meaning="curvature_rate",
                             anchor_policy="anchor_zero",
                             max_step_m=max_step_m,
                             extra_stations=stations_m,
@@ -1097,7 +1097,7 @@ def _write_outputs(
     _write_json(
         output / "reference_source_inventory.json",
         {
-            "version": "0.3.9",
+            "version": "0.4.3",
             "purpose": "reference_candidate_discovery",
             "topics": inventory_topics,
             "all_topic_metadata_by_recording": [
@@ -1365,7 +1365,7 @@ def _write_outputs(
         ),
     )
     summary = {
-        "version": "0.3.9",
+        "version": "0.4.3",
         "purpose": "reference_candidate_reconstruction_and_validation",
         "thesis_scope_changed": False,
         "thesis_target_question": THESIS_TARGET_QUESTION,
@@ -1384,6 +1384,8 @@ def _write_outputs(
         "processed_file_count": len(results),
         "session_count": len({result.session_id for result in results}),
         "estimator_semantics_valid": all(semantic_by_recording.values()) and bool(semantic_by_recording),
+        "estimate_spline_reconstruction": "curvature_rate",
+        "curvature_change_semantics_confirmed": False,
         "direct_map_candidate_frame_count": direct_ready_total,
         "pose_offset_candidate_frame_count": reconstructed_ready_total,
         "sessions_with_both_candidates": sessions_with_both,

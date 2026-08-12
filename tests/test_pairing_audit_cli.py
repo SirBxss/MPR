@@ -151,6 +151,12 @@ class PairingAuditCliTests(unittest.TestCase):
                 summary["diagnostic_disagreement_is_lane_estimation_error"]
             )
             self.assertTrue(summary["pairing_before_geometry_filtering"])
+            self.assertEqual(summary["version"], "0.4.3")
+            self.assertEqual(
+                summary["estimate_spline_reconstruction"],
+                "curvature_rate",
+            )
+            self.assertFalse(summary["curvature_change_semantics_confirmed"])
             self.assertTrue((output / "message_inventory.csv").is_file())
             self.assertTrue((output / "pairing_audit.csv").is_file())
             self.assertTrue((output / "diagnostic_disagreement.csv").is_file())
