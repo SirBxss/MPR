@@ -365,7 +365,6 @@ def plot_mcap_dataset_diagnostics(
     figure.tight_layout()
     return figure, axes
 
-
 def plot_lane_association_audit(
     dataset: "ResidualDataset",
 ) -> tuple[Figure, np.ndarray]:

@@ -1141,7 +1141,7 @@ def run_pairing_audit(
         item.termination_reason for item in ordered_lanes
     )
     summary = {
-        "version": "0.4.4",
+        "version": "0.4.5",
         "purpose": "estimated_path_vs_map_path_pairing_audit",
         "mcap_filename": arguments.mcap.name,
         "estimate_topic": arguments.estimate_topic,
@@ -1240,9 +1240,8 @@ def run_pairing_audit(
         "diagnostic_disagreement_is_lane_estimation_error": False,
         "generated_final_residual_dataset": False,
         "next_decision": (
-            "Rerun the two validated MCAPs, quantify the coverage gained from "
-            "explicit RLMB successor chaining, and review 0-60 m diagnostics "
-            "before any ten-MCAP pseudo-residual export."
+            "Aggregate all predeclared recordings with fixed complete H60 and "
+            "H100 cohorts before defining any provisional modelling dataset."
         ),
         "confidentiality": "Outputs contain BMW-derived measurements and must remain private.",
     }

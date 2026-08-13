@@ -1,5 +1,17 @@
 """Minimal tools for extracting and modelling lane-estimation residuals."""
 
+from .batch_pairing_audit import (
+    CANONICAL_STATIONS_M,
+    HORIZON_60_M,
+    HORIZON_100_M,
+    BatchAggregationError,
+    RecordingAuditData,
+    aggregate_fixed_cohorts,
+    aggregate_rlmb_chains,
+    detect_drive_overlaps,
+    fixed_horizon_vectors,
+    temporal_diagnostic_rows,
+)
 from .edp_transition_audit import (
     DEFAULT_EDP_TRANSITION_STATIONS_M,
     EDP_SPLINE_HYPOTHESES,
@@ -153,6 +165,8 @@ from .residual_extraction import (
 )
 
 __all__ = [
+    "BatchAggregationError",
+    "CANONICAL_STATIONS_M",
     "DEFAULT_AUDIT_HORIZONS",
     "DEFAULT_COMPARATOR_SCHEMA",
     "DEFAULT_COMPARATOR_TOPIC",
@@ -189,6 +203,8 @@ __all__ = [
     "ExtractionReport",
     "FrameRejection",
     "GaussianResidualModel",
+    "HORIZON_60_M",
+    "HORIZON_100_M",
     "GeometryValidationError",
     "HypothesisMetrics",
     "LaneAssociationExample",
@@ -205,6 +221,7 @@ __all__ = [
     "ProtobufPathSemanticTuple",
     "ProtobufPathSourceProbe",
     "ResidualDataset",
+    "RecordingAuditData",
     "ResidualFrame",
     "RoadFrame",
     "RoadFrameLoadResult",
@@ -229,6 +246,9 @@ __all__ = [
     "build_hindsight_candidate",
     "candidate_from_polyline",
     "candidate_segment_records",
+    "aggregate_fixed_cohorts",
+    "aggregate_rlmb_chains",
+    "detect_drive_overlaps",
     "comparator_frame_from_message",
     "compare_curve_to_comparator",
     "compare_selected_candidates",
@@ -249,6 +269,7 @@ __all__ = [
     "evenly_spaced_indices",
     "estimate_path_on_reference",
     "fit_gaussian_residual_model",
+    "fixed_horizon_vectors",
     "flatten_scalar_fields",
     "inspect_mcap_topics",
     "inspect_protobuf_path_source",
@@ -286,6 +307,7 @@ __all__ = [
     "state_transition_counts",
     "selected_candidate_transitions",
     "synchronize_road_frames",
+    "temporal_diagnostic_rows",
     "synchronize_estimate_and_comparator",
     "summarize_field_catalog",
     "topic_probe_from_summary",

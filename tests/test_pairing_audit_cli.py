@@ -218,7 +218,7 @@ class PairingAuditCliTests(unittest.TestCase):
                 summary["diagnostic_disagreement_is_lane_estimation_error"]
             )
             self.assertTrue(summary["pairing_before_geometry_filtering"])
-            self.assertEqual(summary["version"], "0.4.4")
+            self.assertEqual(summary["version"], "0.4.5")
             self.assertEqual(
                 summary["estimate_spline_reconstruction"],
                 "curvature_rate",

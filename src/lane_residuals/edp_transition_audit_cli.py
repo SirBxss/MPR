@@ -834,7 +834,7 @@ def run_edp_transition_audit(
         return None if not values else float(np.median(values))
 
     summary = {
-        "version": "0.4.4",
+        "version": "0.4.5",
         "purpose": "edp_rollover_and_shift_aware_continuity_diagnostic",
         "mcap_filename": arguments.mcap.name,
         "estimate_topic": arguments.estimate_topic,

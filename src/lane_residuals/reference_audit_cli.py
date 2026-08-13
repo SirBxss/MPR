@@ -1097,7 +1097,7 @@ def _write_outputs(
     _write_json(
         output / "reference_source_inventory.json",
         {
-            "version": "0.4.4",
+            "version": "0.4.5",
             "purpose": "reference_candidate_discovery",
             "topics": inventory_topics,
             "all_topic_metadata_by_recording": [
@@ -1365,7 +1365,7 @@ def _write_outputs(
         ),
     )
     summary = {
-        "version": "0.4.4",
+        "version": "0.4.5",
         "purpose": "reference_candidate_reconstruction_and_validation",
         "thesis_scope_changed": False,
         "thesis_target_question": THESIS_TARGET_QUESTION,
