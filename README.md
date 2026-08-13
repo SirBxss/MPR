@@ -1,7 +1,13 @@
-# Minimal Path-Residual Model (MPR) v0.4.4
+# Minimal Path-Residual Model (MPR) v0.4.5
 
-Version 0.4.4 preserves the timestamp and EDP-rollover corrections from
-v0.4.3. It extends the RLMB pseudo-reference from the metadata-confirmed ego
+Version 0.4.5 adds a corpus-level diagnostic over the validated v0.4.4
+single-recording pipeline. It processes each MCAP independently, preserves
+complete-stream timestamp pairing, and aggregates fixed complete cohorts at
+0--60 m and 0--100 m. Per-drive and overall statistics are recomputed from the
+underlying pair/station rows; recording medians are never averaged together.
+
+The v0.4.4 geometry behavior remains unchanged. It extends the RLMB
+pseudo-reference from the metadata-confirmed ego
 segment by following only unique, explicit `successor_lane_segment_indices`.
 Every junction must pass declared endpoint-gap and tangent-continuity limits.
 The builder stops before branches, cycles, missing geometry, or discontinuous
@@ -36,7 +42,7 @@ substituted for the lane reference.
 
 ## Signal roles
 
-| Object | v0.4.4 role |
+| Object | v0.4.5 role |
 |---|---|
 | Estimated drive path | Lane estimate being evaluated |
 | Same-estimator debug path | Spline-semantic oracle only |
@@ -165,6 +171,65 @@ be changed explicitly with `--map-max-segments`,
 `--map-max-junction-gap-m`, and `--map-max-junction-heading-deg`; any change
 must be reported with the experiment.
 
+## Ten-MCAP fixed-cohort batch diagnostic
+
+Create a private drive map whose keys exactly match the ten MCAP basenames.
+Files from the same physical drive/session must use the same label. Labels are
+replaced with opaque `drive_###` identifiers in aggregate outputs.
+
+```bash
+cp examples/mcap_drives.private.example.json \
+  config/mcap_drives.private.json
+```
+
+Run the corpus audit from a new, empty output directory:
+
+```bash
+python -m lane_residuals.batch_pairing_audit_cli \
+  "data/mcap_data" \
+  --drive-map "config/mcap_drives.private.json" \
+  --expected-file-count 10 \
+  --max-pairs-per-recording 6 \
+  --output-directory "outputs/pairing_batch_v045"
+```
+
+Do not pass a timestamp gate or an outcome-tail threshold on the first
+exploratory corpus run. If a physically justified threshold is later declared
+before a confirmatory run, use `--primary-tail-threshold-m` and/or
+`--full-tail-threshold-m`. When these are omitted, outcome-tail flags remain
+empty instead of being defined circularly from the same observed distribution.
+
+The batch command writes every existing one-file audit under
+`recordings/recording_###/` plus:
+
+| File | Purpose |
+|---|---|
+| `batch_manifest.json` | Exact corpus resolution, opaque drive assignment, per-recording status, failures, and completeness blockers |
+| `recording_summary.csv` | One row per requested recording, including failed recordings and denominator-labelled H60/H100 metrics |
+| `scope_horizon_metrics.csv` | Recording-, drive-, and corpus-level fixed-cohort metrics for H60 and H100 |
+| `scope_station_metrics.csv` | Fixed-cohort station mean, RMS, median, 5th/95th percentiles, and constant pair denominator |
+| `rlmb_chain_summary.json` | Coverage, multi-segment use, termination reasons, reciprocity, junction gaps, and junction headings by scope |
+| `temporal_tail_events.csv` | Every temporal pair with relative time, H60/H100 eligibility and optional predeclared outcome-tail flags |
+| `fixed_cohort_station_profiles.png` | Overall H60/H100 profiles without distance-dependent cohort shrinkage |
+| `recording_horizon_summary.png` | Recording-level median per-pair RMS comparison |
+| `temporal_diagnostic_events.png` | Drive-relative H60/H100 RMS timelines |
+| `batch_summary.json` | Corpus reconciliation, overlap checks, pooled descriptive metrics, limitations, and next decision |
+
+Canonical H60 always means the 13 stations `0, 5, ..., 60 m`; H100 always
+means the 21 stations `0, 5, ..., 100 m`. A pair enters a horizon only when all
+of its stations are available, so every station in that horizon has the same
+pair count. H100 is always a subset of H60.
+
+Timestamp pairing never crosses MCAP boundaries. Drive grouping comes only
+from the exact private map, never from filenames or observed outcomes. Source
+time overlap between chunks is reported as an incompleteness blocker rather
+than silently deduplicated. Exit code `0` means a complete diagnostic run,
+`3` means the outputs were written but the corpus is incomplete, and `2` means
+invalid configuration or a global execution error.
+
+These remain BMW-derived pseudo-residual diagnostics. They are not independent
+samples, physical ground-truth lane errors, or a model-training dataset.
+
 ## What the command does
 
 The audit:
@@ -284,7 +349,7 @@ The direct map-lane candidate is supported only if all gates pass:
   conventions are confirmed;
 - their median lateral disagreement passes a predeclared tolerance.
 
-If only the future driven trajectory is available, v0.4.4 leaves the lane
+If only the future driven trajectory is available, v0.4.5 leaves the lane
 reference unresolved. It does not change the thesis into drive-path prediction.
 
 ## Scientific boundary
