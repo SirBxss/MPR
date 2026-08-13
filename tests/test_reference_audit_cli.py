@@ -230,7 +230,7 @@ class ReferenceAuditOutputTests(unittest.TestCase):
             self.assertFalse(summary["thesis_scope_changed"])
             self.assertFalse(summary["generated_final_residual_dataset"])
             self.assertFalse(summary["fitted_statistical_model"])
-            self.assertEqual(summary["version"], "0.4.3")
+            self.assertEqual(summary["version"], "0.4.4")
             self.assertEqual(
                 summary["estimate_spline_reconstruction"],
                 "curvature_rate",

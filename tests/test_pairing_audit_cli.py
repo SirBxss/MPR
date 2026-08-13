@@ -20,6 +20,16 @@ from lane_residuals.pairing_audit_cli import (
 
 class PairingAuditCliTests(unittest.TestCase):
     @staticmethod
+    def _road_vertex(x: float, y: float = 0.0) -> SimpleNamespace:
+        value = lambda item: SimpleNamespace(mean=item)
+        return SimpleNamespace(
+            x=value(x),
+            y=value(y),
+            heading=value(0.0),
+            curvature=value(0.0),
+        )
+
+    @staticmethod
     def _timed_path(
         *,
         message_index: int,
@@ -100,6 +110,63 @@ class PairingAuditCliTests(unittest.TestCase):
             status = main(["missing.mcap", "--maximum-pair-delta-ms", "-1"])
         self.assertEqual(status, 2)
 
+    def test_decode_builds_map_path_from_explicit_successor_chain(self) -> None:
+        decoded = SimpleNamespace(
+            time_stamp_=90_000_000,
+            ego_lane_segment_indices_=[0],
+            polyline_vertex_pool_=[
+                self._road_vertex(-5.0),
+                self._road_vertex(50.0),
+                self._road_vertex(50.0),
+                self._road_vertex(125.0),
+            ],
+            polyline_arc_length_pool_=[0.0, 55.0, 0.0, 75.0],
+            lane_segments_=[
+                SimpleNamespace(
+                    id_=10,
+                    drive_path_range_=SimpleNamespace(start_=0, size_=2),
+                    successor_lane_segment_indices_=[1],
+                    predecessor_lane_segment_indices_=[],
+                ),
+                SimpleNamespace(
+                    id_=20,
+                    drive_path_range_=SimpleNamespace(start_=2, size_=2),
+                    successor_lane_segment_indices_=[],
+                    predecessor_lane_segment_indices_=[0],
+                ),
+            ],
+        )
+        record = (
+            SimpleNamespace(name="Adp.Perception.Road"),
+            SimpleNamespace(
+                topic="/adp/road_lane_map_based",
+                message_encoding="protobuf",
+            ),
+            SimpleNamespace(log_time=10, publish_time=9),
+            decoded,
+        )
+        with patch(
+            "lane_residuals.pairing_audit_cli.iter_decoded_mcap_messages",
+            return_value=iter([record]),
+        ):
+            _, references, failures, _ = _decode_paths(
+                Path("synthetic.mcap"),
+                estimate_topic="/adp/estimated_drive_paths",
+                map_topic="/adp/road_lane_map_based",
+                max_step_m=0.25,
+                stations_m=tuple(float(value) for value in range(0, 101, 5)),
+            )
+
+        self.assertEqual(failures, {})
+        self.assertEqual(len(references), 1)
+        self.assertTrue(references[0].geometry_ready)
+        lane = references[0].ordered_map_lane
+        self.assertIsNotNone(lane)
+        assert lane is not None
+        self.assertEqual(lane.segment_indices, (0, 1))
+        self.assertEqual(lane.segment_ids, (10, 20))
+        self.assertTrue(lane.required_forward_coverage_reached)
+
     def test_synthetic_audit_writes_only_diagnostic_outputs(self) -> None:
         x = np.linspace(-5.0, 120.0, 126)
         estimate_path = ego_relative_path_from_points(
@@ -151,17 +218,81 @@ class PairingAuditCliTests(unittest.TestCase):
                 summary["diagnostic_disagreement_is_lane_estimation_error"]
             )
             self.assertTrue(summary["pairing_before_geometry_filtering"])
-            self.assertEqual(summary["version"], "0.4.3")
+            self.assertEqual(summary["version"], "0.4.4")
             self.assertEqual(
                 summary["estimate_spline_reconstruction"],
                 "curvature_rate",
             )
             self.assertFalse(summary["curvature_change_semantics_confirmed"])
             self.assertTrue((output / "message_inventory.csv").is_file())
+            self.assertTrue((output / "rlmb_chain_audit.csv").is_file())
             self.assertTrue((output / "pairing_audit.csv").is_file())
             self.assertTrue((output / "diagnostic_disagreement.csv").is_file())
             self.assertTrue((output / "pairing_overlays.png").is_file())
+            self.assertTrue((output / "pairing_lateral_zoom.png").is_file())
+            self.assertTrue((output / "diagnostic_station_profiles.png").is_file())
             self.assertTrue((output / "pairing_summary.json").is_file())
+
+    def test_primary_horizon_remains_available_when_100m_is_not(self) -> None:
+        estimate_x = np.linspace(-5.0, 120.0, 126)
+        reference_x = np.linspace(-5.0, 70.0, 76)
+        estimate = self._timed_path(
+            message_index=0,
+            source_time_ns=100_000_000,
+            path=ego_relative_path_from_points(
+                np.column_stack((estimate_x, np.full_like(estimate_x, 0.2))),
+                source="estimate",
+            ),
+        )
+        reference = self._timed_path(
+            message_index=0,
+            source_time_ns=90_000_000,
+            path=ego_relative_path_from_points(
+                np.column_stack((reference_x, np.zeros_like(reference_x))),
+                source="reference",
+            ),
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "audit"
+            arguments = SimpleNamespace(
+                mcap=Path("synthetic_primary_only.mcap"),
+                estimate_topic="/adp/estimated_drive_paths",
+                map_topic="/adp/road_lane_map_based",
+                max_step_m=0.25,
+                max_pairs=20,
+                maximum_pair_delta_ms=None,
+                output_directory=output,
+            )
+            with patch(
+                "lane_residuals.pairing_audit_cli._decode_paths",
+                return_value=(
+                    [estimate],
+                    [reference],
+                    {},
+                    {"estimate_messages": 1, "map_messages": 1},
+                ),
+            ):
+                summary = run_pairing_audit(
+                    arguments,
+                    stations_m=tuple(float(value) for value in range(0, 101, 5)),
+                )
+
+            self.assertEqual(summary["diagnostic_ready_pair_count"], 0)
+            self.assertEqual(summary["primary_horizon_ready_pair_count"], 1)
+            with (output / "pairing_audit.csv").open(
+                "r", encoding="utf-8", newline=""
+            ) as stream:
+                row = next(csv.DictReader(stream))
+            self.assertEqual(
+                row["pair_state"],
+                "diagnostic_primary_ready_uncompensated",
+            )
+            self.assertAlmostEqual(
+                float(row["diagnostic_primary_lateral_rms_m"]),
+                0.2,
+            )
+            self.assertEqual(row["diagnostic_lateral_rms_m"], "")
 
     def test_invalid_map_prefix_does_not_shift_timestamp_pairing(self) -> None:
         x = np.linspace(-5.0, 120.0, 126)

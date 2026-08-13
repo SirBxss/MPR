@@ -54,6 +54,8 @@ class McapRoadMessageTests(unittest.TestCase):
                     drive_path_range=SimpleNamespace(start=0, size=4),
                     is_ego_lane=True,
                     quality=9,
+                    successor_lane_segment_indices=[2, 3],
+                    predecessor_lane_segment_indices=[0],
                 )
             ],
             quality=3,
@@ -81,6 +83,8 @@ class McapRoadMessageTests(unittest.TestCase):
         np.testing.assert_allclose(segment.y, 0.2)
         np.testing.assert_allclose(segment.arc_length, [0.0, 1.0, 2.0, 3.0])
         self.assertEqual(segment.geometry_source, "drive_path")
+        self.assertEqual(segment.successor_indices, (2, 3))
+        self.assertEqual(segment.predecessor_indices, (0,))
 
     def test_sensor_centerline_is_constructed_from_paired_boundaries(self) -> None:
         x = np.linspace(-5.0, 60.0, 14)

@@ -630,6 +630,8 @@ def _plot_transition_metrics(
                 label=hypothesis,
                 color=color,
                 linewidth=1.0,
+                marker="o",
+                markersize=2.5,
             )
         for center in centers:
             axis.axvline(center, color="black", linestyle=":", alpha=0.4)
@@ -832,7 +834,7 @@ def run_edp_transition_audit(
         return None if not values else float(np.median(values))
 
     summary = {
-        "version": "0.4.3",
+        "version": "0.4.4",
         "purpose": "edp_rollover_and_shift_aware_continuity_diagnostic",
         "mcap_filename": arguments.mcap.name,
         "estimate_topic": arguments.estimate_topic,
@@ -906,9 +908,9 @@ def run_edp_transition_audit(
         "generated_final_residual_dataset": False,
         "diagnostic_is_lane_estimation_error": False,
         "next_decision": (
-            "Rerun the same two EDP-RLMB pairing audits with the provisional "
-            "curvature_rate reconstruction, then review remaining disagreement "
-            "before constructing an ordered multi-segment RLMB ego lane."
+            "Use the rollover-validated curvature_rate reconstruction in the "
+            "ordered multi-segment RLMB pairing audit, then review 0-60 m and "
+            "0-100 m disagreement separately before any pseudo-residual export."
         ),
         "confidentiality": (
             "Outputs contain BMW-derived raw model parameters and measurements "

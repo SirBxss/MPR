@@ -118,6 +118,8 @@ class RoadSegment:
     quality: MetadataValue | None = None
     geometry_source: GeometrySource = "drive_path"
     source_index: int | None = None
+    successor_indices: tuple[int, ...] = ()
+    predecessor_indices: tuple[int, ...] = ()
 
     def __post_init__(self) -> None:
         x = _finite_vector(self.x, name="x")
@@ -157,6 +159,35 @@ class RoadSegment:
         ):
             raise RoadMessageError("source_index must be a nonnegative integer or None")
 
+        def topology_indices(
+            values: tuple[int, ...],
+            *,
+            name: str,
+        ) -> tuple[int, ...]:
+            result: list[int] = []
+            for value in values:
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, (int, np.integer))
+                    or int(value) < 0
+                ):
+                    raise RoadMessageError(
+                        f"{name} must contain only nonnegative integers"
+                    )
+                result.append(int(value))
+            if len(result) != len(set(result)):
+                raise RoadMessageError(f"{name} must not contain duplicates")
+            return tuple(result)
+
+        successors = topology_indices(
+            self.successor_indices,
+            name="successor_indices",
+        )
+        predecessors = topology_indices(
+            self.predecessor_indices,
+            name="predecessor_indices",
+        )
+
         object.__setattr__(self, "segment_id", int(self.segment_id))
         object.__setattr__(self, "x", x)
         object.__setattr__(self, "y", y)
@@ -173,6 +204,8 @@ class RoadSegment:
             "source_index",
             None if self.source_index is None else int(self.source_index),
         )
+        object.__setattr__(self, "successor_indices", successors)
+        object.__setattr__(self, "predecessor_indices", predecessors)
 
     @property
     def points(self) -> FloatArray:
@@ -861,6 +894,28 @@ def road_frame_from_message(
             geometry_source = "paired_boundaries"
 
         try:
+            successor_indices = tuple(
+                int(index)
+                for index in _get_attr(
+                    lane_segment,
+                    (
+                        "successor_lane_segment_indices",
+                        "successor_lane_segment_indices_",
+                    ),
+                    default=(),
+                )
+            )
+            predecessor_indices = tuple(
+                int(index)
+                for index in _get_attr(
+                    lane_segment,
+                    (
+                        "predecessor_lane_segment_indices",
+                        "predecessor_lane_segment_indices_",
+                    ),
+                    default=(),
+                )
+            )
             segment = RoadSegment(
                 segment_id=segment_id,
                 x=x,
@@ -872,8 +927,10 @@ def road_frame_from_message(
                 quality=quality,
                 geometry_source=geometry_source,
                 source_index=segment_index,
+                successor_indices=successor_indices,
+                predecessor_indices=predecessor_indices,
             )
-        except RoadMessageError as error:
+        except (RoadMessageError, TypeError, ValueError, OverflowError) as error:
             # One malformed range must not discard every usable segment in the frame.
             reason = str(error)
             rejection_reasons[reason] += 1

@@ -12,6 +12,7 @@ from lane_residuals import (
     mutual_nearest_timestamp_pairs,
     nearest_monotone_pairs_unbounded,
     origin_alignment_metrics,
+    ordered_ego_lane_from_road_frame,
     sample_ego_relative_path,
     select_unique_ego_drive_path,
 )
@@ -188,6 +189,147 @@ class MapPathSelectionTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(GeometryValidationError, "exactly one"):
             select_unique_ego_drive_path(ambiguous)
+
+    @staticmethod
+    def _topology_segment(
+        *,
+        segment_id: int,
+        source_index: int,
+        x_start: float,
+        x_end: float,
+        is_ego: bool,
+        successors: tuple[int, ...] = (),
+        predecessors: tuple[int, ...] = (),
+    ) -> RoadSegment:
+        return RoadSegment(
+            segment_id=segment_id,
+            x=[x_start, x_end],
+            y=[0.0, 0.0],
+            arc_length=[0.0, x_end - x_start],
+            is_ego=is_ego,
+            geometry_source="drive_path",
+            source_index=source_index,
+            successor_indices=successors,
+            predecessor_indices=predecessors,
+        )
+
+    def test_ordered_lane_follows_unique_explicit_successor(self) -> None:
+        first = self._topology_segment(
+            segment_id=10,
+            source_index=0,
+            x_start=-5.0,
+            x_end=50.0,
+            is_ego=True,
+            successors=(1,),
+        )
+        second = self._topology_segment(
+            segment_id=20,
+            source_index=1,
+            x_start=50.0,
+            x_end=125.0,
+            is_ego=False,
+            predecessors=(0,),
+        )
+        frame = RoadFrame(
+            topic="/adp/road_lane_map_based",
+            schema_name="Adp.Perception.Road",
+            log_time_ns=1,
+            publish_time_ns=1,
+            sequence=0,
+            source_time_ns=1,
+            segments=(first, second),
+        )
+
+        lane = ordered_ego_lane_from_road_frame(frame, required_forward_m=100.0)
+
+        self.assertEqual(lane.segment_indices, (0, 1))
+        self.assertEqual(lane.segment_ids, (10, 20))
+        self.assertEqual(lane.termination_reason, "required_forward_coverage_reached")
+        self.assertTrue(lane.required_forward_coverage_reached)
+        self.assertEqual(lane.reciprocal_predecessor_links, (True,))
+        self.assertAlmostEqual(lane.path.forward_coverage_m, 125.0)
+
+    def test_ordered_lane_never_guesses_at_successor_branch(self) -> None:
+        first = self._topology_segment(
+            segment_id=10,
+            source_index=0,
+            x_start=-5.0,
+            x_end=50.0,
+            is_ego=True,
+            successors=(1, 2),
+        )
+        second = self._topology_segment(
+            segment_id=20,
+            source_index=1,
+            x_start=50.0,
+            x_end=125.0,
+            is_ego=False,
+            predecessors=(0,),
+        )
+        adjacent = RoadSegment(
+            segment_id=30,
+            x=[50.0, 125.0],
+            y=[0.0, 4.0],
+            arc_length=[0.0, 75.1],
+            is_ego=False,
+            geometry_source="drive_path",
+            source_index=2,
+            predecessor_indices=(0,),
+        )
+        frame = RoadFrame(
+            topic="/adp/road_lane_map_based",
+            schema_name="Adp.Perception.Road",
+            log_time_ns=1,
+            publish_time_ns=1,
+            sequence=0,
+            source_time_ns=1,
+            segments=(first, second, adjacent),
+        )
+
+        lane = ordered_ego_lane_from_road_frame(frame, required_forward_m=100.0)
+
+        self.assertEqual(lane.segment_indices, (0,))
+        self.assertEqual(lane.termination_reason, "successor_branch_ambiguous")
+        self.assertFalse(lane.required_forward_coverage_reached)
+
+    def test_ordered_lane_stops_at_discontinuous_successor(self) -> None:
+        first = self._topology_segment(
+            segment_id=10,
+            source_index=0,
+            x_start=-5.0,
+            x_end=50.0,
+            is_ego=True,
+            successors=(1,),
+        )
+        distant = self._topology_segment(
+            segment_id=20,
+            source_index=1,
+            x_start=55.0,
+            x_end=125.0,
+            is_ego=False,
+            predecessors=(0,),
+        )
+        frame = RoadFrame(
+            topic="/adp/road_lane_map_based",
+            schema_name="Adp.Perception.Road",
+            log_time_ns=1,
+            publish_time_ns=1,
+            sequence=0,
+            source_time_ns=1,
+            segments=(first, distant),
+        )
+
+        lane = ordered_ego_lane_from_road_frame(
+            frame,
+            required_forward_m=100.0,
+            max_junction_gap_m=1.0,
+        )
+
+        self.assertEqual(
+            lane.termination_reason,
+            "successor_junction_gap_exceeds_limit",
+        )
+        self.assertEqual(lane.segment_count, 1)
 
 
 if __name__ == "__main__":

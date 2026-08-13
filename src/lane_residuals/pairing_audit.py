@@ -256,14 +256,198 @@ def select_unique_ego_drive_path(frame: RoadFrame) -> RoadSegment:
     return candidates[0]
 
 
-def ego_relative_path_from_road_frame(frame: RoadFrame) -> EgoRelativePath:
-    """Create an ego-relative audit path from one strict RLMB road frame."""
+@dataclass(frozen=True)
+class OrderedEgoLane:
+    """Audited RLMB ego-lane path assembled from explicit successor indices."""
 
-    segment = select_unique_ego_drive_path(frame)
-    return ego_relative_path_from_points(
-        segment.points,
-        source="road_lane_map_based_ego_lane",
+    path: EgoRelativePath = field(repr=False)
+    segment_indices: tuple[int, ...]
+    segment_ids: tuple[int, ...]
+    junction_gaps_m: tuple[float, ...]
+    junction_heading_deltas_rad: tuple[float, ...]
+    reciprocal_predecessor_links: tuple[bool, ...]
+    required_forward_m: float
+    required_forward_coverage_reached: bool
+    termination_reason: str
+
+    @property
+    def segment_count(self) -> int:
+        return len(self.segment_indices)
+
+    @property
+    def max_junction_gap_m(self) -> float | None:
+        return None if not self.junction_gaps_m else max(self.junction_gaps_m)
+
+    @property
+    def max_junction_heading_delta_rad(self) -> float | None:
+        return (
+            None
+            if not self.junction_heading_deltas_rad
+            else max(self.junction_heading_deltas_rad)
+        )
+
+
+def _junction_heading_delta(first: RoadSegment, second: RoadSegment) -> float:
+    first_vectors = np.diff(first.points, axis=0)
+    second_vectors = np.diff(second.points, axis=0)
+    first_valid = np.flatnonzero(np.linalg.norm(first_vectors, axis=1) > 1e-7)
+    second_valid = np.flatnonzero(np.linalg.norm(second_vectors, axis=1) > 1e-7)
+    if not len(first_valid) or not len(second_valid):
+        raise GeometryValidationError(
+            "map_successor_junction_tangent_unavailable",
+            "RLMB successor junction has no finite nondegenerate endpoint tangent",
+        )
+    first_vector = first_vectors[first_valid[-1]]
+    second_vector = second_vectors[second_valid[0]]
+    first_heading = math.atan2(first_vector[1], first_vector[0])
+    second_heading = math.atan2(second_vector[1], second_vector[0])
+    return abs(float(_wrap_angle(second_heading - first_heading)))
+
+
+def ordered_ego_lane_from_road_frame(
+    frame: RoadFrame,
+    *,
+    required_forward_m: float = 100.0,
+    max_segments: int = 16,
+    max_junction_gap_m: float = 1.0,
+    max_junction_heading_delta_rad: float = math.radians(30.0),
+) -> OrderedEgoLane:
+    """Follow one explicit RLMB successor chain without guessing at branches.
+
+    The metadata-confirmed ego segment is the only allowed starting point.  A
+    successor is appended only when the current segment exposes exactly one
+    successor index and the corresponding reconstructed drive path passes the
+    declared position and heading continuity limits.  Ambiguous or malformed
+    topology returns the valid prefix with an explicit termination reason.
+    """
+
+    if not math.isfinite(required_forward_m) or required_forward_m < 0.0:
+        raise ValueError("required_forward_m must be finite and nonnegative")
+    if isinstance(max_segments, bool) or max_segments < 1:
+        raise ValueError("max_segments must be a positive integer")
+    if not math.isfinite(max_junction_gap_m) or max_junction_gap_m < 0.0:
+        raise ValueError("max_junction_gap_m must be finite and nonnegative")
+    if (
+        not math.isfinite(max_junction_heading_delta_rad)
+        or max_junction_heading_delta_rad < 0.0
+        or max_junction_heading_delta_rad > math.pi
+    ):
+        raise ValueError(
+            "max_junction_heading_delta_rad must be finite and within [0, pi]"
+        )
+
+    start = select_unique_ego_drive_path(frame)
+    by_index = {
+        segment.source_index: segment
+        for segment in frame.segments
+        if segment.source_index is not None
+        and segment.geometry_source == "drive_path"
+    }
+    points = start.points.copy()
+    chain = [start]
+    gaps: list[float] = []
+    heading_deltas: list[float] = []
+    reciprocal_links: list[bool] = []
+    visited = (
+        set()
+        if start.source_index is None
+        else {int(start.source_index)}
     )
+
+    def result(reason: str) -> OrderedEgoLane:
+        path = ego_relative_path_from_points(
+            points,
+            source="road_lane_map_based_ordered_ego_lane",
+        )
+        return OrderedEgoLane(
+            path=path,
+            segment_indices=tuple(
+                -1 if segment.source_index is None else segment.source_index
+                for segment in chain
+            ),
+            segment_ids=tuple(segment.segment_id for segment in chain),
+            junction_gaps_m=tuple(gaps),
+            junction_heading_deltas_rad=tuple(heading_deltas),
+            reciprocal_predecessor_links=tuple(reciprocal_links),
+            required_forward_m=float(required_forward_m),
+            required_forward_coverage_reached=(
+                path.forward_coverage_m + 1e-9 >= required_forward_m
+            ),
+            termination_reason=reason,
+        )
+
+    while True:
+        current_path = ego_relative_path_from_points(
+            points,
+            source="road_lane_map_based_ordered_ego_lane",
+        )
+        if current_path.forward_coverage_m + 1e-9 >= required_forward_m:
+            return result("required_forward_coverage_reached")
+        if len(chain) >= max_segments:
+            return result("maximum_segment_count_reached")
+
+        current = chain[-1]
+        if current.source_index is None:
+            return result("topology_source_index_unavailable")
+        if not current.successor_indices:
+            return result("terminal_segment_no_successor")
+        if len(current.successor_indices) != 1:
+            return result("successor_branch_ambiguous")
+
+        successor_index = current.successor_indices[0]
+        if successor_index in visited:
+            return result("successor_cycle_detected")
+        successor = by_index.get(successor_index)
+        if successor is None:
+            original_count = (
+                len(frame.segment_extractions)
+                if frame.segment_extractions
+                else max(by_index, default=-1) + 1
+            )
+            return result(
+                "successor_index_out_of_range"
+                if successor_index >= original_count
+                else "successor_geometry_unavailable"
+            )
+
+        gap = float(np.linalg.norm(current.points[-1] - successor.points[0]))
+        if gap > max_junction_gap_m + 1e-12:
+            return result("successor_junction_gap_exceeds_limit")
+        try:
+            heading_delta = _junction_heading_delta(current, successor)
+        except GeometryValidationError:
+            return result("successor_junction_tangent_unavailable")
+        if heading_delta > max_junction_heading_delta_rad + 1e-12:
+            return result("successor_junction_heading_exceeds_limit")
+
+        successor_points = successor.points
+        if gap <= 1e-7:
+            successor_points = successor_points[1:]
+        points = np.vstack((points, successor_points))
+        gaps.append(gap)
+        heading_deltas.append(heading_delta)
+        reciprocal_links.append(current.source_index in successor.predecessor_indices)
+        chain.append(successor)
+        visited.add(successor_index)
+
+
+def ego_relative_path_from_road_frame(
+    frame: RoadFrame,
+    *,
+    required_forward_m: float = 100.0,
+    max_segments: int = 16,
+    max_junction_gap_m: float = 1.0,
+    max_junction_heading_delta_rad: float = math.radians(30.0),
+) -> EgoRelativePath:
+    """Create an ego-relative path from an audited RLMB successor chain."""
+
+    return ordered_ego_lane_from_road_frame(
+        frame,
+        required_forward_m=required_forward_m,
+        max_segments=max_segments,
+        max_junction_gap_m=max_junction_gap_m,
+        max_junction_heading_delta_rad=max_junction_heading_delta_rad,
+    ).path
 
 
 def sample_ego_relative_path(
