@@ -1,12 +1,22 @@
-# Minimal Path-Residual Model (MPR) v0.4.2
+# Minimal Path-Residual Model (MPR) v0.4.4
 
-Version 0.4.2 preserves the corrected complete-stream timestamp pairing from
-v0.4.1 and adds a focused EDP candidate-transition audit. It exports every
-candidate in every `EstimatedDrivePaths` message, including candidate index,
-literal lane role and error state, topology IDs, confidence values, raw spline
-parameters, and both unresolved `curvature_rate` and `curvature_delta`
-reconstructions. Consecutive selected KEEP_LANE curves are compared without
-declaring an arbitrary transition threshold.
+Version 0.4.4 preserves the timestamp and EDP-rollover corrections from
+v0.4.3. It extends the RLMB pseudo-reference from the metadata-confirmed ego
+segment by following only unique, explicit `successor_lane_segment_indices`.
+Every junction must pass declared endpoint-gap and tangent-continuity limits.
+The builder stops before branches, cycles, missing geometry, or discontinuous
+junctions; it never chooses a nearby lane by distance.
+
+The pairing audit now reports a primary 0–60 m diagnostic separately from the
+full 0–100 m horizon. A pair may therefore remain useful for the conservative
+near-horizon analysis even when the far horizon is unavailable. This does not
+permit extrapolation and does not promote RLMB to physical ground truth.
+
+The pairing and reference diagnostics now use `curvature_rate` as the
+provisional reconstruction because this interpretation preserves retained
+geometry across the observed rollovers. This is empirical evidence, not
+official confirmation of the production field semantics. The transition audit
+continues to export both `curvature_rate` and `curvature_delta` results.
 
 The command still reconstructs the estimated `KEEP_LANE` spline and the
 metadata-confirmed ego path from `/adp/road_lane_map_based`, places station zero
@@ -26,7 +36,7 @@ substituted for the lane reference.
 
 ## Signal roles
 
-| Object | v0.4.2 role |
+| Object | v0.4.4 role |
 |---|---|
 | Estimated drive path | Lane estimate being evaluated |
 | Same-estimator debug path | Spline-semantic oracle only |
@@ -50,15 +60,20 @@ python -m lane_residuals.edp_transition_audit_cli \
   --output-directory "outputs/edp_transition_audit"
 ```
 
-The default run ranks the four largest non-overlapping selected-path changes
-under the current `curvature_delta` hypothesis. Ranking is exploratory and uses
-no pass/fail threshold. To reproduce the transition windows identified in the
-second audited MCAP, specify their EDP message indices explicitly:
+The default run automatically detects all rollovers in the output tables and
+plots up to four evenly distributed rollover windows. Detection does not use a
+curve-jump threshold or interval-count change. It requires a unique longest
+ordered match between a rebased previous boundary suffix and the current
+boundary prefix, with at least three matched boundaries spanning at least 50 m.
+Ties and insufficient overlap remain explicitly unassessed.
+
+To reproduce the windows identified in the second audited MCAP, specify their
+EDP message indices explicitly:
 
 ```bash
 python -m lane_residuals.edp_transition_audit_cli \
   "data/mcap_data/one_recording.mcap" \
-  --transition-centers 92 190 227 247 \
+  --transition-centers 92 113 133 153 172 190 208 227 247 \
   --transition-window-radius 3 \
   --output-directory "outputs/edp_transition_audit_explicit"
 ```
@@ -70,7 +85,7 @@ The command writes:
 | `edp_message_inventory.csv` | Every EDP message and its exact KEEP_LANE selection state |
 | `edp_candidate_inventory.csv` | Every candidate, literal metadata, confidence values, topology IDs, and raw spline parameters |
 | `edp_candidate_geometry.csv` | Every reconstructable candidate sampled under both spline hypotheses |
-| `edp_selected_transitions.csv` | Consecutive selected-path changes, including raw and rigid-normalized shape metrics |
+| `edp_selected_transitions.csv` | Rollover status, station shift, boundary evidence, valid same-station metrics, and shift-aware metrics for both hypotheses |
 | `edp_transition_windows.png` | All candidate curves around each ranked or explicit transition center |
 | `edp_transition_metrics.png` | Transition metrics across the complete recording under both hypotheses |
 | `edp_transition_summary.json` | Counts, ranked centers, assumptions, and the next scientific decision |
@@ -80,6 +95,19 @@ The command writes:
 metadata. The lane-role enum is exported literally; no separate
 driving-intention field is claimed. All outputs contain BMW-derived raw values
 and must remain private.
+
+At a detected rollover, these fields are intentionally empty because equal
+numeric native stations no longer denote the retained path portion:
+
+- `station_zero_position_jump_m`
+- `endpoint_position_jump_m`
+- `sampled_position_rms_m`
+- `rigid_normalized_shape_rms_m`
+
+Use `station_shift_m` and `shift_aware_shape_rms_m` for the internal rollover
+continuity diagnostic. Rigid normalization removes translation and heading
+between the two EDP representations; therefore this metric is not a physical
+lane-estimation error.
 
 ## One-file EDP–RLMB pairing audit
 
@@ -106,9 +134,12 @@ The command writes:
 | File | Purpose |
 |---|---|
 | `message_inventory.csv` | Every EDP/RLMB message, timestamp state, geometry state, failure code, and temporal association |
+| `rlmb_chain_audit.csv` | Exact RLMB segment indices/IDs, junction checks, forward coverage, and fail-closed stop reason per map message |
 | `pairing_overlays.png` | Raw EDP/RLMB overlays, ego origin, footpoints, and 0–100 m stations |
+| `pairing_lateral_zoom.png` | Per-pair signed lateral disagreement with the primary 0–60 m region highlighted |
+| `diagnostic_station_profiles.png` | Station-wise median, 5–95% band, RMS, and available pair count |
 | `pairing_audit.csv` | Every accepted mutual-nearest temporal pair, including pairs whose geometry is invalid |
-| `diagnostic_disagreement.csv` | Reference-normal disagreement at 5 m stations, explicitly not thesis labels |
+| `diagnostic_disagreement.csv` | Available reference-normal disagreement at 5 m stations, with primary/full-horizon availability flags; explicitly not thesis labels |
 | `pairing_summary.json` | Counts, extraction failures, aggregate offsets, and scientific limitations |
 
 `--max-pairs` limits only the number of overlay panels. It does not truncate
@@ -123,7 +154,16 @@ The audit uses geometric arc length independently for each curve. It projects
 to coincide. A reversed vertex order is normalized toward positive vehicle x
 and recorded explicitly. No rigid alignment or timestamp motion compensation
 is applied, because either would hide the frame mismatch this audit is intended
-to reveal.
+to reveal. EDP geometry uses the provisional `curvature_rate` reconstruction;
+the summary records that its official interface meaning remains unconfirmed.
+
+RLMB chaining is topology-first. It starts from exactly one
+metadata-confirmed ego drive path and follows a successor only when the current
+segment has exactly one explicit successor. The default safety limits are 16
+segments, a 1.0 m endpoint gap, and a 30 degree tangent discontinuity. They can
+be changed explicitly with `--map-max-segments`,
+`--map-max-junction-gap-m`, and `--map-max-junction-heading-deg`; any change
+must be reported with the experiment.
 
 ## What the command does
 
@@ -244,7 +284,7 @@ The direct map-lane candidate is supported only if all gates pass:
   conventions are confirmed;
 - their median lateral disagreement passes a predeclared tolerance.
 
-If only the future driven trajectory is available, v0.4.2 leaves the lane
+If only the future driven trajectory is available, v0.4.4 leaves the lane
 reference unresolved. It does not change the thesis into drive-path prediction.
 
 ## Scientific boundary
