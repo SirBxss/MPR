@@ -45,7 +45,7 @@ from .path_source_probe import (
     _joint_audit_bindings,
     _repeated_values,
 )
-from ..preprocessing import project_points_to_polyline
+from ..legacy.preprocessing import project_points_to_polyline
 
 FloatArray = NDArray[np.float64]
 
