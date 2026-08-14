@@ -33,97 +33,14 @@ from .pairing import (
     run_pairing_audit,
 )
 from ..domain.path_source_probe import DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC
+from ..visualization.batch_pairing import (
+    plot_fixed_cohorts as _plot_fixed_cohorts,
+    plot_recording_summary as _plot_recording_summary,
+    plot_temporal as _plot_temporal,
+)
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Run the diagnostic EDP--RLMB pairing audit independently for a "
-            "predeclared corpus, then aggregate fixed 0--60 m and 0--100 m cohorts."
-        )
-    )
-    parser.add_argument(
-        "inputs",
-        nargs="+",
-        type=Path,
-        help="MCAP files and/or directories scanned recursively for *.mcap",
-    )
-    parser.add_argument(
-        "--drive-map",
-        type=Path,
-        required=True,
-        help=(
-            "private JSON object mapping every resolved MCAP basename to an exact "
-            "drive/session label; output labels are replaced with opaque IDs"
-        ),
-    )
-    parser.add_argument("--expected-file-count", type=int, default=10)
-    parser.add_argument(
-        "--output-directory",
-        type=Path,
-        default=Path("outputs/pairing_batch_v045"),
-    )
-    parser.add_argument(
-        "--max-pairs-per-recording",
-        type=int,
-        default=6,
-        help="maximum overlay panels per recording; it never truncates CSV rows",
-    )
-    parser.add_argument(
-        "--maximum-pair-delta-ms",
-        type=float,
-        default=None,
-        help="optional predeclared source-timestamp gate; omitted by default",
-    )
-    parser.add_argument("--max-step-m", type=float, default=0.25)
-    parser.add_argument("--map-max-segments", type=int, default=16)
-    parser.add_argument("--map-max-junction-gap-m", type=float, default=1.0)
-    parser.add_argument(
-        "--map-max-junction-heading-deg",
-        type=float,
-        default=30.0,
-    )
-    parser.add_argument(
-        "--recording-tail-window-s",
-        type=float,
-        default=5.0,
-        help=(
-            "predeclared final time window marked from the complete estimate-stream "
-            "source-time envelope; independent of geometry and disagreement values"
-        ),
-    )
-    parser.add_argument(
-        "--primary-tail-threshold-m",
-        type=float,
-        default=None,
-        help=(
-            "optional predeclared 0--60 m per-pair RMS threshold; when omitted, "
-            "outcome-tail flags remain empty"
-        ),
-    )
-    parser.add_argument(
-        "--full-tail-threshold-m",
-        type=float,
-        default=None,
-        help=(
-            "optional predeclared 0--100 m per-pair RMS threshold; when omitted, "
-            "outcome-tail flags remain empty"
-        ),
-    )
-    parser.add_argument(
-        "--estimate-topic",
-        default=DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC,
-    )
-    parser.add_argument("--map-topic", default=DEFAULT_MAP_TOPIC)
-    parser.add_argument(
-        "--log-level",
-        choices=("DEBUG", "INFO", "WARNING", "ERROR"),
-        default="INFO",
-    )
-    return parser
 
 
 def _validate_arguments(arguments: argparse.Namespace) -> None:
@@ -296,108 +213,6 @@ def _run_one_recording(
             error_code=type(error).__name__,
             error_message=str(error),
         )
-
-
-def _plot_fixed_cohorts(path: Path, station_rows: Sequence[Mapping[str, Any]]) -> None:
-    import matplotlib.pyplot as plt
-
-    overall = [row for row in station_rows if row["scope_type"] == "overall"]
-    figure, axes = plt.subplots(2, 2, figsize=(12, 8), squeeze=False)
-    for row_index, horizon in enumerate((60, 100)):
-        rows = sorted(
-            (row for row in overall if int(row["horizon_m"]) == horizon),
-            key=lambda row: float(row["station_m"]),
-        )
-        stations = np.asarray([row["station_m"] for row in rows], dtype=np.float64)
-        counts = [int(row["cohort_pair_count"]) for row in rows]
-        if rows and counts and counts[0] > 0:
-            median = np.asarray([row["lateral_median_m"] for row in rows], dtype=np.float64)
-            p05 = np.asarray([row["lateral_p05_m"] for row in rows], dtype=np.float64)
-            p95 = np.asarray([row["lateral_p95_m"] for row in rows], dtype=np.float64)
-            rms = np.asarray([row["lateral_rms_m"] for row in rows], dtype=np.float64)
-            axes[row_index, 0].plot(stations, median, color="tab:blue", label="median")
-            axes[row_index, 0].fill_between(stations, p05, p95, color="tab:blue", alpha=0.2, label="5--95%")
-            axes[row_index, 1].plot(stations, rms, color="tab:orange", marker="o", markersize=3)
-            axes[row_index, 0].legend(loc="best")
-        else:
-            for axis in axes[row_index]:
-                axis.text(0.5, 0.5, "No complete cohort", ha="center", va="center", transform=axis.transAxes)
-        axes[row_index, 0].set_title(f"Fixed H{horizon} cohort: signed distribution")
-        axes[row_index, 1].set_title(f"Fixed H{horizon} cohort: RMS")
-        for axis in axes[row_index]:
-            axis.set_xlabel("ego-relative station [m]")
-            axis.set_ylabel("diagnostic lateral disagreement [m]")
-            axis.grid(True, alpha=0.25)
-            if counts:
-                axis.text(0.02, 0.96, f"n={counts[0]} pairs at every station", transform=axis.transAxes, va="top")
-    figure.suptitle("CONFIDENTIAL — fixed-cohort EDP–RLMB pseudo-residual diagnostics")
-    figure.tight_layout(rect=(0.0, 0.0, 1.0, 0.96))
-    figure.savefig(path, dpi=170)
-    plt.close(figure)
-
-
-def _plot_recording_summary(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
-    import matplotlib.pyplot as plt
-
-    successful = [row for row in rows if row["status"] == "succeeded"]
-    figure, axis = plt.subplots(figsize=(max(9.0, 0.8 * len(successful) + 3.0), 5.5))
-    if successful:
-        x = np.arange(len(successful), dtype=np.float64)
-        h60 = [row["h60_median_pair_lateral_rms_m"] for row in successful]
-        h100 = [row["h100_median_pair_lateral_rms_m"] for row in successful]
-        axis.bar(x - 0.2, [0.0 if value is None else value for value in h60], width=0.4, label="H60")
-        axis.bar(x + 0.2, [0.0 if value is None else value for value in h100], width=0.4, label="H100")
-        axis.set_xticks(x, [row["recording_id"] for row in successful], rotation=45, ha="right")
-        axis.legend()
-    else:
-        axis.text(0.5, 0.5, "No successful recordings", ha="center", va="center", transform=axis.transAxes)
-    axis.set_ylabel("median per-pair lateral RMS [m]")
-    axis.set_title("Recording-level fixed-cohort diagnostic summary")
-    axis.grid(True, axis="y", alpha=0.25)
-    figure.tight_layout()
-    figure.savefig(path, dpi=170)
-    plt.close(figure)
-
-
-def _plot_temporal(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
-    import matplotlib.pyplot as plt
-
-    drive_ids = sorted({str(row["drive_id"]) for row in rows})
-    figure, axes = plt.subplots(max(1, len(drive_ids)), 1, figsize=(12, max(4.0, 3.4 * len(drive_ids))), squeeze=False)
-    if not drive_ids:
-        axes[0, 0].text(0.5, 0.5, "No temporal pairs", ha="center", va="center", transform=axes[0, 0].transAxes)
-    for index, drive_id in enumerate(drive_ids):
-        axis = axes[index, 0]
-        drive_rows = [row for row in rows if row["drive_id"] == drive_id and row["drive_relative_source_time_s"] is not None]
-        for key, label, color in (
-            ("h60_pair_lateral_rms_m", "H60", "tab:blue"),
-            ("h100_pair_lateral_rms_m", "H100", "tab:orange"),
-        ):
-            selected = [row for row in drive_rows if row[key] is not None]
-            axis.plot(
-                [row["drive_relative_source_time_s"] for row in selected],
-                [row[key] for row in selected],
-                marker=".",
-                linewidth=0.8,
-                markersize=3,
-                color=color,
-                label=label,
-            )
-        primary_threshold = next((row["h60_tail_threshold_m"] for row in drive_rows if row["h60_tail_threshold_m"] is not None), None)
-        full_threshold = next((row["h100_tail_threshold_m"] for row in drive_rows if row["h100_tail_threshold_m"] is not None), None)
-        if primary_threshold is not None:
-            axis.axhline(primary_threshold, color="tab:blue", linestyle="--", alpha=0.6)
-        if full_threshold is not None:
-            axis.axhline(full_threshold, color="tab:orange", linestyle="--", alpha=0.6)
-        axis.set_title(drive_id)
-        axis.set_xlabel("drive-relative source time [s]")
-        axis.set_ylabel("per-pair lateral RMS [m]")
-        axis.grid(True, alpha=0.25)
-        axis.legend(loc="best")
-    figure.suptitle("CONFIDENTIAL — temporal pseudo-residual diagnostics")
-    figure.tight_layout(rect=(0.0, 0.0, 1.0, 0.96))
-    figure.savefig(path, dpi=170)
-    plt.close(figure)
 
 
 def _manifest_entries(recordings: Sequence[RecordingAuditData]) -> list[dict[str, Any]]:
@@ -577,37 +392,3 @@ def run_batch(arguments: argparse.Namespace) -> tuple[dict[str, Any], int]:
     }
     write_strict_json(arguments.output_directory / "batch_manifest.json", final_manifest)
     return batch_summary, 0 if not blockers else 3
-
-
-def main(argv: Sequence[str] | None = None) -> int:
-    parser = _parser()
-    arguments = parser.parse_args(argv)
-    logging.basicConfig(
-        level=getattr(logging, arguments.log_level),
-        format="%(levelname)s %(message)s",
-    )
-    try:
-        summary, status = run_batch(arguments)
-    except (
-        FileNotFoundError,
-        OSError,
-        ValueError,
-        BatchAggregationError,
-        GeometryValidationError,
-        McapDependencyError,
-        RoadMessageError,
-    ) as error:
-        LOGGER.error("%s", error)
-        return 2
-    LOGGER.info(
-        "batch %s: %d/%d recordings succeeded",
-        summary["status"],
-        summary["successful_recording_count"],
-        summary["resolved_file_count"],
-    )
-    LOGGER.info("outputs: %s", arguments.output_directory)
-    return status
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

@@ -34,6 +34,7 @@ from ..domain.geometry_validation import (
 )
 from ..io.mcap import McapDependencyError, iter_decoded_mcap_messages
 from ..domain.path_source_probe import DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC
+from ..visualization.geometry_validation import plot_overlays as _plot_overlays
 
 LOGGER = logging.getLogger(__name__)
 
@@ -51,102 +52,6 @@ class _RecordingResult:
     generated_curves: dict[tuple[int, str], SplineCurve]
     generation_failures: dict[tuple[int, str], str]
     metrics: list[tuple[int, int, HypothesisMetrics]]
-
-
-def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Audit estimator availability across a corpus, generate explicitly "
-            "labelled spline hypotheses for strict candidates, and compare them "
-            "diagnostically with /em/road/ego_lane_path. No residual training "
-            "dataset or Gaussian model is produced."
-        )
-    )
-    parser.add_argument(
-        "mcap_inputs",
-        nargs="+",
-        type=Path,
-        help="MCAP files or directories containing MCAP files.",
-    )
-    parser.add_argument(
-        "--output-directory",
-        type=Path,
-        default=Path("outputs") / "mcap_v039_geometry_validation",
-    )
-    parser.add_argument(
-        "--session-map",
-        type=Path,
-        help=(
-            "Optional JSON object mapping each MCAP basename to a real session "
-            "label. Labels are replaced with opaque session IDs in outputs."
-        ),
-    )
-    parser.add_argument(
-        "--expected-file-count",
-        type=int,
-        default=10,
-        help="Expected corpus size; mismatch makes the corpus incomplete.",
-    )
-    parser.add_argument(
-        "--max-messages-per-topic",
-        type=int,
-        help="Diagnostic sampling only; omission performs a complete scan.",
-    )
-    parser.add_argument(
-        "--comparison-max-delta-ms",
-        type=float,
-        default=20.0,
-        help="Diagnostic source-time tolerance used for geometry comparison.",
-    )
-    parser.add_argument(
-        "--sync-sensitivity-ms",
-        type=float,
-        nargs="+",
-        default=(5.0, 10.0, 20.0, 50.0),
-    )
-    parser.add_argument("--max-step-m", type=float, default=0.25)
-    parser.add_argument(
-        "--minimum-common-coverage-m",
-        type=float,
-        default=20.0,
-    )
-    parser.add_argument(
-        "--include-explicit-index-anchor",
-        action="store_true",
-        help=(
-            "Also evaluate the index anchor, but only when index_0 is explicitly "
-            "present. Implicit proto defaults remain blocked."
-        ),
-    )
-    parser.add_argument(
-        "--assume-same-frame",
-        action="store_true",
-        help=(
-            "Explicitly confirm that raw estimate and comparator coordinates may "
-            "be compared without fitted alignment."
-        ),
-    )
-    parser.add_argument(
-        "--absolute-lateral-rms-tolerance-m",
-        type=float,
-        help="Required only to permit a geometrically_preferred label.",
-    )
-    parser.add_argument(
-        "--absolute-heading-p95-tolerance-rad",
-        type=float,
-        help="Required only to permit a geometrically_preferred label.",
-    )
-    parser.add_argument(
-        "--max-overlays-per-recording",
-        type=int,
-        default=8,
-    )
-    parser.add_argument(
-        "--log-level",
-        choices=("DEBUG", "INFO", "WARNING", "ERROR"),
-        default="INFO",
-    )
-    return parser
 
 
 def _resolve_mcap_files(inputs: Sequence[Path]) -> tuple[Path, ...]:
@@ -854,115 +759,6 @@ def _synchronization_diagnostics(
     return payload
 
 
-def _plot_overlays(
-    result: _RecordingResult,
-    output_directory: Path,
-    *,
-    maximum: int,
-) -> int:
-    if maximum <= 0 or result.decoded is None or not result.metrics:
-        return 0
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError:
-        LOGGER.warning("matplotlib unavailable; overlays skipped")
-        return 0
-    completed_pairs = sorted(
-        {
-            (estimate, comparator)
-            for estimate, comparator, metric in result.metrics
-            if metric.status == "comparison_completed"
-        }
-    )
-    if not completed_pairs:
-        return 0
-    estimate_by_index = {
-        frame.message_index: frame for frame in result.decoded.estimated_frames
-    }
-    preferred_positions: list[int] = [0, len(completed_pairs) - 1]
-    # Include at least one example for every observed spline length.
-    represented_intervals: set[int] = set()
-    for position, (estimate_index, _) in enumerate(completed_pairs):
-        interval_count = estimate_by_index[estimate_index].interval_count
-        if interval_count is not None and interval_count not in represented_intervals:
-            preferred_positions.append(position)
-            represented_intervals.add(interval_count)
-    # Include both edges of each converter-ready run so regime transitions are
-    # visible instead of selecting only the long final valid block.
-    ready_indices = [
-        frame.message_index
-        for frame in result.decoded.estimated_frames
-        if frame.candidate_ready
-    ]
-    if ready_indices:
-        run_edges = {ready_indices[0], ready_indices[-1]}
-        for left, right in pairwise(ready_indices):
-            if right != left + 1:
-                run_edges.update((left, right))
-        pair_position_by_estimate = {
-            estimate_index: position
-            for position, (estimate_index, _) in enumerate(completed_pairs)
-        }
-        preferred_positions.extend(
-            pair_position_by_estimate[index]
-            for index in sorted(run_edges)
-            if index in pair_position_by_estimate
-        )
-    evenly_spaced = np.linspace(
-        0,
-        len(completed_pairs) - 1,
-        min(maximum, len(completed_pairs)),
-    ).astype(int)
-    preferred_positions.extend(map(int, evenly_spaced))
-    selected_positions: list[int] = []
-    for position in preferred_positions:
-        if position not in selected_positions:
-            selected_positions.append(position)
-        if len(selected_positions) >= maximum:
-            break
-    positions = np.asarray(sorted(selected_positions), dtype=int)
-    comparator_by_index = {
-        frame.message_index: frame for frame in result.decoded.comparator_frames
-    }
-    overlay_directory = output_directory / "validation_overlays" / result.recording_id
-    overlay_directory.mkdir(parents=True, exist_ok=True)
-    written = 0
-    for output_index, position in enumerate(positions):
-        estimate_index, comparator_index = completed_pairs[int(position)]
-        comparator = comparator_by_index[comparator_index]
-        if comparator.geometry is None:
-            continue
-        fig, axis = plt.subplots(figsize=(8, 5))
-        axis.plot(
-            comparator.geometry.x,
-            comparator.geometry.y,
-            color="black",
-            linewidth=2.2,
-            label="ego-lane comparator (not ground truth)",
-        )
-        for hypothesis, color in (
-            ("curvature_rate__anchor_zero", "tab:blue"),
-            ("curvature_delta__anchor_zero", "tab:orange"),
-        ):
-            curve = result.generated_curves.get((estimate_index, hypothesis))
-            if curve is not None:
-                axis.plot(curve.x, curve.y, color=color, label=hypothesis)
-        axis.set_aspect("equal", adjustable="datalim")
-        axis.set_xlabel("x [unverified shared frame]")
-        axis.set_ylabel("y [unverified shared frame]")
-        axis.set_title(
-            f"{result.recording_id}, diagnostic pair {output_index:03d}\n"
-            "No fitted alignment, scaling, reflection, or station shift"
-        )
-        axis.grid(True, alpha=0.25)
-        axis.legend(fontsize=8)
-        fig.tight_layout()
-        fig.savefig(overlay_directory / f"pair_{output_index:03d}.png", dpi=160)
-        plt.close(fig)
-        written += 1
-    return written
-
-
 def _write_outputs(
     results: Sequence[_RecordingResult],
     *,
@@ -1309,41 +1105,10 @@ def _write_outputs(
     }
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    parser = _parser()
-    arguments = parser.parse_args(argv)
-    logging.basicConfig(
-        level=getattr(logging, arguments.log_level),
-        format="%(levelname)s %(name)s: %(message)s",
-    )
-    if arguments.expected_file_count < 1:
-        parser.error("--expected-file-count must be positive")
-    if arguments.max_overlays_per_recording < 0:
-        parser.error("--max-overlays-per-recording must be nonnegative")
-    if not math.isfinite(arguments.comparison_max_delta_ms) or arguments.comparison_max_delta_ms < 0:
-        parser.error("--comparison-max-delta-ms must be finite and nonnegative")
-    if not math.isfinite(arguments.max_step_m) or arguments.max_step_m <= 0:
-        parser.error("--max-step-m must be finite and positive")
-    if not math.isfinite(arguments.minimum_common_coverage_m) or arguments.minimum_common_coverage_m <= 0:
-        parser.error("--minimum-common-coverage-m must be finite and positive")
-    for value in arguments.sync_sensitivity_ms:
-        if not math.isfinite(value) or value < 0:
-            parser.error("--sync-sensitivity-ms values must be finite and nonnegative")
-    for option, value in (
-        ("--absolute-lateral-rms-tolerance-m", arguments.absolute_lateral_rms_tolerance_m),
-        ("--absolute-heading-p95-tolerance-rad", arguments.absolute_heading_p95_tolerance_rad),
-    ):
-        if value is not None and (not math.isfinite(value) or value <= 0):
-            parser.error(f"{option} must be finite and positive")
-    try:
-        files = _resolve_mcap_files(arguments.mcap_inputs)
-        session_ids, sessions_confirmed = _load_session_map(
-            arguments.session_map,
-            files,
-        )
-    except (FileNotFoundError, ValueError, OSError, json.JSONDecodeError) as error:
-        parser.exit(2, f"error: {error}\n")
-
+def run_geometry_validation(arguments: argparse.Namespace) -> dict[str, Any]:
+    """Execute the corpus geometry audit and return its written summary."""
+    files = _resolve_mcap_files(arguments.mcap_inputs)
+    session_ids, sessions_confirmed = _load_session_map(arguments.session_map, files)
     results = [
         _process_recording(
             path,
@@ -1353,31 +1118,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         for index, path in enumerate(files, 1)
     ]
-    try:
-        summary = _write_outputs(
-            results,
-            output_directory=arguments.output_directory,
-            sessions_confirmed=sessions_confirmed,
-            arguments=arguments,
-        )
-    except (ValueError, OSError, GeometryValidationError) as error:
-        parser.exit(2, f"error while saving validation audit: {error}\n")
-
-    print(f"Semantic validation outputs: {summary['output_directory']}")
-    print(
-        "Estimate messages audited: "
-        f"{summary['decoded_estimate_messages_raw']} raw / "
-        f"{summary['decoded_estimate_messages_unique']} unique; "
-        "strict geometry candidates: "
-        f"{summary['candidate_ready_messages']}"
+    return _write_outputs(
+        results,
+        output_directory=arguments.output_directory,
+        sessions_confirmed=sessions_confirmed,
+        arguments=arguments,
     )
-    print(
-        "Semantic decision: "
-        f"{summary['semantic_decision']}. "
-        "Training remains prohibited in the geometry-validation command."
-    )
-    return 0 if summary["corpus_complete"] else 3
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
