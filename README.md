@@ -62,8 +62,8 @@ audit showed clear EDP geometry regimes:
 
 ```bash
 python -m lane_residuals.edp_transition_audit_cli \
-  "data/mcap_data/one_recording.mcap" \
-  --output-directory "outputs/edp_transition_audit"
+  "data/raw/mcap/one_recording.mcap" \
+  --output-directory "outputs/diagnostics/validation/edp_transition_audit"
 ```
 
 The default run automatically detects all rollovers in the output tables and
@@ -78,10 +78,10 @@ EDP message indices explicitly:
 
 ```bash
 python -m lane_residuals.edp_transition_audit_cli \
-  "data/mcap_data/one_recording.mcap" \
+  "data/raw/mcap/one_recording.mcap" \
   --transition-centers 92 113 133 153 172 190 208 227 247 \
   --transition-window-radius 3 \
-  --output-directory "outputs/edp_transition_audit_explicit"
+  --output-directory "outputs/diagnostics/validation/edp_transition_audit_explicit"
 ```
 
 The command writes:
@@ -122,9 +122,9 @@ diagnostic-ready pairs:
 
 ```powershell
 python -m lane_residuals.pairing_audit_cli `
-  ".\data\mcap_data\one_recording.mcap" `
+  ".\data\raw\mcap\one_recording.mcap" `
   --max-pairs 20 `
-  --output-directory ".\outputs\pairing_audit"
+  --output-directory ".\outputs\diagnostics\validation\pairing_audit"
 ```
 
 No timestamp validity threshold is applied by default because no production
@@ -173,24 +173,28 @@ must be reported with the experiment.
 
 ## Ten-MCAP fixed-cohort batch diagnostic
 
-Create a private drive map whose keys exactly match the ten MCAP basenames.
-Files from the same physical drive/session must use the same label. Labels are
-replaced with opaque `drive_###` identifiers in aggregate outputs.
+Create a private grouping map whose keys exactly match the ten MCAP basenames.
+Files from the same physical recording session must use the same label. The
+accepted v0.4.5 batch used `mcap_sessions.private.json` through the historical
+`--drive-map` flag; labels are still replaced with opaque `drive_###`
+identifiers in aggregate outputs. The three-entry
+`mcap_drives.private.example.json` is only a format example and is not suitable
+for this corpus.
 
 ```bash
-cp examples/mcap_drives.private.example.json \
-  config/mcap_drives.private.json
+cp config/examples/mcap_sessions.private.example.json \
+  config/private/mcap_sessions.private.json
 ```
 
 Run the corpus audit from a new, empty output directory:
 
 ```bash
 python -m lane_residuals.batch_pairing_audit_cli \
-  "data/mcap_data" \
-  --drive-map "config/mcap_drives.private.json" \
+  "data/raw/mcap" \
+  --drive-map "config/private/mcap_sessions.private.json" \
   --expected-file-count 10 \
   --max-pairs-per-recording 6 \
-  --output-directory "outputs/pairing_batch_v045"
+  --output-directory "outputs/diagnostics/validation/pairing_batch_v045"
 ```
 
 Do not pass a timestamp gate or an outcome-tail threshold on the first
@@ -268,9 +272,9 @@ python -m unittest discover -s tests -v
 ## Prepare the private signal configuration
 
 ```powershell
-New-Item -ItemType Directory -Force ".\config"
-Copy-Item ".\examples\reference_signals.private.example.json" `
-  ".\config\reference_signals.private.json"
+New-Item -ItemType Directory -Force ".\config\private"
+Copy-Item ".\config\examples\reference_signals.private.example.json" `
+  ".\config\private\reference_signals.private.json"
 ```
 
 The template contains the known candidate topics and conservative field-path
@@ -291,13 +295,13 @@ Do not specify a candidate-agreement threshold on the first exploratory run:
 
 ```powershell
 python -m lane_residuals.reference_audit_cli `
-  ".\data\mcap_data" `
+  ".\data\raw\mcap" `
   --expected-file-count 10 `
-  --session-map ".\config\mcap_sessions.private.json" `
-  --signal-config ".\config\reference_signals.private.json" `
+  --session-map ".\config\private\mcap_sessions.private.json" `
+  --signal-config ".\config\private\reference_signals.private.json" `
   --comparison-max-delta-ms 20 `
   --pose-lsa-max-delta-ms 50 `
-  --output-directory ".\outputs\mcap_v039_reference_audit"
+  --output-directory ".\outputs\diagnostics\validation\mcap_v039_reference_audit"
 ```
 
 Exit code `3` is expected while the reference is unresolved; the diagnostic

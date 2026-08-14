@@ -5,13 +5,12 @@ from mcap.reader import make_reader
 from mcap_protobuf.decoder import DecoderFactory
 
 
-MCAP_PATH = Path(
-    "/data/mcap_data/2025-05-27_14-04-21_2025-05-27_14-04-41_MCAP_000101.mcap"
-)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+MCAP_PATH = PROJECT_ROOT / "data/raw/mcap/2025-05-27_14-04-21_2025-05-27_14-04-41_MCAP_000101.mcap"
 
 TOPIC = "/adp/lsa_activity_cdc_data"
 
-OUTPUT_PATH = Path("/outputs/topics/lsa_activity_cdc_data.csv")
+OUTPUT_PATH = PROJECT_ROOT / "outputs/diagnostics/validation/topics/lsa_activity_cdc_data.csv"
 
 
 def main():

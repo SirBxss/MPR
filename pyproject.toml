@@ -32,3 +32,4 @@ mpr-audit-path-pairing-batch = "lane_residuals.batch_pairing_audit_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["lane_residuals*"]
