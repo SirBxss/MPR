@@ -6,13 +6,12 @@ from mcap.reader import make_reader
 from mcap_protobuf.decoder import DecoderFactory
 
 
-MCAP_PATH = Path(
-    "/home/q679381/PycharmProjects/MPR/data/mcap_data/2025-05-27_14-04-21_2025-05-27_14-04-41_MCAP_000101.mcap"
-)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+MCAP_PATH = PROJECT_ROOT / "data/raw/mcap/2025-05-27_14-04-21_2025-05-27_14-04-41_MCAP_000101.mcap"
 
 TOPIC = "/adp/estimated_drive_paths"
 
-OUTPUT_DIR = Path("/home/q679381/PycharmProjects/MPR/outputs/topics")
+OUTPUT_DIR = PROJECT_ROOT / "outputs/diagnostics/validation/topics"
 
 PATH_OUTPUT = OUTPUT_DIR / "estimated_drive_paths.csv"
 CONFIDENCE_OUTPUT = OUTPUT_DIR / "estimated_drive_path_confidences.csv"

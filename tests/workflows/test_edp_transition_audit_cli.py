@@ -212,7 +212,7 @@ class EdpTransitionAuditCliTests(unittest.TestCase):
                 output_directory=output,
             )
             with patch(
-                "lane_residuals.edp_transition_audit_cli._decode_estimate_stream",
+                "lane_residuals.workflows.edp_transitions._decode_estimate_stream",
                 return_value=(messages, Counter({"candidate_ready": 2})),
             ):
                 summary = run_edp_transition_audit(

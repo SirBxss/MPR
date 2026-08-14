@@ -10,6 +10,7 @@ venv/
 .idea/
 
 # Raw or derived driving data must remain local.
+config/private/
 *.mcap
 *.mcap.zst
 data/

@@ -10,8 +10,8 @@ from typing import Sequence
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .gaussian import fit_gaussian_residual_model
-from .mcap_io import (
+from ..modeling.gaussian import fit_gaussian_residual_model
+from ..io.mcap import (
     DEFAULT_DIRECT_PATH_TOPICS,
     McapDependencyError,
     RoadMessageError,

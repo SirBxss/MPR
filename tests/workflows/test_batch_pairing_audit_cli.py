@@ -101,7 +101,7 @@ class BatchPairingAuditCliTests(unittest.TestCase):
                 map_max_junction_heading_deg=30.0,
             )
             with patch(
-                "lane_residuals.batch_pairing_audit_cli.run_pairing_audit",
+                "lane_residuals.workflows.batch_pairing.run_pairing_audit",
                 side_effect=RuntimeError("synthetic decode failure"),
             ):
                 result = _run_one_recording(
@@ -170,7 +170,7 @@ class BatchPairingAuditCliTests(unittest.TestCase):
                 )
 
             with patch(
-                "lane_residuals.batch_pairing_audit_cli._run_one_recording",
+                "lane_residuals.workflows.batch_pairing._run_one_recording",
                 side_effect=synthetic_result,
             ):
                 summary, status = run_batch(arguments)
