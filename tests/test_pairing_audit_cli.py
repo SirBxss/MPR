@@ -80,7 +80,7 @@ class PairingAuditCliTests(unittest.TestCase):
             ),
         ]
         with patch(
-            "lane_residuals.pairing_audit_cli.iter_decoded_mcap_messages",
+            "lane_residuals.workflows.pairing.iter_decoded_mcap_messages",
             return_value=iter(records),
         ):
             estimates, references, failures, counts = _decode_paths(
@@ -146,7 +146,7 @@ class PairingAuditCliTests(unittest.TestCase):
             decoded,
         )
         with patch(
-            "lane_residuals.pairing_audit_cli.iter_decoded_mcap_messages",
+            "lane_residuals.workflows.pairing.iter_decoded_mcap_messages",
             return_value=iter([record]),
         ):
             _, references, failures, _ = _decode_paths(
@@ -199,7 +199,7 @@ class PairingAuditCliTests(unittest.TestCase):
                 output_directory=output,
             )
             with patch(
-                "lane_residuals.pairing_audit_cli._decode_paths",
+                "lane_residuals.workflows.pairing._decode_paths",
                 return_value=(
                     [estimate],
                     [reference],
@@ -265,7 +265,7 @@ class PairingAuditCliTests(unittest.TestCase):
                 output_directory=output,
             )
             with patch(
-                "lane_residuals.pairing_audit_cli._decode_paths",
+                "lane_residuals.workflows.pairing._decode_paths",
                 return_value=(
                     [estimate],
                     [reference],
@@ -336,7 +336,7 @@ class PairingAuditCliTests(unittest.TestCase):
                 output_directory=output,
             )
             with patch(
-                "lane_residuals.pairing_audit_cli._decode_paths",
+                "lane_residuals.workflows.pairing._decode_paths",
                 return_value=(
                     estimates,
                     references,

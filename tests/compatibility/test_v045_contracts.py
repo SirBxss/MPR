@@ -268,7 +268,7 @@ class V045ObservableContractTests(unittest.TestCase):
                 output_directory=output,
             )
             with patch(
-                "lane_residuals.pairing_audit_cli._decode_paths",
+                "lane_residuals.workflows.pairing._decode_paths",
                 return_value=(
                     [_timed_path(1, 100_000_000, estimate_path)],
                     [_timed_path(2, 90_000_000, reference_path)],
@@ -324,7 +324,7 @@ class V045ObservableContractTests(unittest.TestCase):
                 )
 
             with patch(
-                "lane_residuals.batch_pairing_audit_cli._run_one_recording",
+                "lane_residuals.workflows.batch_pairing._run_one_recording",
                 side_effect=fake_recording,
             ):
                 summary, status = run_batch(arguments)
