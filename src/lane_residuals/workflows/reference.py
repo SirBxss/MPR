@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import hashlib
 import json
 import logging
@@ -30,6 +29,10 @@ from ..io.mcap import (
     _source_time_ns,
     iter_decoded_mcap_messages,
     road_frame_from_message,
+)
+from ..io.reports import (
+    write_csv_rows_ignoring_extras as _write_csv,
+    write_strict_json as _write_json,
 )
 from ..domain.reference import (
     DEFAULT_REFERENCE_STATIONS_M,
@@ -925,21 +928,6 @@ def _evaluate_candidates(
                 pass
         result.frame_rows.append(frame_row)
     return direct_ready_count, reconstructed_ready_count, both_in_recording
-
-
-def _write_json(path: Path, payload: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as stream:
-        json.dump(payload, stream, indent=2, sort_keys=True, allow_nan=False)
-        stream.write("\n")
-
-
-def _write_csv(path: Path, fieldnames: Sequence[str], rows: Sequence[Mapping[str, Any]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows)
 
 
 def _duplicate_audit(messages: Sequence[TimedMessage]) -> tuple[list[dict[str, Any]], bool]:

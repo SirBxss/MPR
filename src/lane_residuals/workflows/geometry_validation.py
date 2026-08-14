@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import logging
 import math
@@ -33,6 +32,10 @@ from ..domain.geometry_validation import (
     synchronize_estimate_and_comparator,
 )
 from ..io.mcap import McapDependencyError, iter_decoded_mcap_messages
+from ..io.reports import (
+    write_csv_rows_ignoring_extras as _write_csv,
+    write_strict_json_insertion_order as _write_json,
+)
 from ..domain.path_source_probe import DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC
 from ..visualization.geometry_validation import plot_overlays as _plot_overlays
 
@@ -208,21 +211,6 @@ def _process_recording(
         generation_failures=failures,
         metrics=metrics,
     )
-
-
-def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as stream:
-        json.dump(payload, stream, indent=2, allow_nan=False)
-        stream.write("\n")
-
-
-def _write_csv(path: Path, fieldnames: Sequence[str], rows: Sequence[Mapping[str, Any]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows)
 
 
 def _relative_seconds(frames: Sequence[Any]) -> dict[int, float | None]:

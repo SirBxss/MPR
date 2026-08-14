@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
-import json
 import logging
 import math
 from collections import Counter
@@ -26,6 +24,7 @@ from ..io.mcap import (
     road_frame_from_message,
     source_time_ns_from_message,
 )
+from ..io.reports import write_csv_rows as _write_csv, write_strict_json as _write_json
 from ..domain.pairing import (
     DEFAULT_PAIRING_STATIONS_M,
     DiagnosticPathDisagreement,
@@ -240,25 +239,6 @@ def _decode_paths(
                 )
             )
     return estimates, references, failures, counts
-
-
-def _write_csv(
-    path: Path,
-    fieldnames: Sequence[str],
-    rows: Sequence[dict[str, Any]],
-) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def _write_json(path: Path, payload: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as stream:
-        json.dump(payload, stream, indent=2, sort_keys=True, allow_nan=False)
-        stream.write("\n")
 
 
 def _median_or_none(values: Sequence[float]) -> float | None:

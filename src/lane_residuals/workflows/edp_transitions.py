@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import hashlib
 import json
 import logging
@@ -38,6 +37,7 @@ from ..io.mcap import (
     iter_decoded_mcap_messages,
     source_time_ns_from_message,
 )
+from ..io.reports import write_csv_rows as _write_csv, write_strict_json as _write_json
 from ..domain.path_source_probe import (
     DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA,
     DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC,
@@ -359,25 +359,6 @@ def _decode_estimate_stream(
 
 def _json_value(value: Any) -> str:
     return json.dumps(value, separators=(",", ":"), allow_nan=False)
-
-
-def _write_csv(
-    path: Path,
-    fieldnames: Sequence[str],
-    rows: Sequence[dict[str, Any]],
-) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def _write_json(path: Path, payload: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as stream:
-        json.dump(payload, stream, indent=2, sort_keys=True, allow_nan=False)
-        stream.write("\n")
 
 
 def _candidate_row(record: _CandidateRecord) -> dict[str, Any]:

@@ -266,8 +266,12 @@ orientation.
 
 ```powershell
 python -m pip install -e ".[mcap]"
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -t . -v
 ```
+
+The categorized source tree, command matrix, and frozen output contracts are
+documented in [architecture](docs/architecture.md),
+[commands](docs/commands.md), and [output contracts](docs/output_contracts.md).
 
 ## Prepare the private signal configuration
 
