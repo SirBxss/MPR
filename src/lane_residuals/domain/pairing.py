@@ -16,7 +16,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from .geometry_validation import GeometryValidationError, SplineCurve
-from ..mcap_io import RoadFrame, RoadSegment
+from ..io.mcap import RoadFrame, RoadSegment
 
 FloatArray = NDArray[np.float64]
 DEFAULT_PAIRING_STATIONS_M = tuple(float(value) for value in range(0, 101, 5))

@@ -17,6 +17,8 @@ from typing import Any, Iterable, Mapping, Sequence
 
 import numpy as np
 
+from ..io.reports import write_csv_rows, write_strict_json
+
 
 HORIZON_60_M = tuple(float(value) for value in range(0, 61, 5))
 HORIZON_100_M = tuple(float(value) for value in range(0, 101, 5))
@@ -581,30 +583,3 @@ def recording_summary_rows(
         )
     return rows
 
-
-def write_csv_rows(
-    path: Path,
-    fieldnames: Sequence[str],
-    rows: Iterable[Mapping[str, Any]],
-) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="raise")
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(dict(row))
-
-
-def write_strict_json(path: Path, payload: Any) -> None:
-    """Write portable JSON and reject non-finite numeric values."""
-
-    serialized = json.dumps(
-        payload,
-        indent=2,
-        sort_keys=True,
-        allow_nan=False,
-    )
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        handle.write(serialized)
-        handle.write("\n")

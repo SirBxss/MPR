@@ -34,7 +34,7 @@ from typing import Any, Literal
 import numpy as np
 from numpy.typing import NDArray
 
-from ..mcap_io import RoadMessageError, RoadSegment, road_frame_from_message
+from ..io.mcap import RoadMessageError, RoadSegment, road_frame_from_message
 from .path_source_probe import (
     DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA,
     DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC,
@@ -531,7 +531,7 @@ def estimated_frame_from_message(
 def _source_time(message: Any) -> int | None:
     # Local import avoids making a private helper part of the public API while
     # keeping timestamp semantics identical across the package.
-    from ..mcap_io import _source_time_ns
+    from ..io.mcap import _source_time_ns
 
     return _source_time_ns(message)
 

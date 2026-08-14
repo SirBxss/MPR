@@ -24,7 +24,7 @@ from pathlib import Path
 from statistics import median
 from typing import Any
 
-from ..mcap_io import (
+from ..io.mcap import (
     McapDependencyError,
     RoadMessageError,
     _iter_decoded_mcap_messages,
