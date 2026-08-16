@@ -1,5 +1,11 @@
 """Minimal tools for extracting and modelling lane-estimation residuals."""
 
+from .domain.alignment import (
+    PathPointProjection,
+    SpatialAlignmentResult,
+    compare_spatially_aligned_paths,
+    project_point_to_path,
+)
 from .batch_pairing_audit import (
     CANONICAL_STATIONS_M,
     HORIZON_60_M,
@@ -213,6 +219,7 @@ __all__ = [
     "MutualNearestTimestampAudit",
     "OrderedEgoLane",
     "PairAuditRecord",
+    "PathPointProjection",
     "Path2D",
     "PoseSample",
     "ProtobufFieldProbe",
@@ -232,6 +239,7 @@ __all__ = [
     "SelectedTransition",
     "SplineCurve",
     "SplineParameters",
+    "SpatialAlignmentResult",
     "SynchronizationAudit",
     "SynchronizationPair",
     "TopicProbeRecord",
@@ -256,6 +264,7 @@ __all__ = [
     "compare_ego_relative_paths",
     "compare_reference_candidates",
     "compare_production_to_debug",
+    "compare_spatially_aligned_paths",
     "compute_provisional_gt_residual",
     "contiguous_state_runs",
     "decode_recording_messages",
@@ -286,6 +295,7 @@ __all__ = [
     "plot_path_pair_and_residual",
     "probe_decoded_protobuf_messages",
     "project_points_to_polyline",
+    "project_point_to_path",
     "generate_spline_curve",
     "generate_spline_hypotheses",
     "reference_path_from_segment",

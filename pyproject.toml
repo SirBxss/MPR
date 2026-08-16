@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.4.5"
-description = "Fail-closed single-recording and corpus path-pairing diagnostics"
+version = "0.5.0"
+description = "Fail-closed EDP-RLMB pairing and spatial-reference alignment"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -29,6 +29,8 @@ mpr-audit-reference-candidates = "lane_residuals.reference_audit_cli:main"
 mpr-audit-path-pairing = "lane_residuals.pairing_audit_cli:main"
 mpr-audit-edp-transitions = "lane_residuals.edp_transition_audit_cli:main"
 mpr-audit-path-pairing-batch = "lane_residuals.batch_pairing_audit_cli:main"
+mpr-audit-reference-alignment = "lane_residuals.cli.alignment:main"
+mpr-audit-reference-alignment-batch = "lane_residuals.cli.alignment_batch:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

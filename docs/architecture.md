@@ -1,8 +1,9 @@
 # Project architecture
 
-MPR v0.4.5 is organized as a small diagnostic research application. The
-categorization is mechanical: scientific arithmetic and observable output
-contracts remain those of the accepted v0.4.5 baseline.
+MPR keeps the accepted v0.4.5 diagnostic contracts frozen while v0.5 adds a
+separate projection-based reference-alignment validation. The categorization
+continues to separate scientific arithmetic, orchestration, I/O, plots, and
+command adapters.
 
 ```text
 src/lane_residuals/
@@ -50,7 +51,8 @@ Package responsibilities:
 - `io` owns MCAP message decoding and reusable CSV/strict-JSON serialization.
 - `visualization` renders diagnostic figures from already prepared data.
 - `modeling` contains the Gaussian utility and is distinct from the current
-  diagnostic pipeline; v0.4.5 does not train a model.
+  alignment-validation pipeline; the v0.5 alignment audit still does not train
+  a model.
 - `legacy` preserves v0.3.x association/preprocessing, withdrawn provisional
   residual behavior, and its synthetic plotting without presenting it as the
   current scientific pipeline.
@@ -66,8 +68,11 @@ CLI or workflows. A workflow must never import another CLI. Compatibility
 facades may forward names but must not own implementation logic.
 
 Current diagnostics quantify EDP–RLMB or candidate-to-candidate disagreement.
-They are not trained models and are not ground-truth residuals. Modeling
-utilities are reusable but inactive in v0.4.5. Legacy/withdrawn code is retained
+The v0.5 alignment domain projects EDP station zero onto RLMB and resamples RLMB
+at equal forward offsets. It is spatial correspondence, not explicit SE(2)
+timestamp compensation. Its outputs remain validation evidence rather than a
+final training dataset. Modeling utilities stay inactive until the
+ten-recording alignment result is reviewed. Legacy/withdrawn code is retained
 only for reproducibility and compatibility.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses

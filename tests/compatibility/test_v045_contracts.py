@@ -208,17 +208,19 @@ def _recording(recording_id: str, drive_id: str, filename: str, time_ns: int):
 class V045ObservableContractTests(unittest.TestCase):
     def test_console_entry_points_and_compatibility_modules_are_frozen(self) -> None:
         project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+        scripts = project["project"]["scripts"]
+        frozen = {
+            "mpr-mcap": "lane_residuals.cli:main",
+            "mpr-probe-path-source": "lane_residuals.path_probe_cli:main",
+            "mpr-validate-path-geometry": "lane_residuals.geometry_validation_cli:main",
+            "mpr-audit-reference-candidates": "lane_residuals.reference_audit_cli:main",
+            "mpr-audit-path-pairing": "lane_residuals.pairing_audit_cli:main",
+            "mpr-audit-edp-transitions": "lane_residuals.edp_transition_audit_cli:main",
+            "mpr-audit-path-pairing-batch": "lane_residuals.batch_pairing_audit_cli:main",
+        }
         self.assertEqual(
-            project["project"]["scripts"],
-            {
-                "mpr-mcap": "lane_residuals.cli:main",
-                "mpr-probe-path-source": "lane_residuals.path_probe_cli:main",
-                "mpr-validate-path-geometry": "lane_residuals.geometry_validation_cli:main",
-                "mpr-audit-reference-candidates": "lane_residuals.reference_audit_cli:main",
-                "mpr-audit-path-pairing": "lane_residuals.pairing_audit_cli:main",
-                "mpr-audit-edp-transitions": "lane_residuals.edp_transition_audit_cli:main",
-                "mpr-audit-path-pairing-batch": "lane_residuals.batch_pairing_audit_cli:main",
-            },
+            {name: scripts.get(name) for name in frozen},
+            frozen,
         )
 
     def test_pairing_and_batch_cli_defaults_are_frozen(self) -> None:

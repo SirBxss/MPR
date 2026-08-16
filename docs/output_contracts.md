@@ -130,3 +130,48 @@ three JSON reports, and `validation_overlays/`. Reference validation retains
 its source/catalog JSON files, six CSV audits, and
 `reference_validation_summary.json`. These files contain private decoded field
 names or BMW-derived measurements and must remain outside version control.
+
+## v0.5 reference-alignment validation
+
+The new alignment command writes exactly:
+
+```text
+alignment_pair_audit.csv
+alignment_station_comparison.csv
+alignment_comparison.png
+alignment_summary.json
+```
+
+`alignment_pair_audit.csv` retains every recording-local mutual-nearest pair,
+including geometry/projection failures, the signed source-time delta, the RLMB
+anchor station selected by projecting EDP station zero, anchor distance and
+heading, aligned coverage, and fixed H60/H100 eligibility. Native and aligned
+per-pair RMS values are reported only when the corresponding complete horizon
+is available.
+
+`alignment_station_comparison.csv` contains the EDP point, native RLMB point,
+aligned RLMB point, and native/aligned lateral, along-track, and heading
+differences on the canonical `0, 5, ..., 100 m` grid. No extrapolation or
+available-case horizon aggregation is permitted.
+
+The output remains validation evidence. `alignment_summary.json` explicitly
+records that the source-time delta is not used numerically, explicit ego-pose
+motion compensation is not applied, RLMB is the best available pseudo-ground
+truth, and no final residual dataset or statistical model has been created.
+
+The batch alignment command preserves the four-file set under each
+`recordings/recording_###/` directory and adds:
+
+```text
+batch_manifest.json
+recording_alignment_summary.csv
+alignment_pair_audit.csv
+alignment_station_comparison.csv
+alignment_batch_comparison.png
+alignment_batch_summary.json
+```
+
+The aggregate CSVs prefix every row with opaque `recording_id` and `drive_id`.
+Drive grouping comes only from the exact private basename manifest. Aggregate
+alignment metrics are recomputed from pair rows, and H100 eligibility is
+required to remain a subset of H60.

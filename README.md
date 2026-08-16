@@ -1,10 +1,13 @@
-# Minimal Path-Residual Model (MPR) v0.4.5
+# Minimal Path-Residual Model (MPR) v0.5.0
 
 Version 0.4.5 adds a corpus-level diagnostic over the validated v0.4.4
 single-recording pipeline. It processes each MCAP independently, preserves
 complete-stream timestamp pairing, and aggregates fixed complete cohorts at
 0--60 m and 0--100 m. Per-drive and overall statistics are recomputed from the
 underlying pair/station rows; recording medians are never averaged together.
+
+Version 0.5.0 adds a separate projection-based RLMB alignment audit. It does
+not modify the accepted v0.4.5 diagnostic files and does not yet train a model.
 
 The v0.4.4 geometry behavior remains unchanged. It extends the RLMB
 pseudo-reference from the metadata-confirmed ego
@@ -233,6 +236,49 @@ invalid configuration or a global execution error.
 
 These remain BMW-derived pseudo-residual diagnostics. They are not independent
 samples, physical ground-truth lane errors, or a model-training dataset.
+
+## Projection-based reference-alignment validation
+
+v0.5 implements the spatial correspondence proposed for the next residual
+stage without changing the frozen v0.4.5 pairing outputs. For each temporal
+pair, EDP station zero is projected onto the RLMB path. That projected RLMB
+station becomes aligned zero, and RLMB is sampled at the same forward offsets
+`0, 5, ..., 100 m` as EDP.
+
+Run one MCAP into a new validation directory:
+
+```bash
+python -m lane_residuals.cli.alignment \
+  "data/raw/mcap/one_recording.mcap" \
+  --output-directory \
+  "outputs/diagnostics/validation/reference_alignment_recording_001"
+```
+
+The command writes `alignment_pair_audit.csv`,
+`alignment_station_comparison.csv`, `alignment_comparison.png`, and
+`alignment_summary.json`. It compares native and aligned residuals while
+retaining the signed timestamp delta and constant H60/H100 eligibility.
+
+This is spatial reference alignment, not complete timestamp correction: the
+timestamp delta is not multiplied by speed, no ego pose is interpolated, and
+no SE(2) transform is applied. The result must be reviewed across the exact
+ten-recording manifest before the aligned H100 vectors are promoted to the
+Gaussian-training dataset.
+
+For the actual corpus, run the exact manifest batch command rather than a shell
+loop:
+
+```bash
+python -m lane_residuals.cli.alignment_batch \
+  "data/raw/mcap" \
+  --drive-map "config/private/mcap_sessions.private.json" \
+  --expected-file-count 10 \
+  --output-directory \
+  "outputs/diagnostics/validation/reference_alignment_batch_v050"
+```
+
+Do not use the unused three-entry drive-map example and do not add a timestamp
+gate for the first exploratory alignment run.
 
 ## What the command does
 
