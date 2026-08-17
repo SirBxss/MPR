@@ -1,9 +1,10 @@
 # Supported commands
 
 All seven v0.4.5 console aliases and their historical `python -m` forms remain
-supported. v0.5.1 adds categorized motion-alignment validation and v0.6.0 adds
-the canonical residual/Gaussian workflow. Existing defaults and flags are
-unchanged; use `--help` for the complete option set.
+supported. v0.5.1 adds categorized motion-alignment validation, v0.6.0 adds
+the canonical residual/Gaussian workflow, and v0.6.1 adds held-out Gaussian
+adequacy diagnostics. Existing defaults and flags are unchanged; use `--help`
+for the complete option set.
 
 | Console alias | Python module form | Purpose and status | Required inputs | Generated outputs |
 |---|---|---|---|---|
@@ -17,6 +18,7 @@ unchanged; use `--help` for the complete option set.
 | `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
 | `mpr-train-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_baseline` | v0.6.0 canonical H100 export, leave-one-drive-out evaluation, and final Gaussian fit | Accepted complete v0.5.0 alignment-batch directory | Residual vectors, dataset/model summaries, fold/station evaluation CSVs, and diagnostics plot |
+| `mpr-diagnose-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_diagnostics` | v0.6.1 leave-one-drive-out marginal, tail, Q–Q, and Mahalanobis adequacy diagnostic | Complete unchanged v0.6.0 Gaussian output directory | Per-vector, marginal, and multivariate CSVs; two plots; strict JSON summary |
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

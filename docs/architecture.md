@@ -1,9 +1,10 @@
 # Project architecture
 
 MPR keeps the accepted diagnostics frozen, retains v0.5.1 as a separate
-odometry-compensated sensitivity audit, and adds the v0.6.0 canonical residual
-and Gaussian workflow. The categorization separates scientific arithmetic,
-orchestration, I/O, plots, and command adapters.
+odometry-compensated sensitivity audit, and provides the v0.6.0 canonical
+residual/Gaussian workflow plus v0.6.1 Gaussian adequacy diagnostics. The
+categorization separates scientific arithmetic, orchestration, I/O, plots,
+and command adapters.
 
 ```text
 src/lane_residuals/
@@ -28,6 +29,7 @@ data/
 outputs/diagnostics/
 ├── frozen/              checksum-protected accepted baselines
 ├── validation/          new comparison runs
+├── modeling/            model adequacy and calibration diagnostics
 └── archive/             preserved historical runs
 outputs/models/           ignored private model runs and residual vectors
 tests/
@@ -54,7 +56,9 @@ Package responsibilities:
 - `visualization` renders diagnostic figures from already prepared data.
 - `modeling` contains the Gaussian distribution and likelihood/calibration
   primitives. The v0.6.0 workflow uses them only after the domain contract has
-  accepted a complete exact-manifest H100 dataset.
+  accepted a complete exact-manifest H100 dataset. The v0.6.1 workflow
+  recomputes aligned leave-one-drive-out predictions and compares their
+  marginal and Mahalanobis behavior with Gaussian reference distributions.
 - `legacy` preserves v0.3.x association/preprocessing, withdrawn provisional
   residual behavior, and its synthetic plotting without presenting it as the
   current scientific pipeline.
@@ -74,8 +78,9 @@ The accepted v0.5.0 projection output supplies the v0.6.0 model vectors; the
 v0.5.1 odometry workflow remains optional because DPE does not publish its exact
 geometry epoch. The model workflow accepts exactly `0, 5, ..., 100 m`, requires
 one fixed H100 cohort, and evaluates by physical drive before fitting the final
-all-data model. Legacy/withdrawn code is retained only for reproducibility and
-compatibility.
+all-data model. The adequacy workflow accepts only a reconciled v0.6.0 output,
+never an available-case station profile. Legacy/withdrawn code is retained
+only for reproducibility and compatibility.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

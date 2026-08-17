@@ -229,3 +229,44 @@ count, drive IDs, fixed regularization, and intended-use limitations. It is the
 final descriptive fit on all accepted vectors; it is fitted only after
 leave-one-drive-out evaluation. All seven files contain or derive from private
 BMW measurements and must remain outside version control.
+
+## v0.6.1 Gaussian adequacy outputs
+
+The v0.6.1 command accepts only a complete and internally reconciled v0.6.0
+Gaussian output directory. It writes exactly:
+
+```text
+gaussian_vector_diagnostics.csv
+gaussian_marginal_diagnostics.csv
+gaussian_multivariate_diagnostics.csv
+gaussian_marginal_diagnostics.png
+gaussian_multivariate_diagnostics.png
+gaussian_adequacy_summary.json
+```
+
+CSV headers and column order are fixed:
+
+```text
+gaussian_vector_diagnostics.csv:
+recording_id,drive_id,pair_index,squared_mahalanobis,squared_mahalanobis_per_dimension,chi_square_cdf,chi_square_upper_tail_probability,joint_negative_log_likelihood,above_chi_square_p95,above_chi_square_p99
+
+gaussian_marginal_diagnostics.csv:
+scope_type,scope_id,station_m,vector_count,standardized_mean,standardized_std,skewness,excess_kurtosis,normal_qq_correlation,empirical_p01,empirical_p05,empirical_p50,empirical_p95,empirical_p99,coverage_50,coverage_80,coverage_90,coverage_95,coverage_99,lower_tail_exceedance_95,upper_tail_exceedance_95
+
+gaussian_multivariate_diagnostics.csv:
+scope_type,scope_id,vector_count,dimension,mean_joint_negative_log_likelihood,mean_squared_mahalanobis,mean_squared_mahalanobis_per_dimension,chi_square_pit_mean,chi_square_pit_ks_distance,chi_square_qq_correlation,chi_square_expected_p50,empirical_mahalanobis_p50,chi_square_expected_p90,empirical_mahalanobis_p90,above_chi_square_p90_rate,chi_square_expected_p95,empirical_mahalanobis_p95,above_chi_square_p95_rate,chi_square_expected_p99,empirical_mahalanobis_p99,above_chi_square_p99_rate
+```
+
+Every diagnostic is calculated from predictions made by a Gaussian trained on
+the other physical drive. The marginal CSV contains one row per drive/station
+and one recomputed overall row per station. The multivariate CSV contains one
+row per drive and one recomputed overall row. Per-vector chi-square reference
+probabilities use 21 degrees of freedom.
+
+`gaussian_adequacy_summary.json` records hashes of the four consumed v0.6.0
+files, the canonical grid, pooled and per-drive coverage, worst station-wise
+shape diagnostics, Mahalanobis calibration, and scientific limitations. No
+formal iid normality p-value or post-hoc acceptance gate is reported because
+the sequential pair rows are correlated and no threshold was predeclared.
+All six files contain or derive from private BMW measurements and must remain
+outside version control.

@@ -1,4 +1,11 @@
-# Minimal Path-Residual Model (MPR) v0.6.0
+# Minimal Path-Residual Model (MPR) v0.6.1
+
+Version 0.6.1 adds a fail-closed adequacy diagnostic for the v0.6.0
+unconditional Gaussian. It recomputes every prediction by leaving out the
+complete physical drive, then examines marginal coverage, tail shape, normal
+Q–Q behavior, and multivariate Mahalanobis calibration. It does not treat the
+1,777 sequential pairs as independent samples and does not apply a post-hoc
+pass/fail threshold.
 
 Version 0.6.0 freezes the accepted v0.5.0 complete H100 cohort as a canonical
 21-dimensional residual-vector dataset and adds the first current statistical
@@ -319,6 +326,28 @@ manifest; filenames are never used to infer groups.
 The pair rows are sequentially correlated, so 1,777 vectors do not represent
 1,777 independent experiments. With only two physical drives, held-out results
 are a first between-session check rather than a population-level estimate.
+
+## Gaussian adequacy diagnostics
+
+Run v0.6.1 from a complete, unchanged v0.6.0 Gaussian output directory:
+
+```bash
+python -m lane_residuals.cli.gaussian_diagnostics \
+  "outputs/models/gaussian_baseline_v060" \
+  --output-directory \
+  "outputs/diagnostics/modeling/gaussian_adequacy_v061"
+```
+
+The command validates the exact canonical H100 vector contract, refits the
+stored all-data model to verify its mean and covariance, and reconciles the
+reported v0.6.0 cross-validation metrics. It then writes per-vector
+Mahalanobis evidence, per-drive and overall station diagnostics, multivariate
+chi-square calibration summaries, two plots, and a strict JSON summary.
+
+The output is diagnostic evidence, not a second model fit. Conventional iid
+normality p-values are intentionally omitted because adjacent residual vectors
+are sequentially correlated. Model-family selection should be based on the
+tail and between-drive evidence together with predeclared requirements.
 
 ## What the command does
 
