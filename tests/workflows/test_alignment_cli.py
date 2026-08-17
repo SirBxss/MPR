@@ -13,6 +13,12 @@ import numpy as np
 
 from lane_residuals.cli.alignment import main
 from lane_residuals.domain.pairing import ego_relative_path_from_points
+from lane_residuals.domain.motion import (
+    OdometrySample,
+    Pose2D,
+    ego_frame_transform,
+    transform_path_to_target_ego_frame,
+)
 from lane_residuals.workflows.alignment import (
     PAIR_FIELDS,
     STATION_FIELDS,
@@ -45,6 +51,9 @@ class AlignmentWorkflowTests(unittest.TestCase):
             map_max_junction_heading_deg=30.0,
             estimate_topic="/estimate",
             map_topic="/map",
+            odometry_topic="/odometry",
+            maximum_odometry_log_lag_ms=20.0,
+            maximum_odometry_interpolation_gap_ms=20.0,
         )
 
     def test_missing_mcap_returns_argument_error(self) -> None:
@@ -59,13 +68,34 @@ class AlignmentWorkflowTests(unittest.TestCase):
             np.column_stack((x, 0.002 * np.square(x))),
             source="reference",
         )
-        shifted = x[x >= 0.6]
+        target_transform = ego_frame_transform(
+            Pose2D(0.0, 0.0, 0.0),
+            Pose2D(0.6, 0.0, 0.0),
+        )
+        target_reference = transform_path_to_target_ego_frame(
+            reference,
+            target_transform,
+        )
         estimate = ego_relative_path_from_points(
-            np.column_stack((shifted, 0.002 * np.square(shifted))),
+            target_reference.points,
             source="estimate",
         )
         estimates = [self._timed_path(4, 128_000_000, estimate)]
         references = [self._timed_path(7, 100_000_000, reference)]
+        odometry = [
+            OdometrySample(
+                timestamp_ns=100_000_000,
+                log_time_ns=100_000_000,
+                publish_time_ns=100_000_000,
+                pose=Pose2D(0.0, 0.0, 0.0),
+            ),
+            OdometrySample(
+                timestamp_ns=128_000_000,
+                log_time_ns=128_000_000,
+                publish_time_ns=128_000_000,
+                pose=Pose2D(0.6, 0.0, 0.0),
+            ),
+        ]
 
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "alignment"
@@ -77,6 +107,9 @@ class AlignmentWorkflowTests(unittest.TestCase):
                     Counter(),
                     {"estimate_messages": 1, "map_messages": 1},
                 ),
+            ), patch(
+                "lane_residuals.workflows.alignment.decode_odometry_samples",
+                return_value=(odometry, Counter(), 2),
             ):
                 summary = run_alignment_audit(self._arguments(output))
 
@@ -105,18 +138,31 @@ class AlignmentWorkflowTests(unittest.TestCase):
                 persisted = json.load(stream)
 
         self.assertEqual(summary, persisted)
-        self.assertEqual(summary["version"], "0.5.0")
+        self.assertEqual(summary["version"], "0.5.1")
         self.assertEqual(summary["complete_stream_mutual_nearest_pair_count"], 1)
         self.assertEqual(summary["h60_aligned_complete_pair_count"], 1)
         self.assertEqual(summary["h100_aligned_complete_pair_count"], 1)
         self.assertTrue(summary["h100_is_subset_of_h60"])
         self.assertTrue(summary["spatial_reference_alignment_applied"])
-        self.assertFalse(summary["explicit_ego_pose_motion_compensation_applied"])
+        self.assertTrue(summary["explicit_ego_pose_motion_compensation_applied"])
         self.assertFalse(summary["generated_final_residual_dataset"])
         self.assertGreater(summary["median_native_h100_pair_lateral_rms_m"], 1e-4)
         self.assertLess(summary["median_aligned_h100_pair_lateral_rms_m"], 1e-8)
+        self.assertAlmostEqual(
+            summary["median_absolute_geometry_epoch_delta_ms"],
+            28.0,
+        )
+        self.assertAlmostEqual(
+            summary["median_ego_motion_source_to_target_travel_m"],
+            0.6,
+        )
         self.assertEqual(len(station_rows), 21)
         self.assertAlmostEqual(float(pair_rows[0]["source_delta_ms"]), 28.0)
+        self.assertAlmostEqual(
+            float(pair_rows[0]["reference_anchor_station_m"]),
+            0.6,
+            places=2,
+        )
 
     def test_existing_output_is_never_overwritten(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

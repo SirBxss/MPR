@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.5.0"
-description = "Fail-closed EDP-RLMB pairing and spatial-reference alignment"
+version = "0.5.1"
+description = "Fail-closed EDP-RLMB pairing and odometry-compensated alignment"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

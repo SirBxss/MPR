@@ -1,4 +1,4 @@
-"""Plots for projection-based reference-alignment validation."""
+"""Plots for odometry-compensated reference-alignment validation."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def plot_alignment_comparison(
     pair_rows: Sequence[Mapping[str, Any]],
     station_rows: Sequence[Mapping[str, Any]],
 ) -> None:
-    """Compare native and spatially aligned disagreement without hiding counts."""
+    """Compare native and motion-compensated disagreement without hiding counts."""
 
     import matplotlib
 
@@ -58,7 +58,7 @@ def plot_alignment_comparison(
         )
         axis.set_axis_off()
         figure.suptitle(
-            "CONFIDENTIAL — spatial reference alignment validation",
+            "CONFIDENTIAL — odometry-compensated reference alignment",
             fontsize=12,
         )
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -135,7 +135,7 @@ def plot_alignment_comparison(
     )
     if h100_pairs:
         axes[2].scatter(
-            [float(row["source_delta_ms"]) for row in h100_pairs],
+            [float(row["geometry_epoch_delta_ms"]) for row in h100_pairs],
             [
                 float(row["aligned_minus_native_h100_lateral_rms_m"])
                 for row in h100_pairs
@@ -144,9 +144,9 @@ def plot_alignment_comparison(
             alpha=0.7,
         )
         axes[2].axhline(0.0, color="black", linewidth=0.8)
-        axes[2].set_xlabel("signed EDP minus RLMB source time [ms]")
+        axes[2].set_xlabel("EDP proxy epoch minus RLMB pose epoch [ms]")
         axes[2].set_ylabel("aligned − native H100 pair RMS [m]")
-        axes[2].set_title("Alignment effect versus timestamp offset")
+        axes[2].set_title("Motion-compensation effect versus geometry-epoch offset")
     else:
         axes[2].step(stations, aligned_counts, where="mid", label="aligned")
         axes[2].step(
@@ -166,7 +166,7 @@ def plot_alignment_comparison(
     for axis in axes:
         axis.grid(True, alpha=0.25)
     figure.suptitle(
-        "CONFIDENTIAL — spatial reference alignment; not explicit motion compensation",
+        "CONFIDENTIAL — odometry-compensated spatial reference alignment",
         fontsize=12,
     )
     figure.tight_layout(rect=(0.0, 0.0, 1.0, 0.97))

@@ -1,4 +1,4 @@
-"""CLI adapter for projection-based RLMB reference-alignment validation."""
+"""CLI adapter for odometry-compensated RLMB alignment validation."""
 
 from __future__ import annotations
 
@@ -9,7 +9,11 @@ from pathlib import Path
 
 from ..domain.path_source_probe import DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC
 from ..io.mcap import McapDependencyError
-from ..workflows.alignment import DEFAULT_MAP_TOPIC, run_alignment_audit
+from ..workflows.alignment import (
+    DEFAULT_MAP_TOPIC,
+    DEFAULT_ODOMETRY_TOPIC,
+    run_alignment_audit,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,9 +21,9 @@ LOGGER = logging.getLogger(__name__)
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Validate projection/resampling of road_lane_map_based from the EDP "
-            "station-zero point. This is spatial alignment, not explicit ego-motion "
-            "compensation or independent physical ground truth."
+            "Transform road_lane_map_based into an odometry-proxied EDP ego frame, "
+            "then validate station-zero projection/resampling. The result remains "
+            "best-available pseudo-ground truth, not independent physical truth."
         )
     )
     parser.add_argument("mcap", type=Path, help="one complete MCAP recording chunk")
@@ -33,8 +37,7 @@ def _parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         help=(
-            "optional predeclared timestamp gate; the source delta is retained but "
-            "is not used numerically by the spatial alignment"
+            "optional predeclared pairing gate on published source timestamps"
         ),
     )
     parser.add_argument("--max-step-m", type=float, default=0.25)
@@ -50,6 +53,21 @@ def _parser() -> argparse.ArgumentParser:
         default=DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC,
     )
     parser.add_argument("--map-topic", default=DEFAULT_MAP_TOPIC)
+    parser.add_argument("--odometry-topic", default=DEFAULT_ODOMETRY_TOPIC)
+    parser.add_argument(
+        "--maximum-odometry-log-lag-ms",
+        type=float,
+        default=20.0,
+        help=(
+            "maximum age of the last odometry message recorded before EDP log time"
+        ),
+    )
+    parser.add_argument(
+        "--maximum-odometry-interpolation-gap-ms",
+        type=float,
+        default=20.0,
+        help="maximum odometry bracket width at the RLMB pose-validity time",
+    )
     parser.add_argument(
         "--log-level",
         choices=("DEBUG", "INFO", "WARNING", "ERROR"),

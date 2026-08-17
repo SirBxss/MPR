@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.5.0
+# Minimal Path-Residual Model (MPR) v0.5.1
 
 Version 0.4.5 adds a corpus-level diagnostic over the validated v0.4.4
 single-recording pipeline. It processes each MCAP independently, preserves
@@ -6,8 +6,9 @@ complete-stream timestamp pairing, and aggregates fixed complete cohorts at
 0--60 m and 0--100 m. Per-drive and overall statistics are recomputed from the
 underlying pair/station rows; recording medians are never averaged together.
 
-Version 0.5.0 adds a separate projection-based RLMB alignment audit. It does
-not modify the accepted v0.4.5 diagnostic files and does not yet train a model.
+Version 0.5.1 extends the separate RLMB alignment audit with explicit rear-axle
+odometry compensation. It does not modify the accepted v0.4.5 diagnostic files
+and does not yet train a model.
 
 The v0.4.4 geometry behavior remains unchanged. It extends the RLMB
 pseudo-reference from the metadata-confirmed ego
@@ -53,7 +54,8 @@ substituted for the lane reference.
 | Stable pose + `distance_to_centerline` | Independent reconstruction candidate |
 | Future vehicle positions | Diagnostic realised trajectory only |
 | Fused ego-lane path | Operational comparator only |
-| GNSS, odometry, transforms | Pose/frame validation support |
+| Planar odometry | RLMB-to-EDP ego-frame compensation and audit evidence |
+| GNSS, 6-DoF odometry, transforms | Additional pose/frame validation support |
 
 No single MCAP topic is assumed to be physical ground truth. A final residual
 dataset is forbidden in this version.
@@ -237,13 +239,21 @@ invalid configuration or a global execution error.
 These remain BMW-derived pseudo-residual diagnostics. They are not independent
 samples, physical ground-truth lane errors, or a model-training dataset.
 
-## Projection-based reference-alignment validation
+## Odometry-compensated reference-alignment validation
 
-v0.5 implements the spatial correspondence proposed for the next residual
-stage without changing the frozen v0.4.5 pairing outputs. For each temporal
-pair, EDP station zero is projected onto the RLMB path. That projected RLMB
-station becomes aligned zero, and RLMB is sampled at the same forward offsets
-`0, 5, ..., 100 m` as EDP.
+v0.5.1 implements the common-time geometry step required before the spatial
+correspondence proposed for residual extraction. RLMB is transformed from its
+pose-validity ego frame into the EDP geometry-frame proxy using
+`/adp/odometry`. EDP station zero is then projected onto the transformed RLMB
+path. That projected station becomes aligned zero, and RLMB is sampled at the
+same forward offsets `0, 5, ..., 100 m` as EDP.
+
+The EDP topic does not publish its actual odometry geometry epoch. The offline
+proxy is therefore the last odometry message recorded at or before the EDP
+MCAP log time. Every pair reports the selected odometry timestamp, log-time
+lag, RLMB interpolation span, SE(2) transform, and geometry-epoch delta. The
+proxy is fail-closed when its lag or interpolation bracket exceeds the declared
+limits.
 
 Run one MCAP into a new validation directory:
 
@@ -259,10 +269,10 @@ The command writes `alignment_pair_audit.csv`,
 `alignment_summary.json`. It compares native and aligned residuals while
 retaining the signed timestamp delta and constant H60/H100 eligibility.
 
-This is spatial reference alignment, not complete timestamp correction: the
-timestamp delta is not multiplied by speed, no ego pose is interpolated, and
-no SE(2) transform is applied. The result must be reviewed across the exact
-ten-recording manifest before the aligned H100 vectors are promoted to the
+This is explicit rear-axle SE(2) motion compensation followed by spatial
+projection/resampling. It remains an offline approximation because the exact
+DPE geometry epoch is not published. The result must be reviewed across the
+exact ten-recording manifest before H100 vectors are promoted to the
 Gaussian-training dataset.
 
 For the actual corpus, run the exact manifest batch command rather than a shell
@@ -274,7 +284,7 @@ python -m lane_residuals.cli.alignment_batch \
   --drive-map "config/private/mcap_sessions.private.json" \
   --expected-file-count 10 \
   --output-directory \
-  "outputs/diagnostics/validation/reference_alignment_batch_v050"
+  "outputs/diagnostics/validation/reference_alignment_batch_v051"
 ```
 
 Do not use the unused three-entry drive-map example and do not add a timestamp

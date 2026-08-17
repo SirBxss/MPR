@@ -1,7 +1,7 @@
 # Supported commands
 
 All seven v0.4.5 console aliases and their historical `python -m` forms remain
-supported. v0.5 adds one categorized alignment-validation command. Existing
+supported. v0.5.1 adds categorized motion-alignment validation. Existing
 defaults and flags are unchanged; use `--help` for the complete option set.
 
 | Console alias | Python module form | Purpose and status | Required inputs | Generated outputs |
@@ -13,8 +13,8 @@ defaults and flags are unchanged; use `--help` for the complete option set.
 | `mpr-audit-path-pairing` | `python -m lane_residuals.pairing_audit_cli` | One-recording EDP–RLMB pseudo-reference disagreement audit | One MCAP | Pair/message/chain/station CSVs, plots, and `pairing_summary.json` |
 | `mpr-audit-edp-transitions` | `python -m lane_residuals.edp_transition_audit_cli` | Candidate and rollover diagnostics under both reconstruction hypotheses | One MCAP | EDP inventories, geometry/transition CSVs, plots, and summary JSON |
 | `mpr-audit-path-pairing-batch` | `python -m lane_residuals.batch_pairing_audit_cli` | v0.4.5 ten-recording fixed-cohort aggregation | MCAP files/directories and exact `--drive-map` | Per-recording pairing outputs plus corpus CSVs, JSONs, and plots |
-| `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5 projection/resampling validation; no model training | One MCAP | Alignment pair/station CSVs, comparison plot, and summary JSON |
-| `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5 exact-manifest alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
+| `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
+| `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

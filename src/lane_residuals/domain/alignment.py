@@ -9,9 +9,9 @@ additional correspondence proposed for provisional residual extraction:
 3. call the projected RLMB station zero for this comparison; and
 4. sample both paths at equal forward arc-length offsets.
 
-This is spatial reference alignment.  It is not explicit timestamp/SE(2)
-motion compensation and must not be described as independent physical ground
-truth recovery.
+This module performs only spatial reference alignment.  The v0.5.1 workflow
+first supplies an RLMB path transformed by :mod:`lane_residuals.domain.motion`;
+neither step turns the pseudo-reference into independent physical ground truth.
 """
 
 from __future__ import annotations

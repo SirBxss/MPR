@@ -31,6 +31,9 @@ class AlignmentBatchWorkflowTests(unittest.TestCase):
             "map_source_time_ns_private": 90,
             "source_delta_ms": source_delta_ms,
             "absolute_source_delta_ms": abs(source_delta_ms),
+            "geometry_epoch_delta_ms": source_delta_ms,
+            "edp_geometry_proxy_log_lag_ms": 1.0,
+            "ego_motion_source_to_target_travel_m": 0.5,
             "pair_state": "aligned_h100_ready",
             "h60_aligned_eligible": True,
             "h100_aligned_eligible": True,
@@ -61,6 +64,9 @@ class AlignmentBatchWorkflowTests(unittest.TestCase):
                 "h60_aligned_complete_pair_count": 1,
                 "h100_aligned_complete_pair_count": 1,
                 "median_absolute_source_delta_ms": abs(source_delta_ms),
+                "median_absolute_geometry_epoch_delta_ms": abs(source_delta_ms),
+                "median_edp_geometry_proxy_log_lag_ms": 1.0,
+                "median_ego_motion_source_to_target_travel_m": 0.5,
                 "median_reference_anchor_station_m": 0.5,
                 "median_anchor_distance_m": 0.08,
                 "median_aligned_minus_native_h60_pair_lateral_rms_m": 99.0,
@@ -100,6 +106,9 @@ class AlignmentBatchWorkflowTests(unittest.TestCase):
                 map_max_junction_heading_deg=30.0,
                 estimate_topic="/estimate",
                 map_topic="/map",
+                odometry_topic="/odometry",
+                maximum_odometry_log_lag_ms=20.0,
+                maximum_odometry_interpolation_gap_ms=20.0,
             )
 
             def fake_recording(**kwargs):
@@ -125,6 +134,13 @@ class AlignmentBatchWorkflowTests(unittest.TestCase):
             self.assertEqual(summary["h60_aligned_complete_pair_count"], 2)
             self.assertEqual(summary["h100_aligned_complete_pair_count"], 2)
             self.assertAlmostEqual(summary["median_absolute_source_delta_ms"], 25.0)
+            self.assertAlmostEqual(
+                summary["median_absolute_geometry_epoch_delta_ms"],
+                25.0,
+            )
+            self.assertTrue(
+                summary["explicit_ego_pose_motion_compensation_applied"]
+            )
             self.assertAlmostEqual(
                 summary[
                     "median_aligned_minus_native_h100_pair_lateral_rms_m"
@@ -172,6 +188,9 @@ class AlignmentBatchWorkflowTests(unittest.TestCase):
                 map_max_junction_heading_deg=30.0,
                 estimate_topic="/estimate",
                 map_topic="/map",
+                odometry_topic="/odometry",
+                maximum_odometry_log_lag_ms=20.0,
+                maximum_odometry_interpolation_gap_ms=20.0,
             )
             with self.assertRaisesRegex(ValueError, "must match resolved basenames"):
                 run_alignment_batch(arguments)
@@ -199,6 +218,9 @@ class AlignmentBatchWorkflowTests(unittest.TestCase):
                 map_max_junction_heading_deg=30.0,
                 estimate_topic="/estimate",
                 map_topic="/map",
+                odometry_topic="/odometry",
+                maximum_odometry_log_lag_ms=20.0,
+                maximum_odometry_interpolation_gap_ms=20.0,
             )
             base = self._recording(
                 recording_id="recording_001",

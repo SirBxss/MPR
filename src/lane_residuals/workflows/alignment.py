@@ -1,4 +1,4 @@
-"""Single-recording validation of projection-based RLMB reference alignment."""
+"""Single-recording validation of odometry-compensated RLMB alignment."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import argparse
 import logging
 import math
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -18,6 +19,15 @@ from ..domain.alignment import (
 )
 from ..domain.batch_pairing import HORIZON_60_M, HORIZON_100_M
 from ..domain.geometry_validation import GeometryValidationError
+from ..domain.motion import (
+    EgoFrameTransform,
+    OdometrySample,
+    PoseInterpolation,
+    ego_frame_transform,
+    interpolate_odometry_pose,
+    latest_odometry_at_or_before_log_time,
+    transform_path_to_target_ego_frame,
+)
 from ..domain.pairing import (
     DiagnosticPathDisagreement,
     EgoRelativePath,
@@ -25,6 +35,7 @@ from ..domain.pairing import (
     mutual_nearest_timestamp_pairs,
 )
 from ..domain.path_source_probe import DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC
+from ..io.odometry import DEFAULT_ODOMETRY_TOPIC, decode_odometry_samples
 from ..io.reports import write_csv_rows, write_strict_json
 from ..visualization.alignment import plot_alignment_comparison
 from .pairing import DEFAULT_MAP_TOPIC, _decode_paths
@@ -55,6 +66,20 @@ def _validate_arguments(arguments: argparse.Namespace) -> None:
         or not math.isfinite(arguments.maximum_pair_delta_ms)
     ):
         raise ValueError("maximum-pair-delta-ms must be finite and nonnegative")
+    if (
+        arguments.maximum_odometry_log_lag_ms < 0.0
+        or not math.isfinite(arguments.maximum_odometry_log_lag_ms)
+    ):
+        raise ValueError(
+            "maximum-odometry-log-lag-ms must be finite and nonnegative"
+        )
+    if (
+        arguments.maximum_odometry_interpolation_gap_ms < 0.0
+        or not math.isfinite(arguments.maximum_odometry_interpolation_gap_ms)
+    ):
+        raise ValueError(
+            "maximum-odometry-interpolation-gap-ms must be finite and nonnegative"
+        )
 
 
 def _ensure_empty_output(path: Path) -> None:
@@ -113,6 +138,53 @@ def _native_result_or_none(
         estimate,
         reference,
         stations_m=stations,
+    )
+
+
+@dataclass(frozen=True)
+class _MotionCompensation:
+    reference_path: EgoRelativePath
+    target_odometry: OdometrySample
+    source_interpolation: PoseInterpolation
+    transform: EgoFrameTransform
+    target_log_lag_ns: int
+
+
+def _motion_compensated_reference(
+    *,
+    estimate_log_time_ns: int,
+    reference_source_time_ns: int | None,
+    reference_path: EgoRelativePath,
+    odometry_by_log_time: Sequence[OdometrySample],
+    odometry_by_state_time: Sequence[OdometrySample],
+    maximum_log_lag_ns: int,
+    maximum_interpolation_gap_ns: int,
+) -> _MotionCompensation:
+    if reference_source_time_ns is None:
+        raise GeometryValidationError(
+            "rlmb_source_time_unavailable",
+            "motion compensation requires the RLMB pose-validity timestamp",
+        )
+    target_odometry, target_log_lag_ns = latest_odometry_at_or_before_log_time(
+        odometry_by_log_time,
+        estimate_log_time_ns,
+        maximum_log_lag_ns=maximum_log_lag_ns,
+    )
+    source_interpolation = interpolate_odometry_pose(
+        odometry_by_state_time,
+        reference_source_time_ns,
+        maximum_bracket_gap_ns=maximum_interpolation_gap_ns,
+    )
+    transform = ego_frame_transform(
+        source_interpolation.pose,
+        target_odometry.pose,
+    )
+    return _MotionCompensation(
+        reference_path=transform_path_to_target_ego_frame(reference_path, transform),
+        target_odometry=target_odometry,
+        source_interpolation=source_interpolation,
+        transform=transform,
+        target_log_lag_ns=target_log_lag_ns,
     )
 
 
@@ -196,8 +268,19 @@ PAIR_FIELDS = (
     "map_message_index",
     "estimate_source_time_ns_private",
     "map_source_time_ns_private",
+    "estimate_log_time_ns_private",
+    "map_log_time_ns_private",
     "source_delta_ms",
     "absolute_source_delta_ms",
+    "edp_geometry_time_proxy_ns_private",
+    "edp_geometry_time_proxy_basis",
+    "edp_geometry_proxy_log_lag_ms",
+    "rlmb_pose_odometry_interpolation_span_ms",
+    "geometry_epoch_delta_ms",
+    "ego_motion_translation_x_m",
+    "ego_motion_translation_y_m",
+    "ego_motion_yaw_rad",
+    "ego_motion_source_to_target_travel_m",
     "pair_state",
     "failure_code",
     "estimate_geometry_state",
@@ -249,7 +332,7 @@ STATION_FIELDS = (
 
 
 def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
-    """Validate Leon's projection/resampling rule on one complete recording."""
+    """Validate odometry compensation plus Leon's projection/resampling rule."""
 
     _validate_arguments(arguments)
     _ensure_empty_output(arguments.output_directory)
@@ -264,6 +347,31 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
         map_max_junction_heading_rad=math.radians(
             arguments.map_max_junction_heading_deg
         ),
+    )
+    odometry, odometry_failures, odometry_message_count = decode_odometry_samples(
+        arguments.mcap,
+        topic=arguments.odometry_topic,
+    )
+    decode_failures.update(odometry_failures)
+    counts.update(
+        {
+            "odometry_messages": odometry_message_count,
+            "odometry_decoded_samples": len(odometry),
+        }
+    )
+    odometry_by_log_time = sorted(
+        odometry,
+        key=lambda sample: (sample.log_time_ns, sample.timestamp_ns),
+    )
+    odometry_by_state_time = sorted(
+        odometry,
+        key=lambda sample: sample.timestamp_ns,
+    )
+    maximum_odometry_log_lag_ns = int(
+        round(arguments.maximum_odometry_log_lag_ms * 1e6)
+    )
+    maximum_odometry_interpolation_gap_ns = int(
+        round(arguments.maximum_odometry_interpolation_gap_ms * 1e6)
     )
     maximum_delta_ns = (
         None
@@ -289,6 +397,10 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
     native_h100_rms: list[float] = []
     aligned_h100_rms: list[float] = []
     h100_rms_changes: list[float] = []
+    geometry_epoch_deltas_ms: list[float] = []
+    odometry_log_lags_ms: list[float] = []
+    odometry_interpolation_spans_ms: list[float] = []
+    ego_motion_travel_m: list[float] = []
 
     for pair_index, timestamp_pair in enumerate(timestamp_audit.pairs):
         estimate = estimates[timestamp_pair.first_position]
@@ -301,8 +413,19 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
             "map_message_index": reference.message_index,
             "estimate_source_time_ns_private": estimate.source_time_ns,
             "map_source_time_ns_private": reference.source_time_ns,
+            "estimate_log_time_ns_private": estimate.log_time_ns,
+            "map_log_time_ns_private": reference.log_time_ns,
             "source_delta_ms": delta_ms,
             "absolute_source_delta_ms": abs(delta_ms),
+            "edp_geometry_time_proxy_ns_private": None,
+            "edp_geometry_time_proxy_basis": None,
+            "edp_geometry_proxy_log_lag_ms": None,
+            "rlmb_pose_odometry_interpolation_span_ms": None,
+            "geometry_epoch_delta_ms": None,
+            "ego_motion_translation_x_m": None,
+            "ego_motion_translation_y_m": None,
+            "ego_motion_yaw_rad": None,
+            "ego_motion_source_to_target_travel_m": None,
             "pair_state": None,
             "failure_code": None,
             "estimate_geometry_state": estimate.geometry_state,
@@ -344,18 +467,29 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
         assert estimate.path is not None
         assert reference.path is not None
         try:
+            motion = _motion_compensated_reference(
+                estimate_log_time_ns=estimate.log_time_ns,
+                reference_source_time_ns=reference.source_time_ns,
+                reference_path=reference.path,
+                odometry_by_log_time=odometry_by_log_time,
+                odometry_by_state_time=odometry_by_state_time,
+                maximum_log_lag_ns=maximum_odometry_log_lag_ns,
+                maximum_interpolation_gap_ns=(
+                    maximum_odometry_interpolation_gap_ns
+                ),
+            )
             projection = project_point_to_path(
                 estimate.path.origin_footpoint_m,
-                reference.path,
+                motion.reference_path,
             )
             aligned_h60 = _aligned_result_or_none(
                 estimate.path,
-                reference.path,
+                motion.reference_path,
                 HORIZON_60_M,
             )
             aligned_h100 = _aligned_result_or_none(
                 estimate.path,
-                reference.path,
+                motion.reference_path,
                 HORIZON_100_M,
             )
             native_h60 = _native_result_or_none(
@@ -369,7 +503,11 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
                 HORIZON_100_M,
             )
         except GeometryValidationError as error:
-            row["pair_state"] = "alignment_not_ready"
+            row["pair_state"] = (
+                "motion_compensation_not_ready"
+                if error.code.startswith(("odometry_", "rlmb_"))
+                else "alignment_not_ready"
+            )
             row["failure_code"] = error.code
             alignment_failures[error.code] += 1
             pair_rows.append(row)
@@ -381,11 +519,18 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
             - np.pi
         )
         aligned_backward_coverage = float(
-            projection.station_m - reference.path.stations_m[0]
+            projection.station_m - motion.reference_path.stations_m[0]
         )
         aligned_forward_coverage = float(
-            reference.path.stations_m[-1] - projection.station_m
+            motion.reference_path.stations_m[-1] - projection.station_m
         )
+        target_log_lag_ms = motion.target_log_lag_ns / 1e6
+        interpolation_span_ms = motion.source_interpolation.bracket_span_ms
+        geometry_epoch_delta_ms = (
+            motion.target_odometry.timestamp_ns - int(reference.source_time_ns)
+        ) / 1e6
+        motion_translation = motion.transform.translation_target_m
+        motion_travel_m = motion.transform.source_to_target_travel_m
         h60_eligible = aligned_h60 is not None
         h100_eligible = aligned_h100 is not None
         row.update(
@@ -402,6 +547,21 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
                     if h60_eligible
                     else "reference_alignment_h60_coverage_incomplete"
                 ),
+                "edp_geometry_time_proxy_ns_private": (
+                    motion.target_odometry.timestamp_ns
+                ),
+                "edp_geometry_time_proxy_basis": (
+                    "last_odometry_log_at_or_before_estimate_log"
+                ),
+                "edp_geometry_proxy_log_lag_ms": target_log_lag_ms,
+                "rlmb_pose_odometry_interpolation_span_ms": (
+                    interpolation_span_ms
+                ),
+                "geometry_epoch_delta_ms": geometry_epoch_delta_ms,
+                "ego_motion_translation_x_m": float(motion_translation[0]),
+                "ego_motion_translation_y_m": float(motion_translation[1]),
+                "ego_motion_yaw_rad": motion.transform.yaw_delta_rad,
+                "ego_motion_source_to_target_travel_m": motion_travel_m,
                 "reference_anchor_station_m": projection.station_m,
                 "reference_anchor_x_m": float(projection.point_m[0]),
                 "reference_anchor_y_m": float(projection.point_m[1]),
@@ -445,6 +605,10 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
         anchor_stations_m.append(projection.station_m)
         anchor_distances_m.append(projection.distance_m)
         anchor_heading_deltas_rad.append(abs(anchor_heading_delta))
+        geometry_epoch_deltas_ms.append(abs(geometry_epoch_delta_ms))
+        odometry_log_lags_ms.append(target_log_lag_ms)
+        odometry_interpolation_spans_ms.append(interpolation_span_ms)
+        ego_motion_travel_m.append(motion_travel_m)
         station_result = aligned_h100 if aligned_h100 is not None else aligned_h60
         if station_result is not None:
             native_station_result = (
@@ -477,11 +641,12 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
     h60_count = sum(bool(row["h60_aligned_eligible"]) for row in pair_rows)
     h100_count = sum(bool(row["h100_aligned_eligible"]) for row in pair_rows)
     summary = {
-        "version": "0.5.0",
-        "purpose": "projection_based_reference_alignment_validation",
+        "version": "0.5.1",
+        "purpose": "odometry_motion_compensated_reference_alignment_validation",
         "mcap_filename_private": arguments.mcap.name,
         "estimate_topic": arguments.estimate_topic,
         "map_topic": arguments.map_topic,
+        "odometry_topic": arguments.odometry_topic,
         **counts,
         "complete_stream_mutual_nearest_pair_count": len(timestamp_audit.pairs),
         "timestamp_gate_rejected_pair_count": len(timestamp_audit.rejected_by_gate),
@@ -494,16 +659,37 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
         "canonical_horizons_m": [60, 100],
         "canonical_station_grid_m": list(HORIZON_100_M),
         "alignment_method": (
-            "project EDP station-zero footpoint onto the paired RLMB path; "
-            "define the projected RLMB station as aligned zero; sample RLMB at "
-            "equal forward arc-length offsets"
+            "interpolate rear-axle odometry at the RLMB pose-validity time; "
+            "transform RLMB into the latest odometry ego frame recorded at or "
+            "before the EDP message; project EDP station zero onto transformed "
+            "RLMB; sample equal forward arc-length offsets"
         ),
         "alignment_assumption": (
-            "EDP geometry close to station zero is sufficiently close to RLMB "
-            "for the nearest projection to identify longitudinal correspondence"
+            "the last odometry message at or before EDP MCAP log time is the "
+            "best offline proxy for DPE's unpublished geometry epoch"
+        ),
+        "edp_geometry_time_proxy_basis": (
+            "last_odometry_log_at_or_before_estimate_log"
+        ),
+        "edp_geometry_epoch_exactly_published": False,
+        "maximum_odometry_log_lag_ms": arguments.maximum_odometry_log_lag_ms,
+        "maximum_odometry_interpolation_gap_ms": (
+            arguments.maximum_odometry_interpolation_gap_ms
         ),
         "anchor_quality_threshold_applied": False,
         "median_absolute_source_delta_ms": _median_or_none(source_deltas_ms),
+        "median_absolute_geometry_epoch_delta_ms": _median_or_none(
+            geometry_epoch_deltas_ms
+        ),
+        "median_edp_geometry_proxy_log_lag_ms": _median_or_none(
+            odometry_log_lags_ms
+        ),
+        "median_rlmb_pose_odometry_interpolation_span_ms": _median_or_none(
+            odometry_interpolation_spans_ms
+        ),
+        "median_ego_motion_source_to_target_travel_m": _median_or_none(
+            ego_motion_travel_m
+        ),
         "median_reference_anchor_station_m": _median_or_none(anchor_stations_m),
         "median_anchor_distance_m": _median_or_none(anchor_distances_m),
         "median_absolute_anchor_heading_delta_rad": _median_or_none(
@@ -526,16 +712,18 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
             "topic streams before geometry filtering"
         ),
         "source_delta_used_numerically_for_alignment": False,
+        "rlmb_pose_validity_time_used_for_motion_compensation": True,
+        "odometry_state_time_used_for_motion_compensation": True,
         "spatial_reference_alignment_applied": True,
-        "explicit_ego_pose_motion_compensation_applied": False,
+        "explicit_ego_pose_motion_compensation_applied": True,
         "reference_signal_role": "best_available_pseudo_ground_truth",
         "aligned_difference_is_absolute_physical_ground_truth_error": False,
         "generated_final_residual_dataset": False,
         "trained_statistical_model": False,
         "next_decision": (
-            "Run this validation on all manifest recordings; review anchor shifts, "
-            "projection distances, coverage, and native-versus-aligned changes "
-            "before freezing residual eligibility and training the Gaussian model."
+            "Run this validation on the exact manifest; verify odometry proxy lag, "
+            "geometry-epoch displacement, coverage, and residual changes before "
+            "freezing H100 eligibility and training the Gaussian model."
         ),
         "confidentiality": (
             "Outputs contain BMW-derived timestamps and measurements and must remain private."
@@ -548,6 +736,7 @@ def run_alignment_audit(arguments: argparse.Namespace) -> dict[str, Any]:
 __all__ = [
     "DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC",
     "DEFAULT_MAP_TOPIC",
+    "DEFAULT_ODOMETRY_TOPIC",
     "PAIR_FIELDS",
     "STATION_FIELDS",
     "run_alignment_audit",

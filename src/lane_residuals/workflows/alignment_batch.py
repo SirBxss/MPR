@@ -1,4 +1,4 @@
-"""Exact-manifest batch validation for projection-based reference alignment."""
+"""Exact-manifest batch validation for odometry-compensated alignment."""
 
 from __future__ import annotations
 
@@ -85,6 +85,20 @@ def _validate_arguments(arguments: argparse.Namespace) -> None:
         or not math.isfinite(arguments.maximum_pair_delta_ms)
     ):
         raise ValueError("maximum-pair-delta-ms must be finite and nonnegative")
+    if (
+        arguments.maximum_odometry_log_lag_ms < 0.0
+        or not math.isfinite(arguments.maximum_odometry_log_lag_ms)
+    ):
+        raise ValueError(
+            "maximum-odometry-log-lag-ms must be finite and nonnegative"
+        )
+    if (
+        arguments.maximum_odometry_interpolation_gap_ms < 0.0
+        or not math.isfinite(arguments.maximum_odometry_interpolation_gap_ms)
+    ):
+        raise ValueError(
+            "maximum-odometry-interpolation-gap-ms must be finite and nonnegative"
+        )
 
 
 def _run_one_recording(
@@ -105,6 +119,11 @@ def _run_one_recording(
         map_max_junction_heading_deg=arguments.map_max_junction_heading_deg,
         estimate_topic=arguments.estimate_topic,
         map_topic=arguments.map_topic,
+        odometry_topic=arguments.odometry_topic,
+        maximum_odometry_log_lag_ms=arguments.maximum_odometry_log_lag_ms,
+        maximum_odometry_interpolation_gap_ms=(
+            arguments.maximum_odometry_interpolation_gap_ms
+        ),
     )
     try:
         summary = run_alignment_audit(single_arguments)
@@ -157,6 +176,18 @@ def _median_from_rows(rows: Sequence[Mapping[str, Any]], key: str) -> float | No
     return None if not values else float(np.median(np.asarray(values)))
 
 
+def _median_absolute_from_rows(
+    rows: Sequence[Mapping[str, Any]],
+    key: str,
+) -> float | None:
+    values = [
+        abs(number)
+        for row in rows
+        if (number := _optional_float(row.get(key))) is not None
+    ]
+    return None if not values else float(np.median(np.asarray(values)))
+
+
 def _recording_summary_rows(
     recordings: Sequence[RecordingAlignmentData],
 ) -> list[dict[str, Any]]:
@@ -165,6 +196,9 @@ def _recording_summary_rows(
         "h60_aligned_complete_pair_count",
         "h100_aligned_complete_pair_count",
         "median_absolute_source_delta_ms",
+        "median_absolute_geometry_epoch_delta_ms",
+        "median_edp_geometry_proxy_log_lag_ms",
+        "median_ego_motion_source_to_target_travel_m",
         "median_reference_anchor_station_m",
         "median_anchor_distance_m",
         "median_aligned_minus_native_h60_pair_lateral_rms_m",
@@ -201,6 +235,9 @@ RECORDING_FIELDS = (
     "h60_aligned_complete_pair_count",
     "h100_aligned_complete_pair_count",
     "median_absolute_source_delta_ms",
+    "median_absolute_geometry_epoch_delta_ms",
+    "median_edp_geometry_proxy_log_lag_ms",
+    "median_ego_motion_source_to_target_travel_m",
     "median_reference_anchor_station_m",
     "median_anchor_distance_m",
     "median_aligned_minus_native_h60_pair_lateral_rms_m",
@@ -219,13 +256,21 @@ def run_alignment_batch(
     _ensure_empty_output(arguments.output_directory)
 
     initial_manifest = {
-        "version": "0.5.0",
-        "purpose": "ten_mcap_projection_based_reference_alignment_validation",
+        "version": "0.5.1",
+        "purpose": "ten_mcap_odometry_motion_compensated_alignment_validation",
         "status": "running",
         "expected_file_count": arguments.expected_file_count,
         "resolved_file_count": len(files),
         "file_count_matches": len(files) == arguments.expected_file_count,
         "drive_grouping_source": "exact_private_basename_map",
+        "odometry_topic": arguments.odometry_topic,
+        "edp_geometry_time_proxy_basis": (
+            "last_odometry_log_at_or_before_estimate_log"
+        ),
+        "maximum_odometry_log_lag_ms": arguments.maximum_odometry_log_lag_ms,
+        "maximum_odometry_interpolation_gap_ms": (
+            arguments.maximum_odometry_interpolation_gap_ms
+        ),
         "canonical_horizons_m": [60, 100],
         "canonical_station_grid_m": list(HORIZON_100_M),
         "recordings": [
@@ -325,8 +370,8 @@ def run_alignment_batch(
         blockers.append("h100_not_subset_of_h60")
 
     summary = {
-        "version": "0.5.0",
-        "purpose": "ten_mcap_projection_based_reference_alignment_validation",
+        "version": "0.5.1",
+        "purpose": "ten_mcap_odometry_motion_compensated_alignment_validation",
         "status": "complete" if not blockers else "incomplete",
         "blockers": blockers,
         "expected_file_count": arguments.expected_file_count,
@@ -343,6 +388,18 @@ def run_alignment_batch(
         "median_absolute_source_delta_ms": _median_from_rows(
             pair_rows,
             "absolute_source_delta_ms",
+        ),
+        "median_absolute_geometry_epoch_delta_ms": _median_absolute_from_rows(
+            pair_rows,
+            "geometry_epoch_delta_ms",
+        ),
+        "median_edp_geometry_proxy_log_lag_ms": _median_from_rows(
+            pair_rows,
+            "edp_geometry_proxy_log_lag_ms",
+        ),
+        "median_ego_motion_source_to_target_travel_m": _median_from_rows(
+            pair_rows,
+            "ego_motion_source_to_target_travel_m",
         ),
         "median_reference_anchor_station_m": _median_from_rows(
             pair_rows,
@@ -365,15 +422,19 @@ def run_alignment_batch(
         "drive_grouping_source": "exact_private_basename_map",
         "pair_count_is_independent_sample_size": False,
         "source_delta_used_numerically_for_alignment": False,
+        "edp_geometry_time_proxy_basis": (
+            "last_odometry_log_at_or_before_estimate_log"
+        ),
+        "edp_geometry_epoch_exactly_published": False,
         "spatial_reference_alignment_applied": True,
-        "explicit_ego_pose_motion_compensation_applied": False,
+        "explicit_ego_pose_motion_compensation_applied": True,
         "reference_signal_role": "best_available_pseudo_ground_truth",
         "generated_final_residual_dataset": False,
         "trained_statistical_model": False,
         "next_decision": (
-            "Review per-recording and per-drive anchor shifts, projection "
-            "distances, aligned coverage, and native-versus-aligned changes; "
-            "then freeze eligibility before exporting H100 model vectors."
+            "Review odometry proxy lag, geometry-epoch motion, anchor shifts, "
+            "coverage, and native-versus-compensated residual changes; then "
+            "freeze eligibility before exporting H100 model vectors."
         ),
         "confidentiality": (
             "Outputs contain BMW-derived timestamps and measurements and must remain private."

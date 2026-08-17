@@ -1,4 +1,4 @@
-"""CLI adapter for exact-manifest batch reference-alignment validation."""
+"""CLI adapter for exact-manifest odometry-compensated alignment validation."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ..domain.path_source_probe import DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC
 from ..io.mcap import McapDependencyError
-from ..workflows.alignment import DEFAULT_MAP_TOPIC
+from ..workflows.alignment import DEFAULT_MAP_TOPIC, DEFAULT_ODOMETRY_TOPIC
 from ..workflows.alignment_batch import run_alignment_batch
 
 LOGGER = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Validate projection-based EDP-to-RLMB alignment over the exact "
+            "Validate odometry-compensated EDP-to-RLMB alignment over the exact "
             "recording manifest. No final residual dataset or model is created."
         )
     )
@@ -38,7 +38,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-directory",
         type=Path,
-        default=Path("outputs/diagnostics/validation/reference_alignment_batch_v050"),
+        default=Path("outputs/diagnostics/validation/reference_alignment_batch_v051"),
     )
     parser.add_argument("--maximum-pair-delta-ms", type=float, default=None)
     parser.add_argument("--max-step-m", type=float, default=0.25)
@@ -54,6 +54,17 @@ def _parser() -> argparse.ArgumentParser:
         default=DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC,
     )
     parser.add_argument("--map-topic", default=DEFAULT_MAP_TOPIC)
+    parser.add_argument("--odometry-topic", default=DEFAULT_ODOMETRY_TOPIC)
+    parser.add_argument(
+        "--maximum-odometry-log-lag-ms",
+        type=float,
+        default=20.0,
+    )
+    parser.add_argument(
+        "--maximum-odometry-interpolation-gap-ms",
+        type=float,
+        default=20.0,
+    )
     parser.add_argument(
         "--log-level",
         choices=("DEBUG", "INFO", "WARNING", "ERROR"),

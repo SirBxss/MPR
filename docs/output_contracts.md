@@ -131,7 +131,7 @@ its source/catalog JSON files, six CSV audits, and
 `reference_validation_summary.json`. These files contain private decoded field
 names or BMW-derived measurements and must remain outside version control.
 
-## v0.5 reference-alignment validation
+## v0.5.1 reference-alignment validation
 
 The new alignment command writes exactly:
 
@@ -143,11 +143,13 @@ alignment_summary.json
 ```
 
 `alignment_pair_audit.csv` retains every recording-local mutual-nearest pair,
-including geometry/projection failures, the signed source-time delta, the RLMB
-anchor station selected by projecting EDP station zero, anchor distance and
-heading, aligned coverage, and fixed H60/H100 eligibility. Native and aligned
-per-pair RMS values are reported only when the corresponding complete horizon
-is available.
+including geometry/motion/projection failures and the signed published
+source-time delta. It also records the proxied EDP geometry epoch, odometry log
+lag, RLMB interpolation span, geometry-epoch delta, rear-axle SE(2) transform,
+the RLMB anchor station selected by projecting EDP station zero, anchor distance
+and heading, aligned coverage, and fixed H60/H100 eligibility. Native and
+aligned per-pair RMS values are reported only when the corresponding complete
+horizon is available.
 
 `alignment_station_comparison.csv` contains the EDP point, native RLMB point,
 aligned RLMB point, and native/aligned lateral, along-track, and heading
@@ -155,9 +157,11 @@ differences on the canonical `0, 5, ..., 100 m` grid. No extrapolation or
 available-case horizon aggregation is permitted.
 
 The output remains validation evidence. `alignment_summary.json` explicitly
-records that the source-time delta is not used numerically, explicit ego-pose
-motion compensation is not applied, RLMB is the best available pseudo-ground
-truth, and no final residual dataset or statistical model has been created.
+records that the published source-time delta is not used as a speed multiplier,
+RLMB pose-validity time and planar odometry are used for explicit motion
+compensation, the EDP geometry epoch is an audited proxy rather than an exact
+published timestamp, RLMB is the best available pseudo-ground truth, and no
+final residual dataset or statistical model has been created.
 
 The batch alignment command preserves the four-file set under each
 `recordings/recording_###/` directory and adds:

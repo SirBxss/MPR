@@ -1,7 +1,7 @@
 # Project architecture
 
-MPR keeps the accepted v0.4.5 diagnostic contracts frozen while v0.5 adds a
-separate projection-based reference-alignment validation. The categorization
+MPR keeps the accepted v0.4.5 diagnostic contracts frozen while v0.5.1 adds a
+separate odometry-compensated reference-alignment validation. The categorization
 continues to separate scientific arithmetic, orchestration, I/O, plots, and
 command adapters.
 
@@ -46,12 +46,12 @@ Package responsibilities:
 - `workflows` coordinates decoding, domain calculations, plots, and report
   writing for a complete command.
 - `domain` contains current deterministic scientific rules, including temporal
-  pairing, EDP reconstruction, RLMB chaining, fixed cohorts, and reference
-  diagnostics.
+  pairing, EDP reconstruction, RLMB chaining, odometry interpolation, rear-axle
+  SE(2) transforms, fixed cohorts, and reference diagnostics.
 - `io` owns MCAP message decoding and reusable CSV/strict-JSON serialization.
 - `visualization` renders diagnostic figures from already prepared data.
 - `modeling` contains the Gaussian utility and is distinct from the current
-  alignment-validation pipeline; the v0.5 alignment audit still does not train
+  alignment-validation pipeline; the v0.5.1 alignment audit still does not train
   a model.
 - `legacy` preserves v0.3.x association/preprocessing, withdrawn provisional
   residual behavior, and its synthetic plotting without presenting it as the
@@ -68,11 +68,13 @@ CLI or workflows. A workflow must never import another CLI. Compatibility
 facades may forward names but must not own implementation logic.
 
 Current diagnostics quantify EDP–RLMB or candidate-to-candidate disagreement.
-The v0.5 alignment domain projects EDP station zero onto RLMB and resamples RLMB
-at equal forward offsets. It is spatial correspondence, not explicit SE(2)
-timestamp compensation. Its outputs remain validation evidence rather than a
-final training dataset. Modeling utilities stay inactive until the
-ten-recording alignment result is reviewed. Legacy/withdrawn code is retained
+The v0.5.1 alignment workflow first interpolates planar rear-axle odometry at
+the RLMB pose-validity time. It maps RLMB into the last odometry ego frame
+recorded at or before the EDP MCAP log time, then projects EDP station zero and
+resamples equal forward offsets. Because DPE does not publish its exact geometry
+epoch, this target frame is an audited offline proxy. Outputs remain validation
+evidence rather than a final training dataset. Modeling utilities stay inactive
+until the ten-recording result is reviewed. Legacy/withdrawn code is retained
 only for reproducibility and compatibility.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
