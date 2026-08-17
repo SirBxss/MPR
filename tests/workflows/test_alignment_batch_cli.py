@@ -176,6 +176,69 @@ class AlignmentBatchWorkflowTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must match resolved basenames"):
                 run_alignment_batch(arguments)
 
+    def test_blank_optional_csv_metrics_do_not_break_aggregate_plot(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mcap = root / "only.mcap"
+            mcap.touch()
+            mapping = root / "sessions.json"
+            mapping.write_text(
+                json.dumps({"only.mcap": "physical-session-a"}),
+                encoding="utf-8",
+            )
+            output = root / "alignment_batch"
+            arguments = SimpleNamespace(
+                inputs=(mcap,),
+                drive_map=mapping,
+                expected_file_count=1,
+                output_directory=output,
+                maximum_pair_delta_ms=None,
+                max_step_m=0.25,
+                map_max_segments=16,
+                map_max_junction_gap_m=1.0,
+                map_max_junction_heading_deg=30.0,
+                estimate_topic="/estimate",
+                map_topic="/map",
+            )
+            base = self._recording(
+                recording_id="recording_001",
+                drive_id="physical-session-a",
+                filename=mcap.name,
+                source_delta_ms=20.0,
+                rms_change=0.1,
+            )
+            pair = {
+                **base.pair_rows[0],
+                "aligned_minus_native_h100_lateral_rms_m": "",
+            }
+            stations = tuple(
+                {**row, "native_lateral_m": ""} for row in base.station_rows
+            )
+            recording = RecordingAlignmentData(
+                recording_id=base.recording_id,
+                drive_id=base.drive_id,
+                mcap_filename=base.mcap_filename,
+                status=base.status,
+                output_directory=base.output_directory,
+                summary=base.summary,
+                pair_rows=(pair,),
+                station_rows=stations,
+            )
+
+            with patch(
+                "lane_residuals.workflows.alignment_batch._run_one_recording",
+                return_value=recording,
+            ):
+                summary, status = run_alignment_batch(arguments)
+
+            self.assertEqual(status, 0)
+            self.assertIsNone(
+                summary[
+                    "median_aligned_minus_native_h100_pair_lateral_rms_m"
+                ]
+            )
+            self.assertTrue((output / "alignment_batch_comparison.png").is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

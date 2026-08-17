@@ -8,11 +8,29 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 
 
+def _optional_finite_float(value: Any, key: str) -> float | None:
+    """Parse an optional numeric report cell; CSV encodes ``None`` as blank."""
+
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"alignment plot field {key!r} must be numeric or blank") from error
+    if not np.isfinite(number):
+        raise ValueError(f"alignment plot field {key!r} must be finite")
+    return number
+
+
 def _finite_rows(
     rows: Sequence[Mapping[str, Any]],
     key: str,
 ) -> list[Mapping[str, Any]]:
-    return [row for row in rows if row.get(key) is not None]
+    return [
+        row
+        for row in rows
+        if _optional_finite_float(row.get(key), key) is not None
+    ]
 
 
 def plot_alignment_comparison(
@@ -66,9 +84,15 @@ def plot_alignment_comparison(
         )
         native = np.asarray(
             [
-                float(row["native_lateral_m"])
+                native_value
                 for row in rows
-                if row.get("native_lateral_m") is not None
+                if (
+                    native_value := _optional_finite_float(
+                        row.get("native_lateral_m"),
+                        "native_lateral_m",
+                    )
+                )
+                is not None
             ],
             dtype=np.float64,
         )
