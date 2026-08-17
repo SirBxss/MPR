@@ -1,1 +1,1 @@
-"""Current scientific and diagnostic calculations for MPR v0.4.5."""
+"""Current deterministic scientific and dataset-contract calculations."""

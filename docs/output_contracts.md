@@ -179,3 +179,53 @@ The aggregate CSVs prefix every row with opaque `recording_id` and `drive_id`.
 Drive grouping comes only from the exact private basename manifest. Aggregate
 alignment metrics are recomputed from pair rows, and H100 eligibility is
 required to remain a subset of H60.
+
+## v0.6.0 canonical residual and Gaussian outputs
+
+The v0.6.0 command accepts only a complete v0.5.0 projection-alignment batch.
+It writes exactly:
+
+```text
+residual_vectors.csv
+residual_dataset_summary.json
+gaussian_evaluation.csv
+gaussian_station_evaluation.csv
+gaussian_model.json
+gaussian_diagnostics.png
+gaussian_summary.json
+```
+
+`residual_vectors.csv` contains one row per H100 pair. Its provenance columns
+are followed by `residual_000m_m`, `residual_005m_m`, ..., `residual_100m_m`.
+Every row has all 21 finite values. Every station therefore has the same pair
+count, and no available-case row can enter the model.
+
+```text
+residual_vectors.csv:
+recording_id,drive_id,pair_index,estimate_message_index,map_message_index,estimate_source_time_ns_private,map_source_time_ns_private,source_delta_ms,residual_000m_m,...,residual_100m_m
+
+gaussian_evaluation.csv:
+scope,held_out_drive_id,training_drive_ids,training_vector_count,test_vector_count,dimension,regularization_m2,mean_joint_negative_log_likelihood,mean_squared_mahalanobis,mean_squared_mahalanobis_per_dimension,pooled_mean_prediction_rmse_m,mean_station_mean_prediction_rmse_m,marginal_95_coverage,training_covariance_condition_number
+
+gaussian_station_evaluation.csv:
+scope,held_out_drive_id,station_m,test_vector_count,mean_prediction_rmse_m,mean_prediction_bias_m,marginal_95_coverage
+```
+
+`residual_dataset_summary.json` reconciles the vector count by drive,
+recording, and station. It also records SHA-256 hashes of the four accepted
+source files so the private dataset can be reproduced without embedding an
+absolute local path.
+
+`gaussian_evaluation.csv` contains one row for each held-out physical drive and
+one recomputed overall cross-validated row. It reports joint negative
+log-likelihood, squared Mahalanobis calibration, mean-prediction RMSE, pooled
+marginal 95% coverage, and training covariance condition number.
+`gaussian_station_evaluation.csv` provides held-out and overall RMSE, bias, and
+marginal coverage at each canonical station.
+
+`gaussian_model.json` is strict JSON and records the 21-element mean in metres,
+the 21×21 covariance in square metres, marginal standard deviations, training
+count, drive IDs, fixed regularization, and intended-use limitations. It is the
+final descriptive fit on all accepted vectors; it is fitted only after
+leave-one-drive-out evaluation. All seven files contain or derive from private
+BMW measurements and must remain outside version control.

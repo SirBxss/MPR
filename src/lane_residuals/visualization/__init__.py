@@ -1,1 +1,1 @@
-"""Diagnostic plotting for current v0.4.5 workflows."""
+"""Diagnostic plotting for current validation and modelling workflows."""

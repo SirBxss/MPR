@@ -90,6 +90,26 @@ class GaussianResidualModelTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "2 columns"):
             model.logpdf([[0.0, 0.0, 0.0]])
 
+    def test_mahalanobis_and_marginal_coverage_are_explicit(self) -> None:
+        model = GaussianResidualModel(
+            mean=[0.0, 0.0],
+            covariance=[[1.0, 0.0], [0.0, 4.0]],
+            n_training_samples=10,
+            regularization=0.0,
+        )
+
+        np.testing.assert_allclose(
+            model.squared_mahalanobis([[1.0, 2.0], [0.0, 0.0]]),
+            [2.0, 0.0],
+        )
+        self.assertEqual(
+            model.marginal_interval_coverage(
+                [[1.0, 2.0], [3.0, 0.0]],
+                standard_normal_quantile=1.0,
+            ),
+            0.75,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,9 +1,9 @@
 # Project architecture
 
-MPR keeps the accepted v0.4.5 diagnostic contracts frozen while v0.5.1 adds a
-separate odometry-compensated reference-alignment validation. The categorization
-continues to separate scientific arithmetic, orchestration, I/O, plots, and
-command adapters.
+MPR keeps the accepted diagnostics frozen, retains v0.5.1 as a separate
+odometry-compensated sensitivity audit, and adds the v0.6.0 canonical residual
+and Gaussian workflow. The categorization separates scientific arithmetic,
+orchestration, I/O, plots, and command adapters.
 
 ```text
 src/lane_residuals/
@@ -29,6 +29,7 @@ outputs/diagnostics/
 ├── frozen/              checksum-protected accepted baselines
 ├── validation/          new comparison runs
 └── archive/             preserved historical runs
+outputs/models/           ignored private model runs and residual vectors
 tests/
 ├── domain/              scientific invariants
 ├── workflows/           orchestration and output behavior
@@ -47,12 +48,13 @@ Package responsibilities:
   writing for a complete command.
 - `domain` contains current deterministic scientific rules, including temporal
   pairing, EDP reconstruction, RLMB chaining, odometry interpolation, rear-axle
-  SE(2) transforms, fixed cohorts, and reference diagnostics.
+  SE(2) transforms, fixed cohorts, reference diagnostics, and the immutable
+  H100 residual-vector contract.
 - `io` owns MCAP message decoding and reusable CSV/strict-JSON serialization.
 - `visualization` renders diagnostic figures from already prepared data.
-- `modeling` contains the Gaussian utility and is distinct from the current
-  alignment-validation pipeline; the v0.5.1 alignment audit still does not train
-  a model.
+- `modeling` contains the Gaussian distribution and likelihood/calibration
+  primitives. The v0.6.0 workflow uses them only after the domain contract has
+  accepted a complete exact-manifest H100 dataset.
 - `legacy` preserves v0.3.x association/preprocessing, withdrawn provisional
   residual behavior, and its synthetic plotting without presenting it as the
   current scientific pipeline.
@@ -68,14 +70,12 @@ CLI or workflows. A workflow must never import another CLI. Compatibility
 facades may forward names but must not own implementation logic.
 
 Current diagnostics quantify EDP–RLMB or candidate-to-candidate disagreement.
-The v0.5.1 alignment workflow first interpolates planar rear-axle odometry at
-the RLMB pose-validity time. It maps RLMB into the last odometry ego frame
-recorded at or before the EDP MCAP log time, then projects EDP station zero and
-resamples equal forward offsets. Because DPE does not publish its exact geometry
-epoch, this target frame is an audited offline proxy. Outputs remain validation
-evidence rather than a final training dataset. Modeling utilities stay inactive
-until the ten-recording result is reviewed. Legacy/withdrawn code is retained
-only for reproducibility and compatibility.
+The accepted v0.5.0 projection output supplies the v0.6.0 model vectors; the
+v0.5.1 odometry workflow remains optional because DPE does not publish its exact
+geometry epoch. The model workflow accepts exactly `0, 5, ..., 100 m`, requires
+one fixed H100 cohort, and evaluates by physical drive before fitting the final
+all-data model. Legacy/withdrawn code is retained only for reproducibility and
+compatibility.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

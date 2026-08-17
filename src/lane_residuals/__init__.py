@@ -1,5 +1,15 @@
 """Minimal tools for extracting and modelling lane-estimation residuals."""
 
+from .domain.residual_dataset import (
+    CANONICAL_MODEL_STATIONS_M,
+    RESIDUAL_VECTOR_FIELDS,
+    CanonicalResidualDataset,
+    ResidualDatasetContractError,
+    ResidualObservation,
+    build_canonical_residual_dataset,
+    residual_column_name,
+)
+
 from .domain.alignment import (
     PathPointProjection,
     SpatialAlignmentResult,
@@ -182,6 +192,7 @@ from .residual_extraction import (
 
 __all__ = [
     "BatchAggregationError",
+    "CANONICAL_MODEL_STATIONS_M",
     "CANONICAL_STATIONS_M",
     "DEFAULT_AUDIT_HORIZONS",
     "DEFAULT_COMPARATOR_SCHEMA",
@@ -207,6 +218,7 @@ __all__ = [
     "CenterlineWorldSample",
     "ComparatorFrameAudit",
     "ComparatorGeometry",
+    "CanonicalResidualDataset",
     "DecodedRecording",
     "DecodedResidualRecording",
     "DebugFrameAudit",
@@ -242,7 +254,10 @@ __all__ = [
     "ProtobufPathSemanticTuple",
     "ProtobufPathSourceProbe",
     "ResidualDataset",
+    "ResidualDatasetContractError",
+    "RESIDUAL_VECTOR_FIELDS",
     "RecordingAuditData",
+    "ResidualObservation",
     "ResidualFrame",
     "RoadFrame",
     "RoadFrameLoadResult",
@@ -263,6 +278,7 @@ __all__ = [
     "THESIS_TARGET_VARIABLE",
     "build_residual_dataset",
     "build_residual_dataset_from_mcap",
+    "build_canonical_residual_dataset",
     "audit_counts",
     "audit_pose_continuity",
     "build_hindsight_candidate",
@@ -320,6 +336,7 @@ __all__ = [
     "reconstruct_centerline_samples",
     "reference_decision",
     "residual_matrix",
+    "residual_column_name",
     "residual_vector",
     "road_frame_from_message",
     "road_frame_load_result_from_decoded_messages",

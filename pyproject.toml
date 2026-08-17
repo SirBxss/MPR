@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.5.1"
-description = "Fail-closed EDP-RLMB pairing and odometry-compensated alignment"
+version = "0.6.0"
+description = "Canonical lane-residual vectors and drive-held-out Gaussian baseline"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -31,6 +31,7 @@ mpr-audit-edp-transitions = "lane_residuals.edp_transition_audit_cli:main"
 mpr-audit-path-pairing-batch = "lane_residuals.batch_pairing_audit_cli:main"
 mpr-audit-reference-alignment = "lane_residuals.cli.alignment:main"
 mpr-audit-reference-alignment-batch = "lane_residuals.cli.alignment_batch:main"
+mpr-train-gaussian-baseline = "lane_residuals.cli.gaussian_baseline:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

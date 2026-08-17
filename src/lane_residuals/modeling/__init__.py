@@ -1,1 +1,1 @@
-"""Statistical models kept separate from current diagnostic workflows."""
+"""Statistical model primitives, separate from dataset orchestration."""

@@ -1,8 +1,9 @@
 # Supported commands
 
 All seven v0.4.5 console aliases and their historical `python -m` forms remain
-supported. v0.5.1 adds categorized motion-alignment validation. Existing
-defaults and flags are unchanged; use `--help` for the complete option set.
+supported. v0.5.1 adds categorized motion-alignment validation and v0.6.0 adds
+the canonical residual/Gaussian workflow. Existing defaults and flags are
+unchanged; use `--help` for the complete option set.
 
 | Console alias | Python module form | Purpose and status | Required inputs | Generated outputs |
 |---|---|---|---|---|
@@ -15,6 +16,7 @@ defaults and flags are unchanged; use `--help` for the complete option set.
 | `mpr-audit-path-pairing-batch` | `python -m lane_residuals.batch_pairing_audit_cli` | v0.4.5 ten-recording fixed-cohort aggregation | MCAP files/directories and exact `--drive-map` | Per-recording pairing outputs plus corpus CSVs, JSONs, and plots |
 | `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
+| `mpr-train-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_baseline` | v0.6.0 canonical H100 export, leave-one-drive-out evaluation, and final Gaussian fit | Accepted complete v0.5.0 alignment-batch directory | Residual vectors, dataset/model summaries, fold/station evaluation CSVs, and diagnostics plot |
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the
@@ -29,6 +31,7 @@ data/raw/mcap/
 config/private/mcap_sessions.private.json
 config/private/reference_signals.private.json
 outputs/diagnostics/validation/<new-run-name>/
+outputs/models/<new-model-run-name>/
 ```
 
 Existing implemented default paths remain unchanged. Exit code `0` means the

@@ -1,4 +1,10 @@
-# Minimal Path-Residual Model (MPR) v0.5.1
+# Minimal Path-Residual Model (MPR) v0.6.0
+
+Version 0.6.0 freezes the accepted v0.5.0 complete H100 cohort as a canonical
+21-dimensional residual-vector dataset and adds the first current statistical
+baseline: one unconditional multivariate Gaussian. Evaluation holds out each
+physical drive in turn; the final descriptive model is fitted on all vectors
+only after the two held-out folds are evaluated.
 
 Version 0.4.5 adds a corpus-level diagnostic over the validated v0.4.4
 single-recording pipeline. It processes each MCAP independently, preserves
@@ -6,9 +12,10 @@ complete-stream timestamp pairing, and aggregates fixed complete cohorts at
 0--60 m and 0--100 m. Per-drive and overall statistics are recomputed from the
 underlying pair/station rows; recording medians are never averaged together.
 
-Version 0.5.1 extends the separate RLMB alignment audit with explicit rear-axle
-odometry compensation. It does not modify the accepted v0.4.5 diagnostic files
-and does not yet train a model.
+Version 0.5.1 remains a separate optional RLMB motion-alignment sensitivity
+audit. Its exploratory ten-recording run is not a prerequisite for v0.6.0:
+the approximately 23.5 ms median source-time mismatch is retained as a
+documented modelling limitation instead of blocking residual export.
 
 The v0.4.4 geometry behavior remains unchanged. It extends the RLMB
 pseudo-reference from the metadata-confirmed ego
@@ -57,8 +64,9 @@ substituted for the lane reference.
 | Planar odometry | RLMB-to-EDP ego-frame compensation and audit evidence |
 | GNSS, 6-DoF odometry, transforms | Additional pose/frame validation support |
 
-No single MCAP topic is assumed to be physical ground truth. A final residual
-dataset is forbidden in this version.
+No single MCAP topic is assumed to be physical ground truth. The v0.6.0 vectors
+are EDP disagreement against the best available RLMB pseudo-reference; they
+must not be described as independent physical ground-truth errors.
 
 ## EDP candidate-transition audit
 
@@ -271,9 +279,8 @@ retaining the signed timestamp delta and constant H60/H100 eligibility.
 
 This is explicit rear-axle SE(2) motion compensation followed by spatial
 projection/resampling. It remains an offline approximation because the exact
-DPE geometry epoch is not published. The result must be reviewed across the
-exact ten-recording manifest before H100 vectors are promoted to the
-Gaussian-training dataset.
+DPE geometry epoch is not published. The v0.5.1 corpus result is an optional
+sensitivity analysis and is explicitly rejected as v0.6.0 model input.
 
 For the actual corpus, run the exact manifest batch command rather than a shell
 loop:
@@ -289,6 +296,29 @@ python -m lane_residuals.cli.alignment_batch \
 
 Do not use the unused three-entry drive-map example and do not add a timestamp
 gate for the first exploratory alignment run.
+
+## Canonical residual export and Gaussian baseline
+
+Run v0.6.0 from the accepted, complete v0.5.0 alignment-batch directory. The
+workflow refuses v0.5.1 motion outputs, incomplete batches, non-exact drive
+grouping, H100 pairs outside H60, duplicate or missing stations, non-finite
+values, and any station-wise available-case cohort.
+
+```bash
+python -m lane_residuals.cli.gaussian_baseline \
+  "outputs/diagnostics/frozen/reference_alignment_batch_v050" \
+  --output-directory "outputs/models/gaussian_baseline_v060"
+```
+
+The default diagonal covariance regularization is `1e-6 m²`. The command
+writes the exact wide vectors, dataset reconciliation, leave-one-drive-out
+evaluation at fold and station level, the final all-data Gaussian parameters,
+and one diagnostic plot. Drive labels come only from the accepted batch
+manifest; filenames are never used to infer groups.
+
+The pair rows are sequentially correlated, so 1,777 vectors do not represent
+1,777 independent experiments. With only two physical drives, held-out results
+are a first between-session check rather than a population-level estimate.
 
 ## What the command does
 
@@ -391,7 +421,7 @@ criterion **before** examining the confirmatory data. It can then be supplied as
 | `candidate_reference_metrics.csv` | Diagnostic candidate-to-candidate and estimate discrepancies |
 | `reference_validation_summary.json` | Fail-closed scientific decision and blockers |
 
-The summary always records:
+That historical reference-audit summary always records:
 
 - thesis scope unchanged;
 - driven trajectory is not lane ground truth;
@@ -416,15 +446,16 @@ The direct map-lane candidate is supported only if all gates pass:
 If only the future driven trajectory is available, v0.4.5 leaves the lane
 reference unresolved. It does not change the thesis into drive-path prediction.
 
-## Scientific boundary
+## Reference-audit scientific boundary
 
-This version answers only:
+That earlier diagnostic stage answers only:
 
 > Which MCAP-derived reference candidate is defensible enough to define lane-estimation error?
 
-The following version may create the fixed 21-dimensional residual vector at
-`0, 5, ..., 100 m` only after this answer is supported. Model fitting and
-planner-level experiments remain separate later stages.
+Version 0.6.0 now creates the fixed 21-dimensional pseudo-residual vector at
+`0, 5, ..., 100 m` from the separately accepted v0.5.0 alignment batch. It
+does not retroactively change the outputs or claims of this reference audit.
+Planner-level experiments remain a later stage.
 
 ## Confidentiality
 

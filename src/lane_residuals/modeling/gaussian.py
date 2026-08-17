@@ -106,6 +106,52 @@ class GaussianResidualModel:
 
         return float(-np.mean(self.logpdf(residuals)))
 
+    def squared_mahalanobis(self, residuals: ArrayLike) -> FloatArray:
+        """Return squared Mahalanobis distance for each residual vector."""
+
+        values = np.asarray(residuals, dtype=np.float64)
+        if values.ndim == 1:
+            values = values[None, :]
+        values = _finite_residual_matrix(values, name="residuals")
+        if values.shape[1] != self.dimension:
+            raise ValueError(
+                f"residuals must have {self.dimension} columns, "
+                f"received {values.shape[1]}"
+            )
+        cholesky = np.linalg.cholesky(self.covariance)
+        whitened = np.linalg.solve(cholesky, (values - self.mean).T).T
+        return np.sum(whitened**2, axis=1)
+
+    def marginal_interval_coverage(
+        self,
+        residuals: ArrayLike,
+        *,
+        standard_normal_quantile: float = 1.959963984540054,
+    ) -> float:
+        """Return pooled coverage of symmetric marginal Gaussian intervals.
+
+        The default quantile corresponds to a two-sided 95% standard-normal
+        interval. This is marginal station coverage, not simultaneous 21-D
+        coverage.
+        """
+
+        values = np.asarray(residuals, dtype=np.float64)
+        if values.ndim == 1:
+            values = values[None, :]
+        values = _finite_residual_matrix(values, name="residuals")
+        if values.shape[1] != self.dimension:
+            raise ValueError(
+                f"residuals must have {self.dimension} columns, "
+                f"received {values.shape[1]}"
+            )
+        if (
+            not np.isfinite(standard_normal_quantile)
+            or standard_normal_quantile <= 0.0
+        ):
+            raise ValueError("standard_normal_quantile must be finite and positive")
+        half_width = standard_normal_quantile * np.sqrt(np.diag(self.covariance))
+        return float(np.mean(np.abs(values - self.mean) <= half_width))
+
     def sample(
         self,
         n_samples: int,
