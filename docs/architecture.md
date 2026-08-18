@@ -2,8 +2,9 @@
 
 MPR keeps the accepted diagnostics frozen, retains v0.5.1 as a separate
 odometry-compensated sensitivity audit, and provides the v0.6.0 canonical
-residual/Gaussian workflow, v0.6.1 Gaussian adequacy diagnostics, and the
-v0.7.2 conditional-feature audit. The categorization separates scientific
+residual/Gaussian workflow, v0.6.1 Gaussian adequacy diagnostics, the v0.7.2
+conditional-feature audit, and the v0.8.0 frozen-cohort conditional Gaussian
+comparison. The categorization separates scientific
 arithmetic, orchestration, I/O, plots, and command adapters.
 
 ```text
@@ -61,6 +62,8 @@ Package responsibilities:
   accepted a complete exact-manifest H100 dataset. The v0.6.1 workflow
   recomputes aligned leave-one-drive-out predictions and compares their
   marginal and Mahalanobis behavior with Gaussian reference distributions.
+  The v0.8.0 conditional model adds a fold-standardized linear mean while
+  retaining one condition-invariant 21-dimensional covariance.
 - `domain.conditional_features` owns recording-local direct-speed
   interpolation, fixed-interval unsigned odometry-speed derivation, EDP
   native-to-ego station translation, fixed H100 curvature summaries, and exact
@@ -87,7 +90,10 @@ one fixed H100 cohort, and evaluates by physical drive before fitting the final
 all-data model. The adequacy workflow accepts only a reconciled v0.6.0 output,
 never an available-case station profile. The feature workflow additionally
 requires the exact accepted alignment manifest and raw MCAP basename set. It
-retains one audit row per residual vector and fits no model. Legacy/withdrawn
+retains one audit row per residual vector and fits no model. The v0.8.0
+workflow consumes that immutable audit, selects complete rows without looking
+at residual values, and evaluates conditional and unconditional models on
+identical drive-held-out folds. Legacy/withdrawn
 code is retained only for reproducibility and compatibility.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses

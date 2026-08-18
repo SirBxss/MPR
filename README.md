@@ -1,4 +1,13 @@
-# Minimal Path-Residual Model (MPR) v0.7.2
+# Minimal Path-Residual Model (MPR) v0.8.0
+
+Version 0.8.0 freezes the reviewed complete-feature cohort and performs the
+first conditional-model comparison. It fits a six-feature linear conditional
+mean with one fixed 21-dimensional Gaussian covariance and compares it with an
+unconditional Gaussian refitted on the identical rows and identical
+leave-one-physical-drive-out folds. Feature standardization is fitted inside
+each training fold. The final all-row conditional model is fitted only after
+evaluation, and the outputs report a negative result without promoting the
+conditional model when held-out likelihood or RMSE does not improve.
 
 Version 0.7.2 handles repeated odometry state timestamps without making an
 arbitrary message-order choice. Duplicate groups are coalesced only when every
@@ -381,16 +390,18 @@ python -m lane_residuals.cli.conditional_features \
   --gaussian-baseline-directory \
   "outputs/models/gaussian_baseline_v060" \
   --speed-source odometry_50ms_displacement \
+  --maximum-odometry-interpolation-gap-ms 50 \
   --output-directory \
-  "outputs/diagnostics/modeling/conditional_feature_audit_v072"
+  "outputs/diagnostics/modeling/conditional_feature_audit_v072_gap50"
 ```
 
 The odometry mode computes Euclidean rear-axle displacement over the fixed
 preceding 50 ms and is therefore unsigned: reverse-motion direction is not
 observable from this feature. Both endpoint poses use recording-local linear
-interpolation with a predeclared maximum bracket of 20 ms. The exact accepted
-manifest maps opaque recording IDs to private MCAP basenames; filenames and
-drive identity are not model features. Repeated state timestamps are accepted
+interpolation with a predeclared maximum bracket of 50 ms for the accepted
+gap-50 audit. The exact accepted manifest maps opaque recording IDs to private
+MCAP basenames; filenames and drive identity are not model features. Repeated
+state timestamps are accepted
 only under exact pose equality; conflicting groups are removed before
 interpolation and remain visible in the summaries.
 
@@ -405,6 +416,33 @@ code `3` means valid audit outputs were written but at least one vector is not
 feature-ready. The command never selects a smaller training cohort and does
 not fit the conditional Gaussian; cohort freezing and model comparison happen
 only after this availability result is reviewed.
+
+## Conditional Gaussian same-cohort comparison
+
+Run v0.8.0 from the unchanged v0.6.0 Gaussian directory and its corresponding
+reviewed v0.7.2 gap-50 feature audit:
+
+```bash
+python -m lane_residuals.cli.conditional_gaussian \
+  "outputs/models/gaussian_baseline_v060" \
+  "outputs/diagnostics/modeling/conditional_feature_audit_v072_gap50" \
+  --output-directory "outputs/models/conditional_gaussian_v080"
+```
+
+The command verifies SHA-256 linkage to all four v0.6.0 source files, matches
+every feature row to its exact recording/pair residual key, and admits only
+finite complete features. The accepted audit produces 1,770 vectors: 971 from
+`drive_001`, 799 from `drive_002`, and seven explicit pair-zero exclusions
+caused only by recording-local odometry coverage at MCAP boundaries. No speed
+extrapolation or cross-MCAP interpolation is introduced.
+
+Both models use the same fixed covariance regularization (`1e-6 m²` by
+default) and the same test vectors. The output includes fold, station, and
+per-vector metrics, the frozen cohort and exclusions, an all-row descriptive
+conditional model, and a comparison plot. With the reviewed data, the linear
+conditional mean is slightly worse overall than the same-cohort unconditional
+model on both held-out joint NLL and pooled mean-prediction RMSE; this is a
+valid model-comparison result, not a training failure.
 
 ## What the command does
 

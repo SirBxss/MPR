@@ -304,8 +304,9 @@ interpolation only when `direct_longitudinal_signal` is explicitly selected.
 
 When `odometry_50ms_displacement` is selected, rear-axle position is evaluated
 at the EDP source epoch and exactly 50 ms earlier. Each pose is independently
-interpolated with a maximum 20 ms bracket, and Euclidean displacement is
-divided by 0.05 s. The result is unsigned, so reverse-motion direction is not
+interpolated with the explicitly configured maximum bracket (50 ms in the
+accepted gap-50 audit), and Euclidean displacement is divided by 0.05 s. The
+result is unsigned, so reverse-motion direction is not
 observable. Both interpolation brackets and endpoint targets are retained in
 the per-vector evidence. Extrapolation and cross-recording interpolation are
 forbidden in either mode.
@@ -335,3 +336,50 @@ model or reduced cohort has been created. Exit code `0` means complete feature
 coverage; exit code `3` means the audit was written but is incomplete. All four
 files contain or derive from private BMW measurements and must remain outside
 version control.
+
+## v0.8.0 conditional Gaussian outputs
+
+The v0.8.0 command accepts only the reviewed v0.7.2 odometry gap-50 audit and
+the exact v0.6.0 Gaussian directory named by that audit's SHA-256 hashes. It
+writes exactly:
+
+```text
+conditional_cohort.csv
+conditional_cohort_exclusions.csv
+conditional_cohort_summary.json
+conditional_gaussian_evaluation.csv
+conditional_gaussian_station_evaluation.csv
+conditional_gaussian_vector_evaluation.csv
+conditional_gaussian_model.json
+conditional_gaussian_comparison.png
+conditional_gaussian_summary.json
+```
+
+`conditional_cohort.csv` retains the canonical residual provenance, all 21
+H100 residuals, and the six finite conditional features. The row set is chosen
+only by `feature_state == ready`; residual values are not used for selection.
+`conditional_cohort_exclusions.csv` retains the exact key and failure code for
+each omitted boundary row. Only pair-zero
+`speed__odometry_reference_time_outside_coverage` exclusions are accepted.
+
+`conditional_gaussian_evaluation.csv` contains conditional and unconditional
+rows for every held-out physical drive plus one recomputed overall row for
+each model. Both models are trained and tested on identical rows. The six
+features are standardized using training-fold statistics only. The comparator
+is refitted on the reduced cohort rather than copied from the 1,777-vector
+v0.6.0 evaluation.
+
+`conditional_gaussian_station_evaluation.csv` reports station RMSE, bias, and
+marginal 95% coverage for both models. Per-vector held-out NLL, Mahalanobis
+distance, and mean-prediction RMSE are recorded in
+`conditional_gaussian_vector_evaluation.csv`. Overall and station metrics are
+recomputed from these held-out vector predictions, never averaged from
+per-recording summaries.
+
+`conditional_gaussian_model.json` is the final descriptive all-cohort fit. It
+stores training feature means/scales, a 21-vector intercept, a 6×21 matrix of
+standardized-feature coefficients, and one 21×21 condition-invariant
+covariance. The summary reports conditional-minus-unconditional held-out
+metrics and explicit improvement booleans; it does not claim improvement when
+the deltas are unfavorable. All outputs are private BMW-derived artifacts and
+must remain outside version control.

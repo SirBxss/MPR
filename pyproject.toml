@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.7.2"
-description = "Lane-residual Gaussian diagnostics and conditional-feature audit"
+version = "0.8.0"
+description = "Lane-residual conditional and unconditional Gaussian comparison"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -34,6 +34,7 @@ mpr-audit-reference-alignment-batch = "lane_residuals.cli.alignment_batch:main"
 mpr-train-gaussian-baseline = "lane_residuals.cli.gaussian_baseline:main"
 mpr-diagnose-gaussian-baseline = "lane_residuals.cli.gaussian_diagnostics:main"
 mpr-audit-conditional-features = "lane_residuals.cli.conditional_features:main"
+mpr-train-conditional-gaussian = "lane_residuals.cli.conditional_gaussian:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
