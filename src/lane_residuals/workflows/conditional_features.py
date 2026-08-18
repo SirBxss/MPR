@@ -1,4 +1,4 @@
-"""Exact-manifest v0.7.0 audit of prediction-time conditional features."""
+"""Exact-manifest v0.7.1 audit of prediction-time conditional features."""
 
 from __future__ import annotations
 
@@ -17,6 +17,8 @@ from ..domain.conditional_features import (
     CANONICAL_CONDITION_STATIONS_M,
     CONFIDENCE_BUCKET_SIZE_M,
     ConditionalFeatureError,
+    ODOMETRY_SPEED_INTERVAL_MS,
+    derive_unsigned_odometry_speed,
     interpolate_longitudinal_speed,
     selected_keep_lane_confidences,
     summarize_estimate_conditions,
@@ -29,6 +31,7 @@ from ..domain.geometry_validation import (
 from ..domain.pairing import ego_relative_path_from_spline
 from ..domain.residual_dataset import ResidualDatasetContractError, ResidualObservation
 from ..io.mcap import iter_decoded_mcap_messages
+from ..io.odometry import DEFAULT_ODOMETRY_TOPIC, decode_odometry_samples
 from ..io.reports import write_csv_rows, write_strict_json
 from ..io.vehicle import (
     DEFAULT_LONGITUDINAL_SPEED_TOPIC,
@@ -37,7 +40,7 @@ from ..io.vehicle import (
 from ..visualization.conditional_features import plot_conditional_feature_audit
 from .gaussian_diagnostics import load_gaussian_baseline_artifacts
 
-VERSION = "0.7.0"
+VERSION = "0.7.1"
 ACCEPTED_ALIGNMENT_VERSION = "0.5.0"
 ACCEPTED_ALIGNMENT_PURPOSE = (
     "ten_mcap_projection_based_reference_alignment_validation"
@@ -45,6 +48,10 @@ ACCEPTED_ALIGNMENT_PURPOSE = (
 DEFAULT_ESTIMATE_TOPIC = "/adp/estimated_drive_paths"
 DEFAULT_ESTIMATE_SCHEMA = "Adp.Perception.EstimatedDrivePaths"
 DEFAULT_MAXIMUM_SPEED_INTERPOLATION_GAP_MS = 20.0
+DEFAULT_MAXIMUM_ODOMETRY_INTERPOLATION_GAP_MS = 20.0
+DIRECT_SPEED_SOURCE = "direct_longitudinal_signal"
+ODOMETRY_SPEED_SOURCE = "odometry_50ms_displacement"
+SPEED_SOURCE_CHOICES = (DIRECT_SPEED_SOURCE, ODOMETRY_SPEED_SOURCE)
 
 
 FEATURE_FIELDS = (
@@ -55,11 +62,20 @@ FEATURE_FIELDS = (
     "estimate_source_time_ns_private",
     "feature_state",
     "failure_codes",
+    "speed_source",
+    "speed_is_signed",
     "speed_mps",
-    "speed_interpolation_method",
-    "speed_lower_timestamp_ns_private",
-    "speed_upper_timestamp_ns_private",
-    "speed_interpolation_span_ms",
+    "speed_evaluation_method",
+    "speed_displacement_m",
+    "speed_displacement_interval_ms",
+    "speed_previous_target_timestamp_ns_private",
+    "speed_current_target_timestamp_ns_private",
+    "speed_previous_lower_timestamp_ns_private",
+    "speed_previous_upper_timestamp_ns_private",
+    "speed_current_lower_timestamp_ns_private",
+    "speed_current_upper_timestamp_ns_private",
+    "speed_previous_interpolation_span_ms",
+    "speed_current_interpolation_span_ms",
     "estimated_mean_abs_curvature_per_m",
     "estimated_curvature_delta_per_m",
     "confidence_near_mean",
@@ -82,9 +98,14 @@ RECORDING_SUMMARY_FIELDS = (
     "feature_ready_count",
     "feature_ready_fraction",
     "estimate_message_count",
+    "speed_source",
+    "speed_is_signed",
     "speed_message_count",
     "valid_speed_sample_count",
-    "median_speed_interpolation_span_ms",
+    "median_speed_previous_interpolation_span_ms",
+    "median_speed_current_interpolation_span_ms",
+    "maximum_speed_previous_interpolation_span_ms",
+    "maximum_speed_current_interpolation_span_ms",
     "failure_counts",
 )
 
@@ -255,8 +276,11 @@ def _extract_recording_features(
     observations: Sequence[ResidualObservation],
     *,
     estimate_topic: str,
+    speed_source: str,
     speed_topic: str,
+    odometry_topic: str,
     maximum_speed_interpolation_gap_ns: int,
+    maximum_odometry_interpolation_gap_ns: int,
     max_step_m: float,
 ) -> RecordingFeatureResult:
     target_by_index: dict[int, ResidualObservation] = {}
@@ -268,9 +292,23 @@ def _extract_recording_features(
             )
         target_by_index[index] = observation
 
-    speed_samples, speed_failures, speed_message_count = (
-        decode_longitudinal_speed_samples(recording.path, topic=speed_topic)
-    )
+    if speed_source == DIRECT_SPEED_SOURCE:
+        speed_samples, source_failures, speed_message_count = (
+            decode_longitudinal_speed_samples(recording.path, topic=speed_topic)
+        )
+        speed_is_signed = True
+    elif speed_source == ODOMETRY_SPEED_SOURCE:
+        speed_samples, raw_failures, speed_message_count = decode_odometry_samples(
+            recording.path,
+            topic=odometry_topic,
+        )
+        speed_samples.sort(key=lambda sample: sample.timestamp_ns)
+        source_failures = Counter(
+            {f"speed_source__{code}": count for code, count in raw_failures.items()}
+        )
+        speed_is_signed = False
+    else:
+        raise ValueError(f"unsupported speed source: {speed_source}")
     condition_by_index: dict[int, dict[str, Any]] = {}
     condition_failure_by_index: dict[int, str] = {}
     estimate_message_count = 0
@@ -327,10 +365,17 @@ def _extract_recording_features(
             )
 
     rows: list[dict[str, Any]] = []
-    failure_counts: Counter[str] = Counter(speed_failures)
-    interpolation_spans: list[float] = []
+    failure_counts: Counter[str] = Counter(source_failures)
+    previous_interpolation_spans: list[float] = []
+    current_interpolation_spans: list[float] = []
     for observation in observations:
         row = _base_row(observation)
+        row.update(
+            {
+                "speed_source": speed_source,
+                "speed_is_signed": speed_is_signed,
+            }
+        )
         failures: list[str] = []
         condition = condition_by_index.get(observation.estimate_message_index)
         if condition is None:
@@ -343,26 +388,85 @@ def _extract_recording_features(
         else:
             row.update(condition)
         try:
-            speed = interpolate_longitudinal_speed(
-                speed_samples,
-                observation.estimate_source_time_ns_private,
-                maximum_bracket_gap_ns=maximum_speed_interpolation_gap_ns,
-            )
-        except ConditionalFeatureError as error:
+            if speed_source == DIRECT_SPEED_SOURCE:
+                speed = interpolate_longitudinal_speed(
+                    speed_samples,
+                    observation.estimate_source_time_ns_private,
+                    maximum_bracket_gap_ns=maximum_speed_interpolation_gap_ns,
+                )
+                row.update(
+                    {
+                        "speed_mps": speed.value_mps,
+                        "speed_evaluation_method": f"direct_{speed.method}",
+                        "speed_displacement_interval_ms": 0.0,
+                        "speed_previous_target_timestamp_ns_private": (
+                            observation.estimate_source_time_ns_private
+                        ),
+                        "speed_current_target_timestamp_ns_private": (
+                            observation.estimate_source_time_ns_private
+                        ),
+                        "speed_current_lower_timestamp_ns_private": (
+                            speed.lower_timestamp_ns
+                        ),
+                        "speed_current_upper_timestamp_ns_private": (
+                            speed.upper_timestamp_ns
+                        ),
+                        "speed_current_interpolation_span_ms": (
+                            speed.bracket_span_ms
+                        ),
+                    }
+                )
+                current_interpolation_spans.append(speed.bracket_span_ms)
+            else:
+                speed = derive_unsigned_odometry_speed(
+                    speed_samples,
+                    observation.estimate_source_time_ns_private,
+                    maximum_bracket_gap_ns=(
+                        maximum_odometry_interpolation_gap_ns
+                    ),
+                )
+                row.update(
+                    {
+                        "speed_mps": speed.value_mps,
+                        "speed_evaluation_method": ODOMETRY_SPEED_SOURCE,
+                        "speed_displacement_m": speed.displacement_m,
+                        "speed_displacement_interval_ms": speed.interval_ms,
+                        "speed_previous_target_timestamp_ns_private": (
+                            speed.previous_pose.timestamp_ns
+                        ),
+                        "speed_current_target_timestamp_ns_private": (
+                            speed.current_pose.timestamp_ns
+                        ),
+                        "speed_previous_lower_timestamp_ns_private": (
+                            speed.previous_pose.lower_timestamp_ns
+                        ),
+                        "speed_previous_upper_timestamp_ns_private": (
+                            speed.previous_pose.upper_timestamp_ns
+                        ),
+                        "speed_current_lower_timestamp_ns_private": (
+                            speed.current_pose.lower_timestamp_ns
+                        ),
+                        "speed_current_upper_timestamp_ns_private": (
+                            speed.current_pose.upper_timestamp_ns
+                        ),
+                        "speed_previous_interpolation_span_ms": (
+                            speed.previous_pose.bracket_span_ms
+                        ),
+                        "speed_current_interpolation_span_ms": (
+                            speed.current_pose.bracket_span_ms
+                        ),
+                    }
+                )
+                previous_interpolation_spans.append(
+                    speed.previous_pose.bracket_span_ms
+                )
+                current_interpolation_spans.append(
+                    speed.current_pose.bracket_span_ms
+                )
+        except (ConditionalFeatureError, GeometryValidationError) as error:
             code = f"speed__{error.code}"
             failures.append(code)
             failure_counts[code] += 1
-        else:
-            row.update(
-                {
-                    "speed_mps": speed.value_mps,
-                    "speed_interpolation_method": speed.method,
-                    "speed_lower_timestamp_ns_private": speed.lower_timestamp_ns,
-                    "speed_upper_timestamp_ns_private": speed.upper_timestamp_ns,
-                    "speed_interpolation_span_ms": speed.bracket_span_ms,
-                }
-            )
-            interpolation_spans.append(speed.bracket_span_ms)
         row["feature_state"] = "ready" if not failures else "not_ready"
         row["failure_codes"] = ";".join(sorted(failures))
         rows.append(row)
@@ -377,10 +481,29 @@ def _extract_recording_features(
         "feature_ready_count": ready_count,
         "feature_ready_fraction": ready_count / len(rows),
         "estimate_message_count": estimate_message_count,
+        "speed_source": speed_source,
+        "speed_is_signed": speed_is_signed,
         "speed_message_count": speed_message_count,
         "valid_speed_sample_count": len(speed_samples),
-        "median_speed_interpolation_span_ms": (
-            None if not interpolation_spans else float(np.median(interpolation_spans))
+        "median_speed_previous_interpolation_span_ms": (
+            None
+            if not previous_interpolation_spans
+            else float(np.median(previous_interpolation_spans))
+        ),
+        "median_speed_current_interpolation_span_ms": (
+            None
+            if not current_interpolation_spans
+            else float(np.median(current_interpolation_spans))
+        ),
+        "maximum_speed_previous_interpolation_span_ms": (
+            None
+            if not previous_interpolation_spans
+            else float(np.max(previous_interpolation_spans))
+        ),
+        "maximum_speed_current_interpolation_span_ms": (
+            None
+            if not current_interpolation_spans
+            else float(np.max(current_interpolation_spans))
         ),
         "failure_counts": json.dumps(dict(sorted(failure_counts.items()))),
     }
@@ -391,15 +514,25 @@ def _extract_recording_features(
     )
 
 
-def _validate_arguments(arguments: argparse.Namespace) -> int:
-    gap_ms = arguments.maximum_speed_interpolation_gap_ms
-    if not math.isfinite(gap_ms) or gap_ms < 0.0:
+def _validate_arguments(arguments: argparse.Namespace) -> tuple[int, int]:
+    if arguments.speed_source not in SPEED_SOURCE_CHOICES:
+        raise ValueError(f"unsupported speed source: {arguments.speed_source}")
+    speed_gap_ms = arguments.maximum_speed_interpolation_gap_ms
+    if not math.isfinite(speed_gap_ms) or speed_gap_ms < 0.0:
         raise ValueError(
             "maximum-speed-interpolation-gap-ms must be finite and nonnegative"
         )
+    odometry_gap_ms = arguments.maximum_odometry_interpolation_gap_ms
+    if not math.isfinite(odometry_gap_ms) or odometry_gap_ms < 0.0:
+        raise ValueError(
+            "maximum-odometry-interpolation-gap-ms must be finite and nonnegative"
+        )
     if not math.isfinite(arguments.max_step_m) or arguments.max_step_m <= 0.0:
         raise ValueError("max-step-m must be finite and positive")
-    return int(round(gap_ms * 1_000_000.0))
+    return (
+        int(round(speed_gap_ms * 1_000_000.0)),
+        int(round(odometry_gap_ms * 1_000_000.0)),
+    )
 
 
 def run_conditional_feature_audit(
@@ -407,7 +540,7 @@ def run_conditional_feature_audit(
 ) -> tuple[dict[str, Any], int]:
     """Audit feature availability for every canonical residual vector."""
 
-    maximum_gap_ns = _validate_arguments(arguments)
+    maximum_speed_gap_ns, maximum_odometry_gap_ns = _validate_arguments(arguments)
     artifacts = load_gaussian_baseline_artifacts(
         arguments.gaussian_baseline_directory
     )
@@ -442,8 +575,11 @@ def run_conditional_feature_audit(
             recording,
             observations_by_recording[recording.recording_id],
             estimate_topic=arguments.estimate_topic,
+            speed_source=arguments.speed_source,
             speed_topic=arguments.speed_topic,
-            maximum_speed_interpolation_gap_ns=maximum_gap_ns,
+            odometry_topic=arguments.odometry_topic,
+            maximum_speed_interpolation_gap_ns=maximum_speed_gap_ns,
+            maximum_odometry_interpolation_gap_ns=maximum_odometry_gap_ns,
             max_step_m=arguments.max_step_m,
         )
         all_rows.extend(result.rows)
@@ -514,13 +650,47 @@ def run_conditional_feature_audit(
             "confidence_middle_mean",
             "confidence_far_mean",
         ],
-        "speed_topic": arguments.speed_topic,
+        "speed_source": arguments.speed_source,
+        "speed_topic": (
+            arguments.speed_topic
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else arguments.odometry_topic
+        ),
         "speed_units": "m/s",
-        "speed_reference": "signed_longitudinal_speed_in_rear_axle_coordinates",
-        "speed_timestamp_basis": "message_timestamp_copied_from_odometry",
-        "speed_interpolation": "recording_local_linear_no_extrapolation",
+        "speed_is_signed": arguments.speed_source == DIRECT_SPEED_SOURCE,
+        "speed_reference": (
+            "signed_longitudinal_speed_in_rear_axle_coordinates"
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else "unsigned_rear_axle_odometry_displacement_speed"
+        ),
+        "speed_timestamp_basis": (
+            "direct_signal_message_timestamp_copied_from_odometry"
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else "estimate_source_time_and_exactly_50ms_earlier"
+        ),
+        "speed_interpolation": (
+            "recording_local_linear_no_extrapolation"
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else (
+                "recording_local_pose_interpolation_at_both_50ms_endpoints; "
+                "euclidean_displacement_divided_by_0.05s; no_extrapolation"
+            )
+        ),
+        "speed_displacement_interval_ms": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else ODOMETRY_SPEED_INTERVAL_MS
+        ),
+        "speed_direction_limitation": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else "reverse_motion_sign_is_not_observable_from_displacement_magnitude"
+        ),
         "maximum_speed_interpolation_gap_ms": (
             arguments.maximum_speed_interpolation_gap_ms
+        ),
+        "maximum_odometry_interpolation_gap_ms": (
+            arguments.maximum_odometry_interpolation_gap_ms
         ),
         "estimate_topic": arguments.estimate_topic,
         "estimate_matching": "exact_recording_local_message_index_and_source_time",
@@ -564,10 +734,14 @@ def run_conditional_feature_audit(
 __all__ = [
     "DEFAULT_ESTIMATE_SCHEMA",
     "DEFAULT_ESTIMATE_TOPIC",
+    "DEFAULT_MAXIMUM_ODOMETRY_INTERPOLATION_GAP_MS",
     "DEFAULT_MAXIMUM_SPEED_INTERPOLATION_GAP_MS",
+    "DIRECT_SPEED_SOURCE",
     "FEATURE_FIELDS",
     "ManifestRecording",
+    "ODOMETRY_SPEED_SOURCE",
     "RECORDING_SUMMARY_FIELDS",
+    "SPEED_SOURCE_CHOICES",
     "VERSION",
     "run_conditional_feature_audit",
 ]

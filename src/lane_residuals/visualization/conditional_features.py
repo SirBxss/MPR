@@ -80,8 +80,12 @@ def plot_conditional_feature_audit(
         axes[0, 1],
         feature_rows,
         "speed_mps",
-        title="Prediction-time longitudinal speed",
-        xlabel="Speed (m/s)",
+        title=(
+            "Prediction-time signed longitudinal speed"
+            if all(bool(row.get("speed_is_signed")) for row in feature_rows)
+            else "Prediction-time unsigned odometry speed"
+        ),
+        xlabel="Speed (m/s; magnitude when unsigned)",
     )
     _histogram_by_drive(
         axes[0, 2],

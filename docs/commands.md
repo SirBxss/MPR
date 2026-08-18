@@ -4,8 +4,10 @@ All seven v0.4.5 console aliases and their historical `python -m` forms remain
 supported. v0.5.1 adds categorized motion-alignment validation, v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
 adequacy diagnostics, and v0.7.0 adds a prediction-time feature-availability
-audit. Existing defaults and flags are unchanged; use `--help` for the
-complete option set.
+audit. v0.7.1 adds an explicit odometry-displacement speed source. Existing
+historical command defaults and flags are unchanged; the conditional-feature
+command now requires `--speed-source`. Use `--help` for the complete option
+set.
 
 | Console alias | Python module form | Purpose and status | Required inputs | Generated outputs |
 |---|---|---|---|---|
@@ -20,7 +22,7 @@ complete option set.
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
 | `mpr-train-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_baseline` | v0.6.0 canonical H100 export, leave-one-drive-out evaluation, and final Gaussian fit | Accepted complete v0.5.0 alignment-batch directory | Residual vectors, dataset/model summaries, fold/station evaluation CSVs, and diagnostics plot |
 | `mpr-diagnose-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_diagnostics` | v0.6.1 leave-one-drive-out marginal, tail, Q–Q, and Mahalanobis adequacy diagnostic | Complete unchanged v0.6.0 Gaussian output directory | Per-vector, marginal, and multivariate CSVs; two plots; strict JSON summary |
-| `mpr-audit-conditional-features` | `python -m lane_residuals.cli.conditional_features` | v0.7.0 exact-manifest speed, EDP-curvature, and KEEP_LANE-confidence availability audit; no model fit | Raw MCAP corpus, accepted v0.5.0 alignment batch, and complete v0.6.0 Gaussian directory | All-vector feature CSV, recording summary, availability plot, and strict JSON summary |
+| `mpr-audit-conditional-features` | `python -m lane_residuals.cli.conditional_features` | v0.7.1 exact-manifest speed, EDP-curvature, and KEEP_LANE-confidence availability audit; no model fit | Raw MCAP corpus, accepted v0.5.0 alignment batch, complete v0.6.0 Gaussian directory, and explicit `--speed-source` | All-vector feature CSV, recording summary, availability plot, and strict JSON summary |
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

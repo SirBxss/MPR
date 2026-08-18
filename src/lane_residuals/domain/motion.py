@@ -102,7 +102,7 @@ def interpolate_odometry_pose(
     if position == 0 or position == len(samples):
         raise GeometryValidationError(
             "odometry_reference_time_outside_coverage",
-            "the RLMB pose-validity timestamp is outside odometry coverage",
+            "the requested pose timestamp is outside odometry coverage",
         )
     lower = samples[position - 1]
     upper = samples[position]

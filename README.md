@@ -1,11 +1,17 @@
-# Minimal Path-Residual Model (MPR) v0.7.0
+# Minimal Path-Residual Model (MPR) v0.7.1
 
-Version 0.7.0 adds a fail-closed prediction-time feature audit before any
-conditional model is fitted. It matches each canonical residual vector to its
-original recording-local EDP message, interpolates valid signed longitudinal
-speed at the EDP source epoch within the same MCAP, derives H100 curvature
-from the selected estimate, and maps native 5 m KEEP_LANE confidence buckets
-to ego-relative bins without padding or extrapolation.
+Version 0.7.1 keeps the fail-closed prediction-time feature audit and requires
+an explicit speed contract. The original signed longitudinal signal remains
+available as one mode. A second mode derives unsigned rear-axle speed from
+odometry displacement between independently interpolated poses at the EDP
+source epoch and exactly 50 ms earlier. Neither mode extrapolates or crosses an
+MCAP boundary, and the output preserves the interpolation evidence.
+
+Version 0.7.0 introduced the feature audit before any conditional model is
+fitted. It matches each canonical residual vector to its original
+recording-local EDP message, derives H100 curvature from the selected estimate,
+and maps native 5 m KEEP_LANE confidence buckets to ego-relative bins without
+padding or extrapolation.
 
 Version 0.6.1 adds a fail-closed adequacy diagnostic for the v0.6.0
 unconditional Gaussian. It recomputes every prediction by leaving out the
@@ -358,7 +364,7 @@ tail and between-drive evidence together with predeclared requirements.
 
 ## Conditional-feature availability audit
 
-Run v0.7.0 against the same accepted alignment manifest and raw ten-MCAP
+Run v0.7.1 against the same accepted alignment manifest and raw ten-MCAP
 corpus that produced the v0.6.0 residual vectors:
 
 ```bash
@@ -368,20 +374,23 @@ python -m lane_residuals.cli.conditional_features \
   "outputs/diagnostics/frozen/reference_alignment_batch_v050" \
   --gaussian-baseline-directory \
   "outputs/models/gaussian_baseline_v060" \
+  --speed-source odometry_50ms_displacement \
   --output-directory \
-  "outputs/diagnostics/modeling/conditional_feature_audit_v070"
+  "outputs/diagnostics/modeling/conditional_feature_audit_v071"
 ```
 
-The default maximum speed-interpolation bracket is predeclared as 20 ms.
-Interpolation is linear, never extrapolates, and never crosses an MCAP
-boundary. The exact accepted manifest maps opaque recording IDs to private
-MCAP basenames; filenames and drive identity are not model features.
+The odometry mode computes Euclidean rear-axle displacement over the fixed
+preceding 50 ms and is therefore unsigned: reverse-motion direction is not
+observable from this feature. Both endpoint poses use recording-local linear
+interpolation with a predeclared maximum bracket of 20 ms. The exact accepted
+manifest maps opaque recording IDs to private MCAP basenames; filenames and
+drive identity are not model features.
 
-The intended first conditional feature vector is signed speed, EDP mean
-absolute curvature, EDP H100 curvature change, and near/middle/far KEEP_LANE
-confidence. Lane width is excluded because the confirmed recorded Road value
-is a fused minimum over a complete segment rather than an ego-position
-measurement.
+The intended first conditional feature vector is explicitly sourced speed,
+EDP mean absolute curvature, EDP H100 curvature change, and near/middle/far
+KEEP_LANE confidence. Lane width is excluded because the confirmed recorded
+Road value is a fused minimum over a complete segment rather than an
+ego-position measurement.
 
 Exit code `0` means every canonical residual vector has all six features. Exit
 code `3` means valid audit outputs were written but at least one vector is not

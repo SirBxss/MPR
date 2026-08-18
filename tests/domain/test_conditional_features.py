@@ -6,15 +6,27 @@ import numpy as np
 from lane_residuals.domain.conditional_features import (
     ConditionalFeatureError,
     LongitudinalSpeedSample,
+    ODOMETRY_SPEED_INTERVAL_NS,
+    derive_unsigned_odometry_speed,
     interpolate_longitudinal_speed,
     selected_keep_lane_confidences,
     summarize_estimate_conditions,
 )
 from lane_residuals.domain.geometry_validation import SplineCurve
+from lane_residuals.domain.motion import OdometrySample, Pose2D
 from lane_residuals.domain.pairing import ego_relative_path_from_spline
 
 
 class ConditionalFeatureTests(unittest.TestCase):
+    @staticmethod
+    def _odometry_sample(timestamp_ns: int, x_m: float, y_m: float = 0.0):
+        return OdometrySample(
+            timestamp_ns=timestamp_ns,
+            log_time_ns=timestamp_ns,
+            publish_time_ns=timestamp_ns,
+            pose=Pose2D(x_m=x_m, y_m=y_m, yaw_rad=0.0),
+        )
+
     def test_speed_interpolation_is_recording_local_and_gap_limited(self) -> None:
         samples = (
             LongitudinalSpeedSample(100_000_000, 10.0, 1, 1),
@@ -38,6 +50,48 @@ class ConditionalFeatureTests(unittest.TestCase):
                 samples,
                 105_000_000,
                 maximum_bracket_gap_ns=5_000_000,
+            )
+
+    def test_odometry_speed_uses_fixed_50ms_endpoint_interpolation(self) -> None:
+        samples = (
+            self._odometry_sample(90_000_000, 0.9),
+            self._odometry_sample(110_000_000, 1.1),
+            self._odometry_sample(140_000_000, 1.4),
+            self._odometry_sample(160_000_000, 1.6),
+        )
+
+        result = derive_unsigned_odometry_speed(
+            samples,
+            150_000_000,
+            maximum_bracket_gap_ns=30_000_000,
+        )
+
+        self.assertEqual(result.interval_ns, ODOMETRY_SPEED_INTERVAL_NS)
+        self.assertEqual(result.previous_pose.timestamp_ns, 100_000_000)
+        self.assertEqual(result.current_pose.timestamp_ns, 150_000_000)
+        self.assertAlmostEqual(result.displacement_m, 0.5)
+        self.assertAlmostEqual(result.value_mps, 10.0)
+        self.assertAlmostEqual(result.previous_pose.bracket_span_ms, 20.0)
+        self.assertAlmostEqual(result.current_pose.bracket_span_ms, 20.0)
+
+    def test_odometry_speed_is_unsigned_and_never_extrapolates(self) -> None:
+        samples = (
+            self._odometry_sample(100_000_000, 1.0),
+            self._odometry_sample(150_000_000, 0.5),
+        )
+
+        reverse = derive_unsigned_odometry_speed(
+            samples,
+            150_000_000,
+            maximum_bracket_gap_ns=50_000_000,
+        )
+
+        self.assertAlmostEqual(reverse.value_mps, 10.0)
+        with self.assertRaisesRegex(ValueError, "outside odometry coverage"):
+            derive_unsigned_odometry_speed(
+                samples,
+                160_000_000,
+                maximum_bracket_gap_ns=50_000_000,
             )
 
     def test_geometry_and_confidence_are_mapped_from_native_to_ego_stations(self) -> None:

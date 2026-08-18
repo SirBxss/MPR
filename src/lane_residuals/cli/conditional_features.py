@@ -1,4 +1,4 @@
-"""CLI for v0.7.0 prediction-time conditional-feature auditing."""
+"""CLI for v0.7.1 prediction-time conditional-feature auditing."""
 
 from __future__ import annotations
 
@@ -9,10 +9,13 @@ from pathlib import Path
 
 from ..domain.residual_dataset import ResidualDatasetContractError
 from ..io.mcap import McapDependencyError, RoadMessageError
+from ..io.odometry import DEFAULT_ODOMETRY_TOPIC
 from ..io.vehicle import DEFAULT_LONGITUDINAL_SPEED_TOPIC
 from ..workflows.conditional_features import (
     DEFAULT_ESTIMATE_TOPIC,
+    DEFAULT_MAXIMUM_ODOMETRY_INTERPOLATION_GAP_MS,
     DEFAULT_MAXIMUM_SPEED_INTERPOLATION_GAP_MS,
+    SPEED_SOURCE_CHOICES,
     run_conditional_feature_audit,
 )
 
@@ -48,7 +51,16 @@ def _parser() -> argparse.ArgumentParser:
         "--output-directory",
         type=Path,
         default=Path(
-            "outputs/diagnostics/modeling/conditional_feature_audit_v070"
+            "outputs/diagnostics/modeling/conditional_feature_audit_v071"
+        ),
+    )
+    parser.add_argument(
+        "--speed-source",
+        choices=SPEED_SOURCE_CHOICES,
+        required=True,
+        help=(
+            "explicit speed contract: direct signed signal, or unsigned rear-axle "
+            "odometry displacement over the fixed preceding 50 ms"
         ),
     )
     parser.add_argument(
@@ -57,12 +69,19 @@ def _parser() -> argparse.ArgumentParser:
         default=DEFAULT_MAXIMUM_SPEED_INTERPOLATION_GAP_MS,
         help="largest valid speed bracket; interpolation never crosses an MCAP",
     )
+    parser.add_argument(
+        "--maximum-odometry-interpolation-gap-ms",
+        type=float,
+        default=DEFAULT_MAXIMUM_ODOMETRY_INTERPOLATION_GAP_MS,
+        help="largest valid odometry bracket at either 50 ms endpoint",
+    )
     parser.add_argument("--max-step-m", type=float, default=0.25)
     parser.add_argument("--estimate-topic", default=DEFAULT_ESTIMATE_TOPIC)
     parser.add_argument(
         "--speed-topic",
         default=DEFAULT_LONGITUDINAL_SPEED_TOPIC,
     )
+    parser.add_argument("--odometry-topic", default=DEFAULT_ODOMETRY_TOPIC)
     parser.add_argument(
         "--log-level",
         choices=("DEBUG", "INFO", "WARNING", "ERROR"),

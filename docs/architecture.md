@@ -3,7 +3,7 @@
 MPR keeps the accepted diagnostics frozen, retains v0.5.1 as a separate
 odometry-compensated sensitivity audit, and provides the v0.6.0 canonical
 residual/Gaussian workflow, v0.6.1 Gaussian adequacy diagnostics, and the
-v0.7.0 conditional-feature audit. The categorization separates scientific
+v0.7.1 conditional-feature audit. The categorization separates scientific
 arithmetic, orchestration, I/O, plots, and command adapters.
 
 ```text
@@ -61,9 +61,10 @@ Package responsibilities:
   accepted a complete exact-manifest H100 dataset. The v0.6.1 workflow
   recomputes aligned leave-one-drive-out predictions and compares their
   marginal and Mahalanobis behavior with Gaussian reference distributions.
-- `domain.conditional_features` owns recording-local speed interpolation,
-  EDP native-to-ego station translation, fixed H100 curvature summaries, and
-  exact confidence-bucket coverage rules.
+- `domain.conditional_features` owns recording-local direct-speed
+  interpolation, fixed-interval unsigned odometry-speed derivation, EDP
+  native-to-ego station translation, fixed H100 curvature summaries, and exact
+  confidence-bucket coverage rules.
 - `legacy` preserves v0.3.x association/preprocessing, withdrawn provisional
   residual behavior, and its synthetic plotting without presenting it as the
   current scientific pipeline.

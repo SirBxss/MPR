@@ -16,6 +16,7 @@ from typing import Any, Sequence
 import numpy as np
 
 from .geometry_validation import SplineCurve
+from .motion import OdometrySample, PoseInterpolation, interpolate_odometry_pose
 from .pairing import EgoRelativePath
 
 CANONICAL_CONDITION_STATIONS_M = tuple(float(value) for value in range(0, 101, 5))
@@ -26,6 +27,8 @@ CONFIDENCE_LATERAL_JUMP_VALUE = 0.0123
 CONFIDENCE_SAMPLE_CENTERS_M = tuple(
     2.5 + CONFIDENCE_BUCKET_SIZE_M * index for index in range(20)
 )
+ODOMETRY_SPEED_INTERVAL_NS = 50_000_000
+ODOMETRY_SPEED_INTERVAL_MS = ODOMETRY_SPEED_INTERVAL_NS / 1e6
 
 
 class ConditionalFeatureError(ValueError):
@@ -70,6 +73,34 @@ class InterpolatedSpeed:
     @property
     def bracket_span_ms(self) -> float:
         return (self.upper_timestamp_ns - self.lower_timestamp_ns) / 1e6
+
+
+@dataclass(frozen=True)
+class DerivedOdometrySpeed:
+    """Unsigned rear-axle displacement speed over a fixed time interval."""
+
+    timestamp_ns: int
+    value_mps: float
+    displacement_m: float
+    interval_ns: int
+    previous_pose: PoseInterpolation
+    current_pose: PoseInterpolation
+
+    def __post_init__(self) -> None:
+        if self.interval_ns <= 0:
+            raise ValueError("odometry speed interval must be positive")
+        if self.timestamp_ns != self.current_pose.timestamp_ns:
+            raise ValueError("current pose must be evaluated at the speed timestamp")
+        if self.previous_pose.timestamp_ns != self.timestamp_ns - self.interval_ns:
+            raise ValueError("previous pose must be evaluated one speed interval earlier")
+        if not math.isfinite(self.value_mps) or self.value_mps < 0.0:
+            raise ValueError("derived odometry speed must be finite and nonnegative")
+        if not math.isfinite(self.displacement_m) or self.displacement_m < 0.0:
+            raise ValueError("odometry displacement must be finite and nonnegative")
+
+    @property
+    def interval_ms(self) -> float:
+        return self.interval_ns / 1e6
 
 
 @dataclass(frozen=True)
@@ -145,6 +176,57 @@ def interpolate_longitudinal_speed(
         method="linear",
         lower_timestamp_ns=lower.timestamp_ns,
         upper_timestamp_ns=upper.timestamp_ns,
+    )
+
+
+def derive_unsigned_odometry_speed(
+    samples: Sequence[OdometrySample],
+    timestamp_ns: int,
+    *,
+    maximum_bracket_gap_ns: int,
+    interval_ns: int = ODOMETRY_SPEED_INTERVAL_NS,
+) -> DerivedOdometrySpeed:
+    """Evaluate rear-axle displacement speed at an estimate source epoch.
+
+    Position is interpolated independently at ``timestamp_ns`` and exactly one
+    fixed interval earlier.  The Euclidean displacement is divided by that
+    interval, so the result is deliberately unsigned and never extrapolated.
+    """
+
+    if isinstance(timestamp_ns, bool) or not isinstance(timestamp_ns, (int, np.integer)):
+        raise TypeError("odometry speed target timestamp must be an integer")
+    if isinstance(interval_ns, bool) or not isinstance(interval_ns, (int, np.integer)):
+        raise TypeError("odometry speed interval must be an integer")
+    if timestamp_ns < 0:
+        raise ValueError("odometry speed target timestamp must be nonnegative")
+    if interval_ns <= 0:
+        raise ValueError("odometry speed interval must be positive")
+    if timestamp_ns < interval_ns:
+        raise ConditionalFeatureError(
+            "odometry_speed_history_outside_coverage",
+            "the fixed odometry speed interval begins before timestamp zero",
+        )
+    previous = interpolate_odometry_pose(
+        samples,
+        int(timestamp_ns - interval_ns),
+        maximum_bracket_gap_ns=maximum_bracket_gap_ns,
+    )
+    current = interpolate_odometry_pose(
+        samples,
+        int(timestamp_ns),
+        maximum_bracket_gap_ns=maximum_bracket_gap_ns,
+    )
+    displacement_m = math.hypot(
+        current.pose.x_m - previous.pose.x_m,
+        current.pose.y_m - previous.pose.y_m,
+    )
+    return DerivedOdometrySpeed(
+        timestamp_ns=int(timestamp_ns),
+        value_mps=float(displacement_m / (interval_ns / 1e9)),
+        displacement_m=float(displacement_m),
+        interval_ns=int(interval_ns),
+        previous_pose=previous,
+        current_pose=current,
     )
 
 
@@ -332,9 +414,13 @@ __all__ = [
     "CONFIDENCE_MINIMUM",
     "CONFIDENCE_SAMPLE_CENTERS_M",
     "ConditionalFeatureError",
+    "DerivedOdometrySpeed",
     "EstimateConditionFeatures",
     "InterpolatedSpeed",
     "LongitudinalSpeedSample",
+    "ODOMETRY_SPEED_INTERVAL_MS",
+    "ODOMETRY_SPEED_INTERVAL_NS",
+    "derive_unsigned_odometry_speed",
     "interpolate_longitudinal_speed",
     "selected_keep_lane_confidences",
     "summarize_estimate_conditions",

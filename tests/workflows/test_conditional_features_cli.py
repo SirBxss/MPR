@@ -1,21 +1,28 @@
 import csv
 import hashlib
+import io
 import json
 import tempfile
 import unittest
+from collections import Counter
+from contextlib import redirect_stderr
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
 import numpy as np
 
+from lane_residuals.cli.conditional_features import _parser
 from lane_residuals.domain.residual_dataset import (
     CanonicalResidualDataset,
     ResidualObservation,
 )
+from lane_residuals.domain.motion import OdometrySample, Pose2D
 from lane_residuals.workflows.conditional_features import (
+    ODOMETRY_SPEED_SOURCE,
     ManifestRecording,
     RecordingFeatureResult,
+    _extract_recording_features,
     _validated_manifest_recordings,
     run_conditional_feature_audit,
 )
@@ -48,11 +55,20 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
             ),
             "feature_state": "ready" if ready else "not_ready",
             "failure_codes": "" if ready else "speed__speed_stream_empty",
+            "speed_source": ODOMETRY_SPEED_SOURCE,
+            "speed_is_signed": False,
             "speed_mps": 12.0 if ready else None,
-            "speed_interpolation_method": "exact" if ready else None,
-            "speed_lower_timestamp_ns_private": 1_000 if ready else None,
-            "speed_upper_timestamp_ns_private": 1_000 if ready else None,
-            "speed_interpolation_span_ms": 0.0 if ready else None,
+            "speed_evaluation_method": ODOMETRY_SPEED_SOURCE if ready else None,
+            "speed_displacement_m": 0.6 if ready else None,
+            "speed_displacement_interval_ms": 50.0 if ready else None,
+            "speed_previous_target_timestamp_ns_private": 950 if ready else None,
+            "speed_current_target_timestamp_ns_private": 1_000 if ready else None,
+            "speed_previous_lower_timestamp_ns_private": 950 if ready else None,
+            "speed_previous_upper_timestamp_ns_private": 950 if ready else None,
+            "speed_current_lower_timestamp_ns_private": 1_000 if ready else None,
+            "speed_current_upper_timestamp_ns_private": 1_000 if ready else None,
+            "speed_previous_interpolation_span_ms": 0.0 if ready else None,
+            "speed_current_interpolation_span_ms": 0.0 if ready else None,
             "estimated_mean_abs_curvature_per_m": 0.002,
             "estimated_curvature_delta_per_m": 0.001,
             "confidence_near_mean": 0.8,
@@ -115,9 +131,14 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
                     "feature_ready_count": 2,
                     "feature_ready_fraction": 1.0,
                     "estimate_message_count": 2,
+                    "speed_source": ODOMETRY_SPEED_SOURCE,
+                    "speed_is_signed": False,
                     "speed_message_count": 4,
                     "valid_speed_sample_count": 4,
-                    "median_speed_interpolation_span_ms": 0.0,
+                    "median_speed_previous_interpolation_span_ms": 0.0,
+                    "median_speed_current_interpolation_span_ms": 0.0,
+                    "maximum_speed_previous_interpolation_span_ms": 0.0,
+                    "maximum_speed_current_interpolation_span_ms": 0.0,
                     "failure_counts": "{}",
                 },
                 failure_counts={},
@@ -128,10 +149,13 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
                 alignment_batch_directory=alignment,
                 gaussian_baseline_directory=baseline,
                 output_directory=output,
+                speed_source=ODOMETRY_SPEED_SOURCE,
                 maximum_speed_interpolation_gap_ms=20.0,
+                maximum_odometry_interpolation_gap_ms=20.0,
                 max_step_m=0.25,
                 estimate_topic="/adp/estimated_drive_paths",
                 speed_topic="/adp/velocity_vehicle_longitudinal",
+                odometry_topic="/adp/odometry",
             )
             with patch(
                 "lane_residuals.workflows.conditional_features."
@@ -194,9 +218,14 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
                     "feature_ready_count": 1,
                     "feature_ready_fraction": 0.5,
                     "estimate_message_count": 2,
+                    "speed_source": ODOMETRY_SPEED_SOURCE,
+                    "speed_is_signed": False,
                     "speed_message_count": 0,
                     "valid_speed_sample_count": 0,
-                    "median_speed_interpolation_span_ms": None,
+                    "median_speed_previous_interpolation_span_ms": None,
+                    "median_speed_current_interpolation_span_ms": None,
+                    "maximum_speed_previous_interpolation_span_ms": None,
+                    "maximum_speed_current_interpolation_span_ms": None,
                     "failure_counts": '{"speed__speed_stream_empty": 1}',
                 },
                 failure_counts={"speed__speed_stream_empty": 1},
@@ -206,10 +235,13 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
                 alignment_batch_directory=alignment,
                 gaussian_baseline_directory=baseline,
                 output_directory=root / "output",
+                speed_source=ODOMETRY_SPEED_SOURCE,
                 maximum_speed_interpolation_gap_ms=20.0,
+                maximum_odometry_interpolation_gap_ms=20.0,
                 max_step_m=0.25,
                 estimate_topic="/adp/estimated_drive_paths",
                 speed_topic="/adp/velocity_vehicle_longitudinal",
+                odometry_topic="/adp/odometry",
             )
             with patch(
                 "lane_residuals.workflows.conditional_features."
@@ -229,6 +261,87 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
             self.assertEqual(status, 3)
             self.assertEqual(summary["status"], "incomplete")
             self.assertEqual(summary["feature_not_ready_count"], 1)
+
+    def test_odometry_speed_source_preserves_both_endpoint_brackets(self) -> None:
+        observation = ResidualObservation(
+            recording_id="recording_001",
+            drive_id="drive_001",
+            pair_index=0,
+            estimate_message_index=0,
+            map_message_index=0,
+            estimate_source_time_ns_private=150_000_000,
+            map_source_time_ns_private=150_000_000,
+            source_delta_ms=0.0,
+            residuals_m=np.zeros(21),
+        )
+        recording = ManifestRecording(
+            "recording_001",
+            "drive_001",
+            "recording.mcap",
+            Path("recording.mcap"),
+        )
+        samples = [
+            OdometrySample(t, t, t, Pose2D(x, 0.0, 0.0))
+            for t, x in (
+                (90_000_000, 0.9),
+                (110_000_000, 1.1),
+                (140_000_000, 1.4),
+                (160_000_000, 1.6),
+            )
+        ]
+        with patch(
+            "lane_residuals.workflows.conditional_features.decode_odometry_samples",
+            return_value=(samples, Counter(), 4),
+        ), patch(
+            "lane_residuals.workflows.conditional_features."
+            "iter_decoded_mcap_messages",
+            return_value=iter(()),
+        ):
+            result = _extract_recording_features(
+                recording,
+                (observation,),
+                estimate_topic="/adp/estimated_drive_paths",
+                speed_source=ODOMETRY_SPEED_SOURCE,
+                speed_topic="/unused",
+                odometry_topic="/adp/odometry",
+                maximum_speed_interpolation_gap_ns=20_000_000,
+                maximum_odometry_interpolation_gap_ns=30_000_000,
+                max_step_m=0.25,
+            )
+
+        row = result.rows[0]
+        self.assertAlmostEqual(row["speed_mps"], 10.0)
+        self.assertFalse(row["speed_is_signed"])
+        self.assertEqual(row["speed_previous_target_timestamp_ns_private"], 100_000_000)
+        self.assertEqual(row["speed_current_target_timestamp_ns_private"], 150_000_000)
+        self.assertAlmostEqual(row["speed_previous_interpolation_span_ms"], 20.0)
+        self.assertAlmostEqual(row["speed_current_interpolation_span_ms"], 20.0)
+        self.assertEqual(row["failure_codes"], "estimate__message_index_not_found")
+
+    def test_cli_requires_explicit_speed_source(self) -> None:
+        parser = _parser()
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            parser.parse_args(
+                [
+                    "raw",
+                    "--alignment-batch-directory",
+                    "alignment",
+                    "--gaussian-baseline-directory",
+                    "baseline",
+                ]
+            )
+        arguments = parser.parse_args(
+            [
+                "raw",
+                "--alignment-batch-directory",
+                "alignment",
+                "--gaussian-baseline-directory",
+                "baseline",
+                "--speed-source",
+                ODOMETRY_SPEED_SOURCE,
+            ]
+        )
+        self.assertEqual(arguments.speed_source, ODOMETRY_SPEED_SOURCE)
 
     def test_manifest_must_match_baseline_hash_and_exact_mcap_set(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
