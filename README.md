@@ -1,4 +1,11 @@
-# Minimal Path-Residual Model (MPR) v0.6.1
+# Minimal Path-Residual Model (MPR) v0.7.0
+
+Version 0.7.0 adds a fail-closed prediction-time feature audit before any
+conditional model is fitted. It matches each canonical residual vector to its
+original recording-local EDP message, interpolates valid signed longitudinal
+speed at the EDP source epoch within the same MCAP, derives H100 curvature
+from the selected estimate, and maps native 5 m KEEP_LANE confidence buckets
+to ego-relative bins without padding or extrapolation.
 
 Version 0.6.1 adds a fail-closed adequacy diagnostic for the v0.6.0
 unconditional Gaussian. It recomputes every prediction by leaving out the
@@ -348,6 +355,39 @@ The output is diagnostic evidence, not a second model fit. Conventional iid
 normality p-values are intentionally omitted because adjacent residual vectors
 are sequentially correlated. Model-family selection should be based on the
 tail and between-drive evidence together with predeclared requirements.
+
+## Conditional-feature availability audit
+
+Run v0.7.0 against the same accepted alignment manifest and raw ten-MCAP
+corpus that produced the v0.6.0 residual vectors:
+
+```bash
+python -m lane_residuals.cli.conditional_features \
+  "data/raw/mcap" \
+  --alignment-batch-directory \
+  "outputs/diagnostics/frozen/reference_alignment_batch_v050" \
+  --gaussian-baseline-directory \
+  "outputs/models/gaussian_baseline_v060" \
+  --output-directory \
+  "outputs/diagnostics/modeling/conditional_feature_audit_v070"
+```
+
+The default maximum speed-interpolation bracket is predeclared as 20 ms.
+Interpolation is linear, never extrapolates, and never crosses an MCAP
+boundary. The exact accepted manifest maps opaque recording IDs to private
+MCAP basenames; filenames and drive identity are not model features.
+
+The intended first conditional feature vector is signed speed, EDP mean
+absolute curvature, EDP H100 curvature change, and near/middle/far KEEP_LANE
+confidence. Lane width is excluded because the confirmed recorded Road value
+is a fused minimum over a complete segment rather than an ego-position
+measurement.
+
+Exit code `0` means every canonical residual vector has all six features. Exit
+code `3` means valid audit outputs were written but at least one vector is not
+feature-ready. The command never selects a smaller training cohort and does
+not fit the conditional Gaussian; cohort freezing and model comparison happen
+only after this availability result is reviewed.
 
 ## What the command does
 

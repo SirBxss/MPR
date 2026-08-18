@@ -2,9 +2,9 @@
 
 MPR keeps the accepted diagnostics frozen, retains v0.5.1 as a separate
 odometry-compensated sensitivity audit, and provides the v0.6.0 canonical
-residual/Gaussian workflow plus v0.6.1 Gaussian adequacy diagnostics. The
-categorization separates scientific arithmetic, orchestration, I/O, plots,
-and command adapters.
+residual/Gaussian workflow, v0.6.1 Gaussian adequacy diagnostics, and the
+v0.7.0 conditional-feature audit. The categorization separates scientific
+arithmetic, orchestration, I/O, plots, and command adapters.
 
 ```text
 src/lane_residuals/
@@ -53,12 +53,17 @@ Package responsibilities:
   SE(2) transforms, fixed cohorts, reference diagnostics, and the immutable
   H100 residual-vector contract.
 - `io` owns MCAP message decoding and reusable CSV/strict-JSON serialization.
+  Prediction-time vehicle speed is decoded here with its source timestamp and
+  qualifier; interpolation remains a domain rule.
 - `visualization` renders diagnostic figures from already prepared data.
 - `modeling` contains the Gaussian distribution and likelihood/calibration
   primitives. The v0.6.0 workflow uses them only after the domain contract has
   accepted a complete exact-manifest H100 dataset. The v0.6.1 workflow
   recomputes aligned leave-one-drive-out predictions and compares their
   marginal and Mahalanobis behavior with Gaussian reference distributions.
+- `domain.conditional_features` owns recording-local speed interpolation,
+  EDP native-to-ego station translation, fixed H100 curvature summaries, and
+  exact confidence-bucket coverage rules.
 - `legacy` preserves v0.3.x association/preprocessing, withdrawn provisional
   residual behavior, and its synthetic plotting without presenting it as the
   current scientific pipeline.
@@ -79,8 +84,10 @@ v0.5.1 odometry workflow remains optional because DPE does not publish its exact
 geometry epoch. The model workflow accepts exactly `0, 5, ..., 100 m`, requires
 one fixed H100 cohort, and evaluates by physical drive before fitting the final
 all-data model. The adequacy workflow accepts only a reconciled v0.6.0 output,
-never an available-case station profile. Legacy/withdrawn code is retained
-only for reproducibility and compatibility.
+never an available-case station profile. The feature workflow additionally
+requires the exact accepted alignment manifest and raw MCAP basename set. It
+retains one audit row per residual vector and fits no model. Legacy/withdrawn
+code is retained only for reproducibility and compatibility.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

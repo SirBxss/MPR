@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.6.1"
-description = "Drive-held-out Gaussian baseline and adequacy diagnostics"
+version = "0.7.0"
+description = "Lane-residual Gaussian diagnostics and conditional-feature audit"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -33,6 +33,7 @@ mpr-audit-reference-alignment = "lane_residuals.cli.alignment:main"
 mpr-audit-reference-alignment-batch = "lane_residuals.cli.alignment_batch:main"
 mpr-train-gaussian-baseline = "lane_residuals.cli.gaussian_baseline:main"
 mpr-diagnose-gaussian-baseline = "lane_residuals.cli.gaussian_diagnostics:main"
+mpr-audit-conditional-features = "lane_residuals.cli.conditional_features:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

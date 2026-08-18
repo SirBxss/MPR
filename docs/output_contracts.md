@@ -270,3 +270,51 @@ formal iid normality p-value or post-hoc acceptance gate is reported because
 the sequential pair rows are correlated and no threshold was predeclared.
 All six files contain or derive from private BMW measurements and must remain
 outside version control.
+
+## v0.7.0 conditional-feature audit outputs
+
+The v0.7.0 command accepts the raw MCAP set only when its basenames exactly
+match the accepted v0.5.0 manifest hashed by the v0.6.0 residual dataset. It
+writes exactly:
+
+```text
+conditional_features.csv
+conditional_feature_recording_summary.csv
+conditional_feature_audit.png
+conditional_feature_summary.json
+```
+
+CSV headers and column order are fixed:
+
+```text
+conditional_features.csv:
+recording_id,drive_id,pair_index,estimate_message_index,estimate_source_time_ns_private,feature_state,failure_codes,speed_mps,speed_interpolation_method,speed_lower_timestamp_ns_private,speed_upper_timestamp_ns_private,speed_interpolation_span_ms,estimated_mean_abs_curvature_per_m,estimated_curvature_delta_per_m,confidence_near_mean,confidence_middle_mean,confidence_far_mean,confidence_minimum,confidence_floor_fraction,confidence_lateral_jump_detected,confidence_bucket_count,confidence_native_start_station_m,confidence_native_end_station_m
+
+conditional_feature_recording_summary.csv:
+recording_id,drive_id,mcap_filename_private,status,residual_vector_count,feature_ready_count,feature_ready_fraction,estimate_message_count,speed_message_count,valid_speed_sample_count,median_speed_interpolation_span_ms,failure_counts
+```
+
+`conditional_features.csv` contains one row for every canonical v0.6.0
+residual vector, including rows whose features are unavailable. An EDP message
+is resolved only by its exact recording-local message index, and its source
+timestamp must reconcile with residual provenance. Valid signed longitudinal
+speed is evaluated at that timestamp by exact match or recording-local linear
+interpolation. The default maximum bracket is 20 ms; extrapolation and
+cross-recording interpolation are forbidden.
+
+Curvature uses the validated provisional curvature-rate spline interpretation.
+Confidence belongs to the selected KEEP_LANE candidate and remains piecewise
+constant in its native 5 m spline buckets. Ego-relative bin centres from
+0–100 m are mapped back to native station before lookup. Empty vectors,
+out-of-range values, and incomplete native coverage remain explicit failures;
+confidence is never padded with zero.
+
+The six intended model fields are `speed_mps`,
+`estimated_mean_abs_curvature_per_m`, `estimated_curvature_delta_per_m`, and
+the near/middle/far confidence means. Drive ID is retained only for held-out
+grouping. `conditional_feature_summary.json` records availability and failure
+counts, hashes, temporal rules, feature definitions, and that no conditional
+model or reduced cohort has been created. Exit code `0` means complete feature
+coverage; exit code `3` means the audit was written but is incomplete. All four
+files contain or derive from private BMW measurements and must remain outside
+version control.
