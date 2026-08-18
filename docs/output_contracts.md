@@ -271,9 +271,9 @@ the sequential pair rows are correlated and no threshold was predeclared.
 All six files contain or derive from private BMW measurements and must remain
 outside version control.
 
-## v0.7.1 conditional-feature audit outputs
+## v0.7.2 conditional-feature audit outputs
 
-The v0.7.1 command accepts the raw MCAP set only when its basenames exactly
+The v0.7.2 command accepts the raw MCAP set only when its basenames exactly
 match the accepted v0.5.0 manifest hashed by the v0.6.0 residual dataset. It
 also requires an explicit `--speed-source`; it never changes speed sources
 automatically. It writes exactly:
@@ -292,7 +292,7 @@ conditional_features.csv:
 recording_id,drive_id,pair_index,estimate_message_index,estimate_source_time_ns_private,feature_state,failure_codes,speed_source,speed_is_signed,speed_mps,speed_evaluation_method,speed_displacement_m,speed_displacement_interval_ms,speed_previous_target_timestamp_ns_private,speed_current_target_timestamp_ns_private,speed_previous_lower_timestamp_ns_private,speed_previous_upper_timestamp_ns_private,speed_current_lower_timestamp_ns_private,speed_current_upper_timestamp_ns_private,speed_previous_interpolation_span_ms,speed_current_interpolation_span_ms,estimated_mean_abs_curvature_per_m,estimated_curvature_delta_per_m,confidence_near_mean,confidence_middle_mean,confidence_far_mean,confidence_minimum,confidence_floor_fraction,confidence_lateral_jump_detected,confidence_bucket_count,confidence_native_start_station_m,confidence_native_end_station_m
 
 conditional_feature_recording_summary.csv:
-recording_id,drive_id,mcap_filename_private,status,residual_vector_count,feature_ready_count,feature_ready_fraction,estimate_message_count,speed_source,speed_is_signed,speed_message_count,valid_speed_sample_count,median_speed_previous_interpolation_span_ms,median_speed_current_interpolation_span_ms,maximum_speed_previous_interpolation_span_ms,maximum_speed_current_interpolation_span_ms,failure_counts
+recording_id,drive_id,mcap_filename_private,status,residual_vector_count,feature_ready_count,feature_ready_fraction,estimate_message_count,speed_source,speed_is_signed,speed_message_count,valid_speed_sample_count,usable_speed_sample_count,speed_distinct_timestamp_count,speed_duplicate_timestamp_group_count,speed_duplicate_message_count,speed_coalesced_duplicate_message_count,speed_conflicting_timestamp_group_count,speed_discarded_conflicting_message_count,maximum_speed_timestamp_multiplicity,median_speed_previous_interpolation_span_ms,median_speed_current_interpolation_span_ms,maximum_speed_previous_interpolation_span_ms,maximum_speed_current_interpolation_span_ms,failure_counts
 ```
 
 `conditional_features.csv` contains one row for every canonical v0.6.0
@@ -309,6 +309,15 @@ divided by 0.05 s. The result is unsigned, so reverse-motion direction is not
 observable. Both interpolation brackets and endpoint targets are retained in
 the per-vector evidence. Extrapolation and cross-recording interpolation are
 forbidden in either mode.
+
+Before odometry interpolation, messages are grouped by their state timestamp.
+A duplicate group is coalesced only when every `x_position`, `y_position`, and
+`yaw_angle` value is exactly equal. The earliest MCAP chronology item is kept
+only as an identical representative. A group containing any pose conflict is
+discarded in full; no first/latest-message rule is used. Per-recording and
+aggregate summaries expose distinct timestamps, duplicate groups and messages,
+coalesced duplicates, conflicting groups, discarded messages, and maximum
+timestamp multiplicity.
 
 Curvature uses the validated provisional curvature-rate spline interpretation.
 Confidence belongs to the selected KEEP_LANE candidate and remains piecewise

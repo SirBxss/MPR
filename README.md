@@ -1,4 +1,10 @@
-# Minimal Path-Residual Model (MPR) v0.7.1
+# Minimal Path-Residual Model (MPR) v0.7.2
+
+Version 0.7.2 handles repeated odometry state timestamps without making an
+arbitrary message-order choice. Duplicate groups are coalesced only when every
+rear-axle pose is exactly identical. A group with conflicting position or yaw
+is entirely discarded, and all duplicate, conflict, discard, and multiplicity
+counts are retained in the audit outputs.
 
 Version 0.7.1 keeps the fail-closed prediction-time feature audit and requires
 an explicit speed contract. The original signed longitudinal signal remains
@@ -326,7 +332,7 @@ values, and any station-wise available-case cohort.
 
 ```bash
 python -m lane_residuals.cli.gaussian_baseline \
-  "outputs/diagnostics/frozen/reference_alignment_batch_v050" \
+  "outputs/diagnostics/validation/reference_alignment_batch_v050" \
   --output-directory "outputs/models/gaussian_baseline_v060"
 ```
 
@@ -364,19 +370,19 @@ tail and between-drive evidence together with predeclared requirements.
 
 ## Conditional-feature availability audit
 
-Run v0.7.1 against the same accepted alignment manifest and raw ten-MCAP
+Run v0.7.2 against the same accepted alignment manifest and raw ten-MCAP
 corpus that produced the v0.6.0 residual vectors:
 
 ```bash
 python -m lane_residuals.cli.conditional_features \
   "data/raw/mcap" \
   --alignment-batch-directory \
-  "outputs/diagnostics/frozen/reference_alignment_batch_v050" \
+  "outputs/diagnostics/validation/reference_alignment_batch_v050" \
   --gaussian-baseline-directory \
   "outputs/models/gaussian_baseline_v060" \
   --speed-source odometry_50ms_displacement \
   --output-directory \
-  "outputs/diagnostics/modeling/conditional_feature_audit_v071"
+  "outputs/diagnostics/modeling/conditional_feature_audit_v072"
 ```
 
 The odometry mode computes Euclidean rear-axle displacement over the fixed
@@ -384,7 +390,9 @@ preceding 50 ms and is therefore unsigned: reverse-motion direction is not
 observable from this feature. Both endpoint poses use recording-local linear
 interpolation with a predeclared maximum bracket of 20 ms. The exact accepted
 manifest maps opaque recording IDs to private MCAP basenames; filenames and
-drive identity are not model features.
+drive identity are not model features. Repeated state timestamps are accepted
+only under exact pose equality; conflicting groups are removed before
+interpolation and remain visible in the summaries.
 
 The intended first conditional feature vector is explicitly sourced speed,
 EDP mean absolute curvature, EDP H100 curvature change, and near/middle/far

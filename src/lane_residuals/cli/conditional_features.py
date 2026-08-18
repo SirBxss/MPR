@@ -1,4 +1,4 @@
-"""CLI for v0.7.1 prediction-time conditional-feature auditing."""
+"""CLI for v0.7.2 prediction-time conditional-feature auditing."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ def _parser() -> argparse.ArgumentParser:
         "--output-directory",
         type=Path,
         default=Path(
-            "outputs/diagnostics/modeling/conditional_feature_audit_v071"
+            "outputs/diagnostics/modeling/conditional_feature_audit_v072"
         ),
     )
     parser.add_argument(

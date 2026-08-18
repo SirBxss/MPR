@@ -7,6 +7,7 @@ from lane_residuals.domain.conditional_features import (
     ConditionalFeatureError,
     LongitudinalSpeedSample,
     ODOMETRY_SPEED_INTERVAL_NS,
+    coalesce_identical_odometry_timestamps,
     derive_unsigned_odometry_speed,
     interpolate_longitudinal_speed,
     selected_keep_lane_confidences,
@@ -93,6 +94,63 @@ class ConditionalFeatureTests(unittest.TestCase):
                 160_000_000,
                 maximum_bracket_gap_ns=50_000_000,
             )
+
+    def test_pose_identical_duplicate_odometry_timestamps_are_coalesced(self) -> None:
+        later = OdometrySample(
+            timestamp_ns=100_000_000,
+            log_time_ns=12,
+            publish_time_ns=12,
+            pose=Pose2D(1.0, 2.0, 0.1),
+        )
+        earlier = OdometrySample(
+            timestamp_ns=100_000_000,
+            log_time_ns=10,
+            publish_time_ns=10,
+            pose=Pose2D(1.0, 2.0, 0.1),
+        )
+
+        result = coalesce_identical_odometry_timestamps(
+            (
+                self._odometry_sample(110_000_000, 1.1),
+                later,
+                earlier,
+                self._odometry_sample(90_000_000, 0.9),
+            )
+        )
+
+        self.assertEqual(
+            [sample.timestamp_ns for sample in result.samples],
+            [90_000_000, 100_000_000, 110_000_000],
+        )
+        self.assertEqual(result.samples[1].log_time_ns, 10)
+        self.assertEqual(result.input_sample_count, 4)
+        self.assertEqual(result.distinct_timestamp_count, 3)
+        self.assertEqual(result.duplicate_timestamp_group_count, 1)
+        self.assertEqual(result.duplicate_message_count, 1)
+        self.assertEqual(result.coalesced_duplicate_message_count, 1)
+        self.assertEqual(result.conflicting_timestamp_group_count, 0)
+        self.assertEqual(result.discarded_conflicting_message_count, 0)
+        self.assertEqual(result.maximum_timestamp_multiplicity, 2)
+
+    def test_conflicting_duplicate_odometry_timestamp_group_is_discarded(self) -> None:
+        result = coalesce_identical_odometry_timestamps(
+            (
+                self._odometry_sample(90_000_000, 0.9),
+                self._odometry_sample(100_000_000, 1.0),
+                self._odometry_sample(100_000_000, 1.000001),
+                self._odometry_sample(110_000_000, 1.1),
+            )
+        )
+
+        self.assertEqual(
+            [sample.timestamp_ns for sample in result.samples],
+            [90_000_000, 110_000_000],
+        )
+        self.assertEqual(result.duplicate_timestamp_group_count, 1)
+        self.assertEqual(result.duplicate_message_count, 1)
+        self.assertEqual(result.coalesced_duplicate_message_count, 0)
+        self.assertEqual(result.conflicting_timestamp_group_count, 1)
+        self.assertEqual(result.discarded_conflicting_message_count, 2)
 
     def test_geometry_and_confidence_are_mapped_from_native_to_ego_stations(self) -> None:
         native_s = np.linspace(0.0, 120.0, 121)

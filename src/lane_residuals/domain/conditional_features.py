@@ -11,6 +11,7 @@ from __future__ import annotations
 import math
 from bisect import bisect_left
 from dataclasses import dataclass
+from itertools import groupby
 from typing import Any, Sequence
 
 import numpy as np
@@ -29,6 +30,7 @@ CONFIDENCE_SAMPLE_CENTERS_M = tuple(
 )
 ODOMETRY_SPEED_INTERVAL_NS = 50_000_000
 ODOMETRY_SPEED_INTERVAL_MS = ODOMETRY_SPEED_INTERVAL_NS / 1e6
+ODOMETRY_DUPLICATE_POSE_POLICY = "exact_pose_equality"
 
 
 class ConditionalFeatureError(ValueError):
@@ -101,6 +103,95 @@ class DerivedOdometrySpeed:
     @property
     def interval_ms(self) -> float:
         return self.interval_ns / 1e6
+
+
+@dataclass(frozen=True)
+class CoalescedOdometrySamples:
+    """Strictly ordered odometry samples plus duplicate-timestamp evidence."""
+
+    samples: tuple[OdometrySample, ...]
+    input_sample_count: int
+    distinct_timestamp_count: int
+    duplicate_timestamp_group_count: int
+    duplicate_message_count: int
+    coalesced_duplicate_message_count: int
+    conflicting_timestamp_group_count: int
+    discarded_conflicting_message_count: int
+    maximum_timestamp_multiplicity: int
+
+    def __post_init__(self) -> None:
+        counts = (
+            self.input_sample_count,
+            self.distinct_timestamp_count,
+            self.duplicate_timestamp_group_count,
+            self.duplicate_message_count,
+            self.coalesced_duplicate_message_count,
+            self.conflicting_timestamp_group_count,
+            self.discarded_conflicting_message_count,
+            self.maximum_timestamp_multiplicity,
+        )
+        if any(count < 0 for count in counts):
+            raise ValueError("odometry duplicate-audit counts must be nonnegative")
+        timestamps = [sample.timestamp_ns for sample in self.samples]
+        if any(right <= left for left, right in zip(timestamps, timestamps[1:])):
+            raise ValueError("coalesced odometry timestamps must strictly increase")
+
+
+def coalesce_identical_odometry_timestamps(
+    samples: Sequence[OdometrySample],
+) -> CoalescedOdometrySamples:
+    """Coalesce only pose-identical duplicate timestamps.
+
+    Exact pose equality is deliberately required.  A timestamp group with
+    conflicting position or yaw is entirely discarded, so interpolation can
+    never depend on an arbitrary message-order choice.
+    """
+
+    ordered = sorted(
+        samples,
+        key=lambda sample: (
+            sample.timestamp_ns,
+            sample.log_time_ns,
+            sample.publish_time_ns,
+        ),
+    )
+    accepted: list[OdometrySample] = []
+    distinct_timestamp_count = 0
+    duplicate_timestamp_group_count = 0
+    duplicate_message_count = 0
+    coalesced_duplicate_message_count = 0
+    conflicting_timestamp_group_count = 0
+    discarded_conflicting_message_count = 0
+    maximum_timestamp_multiplicity = 0
+    for _, values in groupby(ordered, key=lambda sample: sample.timestamp_ns):
+        group = tuple(values)
+        distinct_timestamp_count += 1
+        maximum_timestamp_multiplicity = max(
+            maximum_timestamp_multiplicity,
+            len(group),
+        )
+        if len(group) == 1:
+            accepted.append(group[0])
+            continue
+        duplicate_timestamp_group_count += 1
+        duplicate_message_count += len(group) - 1
+        if all(sample.pose == group[0].pose for sample in group[1:]):
+            accepted.append(group[0])
+            coalesced_duplicate_message_count += len(group) - 1
+        else:
+            conflicting_timestamp_group_count += 1
+            discarded_conflicting_message_count += len(group)
+    return CoalescedOdometrySamples(
+        samples=tuple(accepted),
+        input_sample_count=len(samples),
+        distinct_timestamp_count=distinct_timestamp_count,
+        duplicate_timestamp_group_count=duplicate_timestamp_group_count,
+        duplicate_message_count=duplicate_message_count,
+        coalesced_duplicate_message_count=coalesced_duplicate_message_count,
+        conflicting_timestamp_group_count=conflicting_timestamp_group_count,
+        discarded_conflicting_message_count=discarded_conflicting_message_count,
+        maximum_timestamp_multiplicity=maximum_timestamp_multiplicity,
+    )
 
 
 @dataclass(frozen=True)
@@ -413,13 +504,16 @@ __all__ = [
     "CONFIDENCE_MAXIMUM",
     "CONFIDENCE_MINIMUM",
     "CONFIDENCE_SAMPLE_CENTERS_M",
+    "CoalescedOdometrySamples",
     "ConditionalFeatureError",
     "DerivedOdometrySpeed",
     "EstimateConditionFeatures",
     "InterpolatedSpeed",
     "LongitudinalSpeedSample",
+    "ODOMETRY_DUPLICATE_POSE_POLICY",
     "ODOMETRY_SPEED_INTERVAL_MS",
     "ODOMETRY_SPEED_INTERVAL_NS",
+    "coalesce_identical_odometry_timestamps",
     "derive_unsigned_odometry_speed",
     "interpolate_longitudinal_speed",
     "selected_keep_lane_confidences",

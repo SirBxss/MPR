@@ -3,7 +3,7 @@
 MPR keeps the accepted diagnostics frozen, retains v0.5.1 as a separate
 odometry-compensated sensitivity audit, and provides the v0.6.0 canonical
 residual/Gaussian workflow, v0.6.1 Gaussian adequacy diagnostics, and the
-v0.7.1 conditional-feature audit. The categorization separates scientific
+v0.7.2 conditional-feature audit. The categorization separates scientific
 arithmetic, orchestration, I/O, plots, and command adapters.
 
 ```text

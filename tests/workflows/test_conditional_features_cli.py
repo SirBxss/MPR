@@ -135,6 +135,14 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
                     "speed_is_signed": False,
                     "speed_message_count": 4,
                     "valid_speed_sample_count": 4,
+                    "usable_speed_sample_count": 4,
+                    "speed_distinct_timestamp_count": 4,
+                    "speed_duplicate_timestamp_group_count": 0,
+                    "speed_duplicate_message_count": 0,
+                    "speed_coalesced_duplicate_message_count": 0,
+                    "speed_conflicting_timestamp_group_count": 0,
+                    "speed_discarded_conflicting_message_count": 0,
+                    "maximum_speed_timestamp_multiplicity": 1,
                     "median_speed_previous_interpolation_span_ms": 0.0,
                     "median_speed_current_interpolation_span_ms": 0.0,
                     "maximum_speed_previous_interpolation_span_ms": 0.0,
@@ -222,6 +230,14 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
                     "speed_is_signed": False,
                     "speed_message_count": 0,
                     "valid_speed_sample_count": 0,
+                    "usable_speed_sample_count": 0,
+                    "speed_distinct_timestamp_count": 0,
+                    "speed_duplicate_timestamp_group_count": 0,
+                    "speed_duplicate_message_count": 0,
+                    "speed_coalesced_duplicate_message_count": 0,
+                    "speed_conflicting_timestamp_group_count": 0,
+                    "speed_discarded_conflicting_message_count": 0,
+                    "maximum_speed_timestamp_multiplicity": 0,
                     "median_speed_previous_interpolation_span_ms": None,
                     "median_speed_current_interpolation_span_ms": None,
                     "maximum_speed_previous_interpolation_span_ms": None,
@@ -289,9 +305,31 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
                 (160_000_000, 1.6),
             )
         ]
+        samples.extend(
+            (
+                OdometrySample(
+                    110_000_000,
+                    110_000_001,
+                    110_000_001,
+                    Pose2D(1.1, 0.0, 0.0),
+                ),
+                OdometrySample(
+                    120_000_000,
+                    120_000_000,
+                    120_000_000,
+                    Pose2D(1.2, 0.0, 0.0),
+                ),
+                OdometrySample(
+                    120_000_000,
+                    120_000_001,
+                    120_000_001,
+                    Pose2D(9.9, 0.0, 0.0),
+                ),
+            )
+        )
         with patch(
             "lane_residuals.workflows.conditional_features.decode_odometry_samples",
-            return_value=(samples, Counter(), 4),
+            return_value=(samples, Counter(), 7),
         ), patch(
             "lane_residuals.workflows.conditional_features."
             "iter_decoded_mcap_messages",
@@ -317,6 +355,26 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
         self.assertAlmostEqual(row["speed_previous_interpolation_span_ms"], 20.0)
         self.assertAlmostEqual(row["speed_current_interpolation_span_ms"], 20.0)
         self.assertEqual(row["failure_codes"], "estimate__message_index_not_found")
+        self.assertEqual(result.summary_row["valid_speed_sample_count"], 7)
+        self.assertEqual(result.summary_row["usable_speed_sample_count"], 4)
+        self.assertEqual(
+            result.summary_row["speed_duplicate_timestamp_group_count"],
+            2,
+        )
+        self.assertEqual(
+            result.summary_row["speed_coalesced_duplicate_message_count"],
+            1,
+        )
+        self.assertEqual(
+            result.summary_row["speed_conflicting_timestamp_group_count"],
+            1,
+        )
+        self.assertEqual(
+            result.failure_counts[
+                "speed_source__odometry_conflicting_duplicate_timestamp_group"
+            ],
+            1,
+        )
 
     def test_cli_requires_explicit_speed_source(self) -> None:
         parser = _parser()

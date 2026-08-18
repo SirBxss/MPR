@@ -1,4 +1,4 @@
-"""Exact-manifest v0.7.1 audit of prediction-time conditional features."""
+"""Exact-manifest v0.7.2 audit of prediction-time conditional features."""
 
 from __future__ import annotations
 
@@ -17,7 +17,9 @@ from ..domain.conditional_features import (
     CANONICAL_CONDITION_STATIONS_M,
     CONFIDENCE_BUCKET_SIZE_M,
     ConditionalFeatureError,
+    ODOMETRY_DUPLICATE_POSE_POLICY,
     ODOMETRY_SPEED_INTERVAL_MS,
+    coalesce_identical_odometry_timestamps,
     derive_unsigned_odometry_speed,
     interpolate_longitudinal_speed,
     selected_keep_lane_confidences,
@@ -40,7 +42,7 @@ from ..io.vehicle import (
 from ..visualization.conditional_features import plot_conditional_feature_audit
 from .gaussian_diagnostics import load_gaussian_baseline_artifacts
 
-VERSION = "0.7.1"
+VERSION = "0.7.2"
 ACCEPTED_ALIGNMENT_VERSION = "0.5.0"
 ACCEPTED_ALIGNMENT_PURPOSE = (
     "ten_mcap_projection_based_reference_alignment_validation"
@@ -102,6 +104,14 @@ RECORDING_SUMMARY_FIELDS = (
     "speed_is_signed",
     "speed_message_count",
     "valid_speed_sample_count",
+    "usable_speed_sample_count",
+    "speed_distinct_timestamp_count",
+    "speed_duplicate_timestamp_group_count",
+    "speed_duplicate_message_count",
+    "speed_coalesced_duplicate_message_count",
+    "speed_conflicting_timestamp_group_count",
+    "speed_discarded_conflicting_message_count",
+    "maximum_speed_timestamp_multiplicity",
     "median_speed_previous_interpolation_span_ms",
     "median_speed_current_interpolation_span_ms",
     "maximum_speed_previous_interpolation_span_ms",
@@ -296,16 +306,24 @@ def _extract_recording_features(
         speed_samples, source_failures, speed_message_count = (
             decode_longitudinal_speed_samples(recording.path, topic=speed_topic)
         )
+        valid_speed_sample_count = len(speed_samples)
+        duplicate_audit = None
         speed_is_signed = True
     elif speed_source == ODOMETRY_SPEED_SOURCE:
-        speed_samples, raw_failures, speed_message_count = decode_odometry_samples(
+        decoded_samples, raw_failures, speed_message_count = decode_odometry_samples(
             recording.path,
             topic=odometry_topic,
         )
-        speed_samples.sort(key=lambda sample: sample.timestamp_ns)
+        valid_speed_sample_count = len(decoded_samples)
+        duplicate_audit = coalesce_identical_odometry_timestamps(decoded_samples)
+        speed_samples = list(duplicate_audit.samples)
         source_failures = Counter(
             {f"speed_source__{code}": count for code, count in raw_failures.items()}
         )
+        if duplicate_audit.conflicting_timestamp_group_count:
+            source_failures[
+                "speed_source__odometry_conflicting_duplicate_timestamp_group"
+            ] += duplicate_audit.conflicting_timestamp_group_count
         speed_is_signed = False
     else:
         raise ValueError(f"unsupported speed source: {speed_source}")
@@ -484,7 +502,43 @@ def _extract_recording_features(
         "speed_source": speed_source,
         "speed_is_signed": speed_is_signed,
         "speed_message_count": speed_message_count,
-        "valid_speed_sample_count": len(speed_samples),
+        "valid_speed_sample_count": valid_speed_sample_count,
+        "usable_speed_sample_count": len(speed_samples),
+        "speed_distinct_timestamp_count": (
+            None
+            if duplicate_audit is None
+            else duplicate_audit.distinct_timestamp_count
+        ),
+        "speed_duplicate_timestamp_group_count": (
+            None
+            if duplicate_audit is None
+            else duplicate_audit.duplicate_timestamp_group_count
+        ),
+        "speed_duplicate_message_count": (
+            None
+            if duplicate_audit is None
+            else duplicate_audit.duplicate_message_count
+        ),
+        "speed_coalesced_duplicate_message_count": (
+            None
+            if duplicate_audit is None
+            else duplicate_audit.coalesced_duplicate_message_count
+        ),
+        "speed_conflicting_timestamp_group_count": (
+            None
+            if duplicate_audit is None
+            else duplicate_audit.conflicting_timestamp_group_count
+        ),
+        "speed_discarded_conflicting_message_count": (
+            None
+            if duplicate_audit is None
+            else duplicate_audit.discarded_conflicting_message_count
+        ),
+        "maximum_speed_timestamp_multiplicity": (
+            None
+            if duplicate_audit is None
+            else duplicate_audit.maximum_timestamp_multiplicity
+        ),
         "median_speed_previous_interpolation_span_ms": (
             None
             if not previous_interpolation_spans
@@ -685,6 +739,75 @@ def run_conditional_feature_audit(
             None
             if arguments.speed_source == DIRECT_SPEED_SOURCE
             else "reverse_motion_sign_is_not_observable_from_displacement_magnitude"
+        ),
+        "odometry_duplicate_timestamp_policy": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else (
+                "coalesce only exact-pose duplicate groups; discard complete "
+                "groups whose x, y, or yaw values conflict"
+            )
+        ),
+        "odometry_duplicate_pose_comparison": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else ODOMETRY_DUPLICATE_POSE_POLICY
+        ),
+        "odometry_distinct_timestamp_count": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else sum(
+                int(row["speed_distinct_timestamp_count"])
+                for row in recording_rows
+            )
+        ),
+        "odometry_duplicate_timestamp_group_count": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else sum(
+                int(row["speed_duplicate_timestamp_group_count"])
+                for row in recording_rows
+            )
+        ),
+        "odometry_duplicate_message_count": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else sum(
+                int(row["speed_duplicate_message_count"])
+                for row in recording_rows
+            )
+        ),
+        "odometry_coalesced_duplicate_message_count": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else sum(
+                int(row["speed_coalesced_duplicate_message_count"])
+                for row in recording_rows
+            )
+        ),
+        "odometry_conflicting_timestamp_group_count": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else sum(
+                int(row["speed_conflicting_timestamp_group_count"])
+                for row in recording_rows
+            )
+        ),
+        "odometry_discarded_conflicting_message_count": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else sum(
+                int(row["speed_discarded_conflicting_message_count"])
+                for row in recording_rows
+            )
+        ),
+        "odometry_maximum_timestamp_multiplicity": (
+            None
+            if arguments.speed_source == DIRECT_SPEED_SOURCE
+            else max(
+                int(row["maximum_speed_timestamp_multiplicity"])
+                for row in recording_rows
+            )
         ),
         "maximum_speed_interpolation_gap_ms": (
             arguments.maximum_speed_interpolation_gap_ms
