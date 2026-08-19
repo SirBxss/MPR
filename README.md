@@ -1,4 +1,17 @@
-# Minimal Path-Residual Model (MPR) v0.8.0
+# Minimal Path-Residual Model (MPR) v0.9.0
+
+MPR is the canonical implementation repository for the thesis. LEEM may be
+consulted as historical implementation evidence, but new data contracts,
+models, evaluation logic, and thesis results belong here.
+
+Version 0.9.0 introduces the shared sequence contract required by all three
+thesis model families: conditional Gaussian, AIOHMM, and RC-GAN. It converts
+the frozen v0.8.0 H100 cohort into recording-local contiguous sequences,
+splitting at missing pair indices or source-time gaps. It writes padded
+`[sequence, time, feature]` conditions, padded
+`[sequence, time, station]` residuals, explicit masks and lengths, exact
+provenance, leave-one-physical-drive-out folds, and standardizers fitted on
+training drives only. It does not train or select a new model.
 
 Version 0.8.0 freezes the reviewed complete-feature cohort and performs the
 first conditional-model comparison. It fits a six-feature linear conditional
@@ -443,6 +456,39 @@ conditional model, and a comparison plot. With the reviewed data, the linear
 conditional mean is slightly worse overall than the same-cohort unconditional
 model on both held-out joint NLL and pooled mean-prediction RMSE; this is a
 valid model-comparison result, not a training failure.
+
+## Common sequential dataset
+
+Build the v0.9.0 sequence contract from the complete v0.8.0 output:
+
+```bash
+python -m lane_residuals.cli.sequence_dataset \
+  "outputs/models/conditional_gaussian_v080" \
+  --output-directory "outputs/datasets/sequential_dataset_v090"
+```
+
+The default 200 ms continuity limit is deliberately above the observed normal
+frame spacing but below the observed multi-second holes. A recording is also
+split whenever pair indices are not consecutive. A sequence never crosses an
+MCAP recording boundary, and physical-drive membership comes only from the
+frozen cohort's exact manifest provenance.
+
+On the reviewed 1,770-frame development cohort, the command produces 13
+contiguous sequences across 10 recordings and two physical drives. Their total
+within-sequence duration is approximately 140.58 s. This is sufficient for
+pipeline implementation and preliminary temporal baselines, but not for a
+final AIOHMM/RC-GAN comparison or an untouched thesis test. Additional
+independent physical drives are required before final model selection.
+
+The v0.8.0 conditional Gaussian is therefore a completed baseline experiment,
+not the finalized Gaussian thesis model. The next comparison must first make
+the Gaussian consume the same sequence folds and evaluation contract as the
+temporal models. Feature expansion should then be tested as a predeclared
+ablation using prediction-time EDP/vehicle signals only; residual or
+pseudo-reference outcomes must never be used as input features.
+
+The staged implementation, feature gates, and additional-data trigger are
+specified in [`docs/modeling_plan.md`](docs/modeling_plan.md).
 
 ## What the command does
 

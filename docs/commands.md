@@ -6,7 +6,9 @@ the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
 adequacy diagnostics, and v0.7.0 adds a prediction-time feature-availability
 audit. v0.7.1 adds an explicit odometry-displacement speed source, and v0.7.2
 adds fail-closed duplicate-timestamp handling with explicit evidence. v0.8.0
-adds the frozen-cohort, same-fold conditional Gaussian comparison. Existing
+adds the frozen-cohort, same-fold conditional Gaussian comparison. v0.9.0 adds
+the common gap-aware sequential dataset and training-drive-only transforms for
+the three thesis model families. Existing
 historical command defaults and flags are unchanged; the conditional-feature
 command requires `--speed-source`. Use `--help` for the complete option set.
 
@@ -25,6 +27,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-diagnose-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_diagnostics` | v0.6.1 leave-one-drive-out marginal, tail, Q–Q, and Mahalanobis adequacy diagnostic | Complete unchanged v0.6.0 Gaussian output directory | Per-vector, marginal, and multivariate CSVs; two plots; strict JSON summary |
 | `mpr-audit-conditional-features` | `python -m lane_residuals.cli.conditional_features` | v0.7.2 exact-manifest speed, EDP-curvature, and KEEP_LANE-confidence availability audit with duplicate-timestamp evidence; no model fit | Raw MCAP corpus, accepted v0.5.0 alignment batch, complete v0.6.0 Gaussian directory, and explicit `--speed-source` | All-vector feature CSV, recording summary, availability plot, and strict JSON summary |
 | `mpr-train-conditional-gaussian` | `python -m lane_residuals.cli.conditional_gaussian` | v0.8.0 frozen complete-feature cohort and same-fold conditional/unconditional Gaussian comparison | Complete unchanged v0.6.0 Gaussian directory and its reviewed v0.7.2 gap-50 feature-audit directory | Frozen cohort/exclusions, fold/station/vector comparison CSVs, final conditional model, plot, and strict JSON summaries |
+| `mpr-build-sequential-dataset` | `python -m lane_residuals.cli.sequence_dataset` | v0.9.0 gap-aware sequence construction; no model fit or selection | Complete unchanged v0.8.0 conditional Gaussian directory | Raw physical-unit sequence tensor, sequence/frame provenance, drive folds, training-only standardizers, plot, and strict JSON summary |
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the
@@ -40,6 +43,7 @@ config/private/mcap_sessions.private.json
 config/private/reference_signals.private.json
 outputs/diagnostics/validation/<new-run-name>/
 outputs/models/<new-model-run-name>/
+outputs/datasets/<new-dataset-run-name>/
 ```
 
 Existing implemented default paths remain unchanged. Exit code `0` means the

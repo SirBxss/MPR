@@ -4,7 +4,9 @@ MPR keeps the accepted diagnostics frozen, retains v0.5.1 as a separate
 odometry-compensated sensitivity audit, and provides the v0.6.0 canonical
 residual/Gaussian workflow, v0.6.1 Gaussian adequacy diagnostics, the v0.7.2
 conditional-feature audit, and the v0.8.0 frozen-cohort conditional Gaussian
-comparison. The categorization separates scientific
+comparison. v0.9.0 establishes MPR as the canonical thesis implementation and
+adds the common gap-aware sequence contract used by the conditional Gaussian,
+AIOHMM, and RC-GAN. LEEM is reference-only. The categorization separates scientific
 arithmetic, orchestration, I/O, plots, and command adapters.
 
 ```text
@@ -33,6 +35,7 @@ outputs/diagnostics/
 ├── modeling/            model adequacy and calibration diagnostics
 └── archive/             preserved historical runs
 outputs/models/           ignored private model runs and residual vectors
+outputs/datasets/         ignored private sequence datasets and split manifests
 tests/
 ├── domain/              scientific invariants
 ├── workflows/           orchestration and output behavior
@@ -64,6 +67,11 @@ Package responsibilities:
   marginal and Mahalanobis behavior with Gaussian reference distributions.
   The v0.8.0 conditional model adds a fold-standardized linear mean while
   retaining one condition-invariant 21-dimensional covariance.
+- `domain.sequence_dataset` splits frames at recording, missing-pair, and
+  source-time gaps; owns padded conditions/residuals, masks, lengths, and
+  train-drive-only standardization.
+- `modeling.base` defines the shared fit, sample, log-probability, save, and
+  load lifecycle. Model-specific code must not redefine the dataset or split.
 - `domain.conditional_features` owns recording-local direct-speed
   interpolation, fixed-interval unsigned odometry-speed derivation, EDP
   native-to-ego station translation, fixed H100 curvature summaries, and exact
@@ -94,7 +102,10 @@ retains one audit row per residual vector and fits no model. The v0.8.0
 workflow consumes that immutable audit, selects complete rows without looking
 at residual values, and evaluates conditional and unconditional models on
 identical drive-held-out folds. Legacy/withdrawn
-code is retained only for reproducibility and compatibility.
+code is retained only for reproducibility and compatibility. The v0.9.0
+workflow consumes the frozen v0.8.0 cohort, performs no model fitting, and
+writes leave-one-physical-drive-out development folds. It explicitly does not
+create an untouched final test from the present two-drive corpus.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

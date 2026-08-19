@@ -383,3 +383,44 @@ covariance. The summary reports conditional-minus-unconditional held-out
 metrics and explicit improvement booleans; it does not claim improvement when
 the deltas are unfavorable. All outputs are private BMW-derived artifacts and
 must remain outside version control.
+
+## v0.9.0 common sequential dataset outputs
+
+The command accepts only a complete v0.8.0 frozen conditional cohort with the
+exact BMW condition schema v1 and canonical H100 residual grid. It writes
+exactly:
+
+```text
+sequential_dataset.npz
+sequence_summary.csv
+sequence_frame_index.csv
+drive_fold_manifest.json
+drive_fold_standardizers.json
+sequence_dataset_diagnostics.png
+sequential_dataset_summary.json
+```
+
+`sequential_dataset.npz` is raw physical-unit data. Its main arrays are
+`conditions[B,T,6]`, `residuals_m[B,T,21]`, `valid_mask[B,T,21]`, and
+`lengths[B]`. It also stores sequence, recording, drive, pair, message, and
+private source-time provenance. Padding is zero for numeric model arrays,
+false for the validity mask, and `-1` for temporal indices. Active v0.9.0 H100
+frames always contain all 21 stations.
+
+`sequence_summary.csv` records each gap decision and sequence duration.
+`sequence_frame_index.csv` maps every tensor position back to its immutable
+recording/pair key. No frame may be lost, duplicated, reordered within a
+recording, or joined across an MCAP boundary.
+
+`drive_fold_manifest.json` is leave-one-physical-drive-out development
+evidence. `drive_fold_standardizers.json` contains one transform per fold,
+fitted only on that fold's training drives. Conditions and each residual
+station have separate mean/scale values. The raw NPZ is never silently
+standardized.
+
+The diagnostic PNG reports sequence support, retained intervals, and raw
+lag-one residual correlation. It is descriptive and fits no model. The summary
+marks the current corpus as development-only, reports that no untouched final
+test is present, and requires additional independent drives before final model
+selection. All outputs are private BMW-derived artifacts and remain outside
+version control.

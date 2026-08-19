@@ -21,6 +21,7 @@ from ..domain.residual_dataset import (
     ResidualDatasetContractError,
     ResidualObservation,
 )
+from ..domain.sequence_dataset import BMW_CONDITION_FEATURE_NAMES
 from ..io.reports import write_csv_rows, write_strict_json
 from ..modeling.conditional_gaussian import (
     ConditionalGaussianResidualModel,
@@ -41,14 +42,7 @@ EXPECTED_SPEED_INTERVAL_MS = 50.0
 EXPECTED_MAXIMUM_ODOMETRY_GAP_MS = 50.0
 MARGINAL_95_QUANTILE = 1.959963984540054
 
-CONDITIONAL_FEATURE_NAMES = (
-    "speed_mps",
-    "estimated_mean_abs_curvature_per_m",
-    "estimated_curvature_delta_per_m",
-    "confidence_near_mean",
-    "confidence_middle_mean",
-    "confidence_far_mean",
-)
+CONDITIONAL_FEATURE_NAMES = BMW_CONDITION_FEATURE_NAMES
 
 COHORT_FIELDS = (*RESIDUAL_VECTOR_FIELDS, *CONDITIONAL_FEATURE_NAMES)
 EXCLUSION_FIELDS = (

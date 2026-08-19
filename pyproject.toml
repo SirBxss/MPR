@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "minimal-lane-residual-model"
-version = "0.8.0"
-description = "Lane-residual conditional and unconditional Gaussian comparison"
+name = "mpr"
+version = "0.9.0"
+description = "Gap-aware lane-residual sequence dataset and model contracts"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -35,6 +35,7 @@ mpr-train-gaussian-baseline = "lane_residuals.cli.gaussian_baseline:main"
 mpr-diagnose-gaussian-baseline = "lane_residuals.cli.gaussian_diagnostics:main"
 mpr-audit-conditional-features = "lane_residuals.cli.conditional_features:main"
 mpr-train-conditional-gaussian = "lane_residuals.cli.conditional_gaussian:main"
+mpr-build-sequential-dataset = "lane_residuals.cli.sequence_dataset:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
