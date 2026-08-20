@@ -1,8 +1,23 @@
-# Minimal Path-Residual Model (MPR) v0.10.0
+# Minimal Path-Residual Model (MPR) v0.11.0
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
+
+Version 0.11.0 implements the second thesis model family: an autoregressive
+input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
+six-feature schema, physical-drive folds, training-only transforms, sampling
+seeds, and v0.10.0 metrics. The fixed exploratory default has three latent
+states, condition-dependent transitions, station-wise AR(1) emissions, and
+training-pooled emission parameters plus pooled/shrunk state-specific
+21-dimensional covariances. A state-independent training-only conditional
+Gaussian marginal supplies the reset distribution at each sequence start.
+Multiple deterministic
+restarts are selected by training likelihood only; held-out drives do not select
+the state count, restart, transform, or any hyperparameter. State occupancy,
+transition behavior, dwell estimates, AR coefficients, convergence, and restart
+stability are explicit outputs. State labels are diagnostics, not physical
+driving classes.
 
 Version 0.10.0 implements the conditional Gaussian under the shared sequence
 interface. It is deliberately a temporal null: active frames are fitted with a
@@ -520,6 +535,34 @@ sample-based marginal 95% coverage of 0.88612. Most importantly, median
 observed lag-one correlation is 0.96554 while the generated temporal-null
 median is only 0.09118. This large declared temporal mismatch is the direct
 motivation for the next AIOHMM phase.
+
+## Autoregressive input-output HMM
+
+Run v0.11.0 from the same complete unchanged v0.9.0 sequence directory:
+
+```bash
+python -m lane_residuals.cli.sequence_aiohmm \
+  "outputs/datasets/sequential_dataset_v090" \
+  --output-directory "outputs/models/aiohmm_sequence_v0110"
+```
+
+The default command performs three deterministic restarts for each fixed
+three-state fold model and the descriptive all-development-data model. It may
+take materially longer than the Gaussian because every generalized-EM
+iteration runs sequence-level forward-backward inference and updates full
+21-dimensional spatial covariances. Use the defaults for the reviewed run; the
+reduced iteration/restart settings in tests are smoke checks only.
+
+The AIOHMM density is teacher-forced: the likelihood at frame `t` conditions
+on the observed residual at `t-1`. Generated sequences are free-running and
+condition on the model's previously generated profile. This distinction is
+reported because likelihood can improve while long-horizon generative RMSE,
+energy score, or calibration does not. The common sample metrics—not AIOHMM
+NLL alone—decide whether the temporal model earns its added complexity.
+
+See [AIOHMM design and evaluation](docs/aiohmm.md) for the equations,
+generalized-EM estimator, restart policy, diagnostics, and interpretation
+limits.
 
 ## What the command does
 

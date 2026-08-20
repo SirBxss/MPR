@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.10.0"
-description = "Shared sequence modeling and Gaussian temporal-null evaluation"
+version = "0.11.0"
+description = "Shared sequence modeling with Gaussian and AIOHMM evaluation"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -37,6 +37,7 @@ mpr-audit-conditional-features = "lane_residuals.cli.conditional_features:main"
 mpr-train-conditional-gaussian = "lane_residuals.cli.conditional_gaussian:main"
 mpr-build-sequential-dataset = "lane_residuals.cli.sequence_dataset:main"
 mpr-train-sequence-gaussian = "lane_residuals.cli.sequence_gaussian:main"
+mpr-train-sequence-aiohmm = "lane_residuals.cli.sequence_aiohmm:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

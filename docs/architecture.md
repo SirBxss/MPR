@@ -7,8 +7,10 @@ conditional-feature audit, and the v0.8.0 frozen-cohort conditional Gaussian
 comparison. v0.9.0 establishes MPR as the canonical thesis implementation and
 adds the common gap-aware sequence contract used by the conditional Gaussian,
 AIOHMM, and RC-GAN. v0.10.0 implements the Gaussian temporal null and common
-sample metrics on that contract. LEEM is reference-only. The categorization
-separates scientific arithmetic, orchestration, I/O, plots, and command adapters.
+sample metrics on that contract. v0.11.0 implements the fixed-development
+AIOHMM without changing the data or split contract. LEEM is reference-only.
+The categorization separates scientific arithmetic, orchestration, I/O, plots,
+and command adapters.
 
 ```text
 src/lane_residuals/
@@ -17,7 +19,7 @@ src/lane_residuals/
 ├── domain/              current scientific calculations and data structures
 ├── io/                  MCAP decoding and generic report serialization
 ├── visualization/       current diagnostic plotting
-├── modeling/            Gaussian and future statistical-model utilities
+├── modeling/            Gaussian, AIOHMM, inference, and shared model utilities
 ├── legacy/              v0.3.x, withdrawn, and superseded implementations
 ├── __init__.py          compatibility exports
 └── *_cli.py, *.py       tiny compatibility facades for public import/module paths
@@ -75,6 +77,11 @@ Package responsibilities:
   load lifecycle. Model-specific code must not redefine the dataset or split.
 - `modeling.sequence_gaussian` adapts the linear conditional Gaussian to that
   lifecycle while declaring temporal dependency order zero.
+- `modeling.aiohmm_inference` owns exact log-domain forward-backward inference
+  and input-conditioned transition probabilities without a SciPy dependency.
+- `modeling.aiohmm` owns the fixed-state generalized-EM estimator, deterministic
+  state-label canonicalization, teacher-forced likelihood, free-running
+  generation, and strict model persistence.
 - `modeling.sequence_evaluation` owns physical-unit sample-mean RMSE, energy
   score, marginal interval coverage, and lag-one dependence diagnostics. These
   metrics are reused unchanged by likelihood-free models.
@@ -115,6 +122,12 @@ create an untouched final test from the present two-drive corpus.
 The v0.10.0 workflow reproduces those folds, verifies their transforms from
 the training rows, and establishes the Gaussian independent-emission result
 against which the AIOHMM temporal state is evaluated.
+The v0.11.0 workflow imports the model-independent v0.9.0 verifier from
+`workflows.sequence_contract`, fits deterministic same-architecture restarts
+using training likelihood only, evaluates each held-out physical drive once,
+and writes separate common-metric, posterior-state, transition, AR, convergence,
+and restart-stability evidence. It does not perform held-out state-count or
+hyperparameter selection.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

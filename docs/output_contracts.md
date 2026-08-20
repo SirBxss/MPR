@@ -463,3 +463,59 @@ frames, so temporal dependency order is exactly zero. The energy score and
 lag-one metrics form the common sample-based evaluation contract for AIOHMM
 and RC-GAN. All seven outputs are private BMW-derived artifacts and remain
 outside version control.
+
+## v0.11.0 sequence-contract AIOHMM outputs
+
+The command accepts the same exact seven-file v0.9.0 directory as v0.10.0. It
+reuses the strict hash, fold-membership, and training-standardizer verifier and
+writes exactly:
+
+```text
+aiohmm_sequence_evaluation.csv
+aiohmm_sequence_station_evaluation.csv
+aiohmm_sequence_frame_evaluation.csv
+aiohmm_sequence_state_evaluation.csv
+aiohmm_sequence_restart_evaluation.csv
+aiohmm_sequence_fold_models.json
+aiohmm_sequence_model.json
+aiohmm_sequence_diagnostics.png
+aiohmm_sequence_summary.json
+```
+
+`aiohmm_sequence_evaluation.csv` retains the v0.10.0 common sample-mean RMSE,
+energy score, marginal coverage, and observed/generated lag-one metrics. It
+adds teacher-forced standardized/physical joint NLL, posterior entropy and
+occupancy, condition-dependent transition variation, expected dwell estimates,
+and AR coefficient bounds. The overall row is recomputed from all out-of-fold
+frames and samples. AIOHMM NLL is secondary and is not a common RC-GAN metric.
+
+`aiohmm_sequence_station_evaluation.csv` uses the exact v0.10.0 station sample
+metrics and adds the fold-model median AR coefficient at each station.
+`aiohmm_sequence_frame_evaluation.csv` maps filtering likelihood increments,
+sample metrics, posterior maximum state/probability, and posterior entropy back
+to immutable sequence, recording, drive, and pair provenance.
+
+`aiohmm_sequence_state_evaluation.csv` reports test-posterior and descriptive
+all-data state occupancy, initial probabilities, zero-condition intercept-profile
+RMS, AR range, covariance eigenvalue floor, self-transition behavior, expected
+dwell, and transition-row entropy. State indices are deterministic canonical
+diagnostic labels. They are exchangeable latent labels and must not be described
+as physical road or driving regimes without separate evidence.
+
+`aiohmm_sequence_restart_evaluation.csv` contains every deterministic restart,
+including its seed, completion/convergence status, warnings, occupancy, AR
+bound, training joint likelihood, selection flag, and canonicalized transition
+and occupancy differences from the selected restart. Restarts share one fixed
+architecture and are selected only by training joint likelihood. Held-out drives
+do not select restarts, state count, transforms, or hyperparameters.
+
+`aiohmm_sequence_fold_models.json` stores the selected fit for every physical-
+drive fold. `aiohmm_sequence_model.json` combines an all-development-data
+standardizer with the descriptive post-evaluation model; it is not an untouched
+final model. Density evaluation conditions on the observed preceding residual,
+whereas sampling recursively uses the preceding generated residual. The summary
+records this teacher-forced/free-running distinction, the fixed exploratory
+state count, training-only marginal sequence-reset prior, emission-parameter
+pooling, covariance pooling/shrinkage, all seeds, output hashes, and the
+two-drive development-only limitation. All nine outputs are private BMW-derived
+artifacts and remain outside version control.
