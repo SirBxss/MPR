@@ -424,3 +424,42 @@ marks the current corpus as development-only, reports that no untouched final
 test is present, and requires additional independent drives before final model
 selection. All outputs are private BMW-derived artifacts and remain outside
 version control.
+
+## v0.10.0 sequence-contract Gaussian outputs
+
+The command accepts only the exact seven-file v0.9.0 output set. It verifies
+every recorded source hash, recomputes each training-drive standardizer, and
+reconciles every fold sequence before fitting. It writes exactly:
+
+```text
+gaussian_sequence_evaluation.csv
+gaussian_sequence_station_evaluation.csv
+gaussian_sequence_frame_evaluation.csv
+gaussian_sequence_fold_models.json
+gaussian_sequence_model.json
+gaussian_sequence_diagnostics.png
+gaussian_sequence_summary.json
+```
+
+The evaluation CSV has one row per held-out physical drive and one recomputed
+overall cross-validated row. It records standardized and Jacobian-adjusted
+physical joint NLL, squared Mahalanobis distance, sample-mean RMSE, multivariate
+energy score, marginal 95% coverage, and observed/generated lag-one dependence.
+Overall metrics are recomputed from all out-of-fold frames and samples.
+
+The station CSV reports sample-mean RMSE/bias, coverage, observed lag-one
+correlation, and the generated median and 5th/95th percentile correlations.
+The frame CSV maps likelihood, Mahalanobis, RMSE, and energy evidence back to
+the immutable sequence/recording/drive/pair provenance.
+
+`gaussian_sequence_fold_models.json` stores each held-out fold fit and its
+training provenance. `gaussian_sequence_model.json` combines an all-development
+training standardizer with the descriptive post-evaluation model. It is
+explicitly not an untouched final model.
+
+Sampling uses the recorded count and seed. Gaussian samples preserve spatial
+covariance across H100 stations but are conditionally independent between
+frames, so temporal dependency order is exactly zero. The energy score and
+lag-one metrics form the common sample-based evaluation contract for AIOHMM
+and RC-GAN. All seven outputs are private BMW-derived artifacts and remain
+outside version control.

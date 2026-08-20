@@ -26,10 +26,10 @@ are not the thesis execution path.
 | Phase | Implementation | Completion gate |
 |---|---|---|
 | v0.8 | Six-feature conditional Gaussian baseline | Complete; negative held-out comparison retained as a valid result |
-| v0.9 | Common gap-aware sequence dataset and training-drive-only transforms | Complete when real-cohort reconciliation and all tests pass |
-| v0.10 | Gaussian sequence-parity adapter and common evaluator | Same folds/rows as future models; sampling, likelihood, save/load, calibration, and deterministic seeds tested |
-| v0.11 | Predeclared prediction-time feature ablations | A feature schema changes only when availability, leakage, and held-out-drive improvement gates pass |
-| v0.12 | AIOHMM | State-count selection is nested inside training drives; state occupancy and transition stability are reported |
+| v0.9 | Common gap-aware sequence dataset and training-drive-only transforms | Complete; real-cohort reconciliation and contract tests pass |
+| v0.10 | Gaussian sequence-parity adapter and common evaluator | Complete; same folds/rows, sampling, likelihood, save/load, energy score, calibration, and deterministic seeds tested |
+| v0.11 | AIOHMM on condition schema v1 | State-count exploration remains development-only; state occupancy and transition stability are reported |
+| v0.12 | Predeclared prediction-time feature ablations | A feature schema changes only when availability, leakage, and held-out-drive improvement gates pass |
 | v0.13 | RC-GAN | Begins only after the independent-drive/data-volume gate; distributional and temporal metrics use identical held-out rows |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 

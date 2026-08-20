@@ -1,8 +1,16 @@
-# Minimal Path-Residual Model (MPR) v0.9.0
+# Minimal Path-Residual Model (MPR) v0.10.0
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
+
+Version 0.10.0 implements the conditional Gaussian under the shared sequence
+interface. It is deliberately a temporal null: active frames are fitted with a
+linear conditional mean and spatial 21-dimensional covariance, but emissions
+remain conditionally independent across time. The workflow evaluates exact
+leave-one-physical-drive-out v0.9.0 folds and adds sample-based energy score,
+marginal coverage, and lag-one correlation diagnostics that can also be used
+for AIOHMM and RC-GAN.
 
 Version 0.9.0 introduces the shared sequence contract required by all three
 thesis model families: conditional Gaussian, AIOHMM, and RC-GAN. It converts
@@ -489,6 +497,29 @@ pseudo-reference outcomes must never be used as input features.
 
 The staged implementation, feature gates, and additional-data trigger are
 specified in [`docs/modeling_plan.md`](docs/modeling_plan.md).
+
+## Sequence-contract Gaussian temporal null
+
+Run v0.10.0 from the complete unchanged v0.9.0 sequence directory:
+
+```bash
+python -m lane_residuals.cli.sequence_gaussian \
+  "outputs/datasets/sequential_dataset_v090" \
+  --output-directory "outputs/models/gaussian_sequence_v0100"
+```
+
+The model is fitted independently in each physical-drive fold using that
+fold's stored training-only transform. It supports the common `fit`, `sample`,
+`log_probability`, `save`, and `load` lifecycle. The final all-development-data
+fit is written only after held-out evaluation and is explicitly descriptive,
+not an untouched final model.
+
+With 128 samples and seed `20260819`, the reviewed cohort gives a held-out
+sample-mean RMSE of approximately 0.36445 m, energy score of 1.02288 m, and
+sample-based marginal 95% coverage of 0.88612. Most importantly, median
+observed lag-one correlation is 0.96554 while the generated temporal-null
+median is only 0.09118. This large declared temporal mismatch is the direct
+motivation for the next AIOHMM phase.
 
 ## What the command does
 

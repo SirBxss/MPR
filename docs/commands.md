@@ -8,7 +8,8 @@ audit. v0.7.1 adds an explicit odometry-displacement speed source, and v0.7.2
 adds fail-closed duplicate-timestamp handling with explicit evidence. v0.8.0
 adds the frozen-cohort, same-fold conditional Gaussian comparison. v0.9.0 adds
 the common gap-aware sequential dataset and training-drive-only transforms for
-the three thesis model families. Existing
+the three thesis model families. v0.10.0 adds the conditional Gaussian
+temporal-null adapter and common generative metrics. Existing
 historical command defaults and flags are unchanged; the conditional-feature
 command requires `--speed-source`. Use `--help` for the complete option set.
 
@@ -28,6 +29,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-audit-conditional-features` | `python -m lane_residuals.cli.conditional_features` | v0.7.2 exact-manifest speed, EDP-curvature, and KEEP_LANE-confidence availability audit with duplicate-timestamp evidence; no model fit | Raw MCAP corpus, accepted v0.5.0 alignment batch, complete v0.6.0 Gaussian directory, and explicit `--speed-source` | All-vector feature CSV, recording summary, availability plot, and strict JSON summary |
 | `mpr-train-conditional-gaussian` | `python -m lane_residuals.cli.conditional_gaussian` | v0.8.0 frozen complete-feature cohort and same-fold conditional/unconditional Gaussian comparison | Complete unchanged v0.6.0 Gaussian directory and its reviewed v0.7.2 gap-50 feature-audit directory | Frozen cohort/exclusions, fold/station/vector comparison CSVs, final conditional model, plot, and strict JSON summaries |
 | `mpr-build-sequential-dataset` | `python -m lane_residuals.cli.sequence_dataset` | v0.9.0 gap-aware sequence construction; no model fit or selection | Complete unchanged v0.8.0 conditional Gaussian directory | Raw physical-unit sequence tensor, sequence/frame provenance, drive folds, training-only standardizers, plot, and strict JSON summary |
+| `mpr-train-sequence-gaussian` | `python -m lane_residuals.cli.sequence_gaussian` | v0.10.0 conditional Gaussian temporal null under the common sequence/evaluation interface | Complete unchanged v0.9.0 sequential dataset directory | Fold/frame/station metrics, fold and descriptive models, temporal diagnostic plot, and strict JSON summary |
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

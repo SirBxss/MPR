@@ -6,8 +6,9 @@ residual/Gaussian workflow, v0.6.1 Gaussian adequacy diagnostics, the v0.7.2
 conditional-feature audit, and the v0.8.0 frozen-cohort conditional Gaussian
 comparison. v0.9.0 establishes MPR as the canonical thesis implementation and
 adds the common gap-aware sequence contract used by the conditional Gaussian,
-AIOHMM, and RC-GAN. LEEM is reference-only. The categorization separates scientific
-arithmetic, orchestration, I/O, plots, and command adapters.
+AIOHMM, and RC-GAN. v0.10.0 implements the Gaussian temporal null and common
+sample metrics on that contract. LEEM is reference-only. The categorization
+separates scientific arithmetic, orchestration, I/O, plots, and command adapters.
 
 ```text
 src/lane_residuals/
@@ -72,6 +73,11 @@ Package responsibilities:
   train-drive-only standardization.
 - `modeling.base` defines the shared fit, sample, log-probability, save, and
   load lifecycle. Model-specific code must not redefine the dataset or split.
+- `modeling.sequence_gaussian` adapts the linear conditional Gaussian to that
+  lifecycle while declaring temporal dependency order zero.
+- `modeling.sequence_evaluation` owns physical-unit sample-mean RMSE, energy
+  score, marginal interval coverage, and lag-one dependence diagnostics. These
+  metrics are reused unchanged by likelihood-free models.
 - `domain.conditional_features` owns recording-local direct-speed
   interpolation, fixed-interval unsigned odometry-speed derivation, EDP
   native-to-ego station translation, fixed H100 curvature summaries, and exact
@@ -106,6 +112,9 @@ code is retained only for reproducibility and compatibility. The v0.9.0
 workflow consumes the frozen v0.8.0 cohort, performs no model fitting, and
 writes leave-one-physical-drive-out development folds. It explicitly does not
 create an untouched final test from the present two-drive corpus.
+The v0.10.0 workflow reproduces those folds, verifies their transforms from
+the training rows, and establishes the Gaussian independent-emission result
+against which the AIOHMM temporal state is evaluated.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific
