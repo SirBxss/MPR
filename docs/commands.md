@@ -1,7 +1,8 @@
 # Supported commands
 
-All seven v0.4.5 console aliases and their historical `python -m` forms remain
-supported. v0.5.2 restores corpus-independent native projection alignment;
+All historical console aliases and their `python -m` forms remain supported.
+v0.5.2 restores corpus-independent native projection alignment;
+v0.13.0 builds the pre-model quality-gated expanded sequential dataset;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -30,6 +31,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-audit-path-pairing-batch` | `python -m lane_residuals.batch_pairing_audit_cli` | v0.4.5 ten-recording fixed-cohort aggregation | MCAP files/directories and exact `--drive-map` | Per-recording pairing outputs plus corpus CSVs, JSONs, and plots |
 | `mpr-audit-native-projection-alignment-batch` | `python -m lane_residuals.cli.projection_alignment_batch` | v0.5.2 accepted exact-manifest native projection/resampling; no motion compensation or model training | MCAP files/directories, exact `--drive-map`, accepted corpus inventory, and positive expected count | Per-recording native alignment outputs, aggregate CSVs/plot, manifests, summary, and SHA-256 provenance |
 | `mpr-audit-topology-semantics` | `python -m lane_residuals.cli.topology_semantics_audit` | v0.12.2 read-only EDP enum/transition and alignment-quality audit; eligibility unchanged | Exact MCAP corpus, private map, complete v0.12.1 inventory, and complete v0.5.2 alignment batch | Message/recording/session/transition/outlier CSVs, plot, summary, manifest, provenance, and packaged inventory lineage |
+| `mpr-build-expanded-sequential-dataset` | `python -m lane_residuals.cli.expanded_sequence_dataset` | v0.13.0 quality-gated sensor-topology H100 profiles and physical-session sequences; no split or model selection | Exact raw MCAP corpus, complete v0.5.2 alignment, and corrected complete v0.12.2 topology audit | Deterministic profile archive, sequence/eligibility/stitch/exclusion audits, drive summary, plot, contract, manifest, and provenance |
 | `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
 | `mpr-train-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_baseline` | v0.6.0 canonical H100 export, leave-one-drive-out evaluation, and final Gaussian fit | Historical complete v0.5.0 or current complete v0.5.2 native alignment batch | Residual vectors, dataset/model summaries, fold/station evaluation CSVs, and diagnostics plot |
@@ -92,6 +94,25 @@ python -m lane_residuals.cli.topology_semantics_audit \
 
 The 1.0 m anchor-distance listing is diagnostic only. It does not change the
 accepted topology gate or H60/H100 eligibility.
+
+Build the v0.13.0 pre-model dataset:
+
+```bash
+python -m lane_residuals.cli.expanded_sequence_dataset \
+  "data/raw/mcap" \
+  --alignment-directory \
+  "outputs/diagnostics/validation/reference_alignment_batch_v052_expanded" \
+  --topology-audit-directory \
+  "outputs/diagnostics/validation/topology_semantics_alignment_quality_v0122" \
+  --expected-file-count 67 \
+  --output-directory \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0130"
+```
+
+The cadence tolerance defaults to 200 ms. The established v0.9 condition
+schema uses unsigned 50 ms odometry-displacement speed with a 50 ms maximum
+recording-local interpolation span. No cross-MCAP feature interpolation,
+train/validation/test assignment, standardizer fit, or model training occurs.
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

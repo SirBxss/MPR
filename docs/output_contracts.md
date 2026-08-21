@@ -294,6 +294,47 @@ upstream sharing with RLMB remain `unknown`. All six exact v0.12.1 inventory
 outputs are copied byte-for-byte under `lineage/` and hashed. The private map
 is hashed but not copied or added to Git.
 
+## v0.13.0 quality-gated expanded sequential dataset
+
+The command writes:
+
+```text
+expanded_profile_dataset.npz
+profile_eligibility_audit.csv
+sequence_manifest.csv
+sequence_summary_by_drive.csv
+cross_mcap_stitching_audit.csv
+exclusion_reason_summary.csv
+expanded_sequence_contract.json
+train_only_standardization_metadata.json
+expanded_sequence_diagnostics.png
+expanded_sequence_manifest.json
+expanded_sequence_provenance.json
+```
+
+`expanded_profile_dataset.npz` is a deterministic, pickle-free archive with
+fixed ZIP metadata. It contains physical-unit `residuals_m [N,21]`, conditions
+`[N,6]`, canonical stations, timestamps, original recording/drive/MCAP IDs,
+quality-gated sequence IDs, pair/message indices, and eligibility fields.
+
+Eligibility requires SENSOR_TOPOLOGY, existing H100 eligibility, exactly the
+finite `0,5,...,100 m` residual vector, anchor distance `<= 1.0 m`, valid
+estimator/estimate/map states, and finite v0.9 six-feature values. The 1.0 m
+limit is a pre-model geometry rule. No heading threshold is applied.
+
+Sequences split on drive/topology changes, any ineligible observation, anchor
+gate failure, non-monotonic time, gaps above the declared cadence, or an
+unaccepted MCAP boundary. Cross-MCAP stitching additionally requires accepted
+v0.12.1 continuity and eligible immediate endpoint profiles. The original
+recording ID remains attached to every stitched frame. The stitching audit
+retains both endpoint exclusion codes as well as the boundary rejection code.
+
+The standardization JSON is deliberately unfitted: future transforms must be
+fit on training drives only after a separately reviewed split assignment.
+The manifest selects no split or hyperparameters. Provenance hashes every
+generated artifact, all accepted alignment/topology inputs, and the inherited
+per-MCAP SHA-256 map from the v0.12.1 inventory.
+
 ## v0.5.1 optional reference-alignment sensitivity
 
 The optional motion-alignment command writes exactly:

@@ -1,4 +1,6 @@
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 
@@ -8,6 +10,7 @@ from lane_residuals.domain.expanded_sequence_dataset import (
 )
 from lane_residuals.workflows.expanded_sequence_dataset import (
     _build_sequences_and_stitch_audit,
+    _feature_rows,
     _make_audit_rows,
 )
 
@@ -48,6 +51,32 @@ def _feature(recording, pair):
 
 
 class ExpandedSequenceWorkflowTests(unittest.TestCase):
+    def test_recording_without_h100_targets_skips_feature_helper(self):
+        manifest = {
+            "recordings": [
+                {
+                    "recording_id": "recording_026",
+                    "drive_id": "drive_005",
+                    "mcap_filename_private": "lane-map-only.mcap",
+                }
+            ]
+        }
+        raw = Path("/tmp/lane-map-only.mcap")
+        with patch(
+            "lane_residuals.workflows.expanded_sequence_dataset._resolve_mcap_files",
+            return_value={"lane-map-only.mcap": raw},
+        ), patch(
+            "lane_residuals.workflows.expanded_sequence_dataset._extract_recording_features"
+        ) as extractor:
+            features, failures = _feature_rows(
+                mcap_inputs=[raw], manifest=manifest, pair_rows=[], profiles={},
+                estimate_topic="/estimate", odometry_topic="/odometry",
+                maximum_odometry_gap_ns=50_000_000, max_step_m=.25,
+            )
+        self.assertEqual(features, {})
+        self.assertEqual(failures, {})
+        extractor.assert_not_called()
+
     def test_anchor_gate_excludes_h100_without_heading_threshold(self):
         messages = [_message("recording_038", "drive_006", "a.mcap", 84, 100, anchor=5.8)]
         residuals = {("recording_038", 84): np.zeros(21)}
@@ -101,6 +130,35 @@ class ExpandedSequenceWorkflowTests(unittest.TestCase):
         self.assertFalse(stitches[0]["immediately_eligible_boundary_candidate"])
         self.assertFalse(stitches[0]["stitched"])
         self.assertIn("topology_source_change", stitches[0]["rejection_reasons"])
+
+    def test_sensor_h100_candidate_reports_endpoint_feature_exclusion(self):
+        messages = [
+            _message("recording_001", "drive_001", "a.mcap", 0, 100),
+            _message("recording_002", "drive_001", "b.mcap", 0, 80_000_100),
+        ]
+        residuals = {
+            (row["recording_id"], int(row["pair_index"])): np.zeros(21)
+            for row in messages
+        }
+        rows, eligible = _make_audit_rows(
+            messages, residuals, {("recording_001", 0): _feature("recording_001", 0)}
+        )
+        _, stitches = _build_sequences_and_stitch_audit(
+            rows,
+            eligible,
+            [{
+                "left_recording_id": "recording_001",
+                "right_recording_id": "recording_002",
+                "stitchable": "True",
+            }],
+            maximum_gap_ms=200.0,
+        )
+        self.assertTrue(stitches[0]["immediately_eligible_boundary_candidate"])
+        self.assertFalse(stitches[0]["stitched"])
+        self.assertEqual(stitches[0]["left_endpoint_exclusion_reasons"], "")
+        self.assertIn(
+            "feature_not_ready", stitches[0]["right_endpoint_exclusion_reasons"]
+        )
 
 
 if __name__ == "__main__":

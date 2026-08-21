@@ -58,6 +58,7 @@ class ExpandedSequenceInputs:
     alignment_pair_rows: tuple[dict[str, str], ...] = field(repr=False)
     station_rows: tuple[dict[str, str], ...] = field(repr=False)
     continuity_rows: tuple[dict[str, str], ...] = field(repr=False)
+    raw_mcap_sha256_by_basename: Mapping[str, str] = field(repr=False)
     source_files_sha256: Mapping[str, str] = field(repr=False)
 
 
@@ -170,8 +171,33 @@ def load_expanded_sequence_inputs(
         / "recording_continuity.csv"
     )
     continuity = read_csv_rows(continuity_path)
-    if len(continuity) != expected_file_count - 8 or any(row["stitchable"] != "True" for row in continuity):
+    physical_session_count = topology_summary.get("physical_session_count")
+    if (
+        isinstance(physical_session_count, bool)
+        or not isinstance(physical_session_count, int)
+        or physical_session_count <= 0
+    ):
+        raise ExpandedSequenceContractError("topology physical-session count is invalid")
+    if (
+        len(continuity) != expected_file_count - physical_session_count
+        or any(row["stitchable"] != "True" for row in continuity)
+    ):
         raise ExpandedSequenceContractError("accepted continuity lineage is incomplete")
+    inventory_path = continuity_path.parent / "mcap_inventory.csv"
+    inventory_rows = read_csv_rows(inventory_path)
+    raw_hashes = {
+        row["mcap_basename_private"]: row["sha256"] for row in inventory_rows
+    }
+    if (
+        len(inventory_rows) != expected_file_count
+        or len(raw_hashes) != expected_file_count
+        or any(
+            len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+            for digest in raw_hashes.values()
+        )
+    ):
+        raise ExpandedSequenceContractError("accepted raw MCAP hash lineage is incomplete")
 
     sources = {
         f"alignment/{name}": sha256_file(alignment_directory / name)
@@ -184,6 +210,7 @@ def load_expanded_sequence_inputs(
         }
     )
     sources["topology/lineage/recording_continuity.csv"] = sha256_file(continuity_path)
+    sources["topology/lineage/mcap_inventory.csv"] = sha256_file(inventory_path)
     return ExpandedSequenceInputs(
         alignment_manifest=alignment_manifest,
         topology_summary=topology_summary,
@@ -191,6 +218,7 @@ def load_expanded_sequence_inputs(
         alignment_pair_rows=alignment_pairs,
         station_rows=stations,
         continuity_rows=continuity,
+        raw_mcap_sha256_by_basename=dict(sorted(raw_hashes.items())),
         source_files_sha256=dict(sorted(sources.items())),
     )
 

@@ -13,6 +13,10 @@ AIOHMM without changing the data or split contract. LEEM is reference-only.
 The v0.12.2 topology-semantics audit is a read-only consumer of the accepted
 v0.5.2 alignment batch and exact v0.12.1 inventory lineage. It cannot change
 the SENSOR_TOPOLOGY validation gate or pair eligibility.
+The v0.13.0 expanded sequence workflow is the next pre-model layer: it joins
+those immutable inputs to the frozen v0.9 six-feature definition, applies the
+fixed geometric validity gate, and groups only adjacent eligible observations
+under physical-drive sequence IDs while retaining original recording IDs.
 The categorization separates scientific arithmetic, orchestration, I/O, plots,
 and command adapters.
 
@@ -21,6 +25,12 @@ protobuf values with descriptor enum names, IO verifies and packages immutable
 inventory/alignment lineage, workflow code joins every EDP message to existing
 pair evidence and constructs physical-session transitions, and visualization
 renders one diagnostic. It writes no residuals, features, sequences, or models.
+
+The expanded-sequence domain owns profile eligibility and boundary predicates;
+IO owns prerequisite reconciliation and deterministic archives; workflow code
+extracts recording-local v0.9 conditions and creates audits; visualization and
+CLI remain adapters. The workflow creates no train/validation/test assignment
+and invokes no Gaussian, AIOHMM, or RC-GAN code.
 
 ```text
 src/lane_residuals/

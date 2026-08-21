@@ -86,6 +86,7 @@ STITCH_FIELDS = (
     "inventory_boundary_accepted", "left_endpoint_sensor_h100",
     "right_endpoint_sensor_h100", "immediately_eligible_boundary_candidate",
     "left_endpoint_profile_eligible", "right_endpoint_profile_eligible",
+    "left_endpoint_exclusion_reasons", "right_endpoint_exclusion_reasons",
     "timestamp_gap_ms", "timestamp_continuity_passes", "stitched",
     "rejection_reasons",
 )
@@ -164,9 +165,18 @@ def _feature_rows(
     feature_by_key: dict[tuple[str, int], dict[str, Any]] = {}
     failures: Counter[str] = Counter()
     for index, recording in enumerate(recordings, 1):
+        recording_observations = observations.get(recording.recording_id, ())
+        if not recording_observations:
+            LOGGER.info(
+                "skipping v0.9 conditions %d/%d: %s has no H100 targets",
+                index,
+                len(recordings),
+                recording.recording_id,
+            )
+            continue
         LOGGER.info("extracting v0.9 conditions %d/%d: %s", index, len(recordings), recording.recording_id)
         result = _extract_recording_features(
-            recording, observations.get(recording.recording_id, ()),
+            recording, recording_observations,
             estimate_topic=estimate_topic, speed_source=ODOMETRY_SPEED_SOURCE,
             speed_topic="", odometry_topic=odometry_topic,
             maximum_speed_interpolation_gap_ns=0,
@@ -287,6 +297,8 @@ def _build_sequences_and_stitch_audit(
             "left_endpoint_sensor_h100": left_pre, "right_endpoint_sensor_h100": right_pre,
             "immediately_eligible_boundary_candidate": left_pre and right_pre,
             "left_endpoint_profile_eligible": left_ok, "right_endpoint_profile_eligible": right_ok,
+            "left_endpoint_exclusion_reasons": left["exclusion_reasons"],
+            "right_endpoint_exclusion_reasons": right["exclusion_reasons"],
             "timestamp_gap_ms": gap_ns / 1e6,
             "timestamp_continuity_passes": 0 < gap_ns <= maximum_gap_ms * 1e6,
             "stitched": stitched,
@@ -299,6 +311,11 @@ def _build_sequences_and_stitch_audit(
     active_reasons: tuple[str, ...] = ("physical_drive_start",)
     drive_sequence_counts: Counter[str] = Counter()
     previous_row: dict[str, Any] | None = None
+    audit_by_key = {
+        (row["recording_id"], int(row["pair_index"])): row
+        for row in audit_rows
+        if row["pair_index"] != ""
+    }
 
     def close() -> None:
         nonlocal active
@@ -310,8 +327,8 @@ def _build_sequences_and_stitch_audit(
         sequence = ExpandedSequence(sequence_id, drive, active_reasons, tuple(active))
         sequences.append(sequence)
         for frame in active:
-            # keys are unique because every message/pair is recording-local.
-            next(row for row in audit_rows if row["recording_id"] == frame.recording_id and str(row["pair_index"]) == str(frame.pair_index))["sequence_id"] = sequence_id
+            # Pair keys are unique and recording-local in the accepted alignment.
+            audit_by_key[(frame.recording_id, frame.pair_index)]["sequence_id"] = sequence_id
         active = []
 
     for row in audit_rows:
@@ -459,14 +476,39 @@ def run_expanded_sequence_dataset(arguments: argparse.Namespace) -> tuple[dict[s
     )
 
     immediate_count = sum(_strict_bool(row["immediately_eligible_boundary_candidate"]) for row in stitch_rows)
+    clean_profiles = sum(
+        frame.drive_id in {"drive_001", "drive_002", "drive_003", "drive_004"}
+        for frame in profiles
+    )
+    clean_sequences = sum(
+        sequence.drive_id in {"drive_001", "drive_002", "drive_003", "drive_004"}
+        for sequence in sequences
+    )
+    eligible_headings = [abs(frame.anchor_heading_delta_rad) for frame in profiles]
     summary = {
         "version": VERSION, "purpose": PURPOSE, "status": "complete", "blockers": [],
         "profile_count": len(profiles), "candidate_message_count": len(audit_rows),
         "excluded_message_count": len(audit_rows) - len(profiles), "sequence_count": len(sequences),
+        "source_recording_count": len(inputs.alignment_manifest["recordings"]),
+        "retained_recording_count": len({frame.recording_id for frame in profiles}),
         "recording_count": len({frame.recording_id for frame in profiles}),
         "drive_count": len({frame.drive_id for frame in profiles}),
         "clean_drive_ids": ["drive_001", "drive_002", "drive_003", "drive_004"],
         "mixed_source_drive_ids": ["drive_005", "drive_006", "drive_007", "drive_008"],
+        "profile_count_by_drive_class": {
+            "clean_sensor_drives_001_004": clean_profiles,
+            "mixed_source_sensor_fragments_drives_005_008": len(profiles) - clean_profiles,
+        },
+        "sequence_count_by_drive_class": {
+            "clean_sensor_drives_001_004": clean_sequences,
+            "mixed_source_sensor_fragments_drives_005_008": len(sequences) - clean_sequences,
+        },
+        "eligible_absolute_anchor_heading_delta_rad": {
+            "q50": _quantile(eligible_headings, .5),
+            "q95": _quantile(eligible_headings, .95),
+            "maximum": max(eligible_headings),
+            "threshold_applied": False,
+        },
         "profile_eligibility": {
             "required_topology_source": EXPECTED_TOPOLOGY_SOURCE,
             "h100_required": True, "exact_station_count": 21,
@@ -497,8 +539,56 @@ def run_expanded_sequence_dataset(arguments: argparse.Namespace) -> tuple[dict[s
             "failure_counts": dict(sorted(feature_failures.items())),
         },
         "source_files_sha256": inputs.source_files_sha256,
+        "raw_mcap_sha256_by_basename_from_accepted_v0121_inventory": (
+            inputs.raw_mcap_sha256_by_basename
+        ),
     }
     write_strict_json(arguments.output_directory / "expanded_sequence_contract.json", summary)
+    write_strict_json(
+        arguments.output_directory / "train_only_standardization_metadata.json",
+        standardization_contract(),
+    )
+    output_names = (
+        "expanded_profile_dataset.npz",
+        "profile_eligibility_audit.csv",
+        "sequence_manifest.csv",
+        "sequence_summary_by_drive.csv",
+        "cross_mcap_stitching_audit.csv",
+        "exclusion_reason_summary.csv",
+        "expanded_sequence_contract.json",
+        "train_only_standardization_metadata.json",
+        "expanded_sequence_diagnostics.png",
+    )
+    manifest = {
+        "version": VERSION,
+        "purpose": PURPOSE,
+        "status": "complete",
+        "output_files": list(output_names),
+        "archive_sha256": sha256_file(archive),
+        "profile_count": len(profiles),
+        "sequence_count": len(sequences),
+        "split_assignments_selected": False,
+        "model_hyperparameters_selected": False,
+        "model_training_performed": False,
+    }
+    write_strict_json(arguments.output_directory / "expanded_sequence_manifest.json", manifest)
+    generated = {
+        name: sha256_file(arguments.output_directory / name)
+        for name in (*output_names, "expanded_sequence_manifest.json")
+    }
+    provenance = {
+        "version": VERSION,
+        "purpose": PURPOSE,
+        "source_files_sha256": inputs.source_files_sha256,
+        "raw_mcap_sha256_by_basename_from_accepted_v0121_inventory": (
+            inputs.raw_mcap_sha256_by_basename
+        ),
+        "generated_outputs_sha256": generated,
+    }
+    write_strict_json(
+        arguments.output_directory / "expanded_sequence_provenance.json",
+        provenance,
+    )
     return summary, 0
 
 

@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.12.2
+# Minimal Path-Residual Model (MPR) v0.13.0
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -23,6 +23,13 @@ and is not accepted for model inputs.
 Version 0.12.2 adds a read-only, complete-corpus EDP topology-semantics and
 alignment-quality audit. It preserves the SENSOR_TOPOLOGY gate and does not
 change eligibility, stitch MCAPs, export residuals/features, or train models.
+
+Version 0.13.0 builds the expanded physical-unit sensor-topology profile and
+sequential dataset. Model-profile eligibility requires accepted H100 native
+alignment, the exact 21-station grid, valid estimator/map/estimate geometry,
+finite six-feature values, and anchor distance at most 1.0 m. The geometric
+gate is fixed before modeling; no heading gate, split selection, hyperparameter
+choice, or model training is performed.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -427,6 +434,28 @@ within-session boundary transitions are explicit. Current H60-eligible anchor
 distances above 1.0 m are listed without changing eligibility. Byte-identical
 copies of all six accepted v0.12.1 inventory outputs are packaged under the
 audit's `lineage/` directory and covered by SHA-256 provenance.
+
+## Quality-gated expanded sequential dataset
+
+```bash
+python -m lane_residuals.cli.expanded_sequence_dataset \
+  "data/raw/mcap" \
+  --alignment-directory \
+  "outputs/diagnostics/validation/reference_alignment_batch_v052_expanded" \
+  --topology-audit-directory \
+  "outputs/diagnostics/validation/topology_semantics_alignment_quality_v0122" \
+  --expected-file-count 67 \
+  --output-directory \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0130"
+```
+
+The workflow retains tensors `[N,21]` and `[N,6]`, original timestamps and
+recording/drive/MCAP identity, and a quality-gated physical-session sequence
+identifier. An accepted MCAP boundary is stitched only when both immediate
+endpoints are eligible sensor-topology profiles and the timestamp gap is
+strictly positive and at most 200 ms. Lane-map or ineligible intervals always
+split sequences. Standardization metadata remains unfitted and explicitly
+requires future training-drive-only fitting after split assignments are chosen.
 
 ## Optional odometry-compensated reference-alignment validation
 
