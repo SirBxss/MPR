@@ -289,8 +289,14 @@ is an audit listing threshold, not an eligibility rule, and is not selected
 from Gaussian or AIOHMM performance.
 
 Semantic classification uses embedded protobuf enum descriptors, raw-wire
-equality, and existing validation code—not timing. Unproven fusion status and
-upstream sharing with RLMB remain `unknown`. All six exact v0.12.1 inventory
+equality, and existing validation code—not timing. SENSOR_TOPOLOGY and
+LANE_MAP remain distinct enum categories, while `independence_from_rlmb` is
+explicitly `unknown`; the audit does not claim statistical or upstream
+independence. Unproven fusion status and upstream sharing with RLMB also remain
+`unknown`. `audit_build_blockers` controls audit completeness, and downstream
+modeling constraints are reported separately. Failure and exclusion-reason
+counts are non-mutually-exclusive, so one message may contribute to multiple
+reasons. All six exact v0.12.1 inventory
 outputs are copied byte-for-byte under `lineage/` and hashed. The private map
 is hashed but not copied or added to Git.
 

@@ -256,25 +256,26 @@ def topology_interpretation(
 
     if name == "ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY":
         classification = "sensor_topology_estimate"
-        independent_sensor_topology = True
+        sensor_topology_source = True
         map_or_fused = False
     elif name == "ROAD_TOPOLOGY_SOURCE_LANE_MAP":
         classification = "lane_map_topology"
-        independent_sensor_topology = False
+        sensor_topology_source = False
         map_or_fused = True
     elif name == "ROAD_TOPOLOGY_SOURCE_ODOMETRY":
         classification = "odometry_topology"
-        independent_sensor_topology = False
+        sensor_topology_source = False
         map_or_fused = False
     else:
         classification = "unknown"
-        independent_sensor_topology = None
+        sensor_topology_source = None
         map_or_fused = None
     return {
         "numeric_value": numeric_value,
         "enum_name": name,
         "classification": classification,
-        "independent_sensor_topology": independent_sensor_topology,
+        "sensor_topology_source": sensor_topology_source,
+        "independence_from_rlmb": "unknown",
         "map_or_fused_topology": map_or_fused,
         "fusion_status": "unknown",
         "shares_upstream_information_with_rlmb": "unknown",

@@ -52,12 +52,26 @@ class TopologySemanticsTests(unittest.TestCase):
             all_wire_decodes_consistent=True,
         )
         self.assertEqual(result["classification"], "lane_map_topology")
-        self.assertFalse(result["independent_sensor_topology"])
+        self.assertFalse(result["sensor_topology_source"])
+        self.assertEqual(result["independence_from_rlmb"], "unknown")
+        self.assertNotIn("independent_sensor_topology", result)
         self.assertTrue(result["map_or_fused_topology"])
         self.assertEqual(result["fusion_status"], "unknown")
         self.assertEqual(result["shares_upstream_information_with_rlmb"], "unknown")
         self.assertFalse(result["enum_or_schema_decoding_defect"])
         self.assertFalse(result["timing_used_for_semantic_classification"])
+
+    def test_sensor_topology_does_not_claim_rlmb_independence(self):
+        result = topology_interpretation(
+            4,
+            "ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY",
+            all_wire_decodes_consistent=True,
+        )
+        self.assertTrue(result["sensor_topology_source"])
+        self.assertEqual(result["classification"], "sensor_topology_estimate")
+        self.assertEqual(result["independence_from_rlmb"], "unknown")
+        self.assertEqual(result["shares_upstream_information_with_rlmb"], "unknown")
+        self.assertNotIn("independent_sensor_topology", result)
 
     def test_numeric_summary_has_fixed_deterministic_quantiles(self):
         result = numeric_summary([None, "", 1, 2, 3, 4, 5])

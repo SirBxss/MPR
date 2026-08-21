@@ -41,6 +41,12 @@ LOGGER = logging.getLogger(__name__)
 VERSION = "0.12.2"
 PURPOSE = "complete_corpus_edp_topology_semantics_alignment_quality_audit"
 OUTLIER_DISTANCE_M = 1.0
+SEMANTIC_METADATA_REVISION = "rlmb_independence_explicitly_unknown"
+DOWNSTREAM_MODELING_CONSTRAINTS = (
+    "sensor_topology_source_required_by_existing_alignment_contract",
+    "independence_from_rlmb_unknown",
+    "alignment_quality_eligibility_not_changed_by_read_only_audit",
+)
 
 MESSAGE_FIELDS = (
     "recording_id", "drive_id", "mcap_basename_private", "message_index",
@@ -372,7 +378,15 @@ def run_topology_semantics_audit(arguments: argparse.Namespace) -> tuple[dict[st
         if row["drive_id"] == "drive_006" and row["recording_id"] == "recording_038"
     ]
     summary = {
-        "version": VERSION, "purpose": PURPOSE, "status": "complete", "blockers": [],
+        "version": VERSION, "purpose": PURPOSE, "status": "complete",
+        "audit_build_blockers": [],
+        "downstream_modeling_constraints": list(DOWNSTREAM_MODELING_CONSTRAINTS),
+        "counting_semantics": {
+            "distribution_counts": "mutually_exclusive_within_each_reported_field",
+            "failure_and_exclusion_reason_counts": (
+                "non_mutually_exclusive; one message may contribute to multiple reasons"
+            ),
+        },
         "read_only_audit": True, "eligibility_changed": False,
         "topology_source_validation_relaxed": False,
         "expected_topology_source_remains": "ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY",
@@ -413,6 +427,7 @@ def run_topology_semantics_audit(arguments: argparse.Namespace) -> tuple[dict[st
             "h100_absolute_anchor_heading_delta_rad": numeric_summary([abs(float(row["anchor_heading_delta_rad"])) for row in h100_rows if row["anchor_heading_delta_rad"] not in {None, ""}]),
         },
         "schema_and_code_semantics": {
+            "semantic_metadata_revision": SEMANTIC_METADATA_REVISION,
             "edp_schema": DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA,
             "topology_enum_declarations_observed": [
                 {"field_number": field, "enum_type": enum_type, "observed_enum_name": name}
@@ -445,6 +460,9 @@ def run_topology_semantics_audit(arguments: argparse.Namespace) -> tuple[dict[st
     )
     manifest = {
         "version": VERSION, "purpose": PURPOSE, "status": "complete",
+        "semantic_metadata_revision": SEMANTIC_METADATA_REVISION,
+        "audit_build_blockers": [],
+        "downstream_modeling_constraints": list(DOWNSTREAM_MODELING_CONSTRAINTS),
         "read_only_audit": True, "expected_file_count": arguments.expected_file_count,
         "resolved_file_count": len(files), "alignment_contract_version": "0.5.2",
         "inventory_contract_version": "0.12.1", "output_files": list(output_names),
@@ -458,6 +476,7 @@ def run_topology_semantics_audit(arguments: argparse.Namespace) -> tuple[dict[st
     }
     provenance = {
         "version": VERSION, "purpose": PURPOSE,
+        "semantic_metadata_revision": SEMANTIC_METADATA_REVISION,
         "private_drive_map_sha256": drive_map_hash,
         "inventory_inputs_sha256": inventory_hashes,
         "alignment_inputs_sha256": alignment_hashes,
