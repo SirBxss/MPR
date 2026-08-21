@@ -41,6 +41,9 @@ from ..io.expanded_sequence_dataset import (
 )
 from ..io.odometry import DEFAULT_ODOMETRY_TOPIC
 from ..io.reports import write_csv_rows, write_strict_json
+from ..visualization.expanded_sequence_dataset import (
+    plot_expanded_sequence_diagnostics,
+)
 from .conditional_features import (
     DEFAULT_ESTIMATE_TOPIC,
     ODOMETRY_SPEED_SOURCE,
@@ -450,6 +453,10 @@ def run_expanded_sequence_dataset(arguments: argparse.Namespace) -> tuple[dict[s
     write_csv_rows(arguments.output_directory / "sequence_summary_by_drive.csv", DRIVE_SUMMARY_FIELDS, drive_rows)
     write_csv_rows(arguments.output_directory / "cross_mcap_stitching_audit.csv", STITCH_FIELDS, stitch_rows)
     write_csv_rows(arguments.output_directory / "exclusion_reason_summary.csv", EXCLUSION_FIELDS, exclusion_rows)
+    plot_expanded_sequence_diagnostics(
+        arguments.output_directory / "expanded_sequence_diagnostics.png",
+        drive_rows=drive_rows, sequence_rows=sequence_rows, profile_rows=audit_rows,
+    )
 
     immediate_count = sum(_strict_bool(row["immediately_eligible_boundary_candidate"]) for row in stitch_rows)
     summary = {
