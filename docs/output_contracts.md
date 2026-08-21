@@ -341,6 +341,47 @@ The manifest selects no split or hyperparameters. Provenance hashes every
 generated artifact, all accepted alignment/topology inputs, and the inherited
 per-MCAP SHA-256 map from the v0.12.1 inventory.
 
+## v0.13.1 accepted-boundary odometry-context dataset
+
+v0.13.1 leaves every v0.13.0 artifact untouched and writes a new directory:
+
+```text
+expanded_profile_dataset.npz
+profile_eligibility_audit.csv
+sequence_manifest.csv
+sequence_summary_by_drive.csv
+cross_mcap_stitching_audit.csv
+boundary_odometry_context_audit.csv
+exclusion_reason_summary.csv
+v0130_parity_audit.json
+expanded_sequence_contract.json
+train_only_standardization_metadata.json
+expanded_sequence_diagnostics.png
+expanded_sequence_manifest.json
+expanded_sequence_provenance.json
+```
+
+The only cross-MCAP calculation is the existing unsigned odometry displacement
+between an EDP source epoch and exactly 50 ms earlier. The immediately previous
+MCAP may supply odometry samples only across an accepted same-drive v0.12.1
+edge, with identical expected topic/schema, strict cross-boundary odometry
+timestamps, brackets no wider than the established 50 ms tolerance, and no
+extrapolation. Both contributing private basenames and every interpolation
+sample timestamp are retained in the boundary audit and archive evidence.
+
+EDP paths, residuals, curvature, and confidence features are never interpolated
+across files. SENSOR_TOPOLOGY/H100/geometry/finite-value eligibility, the 1.0 m
+anchor gate, absence of a heading gate, and the six feature definitions are
+unchanged. A restored endpoint is stitched only when it becomes fully eligible;
+every rejected candidate retains all applicable rejection codes.
+
+`v0130_parity_audit.json` compares canonical recording/pair keys and requires
+the residual and six-feature bytes of every v0.13.0 profile to be unchanged.
+Counts are observed outputs, not enforced reference constants. Exclusion-reason
+counts are non-mutually-exclusive. Standardization remains unfitted and no
+split, hyperparameter, or model is selected. Provenance hashes the corrected
+v0.12.2 semantics, v0.13.0 baseline, live 67-MCAP corpus, and generated files.
+
 ## v0.5.1 optional reference-alignment sensitivity
 
 The optional motion-alignment command writes exactly:

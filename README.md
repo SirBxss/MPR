@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.13.0
+# Minimal Path-Residual Model (MPR) v0.13.1
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -30,6 +30,14 @@ alignment, the exact 21-station grid, valid estimator/map/estimate geometry,
 finite six-feature values, and anchor distance at most 1.0 m. The geometric
 gate is fixed before modeling; no heading gate, split selection, hyperparameter
 choice, or model training is performed.
+
+Version 0.13.1 preserves v0.13.0 as the fail-closed parity baseline and permits
+only the frozen unsigned 50 ms odometry-displacement speed to use the accepted
+immediately preceding MCAP. Same-drive continuity, odometry topic/schema,
+strict timestamp order, interpolation tolerance, and no-extrapolation checks
+must all pass. EDP paths, residuals, and the other five conditions remain
+recording-local. No split, standardizer fit, hyperparameter choice, or model
+training is performed.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -456,6 +464,27 @@ endpoints are eligible sensor-topology profiles and the timestamp gap is
 strictly positive and at most 200 ms. Lane-map or ineligible intervals always
 split sequences. Standardization metadata remains unfitted and explicitly
 requires future training-drive-only fitting after split assignments are chosen.
+
+The v0.13.0 output remains immutable reproducibility evidence. Build v0.13.1
+with that directory as an explicit byte-parity baseline:
+
+```bash
+python -m lane_residuals.cli.expanded_sequence_dataset_v0131 \
+  "data/raw/mcap" \
+  --alignment-directory \
+  "outputs/diagnostics/validation/reference_alignment_batch_v052_expanded" \
+  --topology-audit-directory \
+  "outputs/diagnostics/validation/topology_semantics_alignment_quality_v0122" \
+  --v0130-directory \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0130" \
+  --expected-file-count 67 \
+  --output-directory \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131"
+```
+
+Every boundary-derived speed records both contributing private MCAP basenames
+and the exact odometry timestamps. A parity audit requires every pre-existing
+v0.13.0 residual and six-feature row to remain byte-identical.
 
 ## Optional odometry-compensated reference-alignment validation
 

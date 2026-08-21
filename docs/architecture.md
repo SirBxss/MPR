@@ -17,6 +17,11 @@ The v0.13.0 expanded sequence workflow is the next pre-model layer: it joins
 those immutable inputs to the frozen v0.9 six-feature definition, applies the
 fixed geometric validity gate, and groups only adjacent eligible observations
 under physical-drive sequence IDs while retaining original recording IDs.
+The separate v0.13.1 workflow consumes v0.13.0 as an immutable tensor-parity
+baseline. Its domain layer owns boundary admission, IO owns odometry schema and
+live-hash evidence, and workflow code may replace only a missing recording-local
+50 ms speed with accepted previous-MCAP odometry context. No other feature or
+geometry crosses the boundary.
 The categorization separates scientific arithmetic, orchestration, I/O, plots,
 and command adapters.
 
