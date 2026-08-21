@@ -31,6 +31,8 @@ class ProfileEligibilityEvidence:
     station_grid_m: Sequence[float]
     residuals_m: ArrayLike
     anchor_distance_m: float | None
+    anchor_heading_delta_rad: float | None
+    source_delta_ms: float | None
     estimator_state: str
     estimate_geometry_state: str
     estimate_geometry_failure_code: str | None
@@ -73,6 +75,13 @@ def evaluate_profile_eligibility(
         reasons.append("anchor_distance_invalid")
     elif float(anchor) > MAXIMUM_ANCHOR_DISTANCE_M:
         reasons.append("anchor_distance_exceeds_1m")
+    if (
+        evidence.anchor_heading_delta_rad is None
+        or not math.isfinite(float(evidence.anchor_heading_delta_rad))
+    ):
+        reasons.append("anchor_heading_invalid")
+    if evidence.source_delta_ms is None or not math.isfinite(float(evidence.source_delta_ms)):
+        reasons.append("source_delta_invalid")
     if evidence.estimator_state != "available_no_error":
         reasons.append("estimator_invalid")
     if (

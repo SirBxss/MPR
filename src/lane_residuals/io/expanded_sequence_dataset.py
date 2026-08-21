@@ -55,6 +55,7 @@ class ExpandedSequenceInputs:
     alignment_manifest: Mapping[str, Any] = field(repr=False)
     topology_summary: Mapping[str, Any] = field(repr=False)
     topology_message_rows: tuple[dict[str, str], ...] = field(repr=False)
+    alignment_pair_rows: tuple[dict[str, str], ...] = field(repr=False)
     station_rows: tuple[dict[str, str], ...] = field(repr=False)
     continuity_rows: tuple[dict[str, str], ...] = field(repr=False)
     source_files_sha256: Mapping[str, str] = field(repr=False)
@@ -82,6 +83,7 @@ def load_expanded_sequence_inputs(
         "batch_manifest.json",
         "alignment_batch_summary.json",
         "alignment_station_comparison.csv",
+        "alignment_pair_audit.csv",
         "batch_output_provenance.json",
     )
     topology_files = (
@@ -158,6 +160,9 @@ def load_expanded_sequence_inputs(
         raise ExpandedSequenceContractError("paired topology message keys are not unique")
 
     stations = read_csv_rows(alignment_directory / "alignment_station_comparison.csv")
+    alignment_pairs = read_csv_rows(alignment_directory / "alignment_pair_audit.csv")
+    if len(alignment_pairs) != alignment_summary.get("mutual_nearest_pair_count"):
+        raise ExpandedSequenceContractError("alignment pair count does not reconcile")
     continuity_path = (
         topology_audit_directory
         / "lineage"
@@ -183,6 +188,7 @@ def load_expanded_sequence_inputs(
         alignment_manifest=alignment_manifest,
         topology_summary=topology_summary,
         topology_message_rows=messages,
+        alignment_pair_rows=alignment_pairs,
         station_rows=stations,
         continuity_rows=continuity,
         source_files_sha256=dict(sorted(sources.items())),

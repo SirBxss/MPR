@@ -23,6 +23,8 @@ def _evidence(**overrides):
         "station_grid_m": CANONICAL_MODEL_STATIONS_M,
         "residuals_m": np.linspace(-0.2, 0.2, 21),
         "anchor_distance_m": 1.0,
+        "anchor_heading_delta_rad": 3.0,
+        "source_delta_ms": -20.0,
         "estimator_state": "available_no_error",
         "estimate_geometry_state": "geometry_ready",
         "estimate_geometry_failure_code": None,
