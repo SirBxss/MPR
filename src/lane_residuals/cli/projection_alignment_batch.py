@@ -1,0 +1,94 @@
+"""CLI for v0.5.2 exact-manifest native projection alignment."""
+
+from __future__ import annotations
+
+import argparse
+import logging
+from collections.abc import Sequence
+from pathlib import Path
+
+from ..domain.path_source_probe import DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC
+from ..io.mcap import McapDependencyError
+from ..workflows.pairing import DEFAULT_MAP_TOPIC
+from ..workflows.projection_alignment_batch import run_alignment_batch
+
+
+LOGGER = logging.getLogger(__name__)
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Run accepted native EDP-to-RLMB projection/resampling over an exact "
+            "manifest. Source delta remains diagnostic; no odometry, cross-MCAP "
+            "pairing, residual export, or model training is performed."
+        )
+    )
+    parser.add_argument(
+        "inputs",
+        nargs="+",
+        type=Path,
+        help="MCAP files and/or recursively searched directories",
+    )
+    parser.add_argument(
+        "--drive-map",
+        required=True,
+        type=Path,
+        help="exact private mapping of every resolved MCAP basename",
+    )
+    parser.add_argument(
+        "--corpus-inventory-directory",
+        required=True,
+        type=Path,
+        help="accepted complete expanded-corpus inventory directory",
+    )
+    parser.add_argument(
+        "--expected-file-count",
+        required=True,
+        type=int,
+        help="positive exact manifest size; no corpus-specific default",
+    )
+    parser.add_argument("--output-directory", required=True, type=Path)
+    parser.add_argument("--maximum-pair-delta-ms", type=float, default=None)
+    parser.add_argument("--max-step-m", type=float, default=0.25)
+    parser.add_argument("--map-max-segments", type=int, default=16)
+    parser.add_argument("--map-max-junction-gap-m", type=float, default=1.0)
+    parser.add_argument("--map-max-junction-heading-deg", type=float, default=30.0)
+    parser.add_argument(
+        "--estimate-topic",
+        default=DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC,
+    )
+    parser.add_argument("--map-topic", default=DEFAULT_MAP_TOPIC)
+    parser.add_argument(
+        "--log-level",
+        choices=("DEBUG", "INFO", "WARNING", "ERROR"),
+        default="INFO",
+    )
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    arguments = _parser().parse_args(argv)
+    logging.basicConfig(
+        level=getattr(logging, arguments.log_level),
+        format="%(levelname)s %(message)s",
+    )
+    try:
+        summary, status = run_alignment_batch(arguments)
+    except (FileNotFoundError, OSError, ValueError, McapDependencyError) as error:
+        LOGGER.error("%s", error)
+        return 2
+    LOGGER.info(
+        "native projection batch: recordings=%d/%d, H60=%d, H100=%d, status=%s",
+        summary["successful_recording_count"],
+        summary["resolved_file_count"],
+        summary["h60_aligned_complete_pair_count"],
+        summary["h100_aligned_complete_pair_count"],
+        summary["status"],
+    )
+    LOGGER.info("outputs: %s", arguments.output_directory)
+    return status
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -25,6 +25,11 @@ from ..domain.conditional_features import (
     selected_keep_lane_confidences,
     summarize_estimate_conditions,
 )
+from ..domain.alignment_contract import (
+    HISTORICAL_ALIGNMENT_PURPOSE,
+    HISTORICAL_ALIGNMENT_VERSION,
+    validate_native_projection_contract,
+)
 from ..domain.geometry_validation import (
     GeometryValidationError,
     estimated_frame_from_message,
@@ -43,10 +48,8 @@ from ..visualization.conditional_features import plot_conditional_feature_audit
 from .gaussian_diagnostics import load_gaussian_baseline_artifacts
 
 VERSION = "0.7.2"
-ACCEPTED_ALIGNMENT_VERSION = "0.5.0"
-ACCEPTED_ALIGNMENT_PURPOSE = (
-    "ten_mcap_projection_based_reference_alignment_validation"
-)
+ACCEPTED_ALIGNMENT_VERSION = HISTORICAL_ALIGNMENT_VERSION
+ACCEPTED_ALIGNMENT_PURPOSE = HISTORICAL_ALIGNMENT_PURPOSE
 DEFAULT_ESTIMATE_TOPIC = "/adp/estimated_drive_paths"
 DEFAULT_ESTIMATE_SCHEMA = "Adp.Perception.EstimatedDrivePaths"
 DEFAULT_MAXIMUM_SPEED_INTERPOLATION_GAP_MS = 20.0
@@ -203,10 +206,11 @@ def _validated_manifest_recordings(
     manifest = _read_strict_json(manifest_path)
     if not isinstance(manifest, Mapping):
         raise ResidualDatasetContractError("batch manifest must be a JSON object")
-    if manifest.get("version") != ACCEPTED_ALIGNMENT_VERSION:
-        raise ResidualDatasetContractError("alignment manifest version must be 0.5.0")
-    if manifest.get("purpose") != ACCEPTED_ALIGNMENT_PURPOSE:
-        raise ResidualDatasetContractError("alignment manifest purpose is not accepted")
+    validate_native_projection_contract(
+        manifest,
+        name="alignment manifest",
+        error_type=ResidualDatasetContractError,
+    )
     if manifest.get("status") != "complete" or manifest.get("blockers") != []:
         raise ResidualDatasetContractError("alignment manifest must be complete")
     if manifest.get("drive_grouping_source") != "exact_private_basename_map":

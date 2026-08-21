@@ -20,15 +20,19 @@ from ..domain.residual_dataset import (
     ResidualDatasetContractError,
     build_canonical_residual_dataset,
 )
+from ..domain.alignment_contract import (
+    CURRENT_ALIGNMENT_VERSION,
+    HISTORICAL_ALIGNMENT_PURPOSE,
+    HISTORICAL_ALIGNMENT_VERSION,
+    validate_native_projection_contract,
+)
 from ..io.reports import write_csv_rows, write_strict_json
 from ..modeling.gaussian import GaussianResidualModel, fit_gaussian_residual_model
 from ..visualization.gaussian import plot_gaussian_baseline_diagnostics
 
 VERSION = "0.6.0"
-ACCEPTED_ALIGNMENT_VERSION = "0.5.0"
-ACCEPTED_ALIGNMENT_PURPOSE = (
-    "ten_mcap_projection_based_reference_alignment_validation"
-)
+ACCEPTED_ALIGNMENT_VERSION = HISTORICAL_ALIGNMENT_VERSION
+ACCEPTED_ALIGNMENT_PURPOSE = HISTORICAL_ALIGNMENT_PURPOSE
 MARGINAL_95_QUANTILE = 1.959963984540054
 
 
@@ -107,20 +111,76 @@ def _validate_alignment_metadata(
         _read_strict_json(input_directory / "batch_manifest.json"),
         name="batch_manifest.json",
     )
+    contracts = []
     for name, payload in (("summary", summary), ("manifest", manifest)):
-        if payload.get("version") != ACCEPTED_ALIGNMENT_VERSION:
-            raise ResidualDatasetContractError(
-                f"{name} version must be the accepted {ACCEPTED_ALIGNMENT_VERSION} "
-                "projection-alignment contract"
+        contracts.append(
+            validate_native_projection_contract(
+                payload,
+                name=name,
+                error_type=ResidualDatasetContractError,
             )
-        if payload.get("purpose") != ACCEPTED_ALIGNMENT_PURPOSE:
-            raise ResidualDatasetContractError(
-                f"{name} purpose is not the accepted projection-alignment audit"
-            )
+        )
         if payload.get("status") != "complete":
             raise ResidualDatasetContractError(f"{name} status must be complete")
         if payload.get("blockers") != []:
             raise ResidualDatasetContractError(f"{name} blockers must be empty")
+    if contracts[0] != contracts[1]:
+        raise ResidualDatasetContractError(
+            "alignment summary and manifest contracts do not match"
+        )
+
+    if contracts[0][0] == CURRENT_ALIGNMENT_VERSION:
+        provenance_path = input_directory / "batch_output_provenance.json"
+        if not provenance_path.is_file():
+            raise FileNotFoundError(
+                f"required v0.5.2 provenance output not found: {provenance_path}"
+            )
+        provenance = _required_mapping(
+            _read_strict_json(provenance_path),
+            name="batch_output_provenance.json",
+        )
+        validate_native_projection_contract(
+            provenance,
+            name="batch_output_provenance.json",
+            error_type=ResidualDatasetContractError,
+        )
+        source_hashes = provenance.get("source_files_sha256")
+        generated_hashes = provenance.get("generated_batch_outputs_sha256")
+        required_source_hashes = {
+            "drive_map_private_json",
+            "corpus_inventory_summary.json",
+            "recording_continuity.csv",
+            "proposed_session_groups.json",
+        }
+        if not isinstance(source_hashes, Mapping) or set(source_hashes) != required_source_hashes:
+            raise ResidualDatasetContractError(
+                "v0.5.2 provenance source hashes are incomplete"
+            )
+        if summary.get("source_files_sha256") != source_hashes or manifest.get(
+            "source_files_sha256"
+        ) != source_hashes:
+            raise ResidualDatasetContractError(
+                "v0.5.2 source provenance does not reconcile"
+            )
+        expected_generated = {
+            "recording_alignment_summary.csv",
+            "alignment_pair_audit.csv",
+            "alignment_station_comparison.csv",
+            "alignment_batch_comparison.png",
+            "alignment_batch_summary.json",
+            "batch_manifest.json",
+        }
+        if not isinstance(generated_hashes, Mapping) or set(generated_hashes) != expected_generated:
+            raise ResidualDatasetContractError(
+                "v0.5.2 generated-output hashes are incomplete"
+            )
+        for filename, expected_hash in generated_hashes.items():
+            if not isinstance(expected_hash, str) or _sha256(
+                input_directory / filename
+            ) != expected_hash:
+                raise ResidualDatasetContractError(
+                    f"v0.5.2 generated output hash mismatch: {filename}"
+                )
 
     expected_grid = list(CANONICAL_MODEL_STATIONS_M)
     if summary.get("canonical_station_grid_m") != expected_grid:
@@ -480,21 +540,24 @@ def _dataset_summary(
         )
     )
     count = len(dataset.observations)
+    alignment_source_files = [
+        "alignment_batch_summary.json",
+        "batch_manifest.json",
+        "alignment_pair_audit.csv",
+        "alignment_station_comparison.csv",
+    ]
+    if alignment_summary.get("version") == CURRENT_ALIGNMENT_VERSION:
+        alignment_source_files.append("batch_output_provenance.json")
     return {
         "version": VERSION,
         "status": "complete",
         "purpose": "canonical_h100_residual_vector_export",
-        "source_alignment_version": ACCEPTED_ALIGNMENT_VERSION,
-        "source_alignment_purpose": ACCEPTED_ALIGNMENT_PURPOSE,
+        "source_alignment_version": alignment_summary["version"],
+        "source_alignment_purpose": alignment_summary["purpose"],
         "source_alignment_status": alignment_summary["status"],
         "source_files_sha256": {
             filename: _sha256(input_directory / filename)
-            for filename in (
-                "alignment_batch_summary.json",
-                "batch_manifest.json",
-                "alignment_pair_audit.csv",
-                "alignment_station_comparison.csv",
-            )
+            for filename in alignment_source_files
         },
         "residual_definition": (
             "EDP estimate minus aligned RLMB pseudo-reference, projected onto "

@@ -1,4 +1,5 @@
 import csv
+import hashlib
 import json
 import tempfile
 import unittest
@@ -11,10 +12,31 @@ from lane_residuals.domain.residual_dataset import CANONICAL_MODEL_STATIONS_M
 class GaussianBaselineWorkflowTests(unittest.TestCase):
     @staticmethod
     def _write_alignment_batch(root: Path, *, version: str = "0.5.0") -> None:
-        purpose = "ten_mcap_projection_based_reference_alignment_validation"
+        purpose = (
+            "exact_manifest_projection_based_reference_alignment_validation"
+            if version == "0.5.2"
+            else "ten_mcap_projection_based_reference_alignment_validation"
+        )
+        contract = (
+            {
+                "alignment_semantics": "v0.5.0_native_spatial_projection",
+                "explicit_ego_pose_motion_compensation_applied": False,
+                "source_delta_used_numerically_for_alignment": False,
+                "accepted_for_modeling": True,
+                "source_files_sha256": {
+                    "drive_map_private_json": "a" * 64,
+                    "corpus_inventory_summary.json": "b" * 64,
+                    "recording_continuity.csv": "c" * 64,
+                    "proposed_session_groups.json": "d" * 64,
+                },
+            }
+            if version == "0.5.2"
+            else {}
+        )
         summary = {
             "version": version,
             "purpose": purpose,
+            **contract,
             "status": "complete",
             "blockers": [],
             "canonical_horizons_m": [60, 100],
@@ -47,6 +69,7 @@ class GaussianBaselineWorkflowTests(unittest.TestCase):
         manifest = {
             "version": version,
             "purpose": purpose,
+            **contract,
             "status": "complete",
             "blockers": [],
             "canonical_station_grid_m": list(CANONICAL_MODEL_STATIONS_M),
@@ -130,6 +153,36 @@ class GaussianBaselineWorkflowTests(unittest.TestCase):
                                 "h100_aligned_eligible": True,
                             }
                         )
+        if version == "0.5.2":
+            (root / "recording_alignment_summary.csv").write_text(
+                "recording_id\nrecording_001\n", encoding="utf-8"
+            )
+            (root / "alignment_batch_comparison.png").write_bytes(b"synthetic-png")
+            generated_names = (
+                "recording_alignment_summary.csv",
+                "alignment_pair_audit.csv",
+                "alignment_station_comparison.csv",
+                "alignment_batch_comparison.png",
+                "alignment_batch_summary.json",
+                "batch_manifest.json",
+            )
+            provenance = {
+                "version": version,
+                "purpose": purpose,
+                **{
+                    key: value
+                    for key, value in contract.items()
+                    if key != "source_files_sha256"
+                },
+                "source_files_sha256": contract["source_files_sha256"],
+                "generated_batch_outputs_sha256": {
+                    name: hashlib.sha256((root / name).read_bytes()).hexdigest()
+                    for name in generated_names
+                },
+            }
+            (root / "batch_output_provenance.json").write_text(
+                json.dumps(provenance), encoding="utf-8"
+            )
 
     def test_command_exports_vectors_and_drive_held_out_model(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -196,6 +249,31 @@ class GaussianBaselineWorkflowTests(unittest.TestCase):
 
             self.assertEqual(status, 2)
             self.assertFalse(output.exists())
+
+    def test_v052_native_projection_output_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            alignment = root / "alignment"
+            alignment.mkdir()
+            self._write_alignment_batch(alignment, version="0.5.2")
+            output = root / "model"
+
+            status = main([str(alignment), "--output-directory", str(output)])
+
+            self.assertEqual(status, 0)
+            summary = json.loads(
+                (output / "residual_dataset_summary.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(summary["source_alignment_version"], "0.5.2")
+            self.assertEqual(
+                summary["source_alignment_purpose"],
+                "exact_manifest_projection_based_reference_alignment_validation",
+            )
+            self.assertIn(
+                "batch_output_provenance.json", summary["source_files_sha256"]
+            )
 
 
 if __name__ == "__main__":

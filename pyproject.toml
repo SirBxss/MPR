@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minimal-lane-residual-model"
-version = "0.11.0"
-description = "Shared sequence modeling with Gaussian and AIOHMM evaluation"
+version = "0.12.2"
+description = "Shared sequence modeling and fail-closed MCAP corpus auditing"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -38,6 +38,9 @@ mpr-train-conditional-gaussian = "lane_residuals.cli.conditional_gaussian:main"
 mpr-build-sequential-dataset = "lane_residuals.cli.sequence_dataset:main"
 mpr-train-sequence-gaussian = "lane_residuals.cli.sequence_gaussian:main"
 mpr-train-sequence-aiohmm = "lane_residuals.cli.sequence_aiohmm:main"
+mpr-audit-corpus-inventory = "lane_residuals.cli.corpus_inventory:main"
+mpr-audit-native-projection-alignment-batch = "lane_residuals.cli.projection_alignment_batch:main"
+mpr-audit-topology-semantics = "lane_residuals.cli.topology_semantics_audit:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

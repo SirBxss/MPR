@@ -4,6 +4,82 @@ These contracts describe diagnostics, not training labels. EDP–RLMB
 disagreement is not ground-truth lane-estimation error, and RLMB is a
 pseudo-reference candidate rather than physical ground truth.
 
+## v0.12.1 expanded-corpus inventory outputs
+
+The inventory command writes exactly:
+
+```text
+mcap_inventory.csv
+topic_compatibility.csv
+recording_continuity.csv
+proposed_session_groups.json
+corpus_inventory_summary.json
+corpus_inventory_diagnostics.png
+```
+
+CSV headers and order are fixed:
+
+```text
+mcap_inventory.csv:
+recording_id,drive_id,relative_path_private,mcap_basename_private,file_size_bytes,sha256,drive_map_covered,readable,empty,duplicate_of_recording_id,usable,chronological_index_within_drive,filename_start_hint_private,filename_end_hint_private,filename_duration_ms,mcap_identifier_hint,internal_start_log_time_ns_private,internal_end_log_time_ns_private,internal_duration_ms,first_estimate_source_time_ns_private,last_estimate_source_time_ns_private,estimate_source_duration_ms,estimate_source_timestamp_count,estimate_missing_source_timestamp_count,estimate_source_timestamps_strictly_increasing,required_topics_schemas_compatible,filename_internal_time_disagreement,filename_order_disagrees_with_internal_order,failure_codes,exclusion_codes
+
+topic_compatibility.csv:
+recording_id,drive_id,mcap_basename_private,topic_role,topic,present,message_count,expected_schema_name,schema_names,schema_encodings,message_encodings,schema_compatible,failure_codes
+
+recording_continuity.csv:
+drive_id,left_recording_id,right_recording_id,left_mcap_basename_private,right_mcap_basename_private,internal_log_gap_ms,relevant_source_gap_ms,filename_gap_ms,filename_internal_gap_disagreement,identifier_delta,identifier_discontinuity,same_drive_label,internal_log_times_compatible,relevant_source_timestamps_strictly_increasing,source_gap_within_200_ms,required_topics_schemas_compatible,overlap_detected,timestamp_reset_detected,pair_index_boundary_state,stitchable,rejection_codes
+```
+
+Discovery is recursive and case-insensitive for the `.mcap` suffix.
+`recording_id` is a deterministic opaque identifier; `drive_id` is derived
+only by replacing the exact private-map label with a sorted opaque identifier.
+Duplicate JSON keys, duplicate discovered basenames, missing basenames, and
+extra map entries are retained in the summary. A partial map never gains an
+inferred assignment.
+
+Required roles are estimate (`/adp/estimated_drive_paths`), map
+(`/adp/road_lane_map_based`), and odometry (`/adp/odometry`) with their accepted
+Protobuf schemas. Each topic row reports presence, summary message count, and
+the exact sorted schema/encoding signature. A file is unusable when it is
+unmapped, unreadable, empty, byte-duplicate, lacks complete strictly increasing
+estimate source timestamps, or fails a required topic/schema check. SHA-256 is
+computed from file bytes. `duplicate_count` counts later redundant copies in
+deterministic basename/path order; no copy disappears from the inventory.
+
+Within each explicit drive, files are sorted by first relevant estimate source
+time, then internal MCAP start time, with filename/path only as deterministic
+tie-breakers. Filename start/end times and the numeric MCAP identifier are
+diagnostic hints only. Duration or adjacent-gap disagreement over one second is
+flagged. Identifier discontinuity is reported but is not a stitch gate.
+
+Every row in `recording_continuity.csv` represents two adjacent files within
+one mapped drive. An edge is stitchable only if both files are usable, the
+explicit drive label matches, the next internal MCAP start is greater than or
+equal to the previous internal end, relevant estimate source time increases
+strictly, the positive relevant source gap is at most 200 ms, and required
+topic/schema signatures match. Equal internal endpoints are valid touching
+boundaries; only a negative internal gap is an overlap. Missing evidence,
+overlaps, resets, excessive gaps, and schema differences reject the edge.
+Recording-local pair-index reset is explicitly allowed and is not used as a
+gate.
+
+`proposed_session_groups.json` lists connected blocks formed only by
+stitchable edges, every file exclusion, and all drive-map coverage failures. It
+states that the private map was not modified and no frame stitching occurred.
+`corpus_inventory_summary.json` distinguishes MCAP file count, provisional
+continuous-block count, physical drive count, total internal duration, usable
+internal duration, stitchable and rejected mapped-drive boundaries, redundant
+duplicate count, unreadable/empty counts, and required-topic/schema failure
+counts. Status is `incomplete` when exact coverage or any file-usability gate
+fails; the command then returns 3 after writing the reports.
+
+All six files are deterministic for unchanged inputs and contain private
+metadata. They must remain outside version control. A complete audit points to
+the v0.5.2 native projection-alignment phase. Any later sequence-contract work
+may group verified contiguous frames only while preserving every frame's
+original `recording_id`; it must not change the native target or introduce
+delta-t compensation as model input.
+
 ## Single-recording pairing audit
 
 The exact filename set is:
@@ -131,9 +207,96 @@ its source/catalog JSON files, six CSV audits, and
 `reference_validation_summary.json`. These files contain private decoded field
 names or BMW-derived measurements and must remain outside version control.
 
-## v0.5.1 reference-alignment validation
+## v0.5.2 accepted native projection-alignment batch
 
-The new alignment command writes exactly:
+The workflow processes every MCAP independently and writes the historical
+four-file native projection set under each
+`recordings/recording_###/` directory. The batch root writes exactly:
+
+```text
+recording_alignment_summary.csv
+alignment_pair_audit.csv
+alignment_station_comparison.csv
+alignment_batch_comparison.png
+alignment_batch_summary.json
+batch_manifest.json
+batch_output_provenance.json
+```
+
+Both summary and manifest use:
+
+```text
+version: 0.5.2
+purpose: exact_manifest_projection_based_reference_alignment_validation
+alignment_semantics: v0.5.0_native_spatial_projection
+explicit_ego_pose_motion_compensation_applied: false
+source_delta_used_numerically_for_alignment: false
+accepted_for_modeling: true
+```
+
+The expected file count is an explicit arbitrary positive integer. The exact
+private basename map must cover every resolved file once, including duplicate
+JSON-key detection. Recording and opaque drive IDs are deterministic. Pairing
+is complete-stream, recording-local mutual-nearest source time with no default
+timestamp gate. Source delta is diagnostic evidence only and never moves a
+path. No odometry is decoded or applied.
+
+Native alignment projects the EDP station-zero footpoint onto the paired RLMB
+path and samples equal forward arc-length offsets from that projection. RLMB is
+the best available pseudo-reference. H100 must remain a subset of H60. Every
+model-eligible H100 pair must have exactly the finite canonical 21 rows at
+`0, 5, ..., 100 m`; available-case rows are not model-eligible. Pairing never
+crosses MCAP boundaries, and this workflow performs no residual export,
+feature extraction, sequence stitching, or model training.
+
+`source_files_sha256` in the summary and manifest hashes the exact private map,
+`corpus_inventory_summary.json`, `recording_continuity.csv`, and
+`proposed_session_groups.json`. `batch_output_provenance.json` repeats those
+source hashes and hashes the other six generated batch-root outputs, including
+the finalized summary and manifest.
+
+Downstream native-alignment validation accepts the historical v0.5.0
+`ten_mcap_projection_based_reference_alignment_validation` contract and this
+v0.5.2 contract. It continues to reject every v0.5.1 motion-compensated output.
+
+## v0.12.2 EDP topology-semantics and alignment-quality audit
+
+The read-only audit writes:
+
+```text
+topology_message_audit.csv
+topology_recording_summary.csv
+topology_session_summary.csv
+topology_transition_audit.csv
+alignment_quality_outliers.csv
+topology_semantics_summary.json
+topology_alignment_quality_diagnostics.png
+topology_audit_manifest.json
+topology_audit_provenance.json
+lineage/expanded_corpus_inventory_v0121/*
+```
+
+The message CSV contains one row per EDP message and reports raw-wire enum
+presence/value, descriptor numeric value and readable name, estimator and
+selected-path state, existing geometry/failure evidence, source delta, anchors,
+residual RMS, and unchanged H60/H100 eligibility. Recording and session CSVs
+contain deterministic distributions and fixed source-delta quantiles.
+
+The transition CSV retains every adjacent within-MCAP edge and every accepted
+within-session MCAP-boundary edge. The outlier CSV lists every currently
+H60-eligible pair with anchor distance strictly greater than 1.0 m. That value
+is an audit listing threshold, not an eligibility rule, and is not selected
+from Gaussian or AIOHMM performance.
+
+Semantic classification uses embedded protobuf enum descriptors, raw-wire
+equality, and existing validation code—not timing. Unproven fusion status and
+upstream sharing with RLMB remain `unknown`. All six exact v0.12.1 inventory
+outputs are copied byte-for-byte under `lineage/` and hashed. The private map
+is hashed but not copied or added to Git.
+
+## v0.5.1 optional reference-alignment sensitivity
+
+The optional motion-alignment command writes exactly:
 
 ```text
 alignment_pair_audit.csv
@@ -182,7 +345,8 @@ required to remain a subset of H60.
 
 ## v0.6.0 canonical residual and Gaussian outputs
 
-The v0.6.0 command accepts only a complete v0.5.0 projection-alignment batch.
+The v0.6.0 command accepts a complete historical v0.5.0 or current v0.5.2
+native projection-alignment batch. It rejects v0.5.1 motion compensation.
 It writes exactly:
 
 ```text

@@ -1,6 +1,7 @@
 # Project architecture
 
-MPR keeps the accepted diagnostics frozen, retains v0.5.1 as a separate
+MPR keeps the accepted diagnostics frozen, restores native projection as the
+explicit v0.5.2 exact-manifest workflow, retains v0.5.1 as a separate
 odometry-compensated sensitivity audit, and provides the v0.6.0 canonical
 residual/Gaussian workflow, v0.6.1 Gaussian adequacy diagnostics, the v0.7.2
 conditional-feature audit, and the v0.8.0 frozen-cohort conditional Gaussian
@@ -9,8 +10,17 @@ adds the common gap-aware sequence contract used by the conditional Gaussian,
 AIOHMM, and RC-GAN. v0.10.0 implements the Gaussian temporal null and common
 sample metrics on that contract. v0.11.0 implements the fixed-development
 AIOHMM without changing the data or split contract. LEEM is reference-only.
+The v0.12.2 topology-semantics audit is a read-only consumer of the accepted
+v0.5.2 alignment batch and exact v0.12.1 inventory lineage. It cannot change
+the SENSOR_TOPOLOGY validation gate or pair eligibility.
 The categorization separates scientific arithmetic, orchestration, I/O, plots,
 and command adapters.
+
+Topology auditing follows that categorization: domain code reconciles raw
+protobuf values with descriptor enum names, IO verifies and packages immutable
+inventory/alignment lineage, workflow code joins every EDP message to existing
+pair evidence and constructs physical-session transitions, and visualization
+renders one diagnostic. It writes no residuals, features, sequences, or models.
 
 ```text
 src/lane_residuals/
@@ -89,6 +99,9 @@ Package responsibilities:
   interpolation, fixed-interval unsigned odometry-speed derivation, EDP
   native-to-ego station translation, fixed H100 curvature summaries, and exact
   confidence-bucket coverage rules.
+- `domain.alignment_contract` is the single acceptance boundary for historical
+  v0.5.0 and current v0.5.2 native projection metadata; it rejects v0.5.1
+  motion-compensated outputs for downstream modeling.
 - `legacy` preserves v0.3.x association/preprocessing, withdrawn provisional
   residual behavior, and its synthetic plotting without presenting it as the
   current scientific pipeline.
@@ -104,8 +117,9 @@ CLI or workflows. A workflow must never import another CLI. Compatibility
 facades may forward names but must not own implementation logic.
 
 Current diagnostics quantify EDP–RLMB or candidate-to-candidate disagreement.
-The accepted v0.5.0 projection output supplies the v0.6.0 model vectors; the
-v0.5.1 odometry workflow remains optional because DPE does not publish its exact
+The historical v0.5.0 and current v0.5.2 native projection outputs may supply
+the v0.6.0 model vectors; the v0.5.1 odometry workflow remains optional because
+DPE does not publish its exact
 geometry epoch. The model workflow accepts exactly `0, 5, ..., 100 m`, requires
 one fixed H100 cohort, and evaluates by physical drive before fitting the final
 all-data model. The adequacy workflow accepts only a reconciled v0.6.0 output,

@@ -1,8 +1,28 @@
-# Minimal Path-Residual Model (MPR) v0.11.0
+# Minimal Path-Residual Model (MPR) v0.12.2
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
+
+Version 0.12.1 completes the read-only expanded-corpus inventory before any
+cross-MCAP sequence work. It recursively hashes and inspects every MCAP,
+requires exact basename coverage from the private physical-drive map, audits
+required topics and schemas, compares filename hints with internal timing, and
+proposes only fail-closed continuous blocks. It does not edit the drive map,
+join frames, tune a model, change the accepted v0.5 native-alignment target, or
+add delta-t compensation as a model input. The accepted 67-file audit contains
+eight verified continuous blocks, but no sequence is stitched in this change.
+
+Version 0.5.2 restores the accepted v0.5.0 native spatial projection and
+resampling as a reproducible exact-manifest workflow. Source-time delta is
+retained only as diagnostic evidence; no odometry motion compensation or
+numeric delta-time path movement is applied. The historical v0.5.0 ten-file
+contract remains readable, while v0.5.1 remains an optional sensitivity audit
+and is not accepted for model inputs.
+
+Version 0.12.2 adds a read-only, complete-corpus EDP topology-semantics and
+alignment-quality audit. It preserves the SENSOR_TOPOLOGY gate and does not
+change eligibility, stitch MCAPs, export residuals/features, or train models.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -255,6 +275,44 @@ be changed explicitly with `--map-max-segments`,
 `--map-max-junction-gap-m`, and `--map-max-junction-heading-deg`; any change
 must be reported with the experiment.
 
+## Expanded-corpus continuity audit
+
+Before extending the recording-local v0.9 sequence contract, update the
+ignored private map so every recursively discovered MCAP basename occurs
+exactly once. Several consecutive chunks may intentionally share a label when
+the label denotes one physical session. Labels must come from external session
+knowledge; filenames, wall-clock hints, and `MCAP_######` identifiers are never
+used to assign a drive.
+
+```bash
+python -m lane_residuals.cli.corpus_inventory \
+  "data/raw/mcap" \
+  --drive-map "config/private/mcap_sessions.private.json" \
+  --output-directory \
+  "outputs/diagnostics/data/expanded_corpus_inventory_v0121"
+```
+
+The command writes six private outputs: `mcap_inventory.csv`,
+`topic_compatibility.csv`, `recording_continuity.csv`,
+`proposed_session_groups.json`, `corpus_inventory_summary.json`, and
+`corpus_inventory_diagnostics.png`. Exit code 3 means the reports were written
+but exact coverage or file usability failed. An edge is a stitch candidate
+only when both files have the same explicit drive label, the next internal
+MCAP start is at or after the previous internal end, relevant source time
+increases strictly, the estimate-source gap is positive and no larger than
+200 ms, and all required topic/schema signatures agree. Equal internal
+endpoints are valid touching boundaries. Overlaps,
+resets, missing evidence, unreadable/empty/duplicate files, and topic/schema
+failures remain explicit exclusions. Filename timing and identifier jumps such
+as `000307 -> 000398` are diagnostic flags, not identity evidence or automatic
+continuity rejections.
+
+This audit does not implement cross-MCAP sequence stitching. Its accepted next
+step is the v0.5.2 native projection-alignment phase below. Any later sequence
+contract must consume only reviewed stitchable edges, retain every frame's
+original `recording_id`, preserve the native-alignment target, and avoid
+delta-t compensation as a model feature.
+
 ## Ten-MCAP fixed-cohort batch diagnostic
 
 Create a private grouping map whose keys exactly match the ten MCAP basenames.
@@ -318,10 +376,61 @@ invalid configuration or a global execution error.
 These remain BMW-derived pseudo-residual diagnostics. They are not independent
 samples, physical ground-truth lane errors, or a model-training dataset.
 
-## Odometry-compensated reference-alignment validation
+## Accepted native projection-alignment validation
 
-v0.5.1 implements the common-time geometry step required before the spatial
-correspondence proposed for residual extraction. RLMB is transformed from its
+v0.5.2 restores the accepted v0.5.0 spatial target over an arbitrary positive
+exact manifest. Each MCAP is decoded and paired independently using complete-
+stream mutual-nearest source timestamps. No timestamp gate is applied by
+default. The signed source delta is reported but never used to translate,
+rotate, extrapolate, or otherwise move either path.
+
+EDP station zero is projected onto the native paired RLMB path. That projected
+RLMB station becomes aligned zero, and both paths are sampled at equal forward
+arc-length offsets. RLMB remains the best available pseudo-reference rather
+than physical ground truth. H100 eligibility is a subset of H60, and only
+complete 21-station H100 rows are model-eligible.
+
+```bash
+python -m lane_residuals.cli.projection_alignment_batch \
+  "data/raw/mcap" \
+  --drive-map "config/private/mcap_sessions.private.json" \
+  --corpus-inventory-directory \
+  "outputs/diagnostics/data/expanded_corpus_inventory_v0121" \
+  --expected-file-count 67 \
+  --output-directory \
+  "outputs/diagnostics/validation/reference_alignment_batch_v052_expanded"
+```
+
+The workflow hashes the exact private map, the accepted corpus summary,
+continuity edges, proposed session groups, and all generated batch-level
+outputs. It performs no cross-MCAP pairing, residual export, feature
+extraction, sequence construction, or model training.
+
+## EDP topology semantics and alignment-quality audit
+
+```bash
+python -m lane_residuals.cli.topology_semantics_audit \
+  "data/raw/mcap" \
+  --drive-map "config/private/mcap_sessions.private.json" \
+  --corpus-inventory-directory \
+  "outputs/diagnostics/data/expanded_corpus_inventory_v0121" \
+  --alignment-directory \
+  "outputs/diagnostics/validation/reference_alignment_batch_v052_expanded" \
+  --expected-file-count 67 \
+  --output-directory \
+  "outputs/diagnostics/validation/topology_semantics_alignment_quality_v0122"
+```
+
+Every EDP message retains its raw-wire enum value, embedded-descriptor enum
+name, estimator/selection state, and v0.5.2 pair evidence. Within-MCAP and
+within-session boundary transitions are explicit. Current H60-eligible anchor
+distances above 1.0 m are listed without changing eligibility. Byte-identical
+copies of all six accepted v0.12.1 inventory outputs are packaged under the
+audit's `lineage/` directory and covered by SHA-256 provenance.
+
+## Optional odometry-compensated reference-alignment validation
+
+v0.5.1 implements an optional common-time geometry sensitivity. RLMB is transformed from its
 pose-validity ego frame into the EDP geometry-frame proxy using
 `/adp/odometry`. EDP station zero is then projected onto the transformed RLMB
 path. That projected station becomes aligned zero, and RLMB is sampled at the
@@ -370,8 +479,9 @@ gate for the first exploratory alignment run.
 
 ## Canonical residual export and Gaussian baseline
 
-Run v0.6.0 from the accepted, complete v0.5.0 alignment-batch directory. The
-workflow refuses v0.5.1 motion outputs, incomplete batches, non-exact drive
+Run v0.6.0 from either the historical accepted v0.5.0 batch or a complete
+v0.5.2 native projection-alignment batch. The workflow refuses v0.5.1 motion
+outputs, incomplete batches, non-exact drive
 grouping, H100 pairs outside H60, duplicate or missing stations, non-finite
 values, and any station-wise available-case cohort.
 

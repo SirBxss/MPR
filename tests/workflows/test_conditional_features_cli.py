@@ -441,6 +441,51 @@ class ConditionalFeatureWorkflowTests(unittest.TestCase):
             self.assertEqual(len(recordings), 1)
             self.assertEqual(recordings[0].basename, "recording.mcap")
 
+    def test_v052_manifest_is_accepted_for_feature_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            alignment = root / "alignment"
+            raw = root / "raw"
+            alignment.mkdir()
+            raw.mkdir()
+            (raw / "recording.mcap").write_bytes(b"")
+            manifest = {
+                "version": "0.5.2",
+                "purpose": "exact_manifest_projection_based_reference_alignment_validation",
+                "alignment_semantics": "v0.5.0_native_spatial_projection",
+                "explicit_ego_pose_motion_compensation_applied": False,
+                "source_delta_used_numerically_for_alignment": False,
+                "accepted_for_modeling": True,
+                "status": "complete",
+                "blockers": [],
+                "drive_grouping_source": "exact_private_basename_map",
+                "canonical_station_grid_m": [
+                    float(value) for value in range(0, 101, 5)
+                ],
+                "recordings": [
+                    {
+                        "recording_id": "recording_001",
+                        "drive_id": "drive_001",
+                        "mcap_filename_private": "recording.mcap",
+                        "status": "succeeded",
+                    }
+                ],
+            }
+            manifest_path = alignment / "batch_manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+
+            accepted, recordings = _validated_manifest_recordings(
+                alignment_batch_directory=alignment,
+                baseline_dataset_summary={
+                    "source_files_sha256": {"batch_manifest.json": digest}
+                },
+                mcap_inputs=[raw],
+            )
+
+            self.assertEqual(accepted["version"], "0.5.2")
+            self.assertEqual(len(recordings), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
