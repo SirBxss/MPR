@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "minimal-lane-residual-model"
+name = "mpr"
 version = "0.13.1"
 description = "Shared sequence modeling and fail-closed MCAP corpus auditing"
 readme = "README.md"
