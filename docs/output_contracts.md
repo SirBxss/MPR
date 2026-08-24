@@ -716,6 +716,46 @@ lag-one metrics form the common sample-based evaluation contract for AIOHMM
 and RC-GAN. All seven outputs are private BMW-derived artifacts and remain
 outside version control.
 
+## v0.14.0 expanded drive-grouped Gaussian outputs
+
+The command accepts only the exact hash-reconciled v0.13.1 output directory.
+It reconstructs padded sequences without losing per-frame recording or MCAP
+provenance and writes exactly:
+
+```text
+drive_grouped_evaluation_contract.json
+gaussian_grouped_evaluation.csv
+gaussian_grouped_station_evaluation.csv
+gaussian_grouped_frame_evaluation.csv
+gaussian_grouped_models.json
+gaussian_grouped_diagnostics.png
+gaussian_grouped_summary.json
+```
+
+`drive_grouped_evaluation_contract.json` fixes four leave-one-clean-physical-
+drive-out folds over drives 001--004. Each embedded standardizer is fitted only
+on the other three clean drives. Random frame splits are forbidden. Drives
+005--008 remain a separate mixed-source supplementary cohort and never
+contribute to fitting or primary model comparison.
+
+`gaussian_grouped_evaluation.csv` contains eight primary fold rows (four per
+model), two pooled primary rows, and two supplementary transfer rows. The
+unconditional and six-feature conditional Gaussian use identical frames,
+folds, transforms, sample counts, and common random seeds. Sample-mean RMSE,
+energy score, marginal 95% coverage, and lag-one error are common cross-family
+metrics; physical NLL and Mahalanobis distance are Gaussian diagnostics.
+
+The station CSV retains H100 spatial metrics, while the frame CSV maps every
+out-of-fold or supplementary score back to exact sequence, recording, drive,
+MCAP basename, pair index, message index, and private source timestamp.
+`gaussian_grouped_models.json` stores every fold model plus one descriptive fit
+on all clean development drives. That fit is not an untouched final model.
+
+The summary reports both pooled-frame and equal-drive macro metrics. Conditional
+minus unconditional macro deltas use a negative-is-better convention. No
+hyperparameter search or final model selection is authorized. All outputs are
+private BMW-derived artifacts and remain outside version control.
+
 ## v0.11.0 sequence-contract AIOHMM outputs
 
 The command accepts the same exact seven-file v0.9.0 directory as v0.10.0. It

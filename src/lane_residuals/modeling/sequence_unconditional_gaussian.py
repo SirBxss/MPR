@@ -161,10 +161,10 @@ class SequenceUnconditionalGaussian(ProbabilisticSequenceModel):
             if np.any(mask & ~time_mask[:, :, None]) or not np.all(mask[time_mask]):
                 raise ValueError("unconditional Gaussian requires complete active targets")
         generator = np.random.default_rng(int(seed))
-        values = np.zeros((sample_count, *shape, station_count), dtype=np.float64)
-        active_count = int(np.sum(time_mask))
-        draws = self.fitted_model.sample(sample_count * active_count, rng=generator)
-        values[:, time_mask, :] = draws.reshape(sample_count, active_count, station_count)
+        noise = generator.standard_normal((sample_count, *shape, station_count))
+        cholesky = np.linalg.cholesky(self.fitted_model.covariance)
+        values = self.fitted_model.mean + noise @ cholesky.T
+        values *= time_mask[None, :, :, None]
         return SampleResult(
             values=values,
             lengths=sequence_lengths,

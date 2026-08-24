@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.13.1
+# Minimal Path-Residual Model (MPR) v0.14.0
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -485,6 +485,31 @@ python -m lane_residuals.cli.expanded_sequence_dataset_v0131 \
 Every boundary-derived speed records both contributing private MCAP basenames
 and the exact odometry timestamps. A parity audit requires every pre-existing
 v0.13.0 residual and six-feature row to remain byte-identical.
+
+## Expanded clean-drive Gaussian re-baseline
+
+Run v0.14.0 directly from the complete unchanged v0.13.1 directory:
+
+```bash
+python -m lane_residuals.cli.expanded_gaussian \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --output-directory "outputs/models/expanded_gaussian_v0140"
+```
+
+The primary cohort is fixed to clean sensor-topology drives 001--004 (4,084
+frames in 16 sequences). Each of four folds holds out one complete physical
+drive and fits the six condition transforms and 21 target transforms only on
+the remaining three drives. An unconditional Gaussian and the six-feature
+linear conditional Gaussian then use identical rows, transformations, samples,
+and metrics. Results are reported both pooled by frame and macro-averaged with
+equal weight per held-out drive.
+
+Drives 005--008 contain 518 mixed-source fragments. They are never used for
+fit or primary comparison; models trained on all four clean development drives
+evaluate them only as a supplementary transfer check. v0.14.0 performs no
+random frame split, held-out hyperparameter search, or final model selection.
+Its frozen fold/metric contract is the input policy for the next expanded-data
+AIOHMM phase.
 
 ## Optional odometry-compensated reference-alignment validation
 

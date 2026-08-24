@@ -4,6 +4,8 @@ All historical console aliases and their `python -m` forms remain supported.
 v0.5.2 restores corpus-independent native projection alignment;
 v0.13.0 preserves the fail-closed expanded sequential checkpoint, and v0.13.1
 adds accepted-boundary context only for its frozen odometry speed feature;
+v0.14.0 adds the leakage-safe clean-drive evaluation contract and Gaussian
+re-baseline while keeping mixed-source fragments supplementary;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -34,6 +36,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-audit-topology-semantics` | `python -m lane_residuals.cli.topology_semantics_audit` | v0.12.2 read-only EDP enum/transition and alignment-quality audit; eligibility unchanged | Exact MCAP corpus, private map, complete v0.12.1 inventory, and complete v0.5.2 alignment batch | Message/recording/session/transition/outlier CSVs, plot, summary, manifest, provenance, and packaged inventory lineage |
 | `mpr-build-expanded-sequential-dataset` | `python -m lane_residuals.cli.expanded_sequence_dataset` | v0.13.0 quality-gated sensor-topology H100 profiles and physical-session sequences; no split or model selection | Exact raw MCAP corpus, complete v0.5.2 alignment, and corrected complete v0.12.2 topology audit | Deterministic profile archive, sequence/eligibility/stitch/exclusion audits, drive summary, plot, contract, manifest, and provenance |
 | `mpr-build-expanded-sequential-dataset-v0131` | `python -m lane_residuals.cli.expanded_sequence_dataset_v0131` | v0.13.1 accepted-boundary context for the unchanged 50 ms odometry speed only; v0.13.0 tensor parity enforced | v0.13.0 output plus its exact raw/alignment/corrected-topology lineage | Expanded deterministic archive, boundary-context/parity/stitch audits, summaries, plot, contract, manifest, and provenance |
+| `mpr-evaluate-expanded-gaussian` | `python -m lane_residuals.cli.expanded_gaussian` | v0.14.0 unconditional/conditional Gaussian re-baseline on four leave-one-clean-drive-out folds; no random frame split or hyperparameter search | Complete unchanged v0.13.1 expanded sequence directory | Frozen evaluation contract, fold/station/frame metrics, fold and descriptive models, comparison plot, and strict summary |
 | `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
 | `mpr-train-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_baseline` | v0.6.0 canonical H100 export, leave-one-drive-out evaluation, and final Gaussian fit | Historical complete v0.5.0 or current complete v0.5.2 native alignment batch | Residual vectors, dataset/model summaries, fold/station evaluation CSVs, and diagnostics plot |
@@ -135,6 +138,23 @@ python -m lane_residuals.cli.expanded_sequence_dataset_v0131 \
 Only a right-boundary profile whose prior-file odometry context passes every
 declared gate can be restored. The boundary audit retains topic/schema,
 timestamp, bracket, extrapolation, contributing-MCAP, and rejection evidence.
+
+Run the v0.14.0 Gaussian re-baseline from a new empty output directory:
+
+```bash
+python -m lane_residuals.cli.expanded_gaussian \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --output-directory "outputs/models/expanded_gaussian_v0140"
+```
+
+Primary evaluation is leave-one-clean-physical-drive-out over drives 001--004.
+Every fold fits its standardizer on the other three clean drives only. Drives
+005--008 are mixed-source fragments and are never used for fitting or primary
+model comparison; a model trained on all clean drives evaluates them only as a
+supplementary transfer check. The fixed unconditional and six-feature linear
+conditional Gaussians use common Monte Carlo seeds and identical rows. No
+random frame split, held-out hyperparameter search, or final-model claim is
+made.
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the
