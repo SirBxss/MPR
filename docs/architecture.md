@@ -22,6 +22,14 @@ baseline. Its domain layer owns boundary admission, IO owns odometry schema and
 live-hash evidence, and workflow code may replace only a missing recording-local
 50 ms speed with accepted previous-MCAP odometry context. No other feature or
 geometry crosses the boundary.
+The v0.14.0 modeling boundary strictly converts the frame-major v0.13.1 archive
+to padded sequences, preserves per-frame recording/MCAP provenance, assigns
+only the four clean sensor recording groups to leave-one-group-out primary
+folds, and fits every standardizer on fold-training groups. These four groups
+are portions of one same-day outing, so the folds do not estimate independent-
+journey generalization. Mixed-source fragments remain
+supplementary. The unconditional and conditional Gaussian nulls then share the
+same rows, transforms, seeds, and metrics.
 The categorization separates scientific arithmetic, orchestration, I/O, plots,
 and command adapters.
 
@@ -102,6 +110,9 @@ Package responsibilities:
   load lifecycle. Model-specific code must not redefine the dataset or split.
 - `modeling.sequence_gaussian` adapts the linear conditional Gaussian to that
   lifecycle while declaring temporal dependency order zero.
+- `modeling.sequence_unconditional_gaussian` supplies the condition-free
+  reference needed to measure whether the six-feature mean helps under the
+  same expanded-data folds.
 - `modeling.aiohmm_inference` owns exact log-domain forward-backward inference
   and input-conditioned transition probabilities without a SciPy dependency.
 - `modeling.aiohmm` owns the fixed-state generalized-EM estimator, deterministic
@@ -157,6 +168,14 @@ using training likelihood only, evaluates each held-out physical drive once,
 and writes separate common-metric, posterior-state, transition, AR, convergence,
 and restart-stability evidence. It does not perform held-out state-count or
 hyperparameter selection.
+The v0.14.0 workflow accepts only the hash-reconciled v0.13.1 directory. Its
+four clean-drive folds are the common development protocol for all expanded
+models; the mixed cohort cannot enter training or primary model comparison.
+The v0.15.0 workflow consumes both that source and the exact v0.14.0 result
+directory. It adds no data transformation or feature path: it reuses the fold
+standardizers and evaluates a fixed two-state AIOHMM with training-only restart
+selection. State-specific AR emissions exclude sequence reset rows, and the
+generalized-EM update uses occupancy-safe likelihood backtracking.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

@@ -85,6 +85,7 @@ class SequenceSampleEvaluation:
     upper_95_m: FloatArray
     frame_rmse_m: FloatArray
     frame_energy_score_m: FloatArray
+    normalized_sequence_energy_score_m: FloatArray
     station_rmse_m: FloatArray
     station_bias_m: FloatArray
     station_coverage_95: FloatArray
@@ -98,6 +99,10 @@ class SequenceSampleEvaluation:
     @property
     def mean_energy_score_m(self) -> float:
         return float(np.mean(self.frame_energy_score_m[self.time_mask]))
+
+    @property
+    def mean_normalized_sequence_energy_score_m(self) -> float:
+        return float(np.mean(self.normalized_sequence_energy_score_m))
 
     @property
     def marginal_95_coverage(self) -> float:
@@ -164,6 +169,25 @@ def evaluate_sequence_samples(
         - 0.5 * np.mean(pair_distance[:, time_mask], axis=0)
     )
 
+    sequence_energy = np.empty(observed.sequence_count, dtype=np.float64)
+    station_count = target.shape[2]
+    for sequence_index, raw_length in enumerate(observed.lengths):
+        length = int(raw_length)
+        observed_vector = target[sequence_index, :length].reshape(-1)
+        sample_vectors = samples.values[:, sequence_index, :length].reshape(
+            samples.sample_count, -1
+        )
+        normalization = np.sqrt(length * station_count)
+        target_distance = np.linalg.norm(
+            sample_vectors - observed_vector[None, :], axis=1
+        ) / normalization
+        paired_distance = np.linalg.norm(
+            sample_vectors[:half] - sample_vectors[half : 2 * half], axis=1
+        ) / normalization
+        sequence_energy[sequence_index] = float(
+            np.mean(target_distance) - 0.5 * np.mean(paired_distance)
+        )
+
     active_errors = errors[time_mask]
     station_rmse = np.sqrt(np.mean(np.square(active_errors), axis=0))
     station_bias = np.mean(active_errors, axis=0)
@@ -180,6 +204,7 @@ def evaluate_sequence_samples(
         upper,
         frame_rmse,
         energy,
+        sequence_energy,
         station_rmse,
         station_bias,
         station_coverage,
@@ -195,6 +220,7 @@ def evaluate_sequence_samples(
         upper_95_m=upper,
         frame_rmse_m=frame_rmse,
         frame_energy_score_m=energy,
+        normalized_sequence_energy_score_m=sequence_energy,
         station_rmse_m=station_rmse,
         station_bias_m=station_bias,
         station_coverage_95=station_coverage,

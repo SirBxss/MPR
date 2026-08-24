@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.13.1
+# Minimal Path-Residual Model (MPR) v0.15.0
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -38,6 +38,25 @@ strict timestamp order, interpolation tolerance, and no-extrapolation checks
 must all pass. EDP paths, residuals, and the other five conditions remain
 recording-local. No split, standardizer fit, hyperparameter choice, or model
 training is performed.
+
+Version 0.14.0 establishes the expanded-data modeling baseline. It converts the
+accepted v0.13.1 archive to padded sequences without dropping frame provenance,
+then evaluates unconditional and six-feature conditional Gaussians on four
+leave-one-clean-recording-group-out folds. Those four groups are separated
+portions of one longer same-day outing, not four independent journeys. Drives
+005--008 remain supplementary.
+The contract reports both frame-wise energy and a length-normalized energy score
+on each complete `[time, 21]` sequence.
+
+Version 0.15.0 evaluates a fixed two-state AIOHMM on exactly the v0.14 folds,
+training-only transforms, samples, and metrics. It also corrects the generalized
+EM implementation: reset frames are excluded from state-specific AR emissions,
+and occupancy-safe backtracking prevents a decreasing M-step from being silently
+accepted. The real expanded run reduces macro lag-one correlation error from
+0.888345 to 0.018276, while frame energy, coverage, and normalized sequence
+energy do not all beat the conditional Gaussian. All 15 fits touch both the
+occupancy and maximum-AR constraints. The result is therefore a temporal
+success but not full generative acceptance or journey-level validation.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -485,6 +504,63 @@ python -m lane_residuals.cli.expanded_sequence_dataset_v0131 \
 Every boundary-derived speed records both contributing private MCAP basenames
 and the exact odometry timestamps. A parity audit requires every pre-existing
 v0.13.0 residual and six-feature row to remain byte-identical.
+
+## Expanded clean-drive Gaussian re-baseline
+
+Run v0.14.0 directly from the complete unchanged v0.13.1 directory:
+
+```bash
+python -m lane_residuals.cli.expanded_gaussian \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --output-directory "outputs/models/expanded_gaussian_v0140"
+```
+
+The primary cohort is fixed to clean sensor-topology groups 001--004 (4,084
+frames in 16 sequences). These labels are separated portions of one longer
+same-day outing. Each fold holds out one complete technical group and fits the
+six condition transforms and 21 target transforms only on the remaining three
+groups. An unconditional Gaussian and the six-feature
+linear conditional Gaussian then use identical rows, transformations, samples,
+and metrics. Results are reported both pooled by frame and macro-averaged with
+equal weight per held-out drive.
+
+Drives 005--008 contain 518 mixed-source fragments. They are never used for
+fit or primary comparison; models trained on all four clean development drives
+evaluate them only as a supplementary transfer check. v0.14.0 performs no
+random frame split, held-out hyperparameter search, or final model selection.
+Its frozen fold/metric contract is the input policy for v0.15.0.
+
+## Expanded clean-drive AIOHMM evaluation
+
+Run v0.15.0 against the exact v0.14.0 output directory:
+
+```bash
+python -m lane_residuals.cli.expanded_aiohmm \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --output-directory "outputs/models/expanded_aiohmm_v0150"
+```
+
+The state count is fixed at two after the v0.11 three-state occupancy collapse;
+the command rejects other values. Three deterministic same-architecture
+restarts are selected by training likelihood only. Generalized EM excludes each
+sequence reset from the state-specific AR M-step and uses a non-decreasing,
+occupancy-safe backtracking step. Held-out drives never choose the restart,
+state count, transform, or any model setting.
+
+On the 4,084-frame clean primary cohort, the reviewed run has macro-drive RMSE
+0.374542 m, frame energy 1.018113 m, normalized complete-sequence energy
+0.286286 m, marginal 95% coverage 0.868940, and lag-one error 0.018276. The
+conditional Gaussian values are 0.362535 m, 0.994829 m, 0.286028 m, 0.928183,
+and 0.888345 respectively. The AIOHMM captures temporal persistence, but its
+marginal calibration is worse and one selected fold fit reaches the constrained
+optimization boundary. Every completed restart touches the configured occupancy
+and maximum-AR boundaries. Complete-sequence energy favors the AIOHMM on three
+of four technical groups, but the groups belong to one outing and the macro
+difference is too small to support an independent-journey claim. The summary
+consequently records
+`temporal_dependence_improved_but_full_generative_acceptance_not_met`; this
+negative/partial result must not be rewritten as a general AIOHMM win.
 
 ## Optional odometry-compensated reference-alignment validation
 
