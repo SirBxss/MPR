@@ -215,6 +215,29 @@ The output directory must be absent or empty. The workflow fails before fitting
 if any source filename, hash, fold member, frame count, v0.14 result, or stored
 training-only transform differs from the accepted lineage.
 
+## One-state AR ablation
+
+v0.15.1 runs the same emission and evaluation code with `state_count=1`. This
+is a conditional autoregressive Gaussian, not a latent-state model: posterior
+occupancy and the 1-by-1 transition are deterministically one. It retains the
+v0.15 reset distribution, station-wise AR coefficients, covariance treatment,
+observed-history density, free-running generation, folds, standardizers,
+restarts, seeds, sample count, and metrics.
+
+```bash
+python -m lane_residuals.cli.expanded_ar_ablation \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --aiohmm-directory "outputs/models/expanded_aiohmm_v0150_reviewed" \
+  --output-directory "outputs/models/one_state_ar_v0151"
+```
+
+The command fails before fitting if either baseline is incomplete or changed,
+or if any non-architectural v0.15 hyperparameter differs. One-state versus
+conditional Gaussian measures the contribution of AR. Two-state versus
+one-state measures the additional contribution of latent switching. Neither
+comparison creates independent outings that are absent from the corpus.
+
 ## Limitations and next gate
 
 - The effective primary support is one same-day outing divided into four clean
@@ -235,7 +258,8 @@ training-only transform differs from the accepted lineage.
 
 The current data are sufficient for implementation and exploratory Gaussian
 versus AIOHMM comparison. They are not sufficient for final state-count tuning,
-broad feature search, RC-GAN claims, or an untouched thesis test. The next
-minimal diagnostic is a one-state conditional AR ablation under the same folds.
+broad feature search, RC-GAN claims, or an untouched thesis test. The implemented
+one-state conditional AR ablation must now be run and reviewed under the same
+folds before selecting the next model phase.
 The acquisition gate remains 8--12 independent physical drives, with at least
 two locked final test drives and preferably continuous 2--5 minute recordings.

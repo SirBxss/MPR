@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.15.0
+# Minimal Path-Residual Model (MPR) v0.15.1
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -561,6 +561,28 @@ difference is too small to support an independent-journey claim. The summary
 consequently records
 `temporal_dependence_improved_but_full_generative_acceptance_not_met`; this
 negative/partial result must not be rewritten as a general AIOHMM win.
+
+## One-state conditional-AR ablation
+
+v0.15.1 isolates autoregression from latent switching without changing the
+data or evaluation. Run it against the exact v0.14.0 and reviewed v0.15.0
+directories:
+
+```bash
+python -m lane_residuals.cli.expanded_ar_ablation \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --aiohmm-directory "outputs/models/expanded_aiohmm_v0150_reviewed" \
+  --output-directory "outputs/models/one_state_ar_v0151"
+```
+
+The one-state model is the exact v0.15 conditional AR emission with a trivial
+single component: no latent switching exists. The workflow validates both
+baseline directories and rejects changes to folds, transforms, seeds, sample
+count, restart count, or any non-architectural model hyperparameter. Its
+summary reports AR-versus-Gaussian and two-state-versus-one-state deltas with
+negative values always meaning better. The result remains within-one-outing
+development evidence and cannot authorize final model selection.
 
 ## Optional odometry-compensated reference-alignment validation
 

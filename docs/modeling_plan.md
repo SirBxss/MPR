@@ -33,7 +33,7 @@ are not the thesis execution path.
 | v0.13 | Quality-gated expanded sequence dataset | Complete; v0.13.1 contains 4,602 frames, 34 sequences, and accepted boundary-speed context |
 | v0.14 | Clean-group evaluation protocol and Gaussian re-baseline | Implemented; four leave-one-clean-group-out folds within one same-day outing, equal-group and pooled metrics, and separate mixed-fragment transfer checks |
 | v0.15 | Two-state AIOHMM on the v0.14 protocol | Implemented; temporal dependence improves strongly, but marginal calibration and full generative acceptance do not pass |
-| v0.15.1 | One-state conditional AR ablation | Next minimal diagnostic; determine whether the latent switch adds value beyond autoregression without changing data, features, or folds |
+| v0.15.1 | One-state conditional AR ablation | Implemented; exact private-corpus run and reviewed Gaussian/AR/AIOHMM comparison are pending |
 | v0.16 | RC-GAN | Begins only after the AIOHMM/AR review and when the independent-drive/data-volume gate supports a defensible adversarial experiment |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
@@ -47,10 +47,12 @@ falls from 0.888345 to 0.018276, but frame energy and coverage are worse and
 normalized complete-sequence energy is effectively tied. All completed fits
 touch the occupancy and maximum-AR boundaries, and one selected fold fit does
 not converge. The four technical groups are separated portions of one longer
-same-day outing, so this is within-outing evidence only. The next model change
-is therefore a one-state conditional AR ablation, not feature expansion or
-RC-GAN tuning. Additional independent outings remain necessary before an
-untouched final comparison.
+same-day outing, so this is within-outing evidence only. v0.15.1 therefore
+changes only the state count to one and disables the now-trivial transition;
+all other hyperparameters and evaluation inputs remain frozen. Its private-
+corpus output decides whether the two-state switch adds value beyond AR before
+feature expansion or RC-GAN work. Additional independent outings remain
+necessary before an untouched final comparison.
 
 ## Feature policy
 

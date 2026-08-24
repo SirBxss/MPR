@@ -800,6 +800,43 @@ result classification. Workflow success does not imply scientific acceptance.
 The reviewed run is classified as
 `temporal_dependence_improved_but_full_generative_acceptance_not_met`.
 
+## v0.15.1 one-state conditional-AR ablation outputs
+
+The command accepts only the exact hash-reconciled v0.13.1 directory, exact
+v0.14.0 Gaussian directory, and complete reviewed v0.15.0 AIOHMM directory.
+It verifies the same source lineage, four folds, fold-training transforms,
+Monte Carlo protocol, restart count, and all non-architectural AIOHMM
+hyperparameters before creating the output directory. It writes exactly:
+
+```text
+one_state_ar_evaluation.csv
+one_state_ar_station_evaluation.csv
+one_state_ar_frame_evaluation.csv
+one_state_ar_state_evaluation.csv
+one_state_ar_restart_evaluation.csv
+one_state_ar_fold_models.json
+one_state_ar_model.json
+one_state_ar_diagnostics.png
+one_state_ar_summary.json
+```
+
+The one component uses the unchanged v0.15 station-wise AR(1) emission,
+training-only reset marginal, spatial covariance regularization, observed-
+history likelihood, and free-running sampler. Its posterior occupancy and
+transition probability are identically one by construction; they are retained
+in the tabular contract for parity but are not interpreted as hidden-state
+evidence. The focused plot therefore replaces occupancy/transition panels with
+three-model macro and paired-group sequence-energy comparisons plus the fitted
+AR coefficient profile.
+
+`one_state_ar_summary.json` records one-state-minus-conditional-Gaussian deltas
+to isolate the autoregressive contribution and symmetric one-state/two-state
+deltas to isolate the latent-switching contribution. Every reported delta uses
+the negative-is-better convention. It also records paired technical-group
+sequence-energy counts, exact hashes of both baselines, and an explicit latent-
+switching classification. These are within-one-outing development diagnostics;
+they do not authorize journey-level generalization or final model selection.
+
 ## v0.11.0 sequence-contract AIOHMM outputs
 
 The command accepts the same exact seven-file v0.9.0 directory as v0.10.0. It

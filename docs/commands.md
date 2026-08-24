@@ -7,7 +7,8 @@ adds accepted-boundary context only for its frozen odometry speed feature;
 v0.14.0 adds the leakage-safe clean-drive evaluation contract and Gaussian
 re-baseline while keeping mixed-source fragments supplementary; v0.15.0 adds
 the exact-contract two-state expanded AIOHMM evaluation and corrected
-occupancy-safe generalized EM;
+occupancy-safe generalized EM; v0.15.1 adds the exact one-state conditional-AR
+ablation against both frozen baselines without changing the evaluation;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -40,6 +41,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-build-expanded-sequential-dataset-v0131` | `python -m lane_residuals.cli.expanded_sequence_dataset_v0131` | v0.13.1 accepted-boundary context for the unchanged 50 ms odometry speed only; v0.13.0 tensor parity enforced | v0.13.0 output plus its exact raw/alignment/corrected-topology lineage | Expanded deterministic archive, boundary-context/parity/stitch audits, summaries, plot, contract, manifest, and provenance |
 | `mpr-evaluate-expanded-gaussian` | `python -m lane_residuals.cli.expanded_gaussian` | v0.14.0 unconditional/conditional Gaussian re-baseline on four leave-one-clean-recording-group-out folds within one outing; no random frame split or hyperparameter search | Complete unchanged v0.13.1 expanded sequence directory | Frozen evaluation contract, fold/station/frame metrics, fold and descriptive models, comparison plot, and strict summary |
 | `mpr-evaluate-expanded-aiohmm` | `python -m lane_residuals.cli.expanded_aiohmm` | v0.15.0 fixed two-state AIOHMM on the exact v0.14.0 clean-drive protocol; no held-out tuning | Complete unchanged v0.13.1 directory and its exact v0.14.0 Gaussian result directory | Fold/station/frame/state/restart metrics, fold and descriptive models, diagnostic plot, and strict comparison summary |
+| `mpr-evaluate-expanded-ar-ablation` | `python -m lane_residuals.cli.expanded_ar_ablation` | v0.15.1 fixed one-state conditional AR; isolates autoregression from latent switching with no evaluation drift | Complete unchanged v0.13.1 directory plus its exact v0.14.0 Gaussian and reviewed v0.15.0 AIOHMM result directories | One-state fold/station/frame/restart evidence, paired three-model diagnostics, models, and strict Gaussian/AIOHMM comparison summary |
 | `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
 | `mpr-train-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_baseline` | v0.6.0 canonical H100 export, leave-one-drive-out evaluation, and final Gaussian fit | Historical complete v0.5.0 or current complete v0.5.2 native alignment batch | Residual vectors, dataset/model summaries, fold/station evaluation CSVs, and diagnostics plot |
@@ -176,6 +178,26 @@ configuration is fixed; mixed fragments remain supplementary. Exit code `0`
 means the workflow completed, not that every scientific acceptance check
 passed. Read `result_classification` and `development_acceptance_checks` in the
 summary before promoting the model.
+
+Run the v0.15.1 one-state AR ablation from a new empty output directory:
+
+```bash
+python -m lane_residuals.cli.expanded_ar_ablation \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --aiohmm-directory "outputs/models/expanded_aiohmm_v0150_reviewed" \
+  --output-directory "outputs/models/one_state_ar_v0151"
+```
+
+The command permits exactly two architecture changes from v0.15: one state
+instead of two and therefore no effective input-dependent transition. Every
+other fitted-model hyperparameter, restart count, fold, training-only
+standardizer, sampling seed, sample count, and metric must match. It reports
+one-state-minus-Gaussian deltas to measure the AR contribution and symmetric
+one-state/two-state deltas to measure the incremental value of latent
+switching. A negative delta is better. The four technical groups still
+represent one outing, so paired group results remain within-outing development
+evidence only.
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

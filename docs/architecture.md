@@ -176,6 +176,12 @@ directory. It adds no data transformation or feature path: it reuses the fold
 standardizers and evaluates a fixed two-state AIOHMM with training-only restart
 selection. State-specific AR emissions exclude sequence reset rows, and the
 generalized-EM update uses occupancy-safe likelihood backtracking.
+The v0.15.1 workflow reuses that same autoregressive evaluation engine with one
+component. `io.model_evaluation` first reconciles the complete v0.15 result and
+its fold models, then the workflow permits only the predeclared state-count and
+trivial-transition differences. A dedicated visualization omits meaningless
+single-state occupancy/transition claims and compares the Gaussian, one-state
+AR, and two-state AIOHMM directly.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific
