@@ -15,12 +15,17 @@ from ..workflows.expanded_aiohmm import run_expanded_aiohmm
 LOGGER = logging.getLogger(__name__)
 
 
-def _parser() -> argparse.ArgumentParser:
+def build_expanded_autoregressive_parser(
+    *,
+    description: str,
+    output_directory: Path,
+    state_count: int,
+    state_help: str,
+) -> argparse.ArgumentParser:
+    """Build the shared fixed-protocol autoregressive evaluation CLI."""
+
     parser = argparse.ArgumentParser(
-        description=(
-            "Evaluate the fixed two-state AIOHMM on the exact v0.14 clean-drive "
-            "folds and metrics. Mixed-source fragments remain supplementary."
-        )
+        description=description
     )
     parser.add_argument("expanded_sequence_directory", type=Path)
     parser.add_argument(
@@ -32,13 +37,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-directory",
         type=Path,
-        default=Path("outputs/models/expanded_aiohmm_v0150"),
+        default=output_directory,
     )
     parser.add_argument(
         "--state-count",
         type=int,
-        default=2,
-        help="fixed at two for v0.15; other values are rejected",
+        default=state_count,
+        help=state_help,
     )
     parser.add_argument("--restart-count", type=int, default=3)
     parser.add_argument("--maximum-em-iterations", type=int, default=30)
@@ -99,6 +104,18 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _parser() -> argparse.ArgumentParser:
+    return build_expanded_autoregressive_parser(
+        description=(
+            "Evaluate the fixed two-state AIOHMM on the exact v0.14 clean-drive "
+            "folds and metrics. Mixed-source fragments remain supplementary."
+        ),
+        output_directory=Path("outputs/models/expanded_aiohmm_v0150"),
+        state_count=2,
+        state_help="fixed at two for v0.15; other values are rejected",
+    )
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = _parser().parse_args(argv)
     logging.basicConfig(
@@ -149,4 +166,4 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 
-__all__ = ["main"]
+__all__ = ["build_expanded_autoregressive_parser", "main"]

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +15,10 @@ from ..domain.residual_dataset import CANONICAL_MODEL_STATIONS_M
 from ..domain.sequence_dataset import PaddedSequenceDataset, SequenceStandardizer
 from ..io.expanded_modeling_dataset import ExpandedModelingDataset, load_expanded_modeling_dataset
 from ..io.expanded_sequence_dataset import read_csv_rows
-from ..io.model_evaluation import load_expanded_gaussian_baseline
+from ..io.model_evaluation import (
+    load_expanded_aiohmm_baseline,
+    load_expanded_gaussian_baseline,
+)
 from ..io.reports import write_csv_rows, write_strict_json
 from ..modeling.aiohmm import AutoregressiveInputOutputHMM
 from ..modeling.base import SampleResult
@@ -22,6 +26,9 @@ from ..modeling.sequence_evaluation import (
     SequenceSampleEvaluation,
     evaluate_sequence_samples,
     physical_sample_result,
+)
+from ..visualization.expanded_ar_ablation import (
+    plot_expanded_ar_ablation_diagnostics,
 )
 from ..visualization.sequence_aiohmm import plot_sequence_aiohmm_diagnostics
 from .sequence_aiohmm import (
@@ -40,6 +47,60 @@ from .sequence_aiohmm import (
 from .sequence_contract import ensure_empty_output_directory, sha256_file
 
 VERSION = "0.15.0"
+
+
+@dataclass(frozen=True)
+class ExpandedAutoregressiveExperiment:
+    """Versioned reporting contract around the shared autoregressive engine."""
+
+    version: str
+    output_prefix: str
+    expected_state_count: int
+    purpose: str
+    fold_models_purpose: str
+    state_count_rationale: str
+    plot_subtitle: str
+    candidate_label: str
+    comparison_key: str
+    next_phase: str
+    scientific_limitations: tuple[str, ...]
+    requires_two_state_reference: bool = False
+
+
+V015_AIOHMM_EXPERIMENT = ExpandedAutoregressiveExperiment(
+    version=VERSION,
+    output_prefix="expanded_aiohmm",
+    expected_state_count=2,
+    purpose="expanded_clean_drive_autoregressive_input_output_hmm",
+    fold_models_purpose="v014_clean_drive_fold_aiohmm_models",
+    state_count_rationale=(
+        "fixed_two_state_parsimony_after_v0110_three_state_occupancy_collapse"
+    ),
+    plot_subtitle=(
+        "Two-state within-outing recording-group model; state labels are not "
+        "physical classes"
+    ),
+    candidate_label="aiohmm",
+    comparison_key="aiohmm_minus_conditional_gaussian_primary_macro_deltas",
+    next_phase="review_v015_against_v014_before_any_rcgan_or_feature_expansion",
+    scientific_limitations=(
+        (
+            "The four clean technical groups are separated portions of one "
+            "longer same-day outing, not four independent journeys."
+        ),
+        "Leave-one-group-out results do not estimate journey-level generalization.",
+        "Two states are a fixed parsimonious correction, not a held-out selected optimum.",
+        (
+            "Observed-history joint density and free-running generation are both "
+            "valid but answer different questions."
+        ),
+        (
+            "RLMB remains a pseudo-reference and independence from the EDP "
+            "topology source is unknown."
+        ),
+        "Sample metrics retain finite Monte Carlo error under the recorded seed.",
+    ),
+)
 
 EVALUATION_FIELDS = (
     "scope",
@@ -227,6 +288,10 @@ def _expanded_state_rows(
     )
     for row in rows:
         row["cohort_role"] = cohort_role
+        if model.config.state_count == 1:
+            row["state_label_interpretation"] = (
+                "single_component_no_latent_state_switching"
+            )
     return rows
 
 
@@ -402,6 +467,89 @@ def _macro_metrics(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
     return result
 
 
+def _same_schema_metric_deltas(
+    candidate: Mapping[str, Any], reference: Mapping[str, Any]
+) -> dict[str, float]:
+    fields = (
+        "mean_joint_negative_log_likelihood_physical",
+        "sample_mean_prediction_rmse_m",
+        "mean_energy_score_m",
+        "mean_normalized_sequence_energy_score_m",
+        "absolute_marginal_95_coverage_error",
+        "median_absolute_lag_one_correlation_error",
+    )
+    return {
+        field: float(candidate[field]) - float(reference[field])
+        for field in fields
+    }
+
+
+def _paired_sequence_energy_diagnostics(
+    candidate_rows: Sequence[Mapping[str, Any]],
+    reference_rows: Sequence[Mapping[str, Any]],
+    *,
+    candidate_label: str,
+    reference_label: str,
+) -> dict[str, Any]:
+    def by_group(
+        rows: Sequence[Mapping[str, Any]],
+    ) -> dict[str, float]:
+        result: dict[str, float] = {}
+        for row in rows:
+            if row.get("scope") != "held_out_drive":
+                continue
+            group = str(row.get("held_out_drive_id", ""))
+            if not group or group in result:
+                raise ValueError("autoregressive held-out group rows are ambiguous")
+            result[group] = float(
+                row["mean_normalized_sequence_energy_score_m"]
+            )
+        return result
+
+    candidate = by_group(candidate_rows)
+    reference = by_group(reference_rows)
+    if not candidate or set(candidate) != set(reference):
+        raise ValueError("autoregressive comparison held-out group rows differ")
+    deltas = {
+        group: candidate[group] - reference[group]
+        for group in sorted(candidate)
+    }
+    tolerance_m = 1e-12
+    return {
+        "fold_count": len(deltas),
+        f"{candidate_label}_better_fold_count": sum(
+            delta < -tolerance_m for delta in deltas.values()
+        ),
+        f"{reference_label}_better_fold_count": sum(
+            delta > tolerance_m for delta in deltas.values()
+        ),
+        "tied_fold_count": sum(
+            abs(delta) <= tolerance_m for delta in deltas.values()
+        ),
+        f"{candidate_label}_minus_{reference_label}_by_group_m": deltas,
+        "negative_delta_is_better": True,
+        "independent_journey_level_inference_authorized": False,
+    }
+
+
+def _latent_switching_classification(
+    two_state_minus_one_state: Mapping[str, float],
+) -> str:
+    sample_fields = (
+        "sample_mean_prediction_rmse_m",
+        "mean_energy_score_m",
+        "mean_normalized_sequence_energy_score_m",
+        "absolute_marginal_95_coverage_error",
+        "median_absolute_lag_one_correlation_error",
+    )
+    improved = [two_state_minus_one_state[field] < 0.0 for field in sample_fields]
+    if all(improved):
+        return "latent_switching_improves_all_predeclared_sample_metrics"
+    if any(improved):
+        return "mixed_evidence_for_latent_switching"
+    return "no_predeclared_sample_metric_support_for_latent_switching"
+
+
 def _result_classification(acceptance_checks: Mapping[str, bool]) -> str:
     """Describe only the evidence explicitly represented by the checks."""
 
@@ -413,8 +561,10 @@ def _result_classification(acceptance_checks: Mapping[str, bool]) -> str:
 
 
 def _sequence_energy_fold_diagnostics(
-    aiohmm_rows: Sequence[Mapping[str, Any]],
+    candidate_rows: Sequence[Mapping[str, Any]],
     gaussian_rows: Sequence[Mapping[str, str]],
+    *,
+    candidate_label: str,
 ) -> dict[str, Any]:
     """Return paired descriptive fold evidence without claiming independence."""
 
@@ -432,23 +582,23 @@ def _sequence_energy_fold_diagnostics(
             row["mean_normalized_sequence_energy_score_m"]
         )
 
-    aiohmm_by_drive = {
+    candidate_by_drive = {
         str(row["held_out_drive_id"]): float(
             row["mean_normalized_sequence_energy_score_m"]
         )
-        for row in aiohmm_rows
+        for row in candidate_rows
     }
-    if set(aiohmm_by_drive) != set(gaussian_by_drive):
+    if set(candidate_by_drive) != set(gaussian_by_drive):
         raise ValueError("v0.14 and v0.15 held-out group rows differ")
 
     deltas = {
-        drive_id: aiohmm_by_drive[drive_id] - gaussian_by_drive[drive_id]
-        for drive_id in sorted(aiohmm_by_drive)
+        drive_id: candidate_by_drive[drive_id] - gaussian_by_drive[drive_id]
+        for drive_id in sorted(candidate_by_drive)
     }
     tie_tolerance_m = 1e-12
     return {
         "fold_count": len(deltas),
-        "aiohmm_better_fold_count": sum(
+        f"{candidate_label}_better_fold_count": sum(
             delta < -tie_tolerance_m for delta in deltas.values()
         ),
         "conditional_gaussian_better_fold_count": sum(
@@ -457,7 +607,7 @@ def _sequence_energy_fold_diagnostics(
         "tied_fold_count": sum(
             abs(delta) <= tie_tolerance_m for delta in deltas.values()
         ),
-        "aiohmm_minus_conditional_gaussian_by_group_m": deltas,
+        f"{candidate_label}_minus_conditional_gaussian_by_group_m": deltas,
         "negative_delta_is_better": True,
         "independent_journey_level_inference_authorized": False,
     }
@@ -509,12 +659,25 @@ def _metric_subset(row: Mapping[str, Any]) -> dict[str, Any]:
     return {field: row[field] for field in EVALUATION_FIELDS if field not in ignored}
 
 
-def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], int]:
-    """Evaluate a fixed two-state AIOHMM without held-out model selection."""
+def _output_name(
+    experiment: ExpandedAutoregressiveExperiment, suffix: str
+) -> str:
+    return f"{experiment.output_prefix}_{suffix}"
+
+
+def _run_expanded_autoregressive(
+    arguments: argparse.Namespace,
+    *,
+    experiment: ExpandedAutoregressiveExperiment,
+) -> tuple[dict[str, Any], int]:
+    """Run one fixed autoregressive architecture on the frozen v0.14 protocol."""
 
     config = _configuration(arguments)
-    if config.state_count != 2:
-        raise ValueError("v0.15 fixes two states after the documented v0.11 collapse")
+    if config.state_count != experiment.expected_state_count:
+        raise ValueError(
+            f"v{experiment.version} fixes state-count at "
+            f"{experiment.expected_state_count}"
+        )
     sample_count = arguments.sample_count
     if (
         isinstance(sample_count, bool)
@@ -550,6 +713,39 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         or monte_carlo.get("base_seed") != sample_seed
     ):
         raise ValueError("AIOHMM sample count and seed must match the frozen v0.14 protocol")
+    reference_aiohmm_summary: Mapping[str, Any] | None = None
+    reference_aiohmm_hashes: Mapping[str, str] | None = None
+    reference_aiohmm_evaluation_rows: Sequence[Mapping[str, str]] = ()
+    if experiment.requires_two_state_reference:
+        reference_directory = getattr(arguments, "aiohmm_directory", None)
+        if not isinstance(reference_directory, Path):
+            raise ValueError("the v0.15 AIOHMM result directory is required")
+        reference_aiohmm_summary, reference_aiohmm_hashes = (
+            load_expanded_aiohmm_baseline(
+                reference_directory,
+                source_files_sha256=source.source_files_sha256,
+                gaussian_files_sha256=gaussian_hashes,
+                folds=folds,
+                sample_count=sample_count,
+                base_seed=sample_seed,
+            )
+        )
+        reference_aiohmm_evaluation_rows = read_csv_rows(
+            reference_directory / "expanded_aiohmm_evaluation.csv"
+        )
+        reference_configuration = reference_aiohmm_summary.get("configuration")
+        if not isinstance(reference_configuration, Mapping):
+            raise ValueError("v0.15 AIOHMM configuration is missing")
+        permitted_differences = {"state_count", "input_dependent_transitions"}
+        for name, value in config.to_dict().items():
+            if name in permitted_differences:
+                continue
+            if reference_configuration.get(name) != value:
+                raise ValueError(
+                    f"one-state AR hyperparameter differs from v0.15: {name}"
+                )
+        if reference_aiohmm_summary.get("restart_count_per_fit") != restart_count:
+            raise ValueError("one-state AR restart count must match v0.15")
     ensure_empty_output_directory(arguments.output_directory)
 
     primary = source.primary
@@ -825,44 +1021,46 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
     )
 
     write_csv_rows(
-        arguments.output_directory / "expanded_aiohmm_evaluation.csv",
+        arguments.output_directory / _output_name(experiment, "evaluation.csv"),
         EVALUATION_FIELDS,
         evaluation_rows,
     )
     write_csv_rows(
-        arguments.output_directory / "expanded_aiohmm_station_evaluation.csv",
+        arguments.output_directory
+        / _output_name(experiment, "station_evaluation.csv"),
         STATION_FIELDS,
         station_rows,
     )
     write_csv_rows(
-        arguments.output_directory / "expanded_aiohmm_frame_evaluation.csv",
+        arguments.output_directory / _output_name(experiment, "frame_evaluation.csv"),
         FRAME_FIELDS,
         frame_rows,
     )
     write_csv_rows(
-        arguments.output_directory / "expanded_aiohmm_state_evaluation.csv",
+        arguments.output_directory / _output_name(experiment, "state_evaluation.csv"),
         STATE_FIELDS,
         state_rows,
     )
     write_csv_rows(
-        arguments.output_directory / "expanded_aiohmm_restart_evaluation.csv",
+        arguments.output_directory
+        / _output_name(experiment, "restart_evaluation.csv"),
         RESTART_FIELDS,
         restart_rows,
     )
     write_strict_json(
-        arguments.output_directory / "expanded_aiohmm_fold_models.json",
+        arguments.output_directory / _output_name(experiment, "fold_models.json"),
         {
-            "version": VERSION,
+            "version": experiment.version,
             "status": "complete",
-            "purpose": "v014_clean_drive_fold_aiohmm_models",
+            "purpose": experiment.fold_models_purpose,
             "state_count_fixed_before_evaluation": True,
             "models": fold_models,
         },
     )
     write_strict_json(
-        arguments.output_directory / "expanded_aiohmm_model.json",
+        arguments.output_directory / _output_name(experiment, "model.json"),
         {
-            "version": VERSION,
+            "version": experiment.version,
             "status": "complete",
             "role": "descriptive_all_clean_development_fit_after_cross_validation",
             "not_an_untouched_final_model": True,
@@ -871,21 +1069,22 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
             "model": final_model.to_dict(),
         },
     )
-    plot_sequence_aiohmm_diagnostics(
-        arguments.output_directory / "expanded_aiohmm_diagnostics.png",
-        stations_m=CANONICAL_MODEL_STATIONS_M,
-        evaluation_rows=evaluation_rows,
-        station_rows=station_rows,
-        state_rows=state_rows,
-        final_transition_matrix=final_transition_diagnostics["mean_matrix"],
-        final_autoregressive_coefficients=final_model.autoregressive_coefficients,
-        version=VERSION,
-        subtitle=(
-            "Two-state within-outing recording-group model; state labels are not "
-            "physical classes"
-        ),
-        held_out_metric_title="Recording-group-held-out sample metrics",
-    )
+    if reference_aiohmm_summary is None:
+        plot_sequence_aiohmm_diagnostics(
+            arguments.output_directory
+            / _output_name(experiment, "diagnostics.png"),
+            stations_m=CANONICAL_MODEL_STATIONS_M,
+            evaluation_rows=evaluation_rows,
+            station_rows=station_rows,
+            state_rows=state_rows,
+            final_transition_matrix=final_transition_diagnostics["mean_matrix"],
+            final_autoregressive_coefficients=(
+                final_model.autoregressive_coefficients
+            ),
+            version=experiment.version,
+            subtitle=experiment.plot_subtitle,
+            held_out_metric_title="Recording-group-held-out sample metrics",
+        )
 
     macro = _macro_metrics(fold_rows)
     gaussian_macro = gaussian_summary["models"]["conditional_gaussian"][
@@ -917,15 +1116,60 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
             - float(gaussian_macro["median_absolute_lag_one_correlation_error"])
         ),
     }
-    output_names = (
-        "expanded_aiohmm_evaluation.csv",
-        "expanded_aiohmm_station_evaluation.csv",
-        "expanded_aiohmm_frame_evaluation.csv",
-        "expanded_aiohmm_state_evaluation.csv",
-        "expanded_aiohmm_restart_evaluation.csv",
-        "expanded_aiohmm_fold_models.json",
-        "expanded_aiohmm_model.json",
-        "expanded_aiohmm_diagnostics.png",
+    candidate_minus_two_state: dict[str, float] | None = None
+    two_state_minus_candidate: dict[str, float] | None = None
+    two_state_sequence_energy_diagnostics: dict[str, Any] | None = None
+    reference_macro: Mapping[str, Any] | None = None
+    if reference_aiohmm_summary is not None:
+        reference_macro = reference_aiohmm_summary.get(
+            "primary_macro_drive_metrics"
+        )
+        if not isinstance(reference_macro, Mapping):
+            raise ValueError("v0.15 AIOHMM primary macro metrics are missing")
+        candidate_minus_two_state = _same_schema_metric_deltas(
+            macro, reference_macro
+        )
+        two_state_minus_candidate = {
+            key: -value for key, value in candidate_minus_two_state.items()
+        }
+        two_state_sequence_energy_diagnostics = (
+            _paired_sequence_energy_diagnostics(
+                fold_rows,
+                reference_aiohmm_evaluation_rows,
+                candidate_label=experiment.candidate_label,
+                reference_label="two_state_aiohmm",
+            )
+        )
+        plot_expanded_ar_ablation_diagnostics(
+            arguments.output_directory
+            / _output_name(experiment, "diagnostics.png"),
+            stations_m=CANONICAL_MODEL_STATIONS_M,
+            evaluation_rows=evaluation_rows,
+            station_rows=station_rows,
+            gaussian_evaluation_rows=gaussian_evaluation_rows,
+            aiohmm_evaluation_rows=reference_aiohmm_evaluation_rows,
+            gaussian_macro=gaussian_macro,
+            one_state_macro=macro,
+            aiohmm_macro=reference_macro,
+            final_autoregressive_coefficients=(
+                final_model.autoregressive_coefficients
+            ),
+            maximum_absolute_autoregression=(
+                config.maximum_absolute_autoregression
+            ),
+        )
+    output_names = tuple(
+        _output_name(experiment, suffix)
+        for suffix in (
+            "evaluation.csv",
+            "station_evaluation.csv",
+            "frame_evaluation.csv",
+            "state_evaluation.csv",
+            "restart_evaluation.csv",
+            "fold_models.json",
+            "model.json",
+            "diagnostics.png",
+        )
     )
     failed_restart_count = sum(row["status"] == "failed" for row in restart_rows)
     selected_nonconverged_count = sum(
@@ -949,7 +1193,9 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "all_selected_fits_converged": selected_nonconverged_count == 0,
     }
     sequence_energy_fold_diagnostics = _sequence_energy_fold_diagnostics(
-        fold_rows, gaussian_evaluation_rows
+        fold_rows,
+        gaussian_evaluation_rows,
+        candidate_label=experiment.candidate_label,
     )
     constraint_boundary_diagnostics = _constraint_boundary_diagnostics(
         restart_rows,
@@ -957,9 +1203,9 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         maximum_autoregression=config.maximum_absolute_autoregression,
     )
     summary = {
-        "version": VERSION,
+        "version": experiment.version,
         "status": "complete",
-        "purpose": "expanded_clean_drive_autoregressive_input_output_hmm",
+        "purpose": experiment.purpose,
         "project_role": "canonical_thesis_implementation",
         "source_dataset_version": "0.13.1",
         "source_files_sha256": dict(source.source_files_sha256),
@@ -989,8 +1235,10 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "same_folds_transforms_and_metrics_as_v0140_gaussian": True,
         "random_frame_splits_used": False,
         "state_count": config.state_count,
-        "state_count_rationale": (
-            "fixed_two_state_parsimony_after_v0110_three_state_occupancy_collapse"
+        "state_count_rationale": experiment.state_count_rationale,
+        "latent_state_switching": config.state_count > 1,
+        "input_dependent_state_transitions_effective": (
+            config.state_count > 1 and config.input_dependent_transitions
         ),
         "automatic_state_count_selection_performed": False,
         "held_out_drives_used_for_state_count_or_restart_selection": False,
@@ -1014,7 +1262,7 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "primary_pooled_cross_validated_metrics": _metric_subset(pooled_row),
         "primary_macro_drive_metrics": macro,
         "supplementary_mixed_transfer_metrics": _metric_subset(mixed_row),
-        "aiohmm_minus_conditional_gaussian_primary_macro_deltas": comparison,
+        experiment.comparison_key: comparison,
         "density_metric_deltas": {
             "mean_joint_negative_log_likelihood_physical": comparison[
                 "mean_joint_negative_log_likelihood_physical"
@@ -1042,30 +1290,64 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "temporal_dependency_order": 1,
         "untouched_final_test_drive_count": 0,
         "final_model_selection_authorized": False,
-        "next_phase": "review_v015_against_v014_before_any_rcgan_or_feature_expansion",
-        "scientific_limitations": [
-            (
-                "The four clean technical groups are separated portions of one "
-                "longer same-day outing, not four independent journeys."
-            ),
-            "Leave-one-group-out results do not estimate journey-level generalization.",
-            "Two states are a fixed parsimonious correction, not a held-out selected optimum.",
-            (
-                "Observed-history joint density and free-running generation are both "
-                "valid but answer different questions."
-            ),
-            (
-                "RLMB remains a pseudo-reference and independence from the EDP "
-                "topology source is unknown."
-            ),
-            "Sample metrics retain finite Monte Carlo error under the recorded seed.",
-        ],
+        "next_phase": experiment.next_phase,
+        "scientific_limitations": list(experiment.scientific_limitations),
         "confidentiality": "Model outputs derive from private BMW measurements.",
     }
+    if (
+        reference_aiohmm_summary is not None
+        and reference_aiohmm_hashes is not None
+        and candidate_minus_two_state is not None
+        and two_state_minus_candidate is not None
+        and two_state_sequence_energy_diagnostics is not None
+    ):
+        switching_checks = {
+            key: value < 0.0
+            for key, value in two_state_minus_candidate.items()
+        }
+        summary.update(
+            {
+                "two_state_aiohmm_reference_version": "0.15.0",
+                "two_state_aiohmm_reference_files_sha256": dict(
+                    reference_aiohmm_hashes
+                ),
+                "same_folds_transforms_hyperparameters_sampling_and_metrics_as_v0150": (
+                    True
+                ),
+                "only_architecture_difference_from_v0150": (
+                    "one_component_without_latent_switching_instead_of_two_states"
+                ),
+                "one_state_ar_minus_two_state_aiohmm_primary_macro_deltas": (
+                    candidate_minus_two_state
+                ),
+                "two_state_aiohmm_minus_one_state_ar_primary_macro_deltas": (
+                    two_state_minus_candidate
+                ),
+                "two_state_aiohmm_improvement_checks": switching_checks,
+                "latent_switching_result_classification": (
+                    _latent_switching_classification(two_state_minus_candidate)
+                ),
+                "paired_sequence_energy_two_state_comparison": (
+                    two_state_sequence_energy_diagnostics
+                ),
+                "autoregression_contribution_classification": summary[
+                    "result_classification"
+                ],
+            }
+        )
     write_strict_json(
-        arguments.output_directory / "expanded_aiohmm_summary.json", summary
+        arguments.output_directory / _output_name(experiment, "summary.json"), summary
     )
     return summary, 0
+
+
+def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], int]:
+    """Evaluate the fixed v0.15 two-state AIOHMM."""
+
+    return _run_expanded_autoregressive(
+        arguments,
+        experiment=V015_AIOHMM_EXPERIMENT,
+    )
 
 
 __all__ = [
@@ -1074,5 +1356,7 @@ __all__ = [
     "STATE_FIELDS",
     "STATION_FIELDS",
     "VERSION",
+    "ExpandedAutoregressiveExperiment",
+    "_run_expanded_autoregressive",
     "run_expanded_aiohmm",
 ]
