@@ -880,7 +880,11 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         final_transition_matrix=final_transition_diagnostics["mean_matrix"],
         final_autoregressive_coefficients=final_model.autoregressive_coefficients,
         version=VERSION,
-        subtitle="Two-state clean-drive development model; state labels are not physical classes",
+        subtitle=(
+            "Two-state within-outing recording-group model; state labels are not "
+            "physical classes"
+        ),
+        held_out_metric_title="Recording-group-held-out sample metrics",
     )
 
     macro = _macro_metrics(fold_rows)

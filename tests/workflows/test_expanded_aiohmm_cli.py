@@ -166,6 +166,9 @@ class ExpandedAIOHMMWorkflowTests(unittest.TestCase):
             self.assertFalse(
                 summary["joint_likelihood_measures_free_running_generation"]
             )
+            self.assertTrue(
+                (output / "expanded_aiohmm_diagnostics.png").stat().st_size > 0
+            )
 
             with (output / "expanded_aiohmm_evaluation.csv").open(
                 "r", encoding="utf-8", newline=""

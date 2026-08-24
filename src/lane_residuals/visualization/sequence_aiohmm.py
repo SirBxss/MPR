@@ -22,6 +22,7 @@ def plot_sequence_aiohmm_diagnostics(
     subtitle: str = (
         "Three-state development model; state labels are not physical classes"
     ),
+    held_out_metric_title: str = "Physical-drive-held-out sample metrics",
 ) -> None:
     """Plot spatial accuracy, calibration, temporal fit, and state diagnostics."""
 
@@ -123,7 +124,7 @@ def plot_sequence_aiohmm_diagnostics(
         rotation=20,
         ha="right",
     )
-    fold_axis.set_title("Physical-drive-held-out sample metrics")
+    fold_axis.set_title(held_out_metric_title)
     fold_axis.set_ylabel("Metres")
     fold_axis.grid(axis="y", alpha=0.25)
     fold_axis.legend(fontsize=8)
