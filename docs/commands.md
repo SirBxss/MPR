@@ -38,7 +38,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-audit-topology-semantics` | `python -m lane_residuals.cli.topology_semantics_audit` | v0.12.2 read-only EDP enum/transition and alignment-quality audit; eligibility unchanged | Exact MCAP corpus, private map, complete v0.12.1 inventory, and complete v0.5.2 alignment batch | Message/recording/session/transition/outlier CSVs, plot, summary, manifest, provenance, and packaged inventory lineage |
 | `mpr-build-expanded-sequential-dataset` | `python -m lane_residuals.cli.expanded_sequence_dataset` | v0.13.0 quality-gated sensor-topology H100 profiles and physical-session sequences; no split or model selection | Exact raw MCAP corpus, complete v0.5.2 alignment, and corrected complete v0.12.2 topology audit | Deterministic profile archive, sequence/eligibility/stitch/exclusion audits, drive summary, plot, contract, manifest, and provenance |
 | `mpr-build-expanded-sequential-dataset-v0131` | `python -m lane_residuals.cli.expanded_sequence_dataset_v0131` | v0.13.1 accepted-boundary context for the unchanged 50 ms odometry speed only; v0.13.0 tensor parity enforced | v0.13.0 output plus its exact raw/alignment/corrected-topology lineage | Expanded deterministic archive, boundary-context/parity/stitch audits, summaries, plot, contract, manifest, and provenance |
-| `mpr-evaluate-expanded-gaussian` | `python -m lane_residuals.cli.expanded_gaussian` | v0.14.0 unconditional/conditional Gaussian re-baseline on four leave-one-clean-drive-out folds; no random frame split or hyperparameter search | Complete unchanged v0.13.1 expanded sequence directory | Frozen evaluation contract, fold/station/frame metrics, fold and descriptive models, comparison plot, and strict summary |
+| `mpr-evaluate-expanded-gaussian` | `python -m lane_residuals.cli.expanded_gaussian` | v0.14.0 unconditional/conditional Gaussian re-baseline on four leave-one-clean-recording-group-out folds within one outing; no random frame split or hyperparameter search | Complete unchanged v0.13.1 expanded sequence directory | Frozen evaluation contract, fold/station/frame metrics, fold and descriptive models, comparison plot, and strict summary |
 | `mpr-evaluate-expanded-aiohmm` | `python -m lane_residuals.cli.expanded_aiohmm` | v0.15.0 fixed two-state AIOHMM on the exact v0.14.0 clean-drive protocol; no held-out tuning | Complete unchanged v0.13.1 directory and its exact v0.14.0 Gaussian result directory | Fold/station/frame/state/restart metrics, fold and descriptive models, diagnostic plot, and strict comparison summary |
 | `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
@@ -150,8 +150,10 @@ python -m lane_residuals.cli.expanded_gaussian \
   --output-directory "outputs/models/expanded_gaussian_v0140"
 ```
 
-Primary evaluation is leave-one-clean-physical-drive-out over drives 001--004.
-Every fold fits its standardizer on the other three clean drives only. Drives
+Primary evaluation is leave-one-clean-recording-group-out over groups 001--004.
+The groups are separated portions of one longer same-day outing, so this is not
+independent-journey validation. Every fold fits its standardizer on the other
+three clean groups only. Drives
 005--008 are mixed-source fragments and are never used for fitting or primary
 model comparison; a model trained on all clean drives evaluates them only as a
 supplementary transfer check. The fixed unconditional and six-feature linear

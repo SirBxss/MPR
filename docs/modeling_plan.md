@@ -10,7 +10,7 @@ are not the thesis execution path.
   `0, 5, ..., 100 m`.
 - The three planned families are conditional Gaussian, AIOHMM, and RC-GAN.
 - All families consume the same conditions, targets, masks, lengths, sequence
-  provenance, physical-drive folds, and evaluation rows.
+  provenance, recording-group folds, and evaluation rows.
 - A model never sees a held-out drive while fitting parameters,
   standardization, early stopping, or hyperparameters.
 - A sequence never crosses an MCAP recording boundary or a detected pair/time
@@ -31,7 +31,7 @@ are not the thesis execution path.
 | v0.11 | AIOHMM on the original condition schema v1 cohort | Implemented as the first temporal prototype; retained for diagnosis, not final comparison |
 | v0.12 | Expanded-corpus inventory, alignment, and topology semantics | Complete; fail-closed lineage and the RLMB-independence limitation are explicit |
 | v0.13 | Quality-gated expanded sequence dataset | Complete; v0.13.1 contains 4,602 frames, 34 sequences, and accepted boundary-speed context |
-| v0.14 | Clean-drive evaluation protocol and Gaussian re-baseline | Implemented; four leave-one-clean-drive-out folds, equal-drive and pooled metrics, and separate mixed-fragment transfer checks |
+| v0.14 | Clean-group evaluation protocol and Gaussian re-baseline | Implemented; four leave-one-clean-group-out folds within one same-day outing, equal-group and pooled metrics, and separate mixed-fragment transfer checks |
 | v0.15 | Two-state AIOHMM on the v0.14 protocol | Implemented; temporal dependence improves strongly, but marginal calibration and full generative acceptance do not pass |
 | v0.15.1 | One-state conditional AR ablation | Next minimal diagnostic; determine whether the latent switch adds value beyond autoregression without changing data, features, or folds |
 | v0.16 | RC-GAN | Begins only after the AIOHMM/AR review and when the independent-drive/data-volume gate supports a defensible adversarial experiment |
@@ -44,10 +44,12 @@ cohort, split, transform, or metric implementation.
 
 The expanded v0.15 result is not a general AIOHMM victory. Macro lag-one error
 falls from 0.888345 to 0.018276, but frame energy and coverage are worse and
-normalized complete-sequence energy is effectively tied. One selected fold fit
-also reaches the occupancy-constrained optimization boundary. The next model
-change is therefore a one-state conditional AR ablation, not feature expansion
-or RC-GAN tuning. Additional clean physical drives remain necessary before an
+normalized complete-sequence energy is effectively tied. All completed fits
+touch the occupancy and maximum-AR boundaries, and one selected fold fit does
+not converge. The four technical groups are separated portions of one longer
+same-day outing, so this is within-outing evidence only. The next model change
+is therefore a one-state conditional AR ablation, not feature expansion or
+RC-GAN tuning. Additional independent outings remain necessary before an
 untouched final comparison.
 
 ## Feature policy
@@ -72,12 +74,13 @@ thesis schema.
 ## Additional-data gate
 
 The accepted v0.13.1 set has 4,602 frames and 34 sequences across eight mapped
-drives. Primary modeling uses only the four clean sensor-topology drives:
+technical groups. Primary modeling uses only four clean sensor-topology groups
+from one same-day outing:
 4,084 frames and 16 sequences. The other four drives contribute 518
 mixed-source fragments and are supplementary only. This is adequate for
-leakage-safe leave-one-drive-out development and a serious Gaussian/AIOHMM
-comparison, but it still cannot provide both robust tuning and untouched final
-test drives.
+leakage-safe leave-one-group-out development and a serious within-outing
+Gaussian/AIOHMM comparison, but it cannot estimate independent-journey
+generalization or provide an untouched final test outing.
 
 Before final model selection or a strong RC-GAN claim, obtain more independent
 clean physical drives. A practical acquisition target remains 8--12 clean

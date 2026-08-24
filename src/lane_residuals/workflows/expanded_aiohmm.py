@@ -13,6 +13,7 @@ from ..domain.model_evaluation import build_leave_one_drive_out_folds
 from ..domain.residual_dataset import CANONICAL_MODEL_STATIONS_M
 from ..domain.sequence_dataset import PaddedSequenceDataset, SequenceStandardizer
 from ..io.expanded_modeling_dataset import ExpandedModelingDataset, load_expanded_modeling_dataset
+from ..io.expanded_sequence_dataset import read_csv_rows
 from ..io.model_evaluation import load_expanded_gaussian_baseline
 from ..io.reports import write_csv_rows, write_strict_json
 from ..modeling.aiohmm import AutoregressiveInputOutputHMM
@@ -380,7 +381,7 @@ def _aggregate_transition_diagnostics(
 
 
 def _macro_metrics(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
-    fields = (
+    mean_fields = (
         "mean_joint_negative_log_likelihood_physical",
         "sample_mean_prediction_rmse_m",
         "mean_energy_score_m",
@@ -390,11 +391,108 @@ def _macro_metrics(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
         "median_absolute_lag_one_correlation_error",
         "minimum_posterior_state_occupancy",
         "median_autoregressive_coefficient",
-        "maximum_autoregressive_coefficient",
+    )
+    result = {
+        field: float(np.mean([float(row[field]) for row in rows]))
+        for field in mean_fields
+    }
+    result["maximum_autoregressive_coefficient"] = max(
+        float(row["maximum_autoregressive_coefficient"]) for row in rows
+    )
+    return result
+
+
+def _result_classification(acceptance_checks: Mapping[str, bool]) -> str:
+    """Describe only the evidence explicitly represented by the checks."""
+
+    if all(acceptance_checks.values()):
+        return "full_generative_acceptance_met"
+    if acceptance_checks["lag_one_error_improved"]:
+        return "temporal_dependence_improved_but_full_generative_acceptance_not_met"
+    return "development_acceptance_not_met"
+
+
+def _sequence_energy_fold_diagnostics(
+    aiohmm_rows: Sequence[Mapping[str, Any]],
+    gaussian_rows: Sequence[Mapping[str, str]],
+) -> dict[str, Any]:
+    """Return paired descriptive fold evidence without claiming independence."""
+
+    gaussian_by_drive: dict[str, float] = {}
+    for row in gaussian_rows:
+        if (
+            row.get("model_name") != "conditional_gaussian"
+            or row.get("scope") != "primary_held_out_drive"
+        ):
+            continue
+        drive_id = str(row.get("held_out_drive_id", ""))
+        if not drive_id or drive_id in gaussian_by_drive:
+            raise ValueError("v0.14 conditional Gaussian fold rows are ambiguous")
+        gaussian_by_drive[drive_id] = float(
+            row["mean_normalized_sequence_energy_score_m"]
+        )
+
+    aiohmm_by_drive = {
+        str(row["held_out_drive_id"]): float(
+            row["mean_normalized_sequence_energy_score_m"]
+        )
+        for row in aiohmm_rows
+    }
+    if set(aiohmm_by_drive) != set(gaussian_by_drive):
+        raise ValueError("v0.14 and v0.15 held-out group rows differ")
+
+    deltas = {
+        drive_id: aiohmm_by_drive[drive_id] - gaussian_by_drive[drive_id]
+        for drive_id in sorted(aiohmm_by_drive)
+    }
+    tie_tolerance_m = 1e-12
+    return {
+        "fold_count": len(deltas),
+        "aiohmm_better_fold_count": sum(
+            delta < -tie_tolerance_m for delta in deltas.values()
+        ),
+        "conditional_gaussian_better_fold_count": sum(
+            delta > tie_tolerance_m for delta in deltas.values()
+        ),
+        "tied_fold_count": sum(
+            abs(delta) <= tie_tolerance_m for delta in deltas.values()
+        ),
+        "aiohmm_minus_conditional_gaussian_by_group_m": deltas,
+        "negative_delta_is_better": True,
+        "independent_journey_level_inference_authorized": False,
+    }
+
+
+def _constraint_boundary_diagnostics(
+    restart_rows: Sequence[Mapping[str, Any]],
+    *,
+    minimum_occupancy: float,
+    maximum_autoregression: float,
+) -> dict[str, Any]:
+    """Count completed fits whose reported solution touches configured bounds."""
+
+    complete = [row for row in restart_rows if row["status"] == "complete"]
+    occupancy_tolerance = 1e-3
+    autoregression_tolerance = 1e-10
+    occupancy_count = sum(
+        float(row["minimum_state_occupancy_fraction"])
+        <= minimum_occupancy + occupancy_tolerance
+        for row in complete
+    )
+    autoregression_count = sum(
+        float(row["maximum_absolute_autoregressive_coefficient"])
+        >= maximum_autoregression - autoregression_tolerance
+        for row in complete
     )
     return {
-        field: float(np.mean([float(row[field]) for row in rows]))
-        for field in fields
+        "complete_fit_count": len(complete),
+        "minimum_occupancy_boundary_fit_count": occupancy_count,
+        "maximum_autoregression_boundary_fit_count": autoregression_count,
+        "minimum_occupancy_boundary_tolerance": occupancy_tolerance,
+        "maximum_autoregression_boundary_tolerance": autoregression_tolerance,
+        "all_complete_fits_touch_both_boundaries": bool(complete)
+        and occupancy_count == len(complete)
+        and autoregression_count == len(complete),
     }
 
 
@@ -442,6 +540,9 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
             source_files_sha256=source.source_files_sha256,
             folds=folds,
         )
+    )
+    gaussian_evaluation_rows = read_csv_rows(
+        arguments.gaussian_directory / "gaussian_grouped_evaluation.csv"
     )
     monte_carlo = gaussian_protocol.get("monte_carlo", {})
     if (
@@ -843,6 +944,14 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "no_failed_restart": failed_restart_count == 0,
         "all_selected_fits_converged": selected_nonconverged_count == 0,
     }
+    sequence_energy_fold_diagnostics = _sequence_energy_fold_diagnostics(
+        fold_rows, gaussian_evaluation_rows
+    )
+    constraint_boundary_diagnostics = _constraint_boundary_diagnostics(
+        restart_rows,
+        minimum_occupancy=config.minimum_state_occupancy_fraction,
+        maximum_autoregression=config.maximum_absolute_autoregression,
+    )
     summary = {
         "version": VERSION,
         "status": "complete",
@@ -865,7 +974,14 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "supplementary_mixed_drive_ids": list(source.mixed_drive_ids),
         "supplementary_sequence_count": supplementary.sequence_count,
         "supplementary_frame_count": supplementary.frame_count,
-        "evaluation_scheme": "leave_one_clean_physical_drive_out",
+        "evaluation_scheme": "leave_one_clean_recording_group_out_within_one_outing",
+        "legacy_v014_evaluation_scheme_label": gaussian_summary["evaluation_scheme"],
+        "primary_group_independence": {
+            "technical_group_count": len(source.clean_drive_ids),
+            "independent_journey_count": 1,
+            "groups_are_separated_portions_of_one_longer_same_day_outing": True,
+            "journey_level_generalization_estimated": False,
+        },
         "same_folds_transforms_and_metrics_as_v0140_gaussian": True,
         "random_frame_splits_used": False,
         "state_count": config.state_count,
@@ -883,7 +999,9 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "selected_fit_nonconvergence_count": selected_nonconverged_count,
         "sample_count": sample_count,
         "sampling_random_seed": sample_seed,
-        "likelihood_is_teacher_forced_secondary_metric": True,
+        "joint_likelihood_is_proper_observed_history_density_score": True,
+        "joint_likelihood_uses_observed_previous_target": True,
+        "joint_likelihood_measures_free_running_generation": False,
         "sampling_is_free_running": True,
         "normalized_sequence_energy_score_definition": (
             "energy score on each flattened [time,21] sequence with Euclidean "
@@ -893,16 +1011,28 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "primary_macro_drive_metrics": macro,
         "supplementary_mixed_transfer_metrics": _metric_subset(mixed_row),
         "aiohmm_minus_conditional_gaussian_primary_macro_deltas": comparison,
+        "density_metric_deltas": {
+            "mean_joint_negative_log_likelihood_physical": comparison[
+                "mean_joint_negative_log_likelihood_physical"
+            ]
+        },
+        "sample_based_metric_deltas": {
+            key: value
+            for key, value in comparison.items()
+            if key != "mean_joint_negative_log_likelihood_physical"
+        },
         "delta_interpretation": "negative_is_better_for_every_reported_delta",
+        "sequence_energy_fold_diagnostics": sequence_energy_fold_diagnostics,
+        "sequence_energy_gate_interpretation": (
+            "predeclared binary gate is retained; descriptive fold evidence is "
+            "underpowered and does not estimate independent-journey generalization"
+        ),
+        "constraint_boundary_diagnostics": constraint_boundary_diagnostics,
         "development_acceptance_checks": acceptance_checks,
         "all_development_acceptance_checks_passed": all(
             acceptance_checks.values()
         ),
-        "result_classification": (
-            "full_generative_acceptance_met"
-            if all(acceptance_checks.values())
-            else "temporal_dependence_improved_but_full_generative_acceptance_not_met"
-        ),
+        "result_classification": _result_classification(acceptance_checks),
         "mixed_source_results_are_supplementary_only": True,
         "state_labels_are_physical_classes": False,
         "temporal_dependency_order": 1,
@@ -910,9 +1040,16 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "final_model_selection_authorized": False,
         "next_phase": "review_v015_against_v014_before_any_rcgan_or_feature_expansion",
         "scientific_limitations": [
-            "Only four clean physical drives support primary development evaluation.",
+            (
+                "The four clean technical groups are separated portions of one "
+                "longer same-day outing, not four independent journeys."
+            ),
+            "Leave-one-group-out results do not estimate journey-level generalization.",
             "Two states are a fixed parsimonious correction, not a held-out selected optimum.",
-            "Teacher-forced density and free-running generation answer different questions.",
+            (
+                "Observed-history joint density and free-running generation are both "
+                "valid but answer different questions."
+            ),
             (
                 "RLMB remains a pseudo-reference and independence from the EDP "
                 "topology source is unknown."

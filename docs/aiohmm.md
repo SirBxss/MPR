@@ -12,7 +12,9 @@ Its purpose is narrow: test whether explicit temporal memory and a small latent
 state can improve held-out generative realism over the Gaussian temporal null
 while every data, split, transform, and metric decision remains unchanged.
 It does not redefine the target, repair the pseudo-reference, search new
-features, or authorize final model selection from the present four clean drives.
+features, or authorize final model selection from the present four clean
+recording groups. These groups are portions of one same-day outing, not four
+independent journeys.
 
 The current v0.15 input is the immutable v0.13.1 physical-unit tensor contract:
 
@@ -21,8 +23,8 @@ The current v0.15 input is the immutable v0.13.1 physical-unit tensor contract:
 - 16 clean recording/gap-local sequences and 4,084 retained primary frames;
 - 18 mixed-source sequences and 518 frames used only for supplementary transfer;
 - exact lengths, masks, timestamps, and recording/drive/pair provenance;
-- leave-one-physical-drive-out folds and transforms fitted on training drives
-  only.
+- leave-one-recording-group-out folds and transforms fitted on training groups
+  only; this estimates within-outing transfer, not journey-level generalization.
 
 The model never joins recordings, crosses a detected gap, interpolates targets,
 or assumes the observed 69--91 ms intervals are exactly constant. Every
@@ -128,7 +130,7 @@ restarts. It does not turn a state index into a physical class.
 
 ## Restart and leakage policy
 
-Every physical-drive fold fits the same architecture with deterministic restart
+Every recording-group fold fits the same architecture with deterministic restart
 seeds. The selected restart has the highest training joint log-density among
 successful same-architecture restarts. The held-out drive is not used to choose:
 
@@ -146,16 +148,17 @@ AR bounds, and canonicalized transition/occupancy differences from the selected
 restart. A descriptive all-development-data fit is run only after cross-
 validated evaluation and is explicitly not an untouched final model.
 
-## Teacher-forced density versus free-running generation
+## Observed-history density versus free-running generation
 
 Likelihood evaluation uses the observed `y_(t-1)` when computing the emission
-at frame `t`. This is teacher forcing and answers whether the fitted conditional
-density explains the observed next frame.
+at frame `t`. The filtering increments sum to a proper joint sequence density
+and answer whether the fitted observed-history conditional density explains the
+held-out sequence.
 
 Sampling draws `y_0` from the training-only marginal reset prior and recursively
 uses the generated `y_(t-1)` afterward. This is free-running and answers whether
 the model can generate realistic complete sequences without seeing target
-residuals. A model can therefore achieve a strong teacher-forced
+residuals. A model can therefore achieve a strong observed-history
 NLL and still accumulate bias, become under-dispersed, or produce poor energy
 score in free-running mode. Both results must be reported.
 
@@ -170,8 +173,10 @@ The primary cross-model evidence is frozen by v0.14:
 - observed/generated station-wise lag-one correlation and median absolute
   error.
 
-Teacher-forced standardized and Jacobian-adjusted physical NLL are secondary
-AIOHMM diagnostics because an RC-GAN need not provide a normalized likelihood.
+Observed-history standardized and Jacobian-adjusted physical NLL are proper
+density scores for the Gaussian/AIOHMM comparison. They remain separate from
+the cross-family sample metrics because an RC-GAN need not provide a normalized
+likelihood and because NLL does not measure free-running generation.
 
 Model-specific diagnostics include:
 
@@ -186,9 +191,13 @@ Model-specific diagnostics include:
 
 The v0.15 expanded result reduces macro lag-one error from 0.888345 to 0.018276.
 Its normalized complete-sequence energy is nearly tied (0.286286 versus
-0.286028 m), but frame energy and marginal coverage are worse, and one selected
-fit reaches the constrained optimization boundary. The correct classification
-is temporal improvement without full generative acceptance.
+0.286028 m) and favors the AIOHMM on three of four technical groups, but frame
+energy and marginal coverage are worse. All 15 completed fits touch both the
+occupancy and maximum-AR boundaries, and one selected fit does not converge.
+The predeclared sequence-energy check therefore remains false and the correct
+classification remains temporal improvement without full generative
+acceptance. The descriptive 3/4 split is underpowered and cannot establish
+independent-journey generalization.
 
 ## Command
 
@@ -208,8 +217,9 @@ training-only transform differs from the accepted lineage.
 
 ## Limitations and next gate
 
-- The effective primary support is four clean physical drives, not 4,084
-  independent frames.
+- The effective primary support is one same-day outing divided into four clean
+  technical groups, not four independent journeys or 4,084 independent frames.
+- Leave-one-group-out evaluation measures within-outing transfer only.
 - The two-state correction is fixed and cannot be finalized on these four
   drives.
 - State-specific linear means and diagonal AR terms cannot express nonlinear

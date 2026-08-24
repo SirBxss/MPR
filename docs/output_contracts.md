@@ -732,9 +732,11 @@ gaussian_grouped_diagnostics.png
 gaussian_grouped_summary.json
 ```
 
-`drive_grouped_evaluation_contract.json` fixes four leave-one-clean-physical-
-drive-out folds over drives 001--004. Each embedded standardizer is fitted only
-on the other three clean drives. Random frame splits are forbidden. Drives
+`drive_grouped_evaluation_contract.json` fixes four leave-one-clean-recording-
+group-out folds over technical groups 001--004. The groups are separated
+portions of one longer same-day outing and do not support journey-level
+generalization claims. Each embedded standardizer is fitted only on the other
+three clean groups. Random frame splits are forbidden. Drives
 005--008 remain a separate mixed-source supplementary cohort and never
 contribute to fitting or primary model comparison.
 
@@ -777,9 +779,9 @@ expanded_aiohmm_diagnostics.png
 expanded_aiohmm_summary.json
 ```
 
-The evaluation CSV contains four clean held-out-drive rows, one pooled clean
+The evaluation CSV contains four clean held-out-group rows, one pooled clean
 row, and one supplementary mixed-fragment transfer row. It reports the exact
-v0.14 common metrics plus teacher-forced density, posterior-state, transition,
+v0.14 common metrics plus observed-history joint density, posterior-state, transition,
 dwell, and AR diagnostics. The frame CSV preserves recording and private MCAP
 provenance. The state and restart CSVs expose occupancy, convergence, and
 deterministic training-likelihood restart selection.
@@ -792,8 +794,10 @@ fit stops and reports nonconvergence. The mixed cohort never enters fitting or
 primary comparison.
 
 `expanded_aiohmm_summary.json` records deltas against the conditional Gaussian,
-individual development checks, and a result classification. Workflow success
-does not imply scientific acceptance. The reviewed run is classified as
+paired group-level sequence-energy evidence, constraint-boundary activation,
+the one-outing independence limitation, individual development checks, and a
+result classification. Workflow success does not imply scientific acceptance.
+The reviewed run is classified as
 `temporal_dependence_improved_but_full_generative_acceptance_not_met`.
 
 ## v0.11.0 sequence-contract AIOHMM outputs

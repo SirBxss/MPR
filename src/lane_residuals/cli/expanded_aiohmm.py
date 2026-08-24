@@ -118,7 +118,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     metrics = summary["primary_macro_drive_metrics"]
     deltas = summary["aiohmm_minus_conditional_gaussian_primary_macro_deltas"]
     LOGGER.info(
-        "v0.15 AIOHMM: clean drives=%d sequences=%d frames=%d states=%d",
+        "v0.15 AIOHMM: clean groups=%d sequences=%d frames=%d states=%d",
         len(summary["primary_clean_drive_ids"]),
         summary["primary_sequence_count"],
         summary["primary_frame_count"],

@@ -42,7 +42,9 @@ training is performed.
 Version 0.14.0 establishes the expanded-data modeling baseline. It converts the
 accepted v0.13.1 archive to padded sequences without dropping frame provenance,
 then evaluates unconditional and six-feature conditional Gaussians on four
-leave-one-clean-physical-drive-out folds. Drives 005--008 remain supplementary.
+leave-one-clean-recording-group-out folds. Those four groups are separated
+portions of one longer same-day outing, not four independent journeys. Drives
+005--008 remain supplementary.
 The contract reports both frame-wise energy and a length-normalized energy score
 on each complete `[time, 21]` sequence.
 
@@ -52,8 +54,9 @@ EM implementation: reset frames are excluded from state-specific AR emissions,
 and occupancy-safe backtracking prevents a decreasing M-step from being silently
 accepted. The real expanded run reduces macro lag-one correlation error from
 0.888345 to 0.018276, while frame energy, coverage, and normalized sequence
-energy do not all beat the conditional Gaussian. The result is therefore a
-temporal success but not full generative acceptance.
+energy do not all beat the conditional Gaussian. All 15 fits touch both the
+occupancy and maximum-AR constraints. The result is therefore a temporal
+success but not full generative acceptance or journey-level validation.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -512,10 +515,11 @@ python -m lane_residuals.cli.expanded_gaussian \
   --output-directory "outputs/models/expanded_gaussian_v0140"
 ```
 
-The primary cohort is fixed to clean sensor-topology drives 001--004 (4,084
-frames in 16 sequences). Each of four folds holds out one complete physical
-drive and fits the six condition transforms and 21 target transforms only on
-the remaining three drives. An unconditional Gaussian and the six-feature
+The primary cohort is fixed to clean sensor-topology groups 001--004 (4,084
+frames in 16 sequences). These labels are separated portions of one longer
+same-day outing. Each fold holds out one complete technical group and fits the
+six condition transforms and 21 target transforms only on the remaining three
+groups. An unconditional Gaussian and the six-feature
 linear conditional Gaussian then use identical rows, transformations, samples,
 and metrics. Results are reported both pooled by frame and macro-averaged with
 equal weight per held-out drive.
@@ -550,7 +554,11 @@ On the 4,084-frame clean primary cohort, the reviewed run has macro-drive RMSE
 conditional Gaussian values are 0.362535 m, 0.994829 m, 0.286028 m, 0.928183,
 and 0.888345 respectively. The AIOHMM captures temporal persistence, but its
 marginal calibration is worse and one selected fold fit reaches the constrained
-optimization boundary. The summary consequently records
+optimization boundary. Every completed restart touches the configured occupancy
+and maximum-AR boundaries. Complete-sequence energy favors the AIOHMM on three
+of four technical groups, but the groups belong to one outing and the macro
+difference is too small to support an independent-journey claim. The summary
+consequently records
 `temporal_dependence_improved_but_full_generative_acceptance_not_met`; this
 negative/partial result must not be rewritten as a general AIOHMM win.
 

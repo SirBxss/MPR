@@ -24,8 +24,10 @@ live-hash evidence, and workflow code may replace only a missing recording-local
 geometry crosses the boundary.
 The v0.14.0 modeling boundary strictly converts the frame-major v0.13.1 archive
 to padded sequences, preserves per-frame recording/MCAP provenance, assigns
-only the four clean sensor drives to leave-one-drive-out primary folds, and
-fits every standardizer on fold-training drives. Mixed-source fragments remain
+only the four clean sensor recording groups to leave-one-group-out primary
+folds, and fits every standardizer on fold-training groups. These four groups
+are portions of one same-day outing, so the folds do not estimate independent-
+journey generalization. Mixed-source fragments remain
 supplementary. The unconditional and conditional Gaussian nulls then share the
 same rows, transforms, seeds, and metrics.
 The categorization separates scientific arithmetic, orchestration, I/O, plots,
