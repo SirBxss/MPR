@@ -18,6 +18,10 @@ def plot_sequence_aiohmm_diagnostics(
     state_rows: Sequence[Mapping[str, Any]],
     final_transition_matrix: np.ndarray,
     final_autoregressive_coefficients: np.ndarray,
+    version: str = "0.11.0",
+    subtitle: str = (
+        "Three-state development model; state labels are not physical classes"
+    ),
 ) -> None:
     """Plot spatial accuracy, calibration, temporal fit, and state diagnostics."""
 
@@ -183,8 +187,7 @@ def plot_sequence_aiohmm_diagnostics(
     figure.colorbar(image, ax=transition_axis, fraction=0.046, pad=0.04)
 
     figure.suptitle(
-        "MPR v0.11.0 autoregressive input-output HMM\n"
-        "Three-state development model; state labels are not physical classes",
+        f"MPR v{version} autoregressive input-output HMM\n{subtitle}",
         fontsize=14,
     )
     path.parent.mkdir(parents=True, exist_ok=True)
