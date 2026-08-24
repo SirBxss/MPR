@@ -173,7 +173,7 @@ def _configuration(arguments: argparse.Namespace) -> AIOHMMConfig:
             arguments.minimum_state_occupancy_fraction
         ),
         initialization_seed=arguments.initialization_seed,
-        input_dependent_transitions=True,
+        input_dependent_transitions=arguments.state_count > 1,
     )
 
 

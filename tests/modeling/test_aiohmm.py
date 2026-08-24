@@ -197,9 +197,43 @@ class AIOHMMTests(unittest.TestCase):
             first.values,
         )
 
-    def test_configuration_rejects_unstable_or_single_state_models(self) -> None:
-        with self.assertRaisesRegex(ValueError, "at least two"):
-            AIOHMMConfig(state_count=1)
+    def test_one_state_is_exact_conditional_ar_ablation(self) -> None:
+        config = _config()
+        config = AIOHMMConfig.from_dict(
+            {
+                **config.to_dict(),
+                "state_count": 1,
+                "input_dependent_transitions": False,
+            }
+        )
+        first = AutoregressiveInputOutputHMM(config)
+        report = first.fit(self.training, self.validation)
+        second = AutoregressiveInputOutputHMM(
+            AIOHMMConfig.from_dict(
+                {**config.to_dict(), "initialization_seed": 9127}
+            )
+        )
+        second.fit(self.training, self.validation)
+
+        self.assertFalse(first.has_latent_state_switching)
+        self.assertTrue(report.metrics["em_converged"])
+        np.testing.assert_allclose(first.initial_probabilities, [1.0])
+        np.testing.assert_allclose(first.state_occupancies, [1.0])
+        np.testing.assert_allclose(
+            first.posterior_state_probabilities(self.validation)[0],
+            np.ones((28, 1)),
+        )
+        np.testing.assert_allclose(
+            first.log_probability(self.validation),
+            second.log_probability(self.validation),
+            rtol=0.0,
+            atol=0.0,
+        )
+        self.assertFalse(first.to_dict()["latent_state_switching"])
+
+    def test_configuration_rejects_unstable_or_empty_state_models(self) -> None:
+        with self.assertRaisesRegex(ValueError, "positive"):
+            AIOHMMConfig(state_count=0)
         with self.assertRaisesRegex(ValueError, "strictly inside"):
             AIOHMMConfig(maximum_absolute_autoregression=1.0)
         with self.assertRaisesRegex(ValueError, "nonnegative"):

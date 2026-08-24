@@ -48,7 +48,10 @@ def _strict_json(path: Path) -> Any:
 class AIOHMMConfig:
     """Structural and numerical choices for one deterministic generalized-EM run.
 
-    The v0.11 default has three states. Each state has a conditional linear
+    The v0.11 default has three states. One state is also supported as the
+    exact conditional-AR ablation: its transition and posterior are trivial,
+    while its emission, reset, covariance, density, and sampling equations are
+    unchanged. Each state has a conditional linear
     mean, station-wise AR(1) coefficients, and a full spatial covariance.
     Rare-state emission parameters are pooled toward one shared AR regression,
     while covariances are pooled and shrunk because the development corpus
@@ -86,8 +89,8 @@ class AIOHMMConfig:
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
                 raise TypeError(f"{name} must be an integer")
-        if self.state_count < 2:
-            raise ValueError("state_count must be at least two")
+        if self.state_count < 1:
+            raise ValueError("state_count must be positive")
         if self.maximum_em_iterations < 1:
             raise ValueError("maximum_em_iterations must be positive")
         if not 1 <= self.minimum_em_iterations <= self.maximum_em_iterations:
@@ -212,7 +215,7 @@ def _regularize_covariance(
 
 
 class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
-    r"""Three-state default AIOHMM on standardized MPR sequences.
+    r"""Autoregressive conditional Gaussian mixture on standardized sequences.
 
     For state :math:`z_t`, condition vector :math:`x_t`, and residual profile
     :math:`y_t`:
@@ -258,6 +261,12 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
     @property
     def temporal_dependency_order(self) -> int:
         return 1
+
+    @property
+    def has_latent_state_switching(self) -> bool:
+        """Whether the fitted architecture can switch between latent states."""
+
+        return self.config.state_count > 1
 
     def _require_state(self) -> _AIOHMMState:
         if self._state is None:
@@ -1140,7 +1149,10 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
 
         if best_state is None:
             raise ValueError("AIOHMM fitting ended before a valid state was observed")
-        retained_state_converged = converged and best_iteration == len(history) - 1
+        # Convergence describes the stopping criterion, not whether the final
+        # roundoff-level iterate strictly exceeded the retained best iterate.
+        # Keeping the best state is still the safer numerical policy.
+        retained_state_converged = converged
         best_state = replace(
             best_state,
             log_likelihood_history=np.asarray(history, dtype=np.float64),
@@ -1418,7 +1430,14 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
             "temporal_dependency_order": self.temporal_dependency_order,
             "teacher_forced_log_probability": True,
             "free_running_sampling": True,
-            "state_labels_are_canonicalized_not_physical_classes": True,
+            "latent_state_switching": self.has_latent_state_switching,
+            "input_dependent_state_transitions_effective": (
+                self.has_latent_state_switching
+                and self.config.input_dependent_transitions
+            ),
+            "state_labels_are_canonicalized_not_physical_classes": (
+                self.has_latent_state_switching
+            ),
             "state_canonicalization": (
                 "ascending zero-condition emission-intercept profile RMS, then mean and median AR"
             ),
