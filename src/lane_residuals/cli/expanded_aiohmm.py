@@ -135,6 +135,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         deltas["mean_energy_score_m"],
         deltas["median_absolute_lag_one_correlation_error"],
     )
+    LOGGER.info(
+        "normalized sequence energy=%.6f m (delta=%+.6f m); result=%s",
+        metrics["mean_normalized_sequence_energy_score_m"],
+        deltas["mean_normalized_sequence_energy_score_m"],
+        summary["result_classification"],
+    )
     LOGGER.info("outputs: %s", arguments.output_directory)
     return status
 

@@ -742,8 +742,11 @@ contribute to fitting or primary model comparison.
 model), two pooled primary rows, and two supplementary transfer rows. The
 unconditional and six-feature conditional Gaussian use identical frames,
 folds, transforms, sample counts, and common random seeds. Sample-mean RMSE,
-energy score, marginal 95% coverage, and lag-one error are common cross-family
-metrics; physical NLL and Mahalanobis distance are Gaussian diagnostics.
+frame-wise energy score, length-normalized complete-sequence energy score,
+marginal 95% coverage, and lag-one error are common cross-family metrics;
+physical NLL and Mahalanobis distance are Gaussian diagnostics. The sequence
+score flattens each active `[time, 21]` block and divides Euclidean distances by
+`sqrt(sequence_length * 21)` before averaging.
 
 The station CSV retains H100 spatial metrics, while the frame CSV maps every
 out-of-fold or supplementary score back to exact sequence, recording, drive,
@@ -755,6 +758,43 @@ The summary reports both pooled-frame and equal-drive macro metrics. Conditional
 minus unconditional macro deltas use a negative-is-better convention. No
 hyperparameter search or final model selection is authorized. All outputs are
 private BMW-derived artifacts and remain outside version control.
+
+## v0.15.0 expanded clean-drive AIOHMM outputs
+
+The command accepts only the exact hash-reconciled v0.13.1 directory and the
+exact seven-file v0.14.0 Gaussian result directory. It revalidates source hashes,
+clean-drive folds, training-only transforms, sample count, and seed, then writes:
+
+```text
+expanded_aiohmm_evaluation.csv
+expanded_aiohmm_station_evaluation.csv
+expanded_aiohmm_frame_evaluation.csv
+expanded_aiohmm_state_evaluation.csv
+expanded_aiohmm_restart_evaluation.csv
+expanded_aiohmm_fold_models.json
+expanded_aiohmm_model.json
+expanded_aiohmm_diagnostics.png
+expanded_aiohmm_summary.json
+```
+
+The evaluation CSV contains four clean held-out-drive rows, one pooled clean
+row, and one supplementary mixed-fragment transfer row. It reports the exact
+v0.14 common metrics plus teacher-forced density, posterior-state, transition,
+dwell, and AR diagnostics. The frame CSV preserves recording and private MCAP
+provenance. The state and restart CSVs expose occupancy, convergence, and
+deterministic training-likelihood restart selection.
+
+The fixed state count is two. Reset frames use the separate training-only reset
+distribution and are excluded from state-specific AR emission/covariance
+updates. Generalized-EM M-steps are backtracked until raw training likelihood is
+non-decreasing and the posterior occupancy floor is respected; otherwise the
+fit stops and reports nonconvergence. The mixed cohort never enters fitting or
+primary comparison.
+
+`expanded_aiohmm_summary.json` records deltas against the conditional Gaussian,
+individual development checks, and a result classification. Workflow success
+does not imply scientific acceptance. The reviewed run is classified as
+`temporal_dependence_improved_but_full_generative_acceptance_not_met`.
 
 ## v0.11.0 sequence-contract AIOHMM outputs
 

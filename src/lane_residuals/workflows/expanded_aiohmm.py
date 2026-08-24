@@ -829,6 +829,20 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         and not bool(row["em_converged"])
         for row in restart_rows
     )
+    acceptance_checks = {
+        "frame_energy_score_improved": comparison["mean_energy_score_m"] < 0.0,
+        "sequence_energy_score_improved": (
+            comparison["mean_normalized_sequence_energy_score_m"] < 0.0
+        ),
+        "lag_one_error_improved": (
+            comparison["median_absolute_lag_one_correlation_error"] < 0.0
+        ),
+        "coverage_error_not_worse": (
+            comparison["absolute_marginal_95_coverage_error"] <= 0.0
+        ),
+        "no_failed_restart": failed_restart_count == 0,
+        "all_selected_fits_converged": selected_nonconverged_count == 0,
+    }
     summary = {
         "version": VERSION,
         "status": "complete",
@@ -871,24 +885,24 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "sampling_random_seed": sample_seed,
         "likelihood_is_teacher_forced_secondary_metric": True,
         "sampling_is_free_running": True,
+        "normalized_sequence_energy_score_definition": (
+            "energy score on each flattened [time,21] sequence with Euclidean "
+            "distances divided by sqrt(sequence_length*21), then averaged"
+        ),
         "primary_pooled_cross_validated_metrics": _metric_subset(pooled_row),
         "primary_macro_drive_metrics": macro,
         "supplementary_mixed_transfer_metrics": _metric_subset(mixed_row),
         "aiohmm_minus_conditional_gaussian_primary_macro_deltas": comparison,
         "delta_interpretation": "negative_is_better_for_every_reported_delta",
-        "development_acceptance_checks": {
-            "energy_score_improved": comparison["mean_energy_score_m"] < 0.0,
-            "sequence_energy_score_improved": (
-                comparison["mean_normalized_sequence_energy_score_m"] < 0.0
-            ),
-            "lag_one_error_improved": (
-                comparison["median_absolute_lag_one_correlation_error"] < 0.0
-            ),
-            "coverage_error_not_worse": (
-                comparison["absolute_marginal_95_coverage_error"] <= 0.0
-            ),
-            "no_failed_restart": failed_restart_count == 0,
-        },
+        "development_acceptance_checks": acceptance_checks,
+        "all_development_acceptance_checks_passed": all(
+            acceptance_checks.values()
+        ),
+        "result_classification": (
+            "full_generative_acceptance_met"
+            if all(acceptance_checks.values())
+            else "temporal_dependence_improved_but_full_generative_acceptance_not_met"
+        ),
         "mixed_source_results_are_supplementary_only": True,
         "state_labels_are_physical_classes": False,
         "temporal_dependency_order": 1,

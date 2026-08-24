@@ -32,14 +32,23 @@ are not the thesis execution path.
 | v0.12 | Expanded-corpus inventory, alignment, and topology semantics | Complete; fail-closed lineage and the RLMB-independence limitation are explicit |
 | v0.13 | Quality-gated expanded sequence dataset | Complete; v0.13.1 contains 4,602 frames, 34 sequences, and accepted boundary-speed context |
 | v0.14 | Clean-drive evaluation protocol and Gaussian re-baseline | Implemented; four leave-one-clean-drive-out folds, equal-drive and pooled metrics, and separate mixed-fragment transfer checks |
-| v0.15 | Improved AIOHMM on the v0.14 protocol | Next; reuse exact primary cohort, folds, transforms, seeds, and metrics before changing architecture |
-| v0.16 | RC-GAN | Begins after AIOHMM review and only when the independent-drive/data-volume gate supports a defensible adversarial experiment |
+| v0.15 | Two-state AIOHMM on the v0.14 protocol | Implemented; temporal dependence improves strongly, but marginal calibration and full generative acceptance do not pass |
+| v0.15.1 | One-state conditional AR ablation | Next minimal diagnostic; determine whether the latent switch adds value beyond autoregression without changing data, features, or folds |
+| v0.16 | RC-GAN | Begins only after the AIOHMM/AR review and when the independent-drive/data-volume gate supports a defensible adversarial experiment |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
 and the common evaluator, but it does not invent temporal dependence. This
 separates gains caused by sequence modeling from gains caused by a different
 cohort, split, transform, or metric implementation.
+
+The expanded v0.15 result is not a general AIOHMM victory. Macro lag-one error
+falls from 0.888345 to 0.018276, but frame energy and coverage are worse and
+normalized complete-sequence energy is effectively tied. One selected fold fit
+also reaches the occupancy-constrained optimization boundary. The next model
+change is therefore a one-state conditional AR ablation, not feature expansion
+or RC-GAN tuning. Additional clean physical drives remain necessary before an
+untouched final comparison.
 
 ## Feature policy
 

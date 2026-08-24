@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.14.0
+# Minimal Path-Residual Model (MPR) v0.15.0
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -38,6 +38,22 @@ strict timestamp order, interpolation tolerance, and no-extrapolation checks
 must all pass. EDP paths, residuals, and the other five conditions remain
 recording-local. No split, standardizer fit, hyperparameter choice, or model
 training is performed.
+
+Version 0.14.0 establishes the expanded-data modeling baseline. It converts the
+accepted v0.13.1 archive to padded sequences without dropping frame provenance,
+then evaluates unconditional and six-feature conditional Gaussians on four
+leave-one-clean-physical-drive-out folds. Drives 005--008 remain supplementary.
+The contract reports both frame-wise energy and a length-normalized energy score
+on each complete `[time, 21]` sequence.
+
+Version 0.15.0 evaluates a fixed two-state AIOHMM on exactly the v0.14 folds,
+training-only transforms, samples, and metrics. It also corrects the generalized
+EM implementation: reset frames are excluded from state-specific AR emissions,
+and occupancy-safe backtracking prevents a decreasing M-step from being silently
+accepted. The real expanded run reduces macro lag-one correlation error from
+0.888345 to 0.018276, while frame energy, coverage, and normalized sequence
+energy do not all beat the conditional Gaussian. The result is therefore a
+temporal success but not full generative acceptance.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -508,8 +524,35 @@ Drives 005--008 contain 518 mixed-source fragments. They are never used for
 fit or primary comparison; models trained on all four clean development drives
 evaluate them only as a supplementary transfer check. v0.14.0 performs no
 random frame split, held-out hyperparameter search, or final model selection.
-Its frozen fold/metric contract is the input policy for the next expanded-data
-AIOHMM phase.
+Its frozen fold/metric contract is the input policy for v0.15.0.
+
+## Expanded clean-drive AIOHMM evaluation
+
+Run v0.15.0 against the exact v0.14.0 output directory:
+
+```bash
+python -m lane_residuals.cli.expanded_aiohmm \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --output-directory "outputs/models/expanded_aiohmm_v0150"
+```
+
+The state count is fixed at two after the v0.11 three-state occupancy collapse;
+the command rejects other values. Three deterministic same-architecture
+restarts are selected by training likelihood only. Generalized EM excludes each
+sequence reset from the state-specific AR M-step and uses a non-decreasing,
+occupancy-safe backtracking step. Held-out drives never choose the restart,
+state count, transform, or any model setting.
+
+On the 4,084-frame clean primary cohort, the reviewed run has macro-drive RMSE
+0.374542 m, frame energy 1.018113 m, normalized complete-sequence energy
+0.286286 m, marginal 95% coverage 0.868940, and lag-one error 0.018276. The
+conditional Gaussian values are 0.362535 m, 0.994829 m, 0.286028 m, 0.928183,
+and 0.888345 respectively. The AIOHMM captures temporal persistence, but its
+marginal calibration is worse and one selected fold fit reaches the constrained
+optimization boundary. The summary consequently records
+`temporal_dependence_improved_but_full_generative_acceptance_not_met`; this
+negative/partial result must not be rewritten as a general AIOHMM win.
 
 ## Optional odometry-compensated reference-alignment validation
 

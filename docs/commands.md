@@ -5,7 +5,9 @@ v0.5.2 restores corpus-independent native projection alignment;
 v0.13.0 preserves the fail-closed expanded sequential checkpoint, and v0.13.1
 adds accepted-boundary context only for its frozen odometry speed feature;
 v0.14.0 adds the leakage-safe clean-drive evaluation contract and Gaussian
-re-baseline while keeping mixed-source fragments supplementary;
+re-baseline while keeping mixed-source fragments supplementary; v0.15.0 adds
+the exact-contract two-state expanded AIOHMM evaluation and corrected
+occupancy-safe generalized EM;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -37,6 +39,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-build-expanded-sequential-dataset` | `python -m lane_residuals.cli.expanded_sequence_dataset` | v0.13.0 quality-gated sensor-topology H100 profiles and physical-session sequences; no split or model selection | Exact raw MCAP corpus, complete v0.5.2 alignment, and corrected complete v0.12.2 topology audit | Deterministic profile archive, sequence/eligibility/stitch/exclusion audits, drive summary, plot, contract, manifest, and provenance |
 | `mpr-build-expanded-sequential-dataset-v0131` | `python -m lane_residuals.cli.expanded_sequence_dataset_v0131` | v0.13.1 accepted-boundary context for the unchanged 50 ms odometry speed only; v0.13.0 tensor parity enforced | v0.13.0 output plus its exact raw/alignment/corrected-topology lineage | Expanded deterministic archive, boundary-context/parity/stitch audits, summaries, plot, contract, manifest, and provenance |
 | `mpr-evaluate-expanded-gaussian` | `python -m lane_residuals.cli.expanded_gaussian` | v0.14.0 unconditional/conditional Gaussian re-baseline on four leave-one-clean-drive-out folds; no random frame split or hyperparameter search | Complete unchanged v0.13.1 expanded sequence directory | Frozen evaluation contract, fold/station/frame metrics, fold and descriptive models, comparison plot, and strict summary |
+| `mpr-evaluate-expanded-aiohmm` | `python -m lane_residuals.cli.expanded_aiohmm` | v0.15.0 fixed two-state AIOHMM on the exact v0.14.0 clean-drive protocol; no held-out tuning | Complete unchanged v0.13.1 directory and its exact v0.14.0 Gaussian result directory | Fold/station/frame/state/restart metrics, fold and descriptive models, diagnostic plot, and strict comparison summary |
 | `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
 | `mpr-train-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_baseline` | v0.6.0 canonical H100 export, leave-one-drive-out evaluation, and final Gaussian fit | Historical complete v0.5.0 or current complete v0.5.2 native alignment batch | Residual vectors, dataset/model summaries, fold/station evaluation CSVs, and diagnostics plot |
@@ -155,6 +158,22 @@ supplementary transfer check. The fixed unconditional and six-feature linear
 conditional Gaussians use common Monte Carlo seeds and identical rows. No
 random frame split, held-out hyperparameter search, or final-model claim is
 made.
+
+Run the v0.15.0 AIOHMM from a new empty output directory:
+
+```bash
+python -m lane_residuals.cli.expanded_aiohmm \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --output-directory "outputs/models/expanded_aiohmm_v0150"
+```
+
+The command validates every v0.14 output hash and requires its source lineage,
+fold transforms, sample count, and seed to match v0.13.1 exactly. The two-state
+configuration is fixed; mixed fragments remain supplementary. Exit code `0`
+means the workflow completed, not that every scientific acceptance check
+passed. Read `result_classification` and `development_acceptance_checks` in the
+summary before promoting the model.
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

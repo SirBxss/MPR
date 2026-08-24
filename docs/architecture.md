@@ -167,9 +167,13 @@ and writes separate common-metric, posterior-state, transition, AR, convergence,
 and restart-stability evidence. It does not perform held-out state-count or
 hyperparameter selection.
 The v0.14.0 workflow accepts only the hash-reconciled v0.13.1 directory. Its
-four clean-drive folds are the common development protocol for the next
-AIOHMM implementation; the mixed cohort cannot enter training or primary
-model comparison.
+four clean-drive folds are the common development protocol for all expanded
+models; the mixed cohort cannot enter training or primary model comparison.
+The v0.15.0 workflow consumes both that source and the exact v0.14.0 result
+directory. It adds no data transformation or feature path: it reuses the fold
+standardizers and evaluates a fixed two-state AIOHMM with training-only restart
+selection. State-specific AR emissions exclude sequence reset rows, and the
+generalized-EM update uses occupancy-safe likelihood backtracking.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

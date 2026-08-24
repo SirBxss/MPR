@@ -394,6 +394,10 @@ def _protocol_payload(
             "marginal_95_coverage",
             "median_absolute_lag_one_correlation_error",
         ],
+        "normalized_sequence_energy_score_definition": (
+            "energy score on each flattened [time,21] sequence with Euclidean "
+            "distances divided by sqrt(sequence_length*21), then averaged"
+        ),
         "secondary_density_metric": "mean_frame_negative_log_likelihood_physical",
         "macro_and_pooled_reporting": True,
         "untouched_final_test_drive_count": 0,

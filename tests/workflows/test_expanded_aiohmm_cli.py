@@ -91,6 +91,20 @@ class ExpandedAIOHMMWorkflowTests(unittest.TestCase):
             self.assertFalse(summary["held_out_drives_used_for_state_count_or_restart_selection"])
             self.assertTrue(summary["mixed_source_results_are_supplementary_only"])
             self.assertFalse(summary["final_model_selection_authorized"])
+            self.assertIn(
+                summary["result_classification"],
+                {
+                    "full_generative_acceptance_met",
+                    (
+                        "temporal_dependence_improved_but_full_generative_"
+                        "acceptance_not_met"
+                    ),
+                },
+            )
+            self.assertEqual(
+                summary["all_development_acceptance_checks_passed"],
+                all(summary["development_acceptance_checks"].values()),
+            )
 
             with (output / "expanded_aiohmm_evaluation.csv").open(
                 "r", encoding="utf-8", newline=""
