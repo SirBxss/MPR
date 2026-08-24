@@ -130,6 +130,32 @@ class AIOHMMTests(unittest.TestCase):
         self.assertTrue(
             np.all(np.diff(self.model.state_profile_rms_standardized) >= 0.0)
         )
+        history = self.model.log_likelihood_history
+        self.assertTrue(
+            np.all(np.diff(history) >= -1e-9 * np.maximum(np.abs(history[:-1]), 1.0))
+        )
+        self.assertIn("em_backtracked_m_step_count", self.report.metrics)
+        self.assertIn("em_rejected_m_step_count", self.report.metrics)
+
+    def test_state_specific_emissions_exclude_sequence_reset_frames(self) -> None:
+        conditions, residuals, previous, dynamic_mask = (
+            AutoregressiveInputOutputHMM._flatten_training_arrays(self.training)
+        )
+
+        self.assertEqual(len(dynamic_mask), self.training.frame_count)
+        self.assertEqual(int(np.sum(~dynamic_mask)), self.training.sequence_count)
+        reset_indices = np.cumsum(
+            np.concatenate(([0], self.training.lengths[:-1]))
+        )
+        np.testing.assert_array_equal(
+            dynamic_mask[reset_indices],
+            np.zeros(self.training.sequence_count, dtype=np.bool_),
+        )
+        np.testing.assert_array_equal(
+            previous[reset_indices],
+            np.zeros((self.training.sequence_count, 21), dtype=np.float64),
+        )
+        self.assertEqual(conditions.shape[0], residuals.shape[0])
 
     def test_sampling_is_free_running_deterministic_and_persistent(self) -> None:
         first = self.model.sample(

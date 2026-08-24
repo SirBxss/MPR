@@ -33,6 +33,7 @@ FloatArray = NDArray[np.float64]
 IntegerArray = NDArray[np.int64]
 BooleanArray = NDArray[np.bool_]
 VERSION = "0.11.0"
+MAXIMUM_M_STEP_BACKTRACKING_STEPS = 12
 
 
 def _strict_json(path: Path) -> Any:
@@ -434,6 +435,97 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
         )
 
     @staticmethod
+    def _interpolated_state(
+        current: _AIOHMMState,
+        proposed: _AIOHMMState,
+        step_size: float,
+    ) -> _AIOHMMState:
+        """Return a stable convex parameter step for generalized-EM backtracking."""
+
+        if not 0.0 < step_size < 1.0:
+            raise ValueError("interpolated AIOHMM step size must lie in (0,1)")
+        retained = 1.0 - step_size
+
+        def blend(current_values: FloatArray, proposed_values: FloatArray) -> FloatArray:
+            return retained * current_values + step_size * proposed_values
+
+        return replace(
+            current,
+            initial_probabilities=blend(
+                current.initial_probabilities, proposed.initial_probabilities
+            ),
+            initial_emission_coefficients=blend(
+                current.initial_emission_coefficients,
+                proposed.initial_emission_coefficients,
+            ),
+            initial_emission_covariance=blend(
+                current.initial_emission_covariance,
+                proposed.initial_emission_covariance,
+            ),
+            transition_weights=blend(
+                current.transition_weights, proposed.transition_weights
+            ),
+            emission_coefficients=blend(
+                current.emission_coefficients, proposed.emission_coefficients
+            ),
+            autoregressive_coefficients=blend(
+                current.autoregressive_coefficients,
+                proposed.autoregressive_coefficients,
+            ),
+            covariances=blend(current.covariances, proposed.covariances),
+            state_occupancies=blend(
+                current.state_occupancies, proposed.state_occupancies
+            ),
+            log_likelihood_history=np.empty(0, dtype=np.float64),
+            best_iteration_index=0,
+            converged=False,
+        )
+
+    def _backtracked_m_step(
+        self,
+        dataset: PaddedSequenceDataset,
+        *,
+        current_state: _AIOHMMState,
+        proposed_state: _AIOHMMState,
+        current_log_probability: float,
+    ) -> tuple[_AIOHMMState | None, int]:
+        """Accept only an occupancy-safe, non-decreasing generalized-EM step."""
+
+        tolerance = 1e-10 * max(abs(current_log_probability), 1.0)
+        for depth in range(MAXIMUM_M_STEP_BACKTRACKING_STEPS + 1):
+            candidate = (
+                proposed_state
+                if depth == 0
+                else self._interpolated_state(
+                    current_state, proposed_state, 0.5**depth
+                )
+            )
+            self._set_state(candidate)
+            expectation = self._expectation(dataset)
+            candidate_log_probability = float(
+                np.sum(expectation.sequence_log_probabilities)
+            )
+            occupancies = np.sum(
+                np.concatenate(
+                    [
+                        posterior.state_probabilities
+                        for posterior in expectation.posteriors
+                    ],
+                    axis=0,
+                ),
+                axis=0,
+            )
+            occupancies /= np.sum(occupancies)
+            if (
+                candidate_log_probability + tolerance >= current_log_probability
+                and np.min(occupancies)
+                >= self.config.minimum_state_occupancy_fraction
+            ):
+                return candidate, depth
+        self._set_state(current_state)
+        return None, MAXIMUM_M_STEP_BACKTRACKING_STEPS + 1
+
+    @staticmethod
     def _previous_values(residuals: FloatArray) -> FloatArray:
         previous = np.zeros_like(residuals, dtype=np.float64)
         if len(residuals) > 1:
@@ -541,10 +633,11 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
     @staticmethod
     def _flatten_training_arrays(
         dataset: PaddedSequenceDataset,
-    ) -> tuple[FloatArray, FloatArray, FloatArray]:
+    ) -> tuple[FloatArray, FloatArray, FloatArray, BooleanArray]:
         conditions: list[FloatArray] = []
         residuals: list[FloatArray] = []
         previous: list[FloatArray] = []
+        dynamic_masks: list[BooleanArray] = []
         for sequence_index, raw_length in enumerate(dataset.lengths):
             length = int(raw_length)
             sequence_residuals = np.asarray(
@@ -559,10 +652,14 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
             previous.append(
                 AutoregressiveInputOutputHMM._previous_values(sequence_residuals)
             )
+            dynamic_mask = np.ones(length, dtype=np.bool_)
+            dynamic_mask[0] = False
+            dynamic_masks.append(dynamic_mask)
         return (
             np.concatenate(conditions, axis=0),
             np.concatenate(residuals, axis=0),
             np.concatenate(previous, axis=0),
+            np.concatenate(dynamic_masks, axis=0),
         )
 
     def _fit_initial_emission(
@@ -686,11 +783,26 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
         transition_posteriors: tuple[FloatArray, ...],
         previous_state: _AIOHMMState | None,
     ) -> _AIOHMMState:
-        conditions, residuals, previous_values = self._flatten_training_arrays(
-            dataset
-        )
-        gamma = np.concatenate(state_posteriors, axis=0)
+        (
+            all_conditions,
+            all_residuals,
+            all_previous_values,
+            dynamic_mask,
+        ) = self._flatten_training_arrays(dataset)
+        gamma_all = np.concatenate(state_posteriors, axis=0)
         state_count = self.config.state_count
+        minimum_dynamic_count = (
+            state_count * self.config.minimum_effective_state_observations
+        )
+        if int(np.sum(dynamic_mask)) < minimum_dynamic_count:
+            raise ValueError(
+                "AIOHMM training has too few non-reset frames for the configured "
+                "state count and effective-observation floor"
+            )
+        conditions = all_conditions[dynamic_mask]
+        residuals = all_residuals[dynamic_mask]
+        previous_values = all_previous_values[dynamic_mask]
+        gamma = gamma_all[dynamic_mask]
         station_count = len(CANONICAL_MODEL_STATIONS_M)
         base_design = np.column_stack(
             (np.ones(len(conditions), dtype=np.float64), conditions)
@@ -839,11 +951,11 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
         transition_weights = self._optimize_transition_weights(
             dataset, transition_posteriors, transition_weights
         )
-        occupancies = np.sum(gamma, axis=0)
+        occupancies = np.sum(gamma_all, axis=0)
         occupancies /= np.sum(occupancies)
         if previous_state is None:
             initial_emission_coefficients, initial_emission_covariance = (
-                self._fit_initial_emission(conditions, residuals)
+                self._fit_initial_emission(all_conditions, all_residuals)
             )
         else:
             initial_emission_coefficients = (
@@ -869,7 +981,9 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
         )
 
     def _initialize(self, dataset: PaddedSequenceDataset) -> _AIOHMMState:
-        _conditions, residuals, _previous = self._flatten_training_arrays(dataset)
+        _conditions, residuals, _previous, _dynamic_mask = (
+            self._flatten_training_arrays(dataset)
+        )
         scores = np.sqrt(np.mean(np.square(residuals), axis=1))
         generator = np.random.default_rng(self.config.initialization_seed)
         score_scale = max(float(np.std(scores)), 1e-6)
@@ -935,6 +1049,9 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
         best_iteration = 0
         converged = False
         likelihood_decrease_count = 0
+        backtracked_m_step_count = 0
+        maximum_backtracking_depth = 0
+        rejected_m_step_count = 0
         warnings: list[str] = []
 
         for iteration in range(self.config.maximum_em_iterations):
@@ -985,6 +1102,7 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
             if iteration + 1 == self.config.maximum_em_iterations:
                 break
             try:
+                current_state = self._copy_state(self._require_state())
                 updated = self._m_step(
                     training_data,
                     tuple(
@@ -1000,20 +1118,44 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
             except (ValueError, np.linalg.LinAlgError) as error:
                 warnings.append(f"EM stopped during the M-step: {error}")
                 break
-            self._set_state(updated)
+            accepted, backtracking_depth = self._backtracked_m_step(
+                training_data,
+                current_state=current_state,
+                proposed_state=updated,
+                current_log_probability=total_log_probability,
+            )
+            if accepted is None:
+                rejected_m_step_count += 1
+                warnings.append(
+                    "EM stopped because no occupancy-safe non-decreasing M-step "
+                    "could be found."
+                )
+                break
+            if backtracking_depth:
+                backtracked_m_step_count += 1
+                maximum_backtracking_depth = max(
+                    maximum_backtracking_depth, backtracking_depth
+                )
+            self._set_state(accepted)
 
         if best_state is None:
             raise ValueError("AIOHMM fitting ended before a valid state was observed")
+        retained_state_converged = converged and best_iteration == len(history) - 1
         best_state = replace(
             best_state,
             log_likelihood_history=np.asarray(history, dtype=np.float64),
             best_iteration_index=best_iteration,
-            converged=converged,
+            converged=retained_state_converged,
         )
         best_state = self._canonicalized_state(best_state)
         self._set_state(best_state)
-        if not converged:
+        if not retained_state_converged:
             warnings.append("EM did not reach the configured convergence tolerance.")
+        if backtracked_m_step_count:
+            warnings.append(
+                "Generalized-EM backtracking reduced the M-step on "
+                f"{backtracked_m_step_count} iteration(s)."
+            )
         if likelihood_decrease_count:
             warnings.append(
                 "Training likelihood decreased on "
@@ -1029,7 +1171,10 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
             "em_best_training_log_probability": best_log_probability,
             "em_iteration_count": float(len(history)),
             "em_best_iteration_index": float(best_iteration),
-            "em_converged": float(converged),
+            "em_converged": float(retained_state_converged),
+            "em_backtracked_m_step_count": float(backtracked_m_step_count),
+            "em_maximum_backtracking_depth": float(maximum_backtracking_depth),
+            "em_rejected_m_step_count": float(rejected_m_step_count),
             "minimum_state_occupancy_fraction": float(
                 np.min(best_state.state_occupancies)
             ),
