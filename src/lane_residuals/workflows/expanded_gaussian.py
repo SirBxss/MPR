@@ -49,6 +49,7 @@ EVALUATION_FIELDS = (
     "mean_squared_mahalanobis_per_dimension",
     "sample_mean_prediction_rmse_m",
     "mean_energy_score_m",
+    "mean_normalized_sequence_energy_score_m",
     "marginal_95_coverage",
     "absolute_marginal_95_coverage_error",
     "median_observed_lag_one_correlation",
@@ -210,6 +211,9 @@ def _evaluation_row(
         ),
         "sample_mean_prediction_rmse_m": evaluation.pooled_mean_prediction_rmse_m,
         "mean_energy_score_m": evaluation.mean_energy_score_m,
+        "mean_normalized_sequence_energy_score_m": (
+            evaluation.mean_normalized_sequence_energy_score_m
+        ),
         "marginal_95_coverage": evaluation.marginal_95_coverage,
         "absolute_marginal_95_coverage_error": abs(
             evaluation.marginal_95_coverage - 0.95
@@ -386,6 +390,7 @@ def _protocol_payload(
         "primary_cross_model_metrics": [
             "sample_mean_prediction_rmse_m",
             "mean_energy_score_m",
+            "mean_normalized_sequence_energy_score_m",
             "marginal_95_coverage",
             "median_absolute_lag_one_correlation_error",
         ],
@@ -417,6 +422,7 @@ def _macro_metrics(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
         "mean_squared_mahalanobis_per_dimension",
         "sample_mean_prediction_rmse_m",
         "mean_energy_score_m",
+        "mean_normalized_sequence_energy_score_m",
         "marginal_95_coverage",
         "absolute_marginal_95_coverage_error",
         "median_absolute_lag_one_correlation_error",
@@ -713,6 +719,7 @@ def run_expanded_gaussian(arguments: argparse.Namespace) -> tuple[dict[str, Any]
         "mean_frame_negative_log_likelihood_physical",
         "sample_mean_prediction_rmse_m",
         "mean_energy_score_m",
+        "mean_normalized_sequence_energy_score_m",
         "absolute_marginal_95_coverage_error",
         "median_absolute_lag_one_correlation_error",
     )

@@ -57,6 +57,7 @@ EVALUATION_FIELDS = (
     "mean_joint_negative_log_likelihood_physical",
     "sample_mean_prediction_rmse_m",
     "mean_energy_score_m",
+    "mean_normalized_sequence_energy_score_m",
     "marginal_95_coverage",
     "absolute_marginal_95_coverage_error",
     "median_observed_lag_one_correlation",
@@ -177,6 +178,9 @@ def _expanded_evaluation_row(
     row["test_drive_ids"] = ";".join(test_drive_ids)
     row["absolute_marginal_95_coverage_error"] = abs(
         float(row["marginal_95_coverage"]) - 0.95
+    )
+    row["mean_normalized_sequence_energy_score_m"] = (
+        evaluation.mean_normalized_sequence_energy_score_m
     )
     return row
 
@@ -380,6 +384,7 @@ def _macro_metrics(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
         "mean_joint_negative_log_likelihood_physical",
         "sample_mean_prediction_rmse_m",
         "mean_energy_score_m",
+        "mean_normalized_sequence_energy_score_m",
         "marginal_95_coverage",
         "absolute_marginal_95_coverage_error",
         "median_absolute_lag_one_correlation_error",
@@ -794,6 +799,10 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
             macro["mean_energy_score_m"]
             - float(gaussian_macro["mean_energy_score_m"])
         ),
+        "mean_normalized_sequence_energy_score_m": (
+            macro["mean_normalized_sequence_energy_score_m"]
+            - float(gaussian_macro["mean_normalized_sequence_energy_score_m"])
+        ),
         "absolute_marginal_95_coverage_error": (
             macro["absolute_marginal_95_coverage_error"]
             - float(gaussian_macro["absolute_marginal_95_coverage_error"])
@@ -869,6 +878,9 @@ def run_expanded_aiohmm(arguments: argparse.Namespace) -> tuple[dict[str, Any], 
         "delta_interpretation": "negative_is_better_for_every_reported_delta",
         "development_acceptance_checks": {
             "energy_score_improved": comparison["mean_energy_score_m"] < 0.0,
+            "sequence_energy_score_improved": (
+                comparison["mean_normalized_sequence_energy_score_m"] < 0.0
+            ),
             "lag_one_error_improved": (
                 comparison["median_absolute_lag_one_correlation_error"] < 0.0
             ),

@@ -71,8 +71,14 @@ class SequenceEvaluationTests(unittest.TestCase):
         self.assertFalse(physical_samples.standardized)
         self.assertEqual(evaluation.mean_prediction_m.shape, (1, 16, 21))
         self.assertEqual(evaluation.frame_energy_score_m.shape, (1, 16))
+        self.assertEqual(
+            evaluation.normalized_sequence_energy_score_m.shape, (1,)
+        )
         self.assertTrue(np.isfinite(evaluation.pooled_mean_prediction_rmse_m))
         self.assertTrue(np.isfinite(evaluation.mean_energy_score_m))
+        self.assertTrue(
+            np.isfinite(evaluation.mean_normalized_sequence_energy_score_m)
+        )
         self.assertGreaterEqual(evaluation.marginal_95_coverage, 0.0)
         self.assertLessEqual(evaluation.marginal_95_coverage, 1.0)
         self.assertEqual(

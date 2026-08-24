@@ -106,6 +106,14 @@ def load_expanded_gaussian_baseline(
         is not True
     ):
         raise ExpandedSequenceContractError("v0.14.0 split policy differs")
+    if protocol.get("primary_cross_model_metrics") != [
+        "sample_mean_prediction_rmse_m",
+        "mean_energy_score_m",
+        "mean_normalized_sequence_energy_score_m",
+        "marginal_95_coverage",
+        "median_absolute_lag_one_correlation_error",
+    ]:
+        raise ExpandedSequenceContractError("v0.14.0 cross-model metrics differ")
     models = summary.get("models")
     if not isinstance(models, Mapping) or set(models) != {
         "unconditional_gaussian",
@@ -120,6 +128,12 @@ def load_expanded_gaussian_baseline(
         or summary.get("random_seed") != monte_carlo.get("base_seed")
     ):
         raise ExpandedSequenceContractError("v0.14.0 Monte Carlo protocol differs")
+    if any(
+        "mean_normalized_sequence_energy_score_m"
+        not in payload.get("primary_macro_drive_metrics", {})
+        for payload in models.values()
+    ):
+        raise ExpandedSequenceContractError("v0.14.0 temporal scores are incomplete")
     return summary, protocol, hashes
 
 
