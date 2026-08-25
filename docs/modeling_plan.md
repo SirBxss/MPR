@@ -33,8 +33,10 @@ are not the thesis execution path.
 | v0.13 | Quality-gated expanded sequence dataset | Complete; v0.13.1 contains 4,602 frames, 34 sequences, and accepted boundary-speed context |
 | v0.14 | Clean-group evaluation protocol and Gaussian re-baseline | Implemented; four leave-one-clean-group-out folds within one same-day outing, equal-group and pooled metrics, and separate mixed-fragment transfer checks |
 | v0.15 | Two-state AIOHMM on the v0.14 protocol | Implemented; temporal dependence improves strongly, but marginal calibration and full generative acceptance do not pass |
-| v0.15.1 | One-state conditional AR ablation | Implemented; exact private-corpus run and reviewed Gaussian/AR/AIOHMM comparison are pending |
-| v0.16 | RC-GAN | Begins only after the AIOHMM/AR review and when the independent-drive/data-volume gate supports a defensible adversarial experiment |
+| v0.15.1 | One-state conditional AR ablation | Complete and reviewed; one-state wins all five macro sample metrics against the original two-state fit, while the AR ceiling remains active |
+| v0.15.2 | Two-state convergence audit | Implemented; exact private-corpus run must determine whether the v0.15.0 stopping rule confounded the latent-switching comparison |
+| v0.15.3 | One-state AR-boundary sensitivity | Begins only after v0.15.2; vary only the predeclared AR ceiling and test the recorded coverage prediction |
+| v0.16 | RC-GAN | Begins only after the AIOHMM/AR audits and when the independent-drive/data-volume gate supports a defensible adversarial experiment |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -47,12 +49,18 @@ falls from 0.888345 to 0.018276, but frame energy and coverage are worse and
 normalized complete-sequence energy is effectively tied. All completed fits
 touch the occupancy and maximum-AR boundaries, and one selected fold fit does
 not converge. The four technical groups are separated portions of one longer
-same-day outing, so this is within-outing evidence only. v0.15.1 therefore
-changes only the state count to one and disables the now-trivial transition;
-all other hyperparameters and evaluation inputs remain frozen. Its private-
-corpus output decides whether the two-state switch adds value beyond AR before
-feature expansion or RC-GAN work. Additional independent outings remain
-necessary before an untouched final comparison.
+same-day outing, so this is within-outing evidence only.
+
+The reviewed v0.15.1 ablation changes only the state count to one and disables
+the now-trivial transition. It beats the original two-state result on all five
+macro sample-based metrics and on sequence energy in three of four groups;
+both claims remain within-outing. All one-state fits reach the 0.98 AR ceiling,
+while the v0.15.0 two-state reference retains a potentially premature stopping
+confound. v0.15.2 therefore changes only that stopping contract to a fixed
+absolute improvement of `1e-3` standardized nats per training frame. Once the
+corrected two-state evidence is reviewed, v0.15.3 may vary only the AR ceiling.
+Additional independent outings remain necessary before an untouched final
+comparison, broad feature search, or RC-GAN work.
 
 ## Feature policy
 

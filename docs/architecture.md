@@ -182,6 +182,14 @@ its fold models, then the workflow permits only the predeclared state-count and
 trivial-transition differences. A dedicated visualization omits meaningless
 single-state occupancy/transition claims and compares the Gaussian, one-state
 AR, and two-state AIOHMM directly.
+The v0.15.2 workflow is a third contract around the shared autoregressive
+engine. `io.model_evaluation` first reconciles the complete v0.15.0 and
+v0.15.1 artifacts, including exact output hashes and fold models. The workflow
+then permits only the fixed convergence-criterion and tolerance changes,
+re-fits the two-state model, and reports old/new stopping behavior plus paired
+comparisons with both frozen autoregressive models. Its dedicated CLI and
+visualization remain in their categorized layers; no model-specific IO is
+placed back at the package root.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

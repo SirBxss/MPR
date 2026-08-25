@@ -238,6 +238,34 @@ conditional Gaussian measures the contribution of AR. Two-state versus
 one-state measures the additional contribution of latent switching. Neither
 comparison creates independent outings that are absent from the corpus.
 
+## Two-state convergence audit
+
+The reviewed v0.15.0 fit used relative change in total standardized
+log-probability and one selected two-state fit did not converge. v0.15.2 closes
+that optimization confound without combining it with an architecture or
+boundary change. It uses
+`absolute_log_probability_improvement_per_frame` with a fixed threshold of
+`1e-3` standardized nats per training frame. The state count, occupancy floor,
+AR ceiling, EM iteration limit, regularization, transition optimizer, restarts,
+seeds, folds, transforms, sample count, and metrics remain those of v0.15.0.
+
+```bash
+python -m lane_residuals.cli.expanded_aiohmm_convergence \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --aiohmm-directory "outputs/models/expanded_aiohmm_v0150_reviewed" \
+  --one-state-ar-directory "outputs/models/one_state_ar_v0151" \
+  --output-directory "outputs/models/two_state_convergence_v0152"
+```
+
+The workflow fails closed before fitting if either reviewed autoregressive
+artifact has changed or any non-convergence setting drifts. It reports whether
+all five selected fits converge, how many iterations were added, and how the
+corrected two-state model changes every predeclared macro and paired-group
+sample metric. A corrected fit must be compared with the one-state result
+before making a latent-switching claim. This audit does not relax the 0.98 AR
+ceiling; that sensitivity remains a separate next phase.
+
 ## Limitations and next gate
 
 - The effective primary support is one same-day outing divided into four clean
@@ -258,8 +286,9 @@ comparison creates independent outings that are absent from the corpus.
 
 The current data are sufficient for implementation and exploratory Gaussian
 versus AIOHMM comparison. They are not sufficient for final state-count tuning,
-broad feature search, RC-GAN claims, or an untouched thesis test. The implemented
-one-state conditional AR ablation must now be run and reviewed under the same
-folds before selecting the next model phase.
+broad feature search, RC-GAN claims, or an untouched thesis test. The reviewed
+one-state result favors autoregression without latent switching on the current
+corpus, but the corrected two-state convergence audit must close the remaining
+optimization confound before the separate AR-boundary sensitivity is run.
 The acquisition gate remains 8--12 independent physical drives, with at least
 two locked final test drives and preferably continuous 2--5 minute recordings.
