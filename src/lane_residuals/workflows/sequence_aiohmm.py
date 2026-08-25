@@ -13,7 +13,11 @@ import numpy as np
 from ..domain.residual_dataset import CANONICAL_MODEL_STATIONS_M
 from ..domain.sequence_dataset import PaddedSequenceDataset, SequenceStandardizer
 from ..io.reports import write_csv_rows, write_strict_json
-from ..modeling.aiohmm import AIOHMMConfig, AutoregressiveInputOutputHMM
+from ..modeling.aiohmm import (
+    RELATIVE_TOTAL_LOG_PROBABILITY_CONVERGENCE,
+    AIOHMMConfig,
+    AutoregressiveInputOutputHMM,
+)
 from ..modeling.base import FitReport, SampleResult
 from ..modeling.sequence_evaluation import (
     SequenceSampleEvaluation,
@@ -131,6 +135,9 @@ RESTART_FIELDS = (
     "em_iteration_count",
     "em_best_iteration_index",
     "em_converged",
+    "em_last_log_probability_improvement_standardized",
+    "em_last_absolute_log_probability_improvement_per_frame_standardized",
+    "em_last_convergence_measure",
     "minimum_state_occupancy_fraction",
     "maximum_absolute_autoregressive_coefficient",
     "transition_matrix_rms_difference_from_selected",
@@ -148,6 +155,11 @@ def _configuration(arguments: argparse.Namespace) -> AIOHMMConfig:
         maximum_em_iterations=arguments.maximum_em_iterations,
         minimum_em_iterations=arguments.minimum_em_iterations,
         convergence_tolerance=arguments.convergence_tolerance,
+        convergence_criterion=getattr(
+            arguments,
+            "convergence_criterion",
+            RELATIVE_TOTAL_LOG_PROBABILITY_CONVERGENCE,
+        ),
         regression_ridge_penalty=arguments.regression_ridge_penalty,
         emission_parameter_pooling_penalty=(
             arguments.emission_parameter_pooling_penalty
@@ -274,6 +286,19 @@ def _fit_restarts(
                         "em_best_iteration_index"
                     ],
                     "em_converged": bool(report.metrics["em_converged"]),
+                    "em_last_log_probability_improvement_standardized": (
+                        report.metrics.get(
+                            "em_last_log_probability_improvement_standardized"
+                        )
+                    ),
+                    "em_last_absolute_log_probability_improvement_per_frame_standardized": (
+                        report.metrics.get(
+                            "em_last_absolute_log_probability_improvement_per_frame_standardized"
+                        )
+                    ),
+                    "em_last_convergence_measure": report.metrics.get(
+                        "em_last_convergence_measure"
+                    ),
                     "minimum_state_occupancy_fraction": report.metrics[
                         "minimum_state_occupancy_fraction"
                     ],
@@ -304,6 +329,9 @@ def _fit_restarts(
                     "em_iteration_count": None,
                     "em_best_iteration_index": None,
                     "em_converged": None,
+                    "em_last_log_probability_improvement_standardized": None,
+                    "em_last_absolute_log_probability_improvement_per_frame_standardized": None,
+                    "em_last_convergence_measure": None,
                     "minimum_state_occupancy_fraction": None,
                     "maximum_absolute_autoregressive_coefficient": None,
                     "transition_matrix_rms_difference_from_selected": None,

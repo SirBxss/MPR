@@ -20,7 +20,7 @@ from ..io.model_evaluation import (
     load_expanded_gaussian_baseline,
 )
 from ..io.reports import write_csv_rows, write_strict_json
-from ..modeling.aiohmm import AutoregressiveInputOutputHMM
+from ..modeling.aiohmm import AIOHMMConfig, AutoregressiveInputOutputHMM
 from ..modeling.base import SampleResult
 from ..modeling.sequence_evaluation import (
     SequenceSampleEvaluation,
@@ -736,11 +736,14 @@ def _run_expanded_autoregressive(
         reference_configuration = reference_aiohmm_summary.get("configuration")
         if not isinstance(reference_configuration, Mapping):
             raise ValueError("v0.15 AIOHMM configuration is missing")
+        normalized_reference_configuration = AIOHMMConfig.from_dict(
+            reference_configuration
+        ).to_dict()
         permitted_differences = {"state_count", "input_dependent_transitions"}
         for name, value in config.to_dict().items():
             if name in permitted_differences:
                 continue
-            if reference_configuration.get(name) != value:
+            if normalized_reference_configuration.get(name) != value:
                 raise ValueError(
                     f"one-state AR hyperparameter differs from v0.15: {name}"
                 )

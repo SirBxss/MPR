@@ -9,6 +9,8 @@ re-baseline while keeping mixed-source fragments supplementary; v0.15.0 adds
 the exact-contract two-state expanded AIOHMM evaluation and corrected
 occupancy-safe generalized EM; v0.15.1 adds the exact one-state conditional-AR
 ablation against both frozen baselines without changing the evaluation;
+v0.15.2 re-fits only the two-state model with the fixed absolute per-frame EM
+stopping rule and compares it with both reviewed autoregressive artifacts;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -42,6 +44,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-evaluate-expanded-gaussian` | `python -m lane_residuals.cli.expanded_gaussian` | v0.14.0 unconditional/conditional Gaussian re-baseline on four leave-one-clean-recording-group-out folds within one outing; no random frame split or hyperparameter search | Complete unchanged v0.13.1 expanded sequence directory | Frozen evaluation contract, fold/station/frame metrics, fold and descriptive models, comparison plot, and strict summary |
 | `mpr-evaluate-expanded-aiohmm` | `python -m lane_residuals.cli.expanded_aiohmm` | v0.15.0 fixed two-state AIOHMM on the exact v0.14.0 clean-drive protocol; no held-out tuning | Complete unchanged v0.13.1 directory and its exact v0.14.0 Gaussian result directory | Fold/station/frame/state/restart metrics, fold and descriptive models, diagnostic plot, and strict comparison summary |
 | `mpr-evaluate-expanded-ar-ablation` | `python -m lane_residuals.cli.expanded_ar_ablation` | v0.15.1 fixed one-state conditional AR; isolates autoregression from latent switching with no evaluation drift | Complete unchanged v0.13.1 directory plus its exact v0.14.0 Gaussian and reviewed v0.15.0 AIOHMM result directories | One-state fold/station/frame/restart evidence, paired three-model diagnostics, models, and strict Gaussian/AIOHMM comparison summary |
+| `mpr-audit-expanded-aiohmm-convergence` | `python -m lane_residuals.cli.expanded_aiohmm_convergence` | v0.15.2 fixed two-state convergence audit; only the EM stopping scale and threshold differ from v0.15.0 | Complete unchanged v0.13.1 directory plus its exact v0.14.0 Gaussian, reviewed v0.15.0 AIOHMM, and reviewed v0.15.1 one-state AR directories | Corrected two-state fold/station/frame/state/restart evidence, old/new convergence comparison, diagnostic plot, models, and strict two-reference summary |
 | `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
 | `mpr-train-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_baseline` | v0.6.0 canonical H100 export, leave-one-drive-out evaluation, and final Gaussian fit | Historical complete v0.5.0 or current complete v0.5.2 native alignment batch | Residual vectors, dataset/model summaries, fold/station evaluation CSVs, and diagnostics plot |
@@ -198,6 +201,25 @@ one-state/two-state deltas to measure the incremental value of latent
 switching. A negative delta is better. The four technical groups still
 represent one outing, so paired group results remain within-outing development
 evidence only.
+
+Run the v0.15.2 two-state convergence audit from a new empty output directory:
+
+```bash
+python -m lane_residuals.cli.expanded_aiohmm_convergence \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --aiohmm-directory "outputs/models/expanded_aiohmm_v0150_reviewed" \
+  --one-state-ar-directory "outputs/models/one_state_ar_v0151" \
+  --output-directory "outputs/models/two_state_convergence_v0152"
+```
+
+The convergence rule is fixed to absolute standardized log-probability
+improvement per training frame with a `1e-3` threshold. The CLI rejects a
+different tolerance, AR bound, state count, restart count, or any other drift
+from the reviewed v0.15.0 configuration. It validates all three upstream
+directories and their hashes before creating output. The summary compares the
+corrected two-state model with both the original two-state and one-state fits;
+it does not perform model selection or the later AR-boundary sweep.
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

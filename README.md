@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.15.1
+# Minimal Path-Residual Model (MPR) v0.15.2
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -57,6 +57,22 @@ accepted. The real expanded run reduces macro lag-one correlation error from
 energy do not all beat the conditional Gaussian. All 15 fits touch both the
 occupancy and maximum-AR constraints. The result is therefore a temporal
 success but not full generative acceptance or journey-level validation.
+
+Version 0.15.1 runs the exact one-state conditional-AR ablation. On the
+reviewed private corpus, it beats the original two-state fit on all five
+macro sample-based metrics and on sequence energy in three of four technical
+groups. It does not beat the Gaussian baselines on every marginal metric, and
+all fits reach the 0.98 AR ceiling. The safe conclusion is that autoregression
+provides the temporal gain while the fitted latent switch has not earned its
+additional complexity on this one-outing development corpus.
+
+Version 0.15.2 removes the remaining convergence confound before any AR-boundary
+experiment. It re-fits only the frozen two-state architecture, replacing the
+legacy relative-total-likelihood stopping rule with an absolute improvement
+threshold of `1e-3` standardized nats per training frame. Every other model,
+fold, transform, restart, seed, sampling, and metric setting must match the
+hash-verified v0.15.0 and v0.15.1 artifacts. This is a diagnostic correction,
+not a hyperparameter sweep or new model family.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -583,6 +599,28 @@ count, restart count, or any non-architectural model hyperparameter. Its
 summary reports AR-versus-Gaussian and two-state-versus-one-state deltas with
 negative values always meaning better. The result remains within-one-outing
 development evidence and cannot authorize final model selection.
+
+## Two-state convergence audit
+
+v0.15.2 resolves the convergence-method confound before the separate AR-limit
+sensitivity study. Run it against the exact v0.14.0, reviewed v0.15.0, and
+reviewed v0.15.1 directories:
+
+```bash
+python -m lane_residuals.cli.expanded_aiohmm_convergence \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --aiohmm-directory "outputs/models/expanded_aiohmm_v0150_reviewed" \
+  --one-state-ar-directory "outputs/models/one_state_ar_v0151" \
+  --output-directory "outputs/models/two_state_convergence_v0152"
+```
+
+The command changes only the convergence criterion and its fixed threshold.
+It records the selected-fit iteration and likelihood changes, re-evaluates all
+predeclared held-out metrics, and reports corrected-two-state deltas against
+both frozen models. It fails before creating output when a reference hash or
+any non-convergence setting differs. The later AR-boundary sweep remains a
+separate experiment so its effect cannot be confused with convergence.
 
 ## Optional odometry-compensated reference-alignment validation
 

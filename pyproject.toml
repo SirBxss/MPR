@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mpr"
-version = "0.15.1"
+version = "0.15.2"
 description = "Shared sequence modeling and fail-closed MCAP corpus auditing"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -46,6 +46,7 @@ mpr-build-expanded-sequential-dataset-v0131 = "lane_residuals.cli.expanded_seque
 mpr-evaluate-expanded-gaussian = "lane_residuals.cli.expanded_gaussian:main"
 mpr-evaluate-expanded-aiohmm = "lane_residuals.cli.expanded_aiohmm:main"
 mpr-evaluate-expanded-ar-ablation = "lane_residuals.cli.expanded_ar_ablation:main"
+mpr-audit-expanded-aiohmm-convergence = "lane_residuals.cli.expanded_aiohmm_convergence:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

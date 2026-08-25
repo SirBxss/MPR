@@ -837,6 +837,46 @@ sequence-energy counts, exact hashes of both baselines, and an explicit latent-
 switching classification. These are within-one-outing development diagnostics;
 they do not authorize journey-level generalization or final model selection.
 
+## v0.15.2 two-state convergence-audit outputs
+
+The command accepts only the exact hash-reconciled v0.13.1 directory and the
+complete v0.14.0, v0.15.0, and v0.15.1 result directories. Before creating
+output, it verifies their filename sets, SHA-256 hashes, source lineage, folds,
+training-only transforms, Monte Carlo protocol, and model configurations. The
+candidate must differ from v0.15.0 only in the fixed convergence criterion and
+tolerance. It writes exactly:
+
+```text
+two_state_convergence_evaluation.csv
+two_state_convergence_station_evaluation.csv
+two_state_convergence_frame_evaluation.csv
+two_state_convergence_state_evaluation.csv
+two_state_convergence_restart_evaluation.csv
+two_state_convergence_comparison.csv
+two_state_convergence_fold_models.json
+two_state_convergence_model.json
+two_state_convergence_diagnostics.png
+two_state_convergence_summary.json
+```
+
+The five common evaluation artifacts and two model artifacts retain the shared
+autoregressive schema. The restart CSV additionally records the last raw
+standardized log-probability improvement, its absolute per-training-frame
+value, and the configured convergence measure. The comparison CSV contains one
+selected row for each of four held-out-group fits plus the descriptive
+all-clean fit, with old/new iteration counts, convergence states, training
+joint log-probabilities, and the corrected final stopping measure.
+
+`two_state_convergence_summary.json` records exact hashes of both frozen
+autoregressive references, the two permitted configuration differences,
+selected-fit convergence diagnostics, macro deltas against v0.15.0 and
+v0.15.1, and paired-group win counts and deltas for all five sample-based
+metrics. Its classification first states whether nonconvergence remains, then
+whether the corrected two-state fit supplies any sample-metric support for
+latent switching. Negative model deltas always mean better. The diagnostic
+does not change the AR boundary, introduce a model family, authorize final
+selection, or estimate independent-journey generalization.
+
 ## v0.11.0 sequence-contract AIOHMM outputs
 
 The command accepts the same exact seven-file v0.9.0 directory as v0.10.0. It

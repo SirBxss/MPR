@@ -8,6 +8,8 @@ import numpy as np
 
 from lane_residuals.domain.sequence_dataset import PaddedSequenceDataset
 from lane_residuals.modeling.aiohmm import (
+    ABSOLUTE_LOG_PROBABILITY_IMPROVEMENT_PER_FRAME_CONVERGENCE,
+    RELATIVE_TOTAL_LOG_PROBABILITY_CONVERGENCE,
     AIOHMMConfig,
     AutoregressiveInputOutputHMM,
 )
@@ -283,6 +285,48 @@ class AIOHMMTests(unittest.TestCase):
             report.warnings,
         )
 
+    def test_per_frame_convergence_measure_is_dataset_size_invariant(self) -> None:
+        per_frame_model = AutoregressiveInputOutputHMM(
+            replace(
+                _config(),
+                convergence_criterion=(
+                    ABSOLUTE_LOG_PROBABILITY_IMPROVEMENT_PER_FRAME_CONVERGENCE
+                ),
+            )
+        )
+        first = per_frame_model._em_convergence_measure(
+            improvement=4.0,
+            previous_log_probability=-40_000.0,
+            training_frame_count=1_000,
+        )
+        doubled = per_frame_model._em_convergence_measure(
+            improvement=8.0,
+            previous_log_probability=-80_000.0,
+            training_frame_count=2_000,
+        )
+        legacy = AutoregressiveInputOutputHMM(
+            _config()
+        )._em_convergence_measure(
+            improvement=4.0,
+            previous_log_probability=-40_000.0,
+            training_frame_count=1_000,
+        )
+
+        self.assertEqual(first, 0.004)
+        self.assertEqual(doubled, first)
+        self.assertEqual(legacy, 0.0001)
+
+    def test_missing_convergence_criterion_loads_as_legacy_semantics(self) -> None:
+        payload = _config().to_dict()
+        del payload["convergence_criterion"]
+
+        restored = AIOHMMConfig.from_dict(payload)
+
+        self.assertEqual(
+            restored.convergence_criterion,
+            RELATIVE_TOTAL_LOG_PROBABILITY_CONVERGENCE,
+        )
+
     def test_configuration_rejects_unstable_or_empty_state_models(self) -> None:
         with self.assertRaisesRegex(ValueError, "positive"):
             AIOHMMConfig(state_count=0)
@@ -290,6 +334,8 @@ class AIOHMMTests(unittest.TestCase):
             AIOHMMConfig(maximum_absolute_autoregression=1.0)
         with self.assertRaisesRegex(ValueError, "nonnegative"):
             AIOHMMConfig(emission_parameter_pooling_penalty=-1.0)
+        with self.assertRaisesRegex(ValueError, "convergence_criterion"):
+            AIOHMMConfig(convergence_criterion="unsupported")
 
 
 if __name__ == "__main__":
