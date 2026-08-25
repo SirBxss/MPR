@@ -1149,10 +1149,15 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
 
         if best_state is None:
             raise ValueError("AIOHMM fitting ended before a valid state was observed")
-        # Convergence describes the stopping criterion, not whether the final
-        # roundoff-level iterate strictly exceeded the retained best iterate.
-        # Keeping the best state is still the safer numerical policy.
-        retained_state_converged = converged
+        # At K=1 the emission update is closed-form, so a roundoff-flat final
+        # iterate may satisfy the stopping criterion without strictly exceeding
+        # the retained best iterate. Multi-state generalized EM must retain the
+        # stricter v0.15 rule: a converged fit cannot roll back to an earlier
+        # parameter state.
+        retained_state_converged = converged and (
+            self.config.state_count == 1
+            or best_iteration == len(history) - 1
+        )
         best_state = replace(
             best_state,
             log_likelihood_history=np.asarray(history, dtype=np.float64),

@@ -1,6 +1,8 @@
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 
@@ -230,6 +232,56 @@ class AIOHMMTests(unittest.TestCase):
             atol=0.0,
         )
         self.assertFalse(first.to_dict()["latent_state_switching"])
+
+    def test_multistate_decreasing_tail_is_not_reported_converged(self) -> None:
+        model = AutoregressiveInputOutputHMM(_config())
+        original_expectation = model._expectation
+        controlled_totals = (100.0, 100.0 - 1e-6)
+        expectation_count = 0
+
+        def controlled_expectation(
+            dataset: PaddedSequenceDataset,
+        ):
+            nonlocal expectation_count
+            result = original_expectation(dataset)
+            if expectation_count >= len(controlled_totals):
+                return result
+            total = controlled_totals[expectation_count]
+            expectation_count += 1
+            return replace(
+                result,
+                sequence_log_probabilities=np.full(
+                    dataset.sequence_count,
+                    total / dataset.sequence_count,
+                    dtype=np.float64,
+                ),
+            )
+
+        def retain_current_state(
+            _dataset: PaddedSequenceDataset,
+            *,
+            current_state,
+            proposed_state,
+            current_log_probability: float,
+        ):
+            del proposed_state, current_log_probability
+            return current_state, 0
+
+        with patch.object(
+            model, "_expectation", side_effect=controlled_expectation
+        ), patch.object(
+            model, "_backtracked_m_step", side_effect=retain_current_state
+        ):
+            report = model.fit(self.training, self.validation)
+
+        self.assertEqual(model.to_dict()["best_iteration_index"], 0)
+        self.assertEqual(len(model.log_likelihood_history), 2)
+        self.assertFalse(model.to_dict()["converged"])
+        self.assertEqual(report.metrics["em_converged"], 0.0)
+        self.assertIn(
+            "EM did not reach the configured convergence tolerance.",
+            report.warnings,
+        )
 
     def test_configuration_rejects_unstable_or_empty_state_models(self) -> None:
         with self.assertRaisesRegex(ValueError, "positive"):
