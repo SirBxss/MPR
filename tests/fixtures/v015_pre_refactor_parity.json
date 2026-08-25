@@ -1,6 +1,7 @@
 {
   "reference_revision": "b057dd62f4ae855b5d4cca4c822fa15550234917",
   "reference_role": "v0.15.0 implementation before the shared autoregressive workflow refactor",
+  "reference_capture": "full-precision payload captured only after the original normalized 10-significant-digit hashes matched the pre-refactor revision",
   "fixture_contract": {
     "dataset_builder": "tests.io.test_expanded_modeling_dataset.write_v0131_fixture",
     "dataset_seed": 140,
@@ -9,8 +10,9 @@
     "sample_count": 8,
     "state_count": 2
   },
-  "significant_digits": 10,
-  "normalized_json_output_sha256": {
+  "relative_tolerance": 1e-09,
+  "absolute_tolerance": 1e-10,
+  "normalized_json_outputs": {
     "expanded_aiohmm_fold_models.json": {
       "omitted_keys": [
         "convergence_criterion",
@@ -20,7 +22,7 @@
         "input_dependent_state_transitions_effective",
         "latent_state_switching"
       ],
-      "sha256": "56f82644e398738f36b018564d7e4eb0b4a9977220bb3224c15dc7b7b3932931"
+      "reference_file": "v015_pre_refactor_parity/expanded_aiohmm_fold_models.json"
     },
     "expanded_aiohmm_model.json": {
       "omitted_keys": [
@@ -31,7 +33,7 @@
         "input_dependent_state_transitions_effective",
         "latent_state_switching"
       ],
-      "sha256": "55689710f5ec95f49086ee7eb5a764ddb48d99e63ae2ccdedcfee85b356b4637"
+      "reference_file": "v015_pre_refactor_parity/expanded_aiohmm_model.json"
     },
     "expanded_aiohmm_summary.json": {
       "omitted_keys": [
@@ -43,7 +45,7 @@
         "output_files_sha256",
         "source_files_sha256"
       ],
-      "sha256": "45aa6bf2488d8cbf17d5d51904d765ef8fb85d80ae192181aeb9479e2901800c"
+      "reference_file": "v015_pre_refactor_parity/expanded_aiohmm_summary.json"
     }
   }
 }

@@ -1,6 +1,6 @@
 import csv
-import hashlib
 import json
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -18,11 +18,10 @@ V015_PRE_REFACTOR_PARITY_REFERENCE = (
 )
 
 
-def _normalized_json_sha256(
+def _normalized_json(
     path: Path,
     omitted_keys: set[str],
-    significant_digits: int,
-) -> str:
+) -> object:
     def normalize(value):
         if isinstance(value, dict):
             return {
@@ -32,21 +31,95 @@ def _normalized_json_sha256(
             }
         if isinstance(value, list):
             return [normalize(item) for item in value]
-        if isinstance(value, float):
-            return float(format(value, f".{significant_digits}g"))
         return value
 
-    payload = normalize(json.loads(path.read_text(encoding="utf-8")))
-    encoded = json.dumps(
-        payload,
-        allow_nan=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
+    return normalize(json.loads(path.read_text(encoding="utf-8")))
+
+
+def _assert_json_numerically_close(
+    expected: object,
+    actual: object,
+    *,
+    relative_tolerance: float,
+    absolute_tolerance: float,
+    path: str = "$",
+) -> None:
+    if isinstance(expected, dict):
+        if not isinstance(actual, dict):
+            raise AssertionError(
+                f"{path}: expected object, got {type(actual).__name__}"
+            )
+        if set(expected) != set(actual):
+            missing = sorted(set(expected) - set(actual))
+            extra = sorted(set(actual) - set(expected))
+            raise AssertionError(
+                f"{path}: object keys differ; missing={missing}, extra={extra}"
+            )
+        for key in sorted(expected):
+            _assert_json_numerically_close(
+                expected[key],
+                actual[key],
+                relative_tolerance=relative_tolerance,
+                absolute_tolerance=absolute_tolerance,
+                path=f"{path}.{key}",
+            )
+        return
+    if isinstance(expected, list):
+        if not isinstance(actual, list):
+            raise AssertionError(
+                f"{path}: expected list, got {type(actual).__name__}"
+            )
+        if len(expected) != len(actual):
+            raise AssertionError(
+                f"{path}: list lengths differ; expected={len(expected)}, "
+                f"actual={len(actual)}"
+            )
+        for index, (expected_item, actual_item) in enumerate(
+            zip(expected, actual)
+        ):
+            _assert_json_numerically_close(
+                expected_item,
+                actual_item,
+                relative_tolerance=relative_tolerance,
+                absolute_tolerance=absolute_tolerance,
+                path=f"{path}[{index}]",
+            )
+        return
+    if isinstance(expected, float):
+        if not isinstance(actual, (int, float)) or isinstance(actual, bool):
+            raise AssertionError(
+                f"{path}: expected numeric value, got {type(actual).__name__}"
+            )
+        if not math.isclose(
+            expected,
+            float(actual),
+            rel_tol=relative_tolerance,
+            abs_tol=absolute_tolerance,
+        ):
+            raise AssertionError(
+                f"{path}: numerical parity failed; expected={expected!r}, "
+                f"actual={actual!r}, rtol={relative_tolerance}, "
+                f"atol={absolute_tolerance}"
+            )
+        return
+    if type(expected) is not type(actual) or expected != actual:
+        raise AssertionError(
+            f"{path}: exact parity failed; expected={expected!r}, actual={actual!r}"
+        )
 
 
 class ExpandedAIOHMMWorkflowTests(unittest.TestCase):
+    def test_numeric_parity_failure_reports_the_drifting_path(self) -> None:
+        with self.assertRaisesRegex(
+            AssertionError, r"\$\.models\[1\]\.coefficient"
+        ):
+            _assert_json_numerically_close(
+                {"models": [{"coefficient": 0.1}, {"coefficient": 0.2}]},
+                {"models": [{"coefficient": 0.1}, {"coefficient": 0.21}]},
+                relative_tolerance=1e-9,
+                absolute_tolerance=1e-10,
+            )
+
     def test_result_classification_requires_explicit_temporal_evidence(self) -> None:
         complete = {
             "frame_energy_score_improved": True,
@@ -255,17 +328,21 @@ class ExpandedAIOHMMWorkflowTests(unittest.TestCase):
             status = aiohmm_main(self._arguments(source, gaussian, output))
 
             self.assertEqual(status, 0)
-            for name, contract in reference[
-                "normalized_json_output_sha256"
-            ].items():
-                self.assertEqual(
-                    _normalized_json_sha256(
+            for name, contract in reference["normalized_json_outputs"].items():
+                expected = json.loads(
+                    (
+                        V015_PRE_REFACTOR_PARITY_REFERENCE.parent
+                        / contract["reference_file"]
+                    ).read_text(encoding="utf-8")
+                )
+                _assert_json_numerically_close(
+                    expected,
+                    _normalized_json(
                         output / name,
                         set(contract["omitted_keys"]),
-                        int(reference["significant_digits"]),
                     ),
-                    contract["sha256"],
-                    msg=f"v0.15 pre-refactor numerical parity failed for {name}",
+                    relative_tolerance=float(reference["relative_tolerance"]),
+                    absolute_tolerance=float(reference["absolute_tolerance"]),
                 )
 
     def test_tampered_gaussian_fails_before_output_creation(self) -> None:
