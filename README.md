@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.15.2
+# Minimal Path-Residual Model (MPR) v0.15.3
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -73,6 +73,15 @@ threshold of `1e-3` standardized nats per training frame. Every other model,
 fold, transform, restart, seed, sampling, and metric setting must match the
 hash-verified v0.15.0 and v0.15.1 artifacts. This is a diagnostic correction,
 not a hyperparameter sweep or new model family.
+
+Version 0.15.3 performs the separate one-state AR-ceiling sensitivity. It
+retains the reviewed 0.98 result and fits only the predeclared 0.99, 0.995,
+and 0.999 candidates with identical data, folds, transforms, architecture,
+fitting settings, seeds, samples, and metrics. The audit adds the previously
+omitted unconditional Gaussian to a consolidated comparison with the
+conditional Gaussian, corrected two-state AIOHMM, and all one-state
+candidates. Any supported ceiling remains a within-outing development choice;
+final selection still requires untouched independent outings.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -621,6 +630,29 @@ predeclared held-out metrics, and reports corrected-two-state deltas against
 both frozen models. It fails before creating output when a reference hash or
 any non-convergence setting differs. The later AR-boundary sweep remains a
 separate experiment so its effect cannot be confused with convergence.
+
+## One-state AR-boundary sensitivity
+
+v0.15.3 varies only the reviewed one-state model's stability ceiling. Run it
+against the exact v0.14.0, v0.15.0, v0.15.1, and v0.15.2 directories:
+
+```bash
+python -m lane_residuals.cli.expanded_ar_boundary \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --aiohmm-directory "outputs/models/expanded_aiohmm_v0150_reviewed" \
+  --one-state-ar-directory "outputs/models/one_state_ar_v0151" \
+  --two-state-convergence-directory \
+  "outputs/models/two_state_convergence_v0152" \
+  --output-directory "outputs/models/one_state_ar_boundary_v0153"
+```
+
+The 0.98 baseline is hash-validated rather than re-fitted. The command fits
+only 0.99, 0.995, and 0.999, records paired fold and station evidence, and
+applies the predeclared conservative development checks. The recorded pooled
+coverage hypothesis of approximately 0.918 is diagnostic only and is never an
+acceptance target. The command does not authorize final model selection or a
+planner-level claim.
 
 ## Optional odometry-compensated reference-alignment validation
 

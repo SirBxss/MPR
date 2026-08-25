@@ -191,6 +191,15 @@ comparisons with both frozen autoregressive models. Its dedicated CLI and
 visualization remain in their categorized layers; no model-specific IO is
 placed back at the package root.
 
+The v0.15.3 workflow remains orchestration rather than a new model layer.
+`io.model_evaluation` reconciles the complete corrected v0.15.2 artifact and
+its transitive v0.14--v0.15.1 lineage. The workflow reuses the reviewed 0.98
+one-state artifact, invokes the shared autoregressive engine only for the three
+predeclared higher ceilings, and consolidates both Gaussian baselines,
+corrected K=2, and all K=1 candidates. Candidate outputs remain in named
+subdirectories; cross-candidate tables and the dedicated plot live at the
+audit root.
+
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific
 behavior. Moving that arithmetic into a neutral domain geometry utility should

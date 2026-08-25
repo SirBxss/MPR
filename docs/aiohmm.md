@@ -266,6 +266,33 @@ sample metric. A corrected fit must be compared with the one-state result
 before making a latent-switching claim. This audit does not relax the 0.98 AR
 ceiling; that sensitivity remains a separate next phase.
 
+## One-state AR-boundary sensitivity
+
+v0.15.3 keeps the reviewed one-state architecture and evaluates the fixed
+maximum-absolute-AR grid `{0.98, 0.99, 0.995, 0.999}`. The 0.98 result is
+loaded from v0.15.1 and hash-validated; only the three higher values are fit.
+All other configuration values, folds, training-only standardizers, restarts,
+sampling seeds, sample count, and metrics remain identical.
+
+```bash
+python -m lane_residuals.cli.expanded_ar_boundary \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  --gaussian-directory "outputs/models/expanded_gaussian_v0140" \
+  --aiohmm-directory "outputs/models/expanded_aiohmm_v0150_reviewed" \
+  --one-state-ar-directory "outputs/models/one_state_ar_v0151" \
+  --two-state-convergence-directory \
+  "outputs/models/two_state_convergence_v0152" \
+  --output-directory "outputs/models/one_state_ar_boundary_v0153"
+```
+
+The decision contract is deliberately conservative. Development support
+requires fewer boundary-contact station-folds, improved macro coverage error,
+non-worse energy/lag/RMSE checks, consistent fold directions, and no failed or
+selected nonconverged fit. If more than one ceiling passes, the smallest is
+reported. Because all folds remain portions of one outing, even that result is
+not an unbiased final selection and must be confirmed on independent outings
+before freezing the planner model.
+
 ## Limitations and next gate
 
 - The effective primary support is one same-day outing divided into four clean
@@ -288,7 +315,8 @@ The current data are sufficient for implementation and exploratory Gaussian
 versus AIOHMM comparison. They are not sufficient for final state-count tuning,
 broad feature search, RC-GAN claims, or an untouched thesis test. The reviewed
 one-state result favors autoregression without latent switching on the current
-corpus, but the corrected two-state convergence audit must close the remaining
-optimization confound before the separate AR-boundary sensitivity is run.
+corpus, and the corrected two-state audit shows that this conclusion was not
+caused by premature EM stopping. The separate AR-boundary audit remains
+development evidence until it is confirmed on independent outings.
 The acquisition gate remains 8--12 independent physical drives, with at least
 two locked final test drives and preferably continuous 2--5 minute recordings.
