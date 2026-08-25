@@ -1,0 +1,40 @@
+{
+  "reference_revision": "b057dd62f4ae855b5d4cca4c822fa15550234917",
+  "reference_role": "v0.15.0 implementation before the shared autoregressive workflow refactor",
+  "fixture_contract": {
+    "dataset_builder": "tests.io.test_expanded_modeling_dataset.write_v0131_fixture",
+    "dataset_seed": 140,
+    "model_seed": 1400,
+    "restart_count": 1,
+    "sample_count": 8,
+    "state_count": 2
+  },
+  "significant_digits": 12,
+  "normalized_json_output_sha256": {
+    "expanded_aiohmm_fold_models.json": {
+      "omitted_keys": [
+        "input_dependent_state_transitions_effective",
+        "latent_state_switching"
+      ],
+      "sha256": "3beab0b09a6833d07215320689d29fb3e72b3aa5cc5d7fe99c7014ed78407d10"
+    },
+    "expanded_aiohmm_model.json": {
+      "omitted_keys": [
+        "input_dependent_state_transitions_effective",
+        "latent_state_switching"
+      ],
+      "sha256": "322f9afffe5b7945d73dba87ae34a08de4d183e43b0157f78f06d2aded0bce55"
+    },
+    "expanded_aiohmm_summary.json": {
+      "omitted_keys": [
+        "gaussian_baseline_files_sha256",
+        "gaussian_protocol_sha256",
+        "input_dependent_state_transitions_effective",
+        "latent_state_switching",
+        "output_files_sha256",
+        "source_files_sha256"
+      ],
+      "sha256": "ee6302ae347f59f61a27b640aa5faa0682678260f76ad7c80da094ba0b77251a"
+    }
+  }
+}

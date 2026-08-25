@@ -1,4 +1,5 @@
 import csv
+import hashlib
 import json
 import tempfile
 import unittest
@@ -8,6 +9,41 @@ from lane_residuals.cli.expanded_aiohmm import main as aiohmm_main
 from lane_residuals.cli.expanded_gaussian import main as gaussian_main
 from lane_residuals.workflows.expanded_aiohmm import _result_classification
 from tests.io.test_expanded_modeling_dataset import write_v0131_fixture
+
+
+V015_PRE_REFACTOR_PARITY_REFERENCE = (
+    Path(__file__).resolve().parents[1]
+    / "fixtures"
+    / "v015_pre_refactor_parity.json"
+)
+
+
+def _normalized_json_sha256(
+    path: Path,
+    omitted_keys: set[str],
+    significant_digits: int,
+) -> str:
+    def normalize(value):
+        if isinstance(value, dict):
+            return {
+                key: normalize(item)
+                for key, item in sorted(value.items())
+                if key not in omitted_keys
+            }
+        if isinstance(value, list):
+            return [normalize(item) for item in value]
+        if isinstance(value, float):
+            return float(format(value, f".{significant_digits}g"))
+        return value
+
+    payload = normalize(json.loads(path.read_text(encoding="utf-8")))
+    encoded = json.dumps(
+        payload,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 class ExpandedAIOHMMWorkflowTests(unittest.TestCase):
@@ -204,6 +240,33 @@ class ExpandedAIOHMMWorkflowTests(unittest.TestCase):
             self.assertEqual(len(frame_rows), 25)
             self.assertTrue(all(row["recording_id"] for row in frame_rows))
             self.assertTrue(all(row["mcap_basename_private"] for row in frame_rows))
+
+    def test_refactored_v015_matches_pre_refactor_reference(self) -> None:
+        reference = json.loads(
+            V015_PRE_REFACTOR_PARITY_REFERENCE.read_text(encoding="utf-8")
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = write_v0131_fixture(root / "v0131")
+            gaussian = root / "gaussian"
+            output = root / "aiohmm"
+            self._write_gaussian(source, gaussian)
+
+            status = aiohmm_main(self._arguments(source, gaussian, output))
+
+            self.assertEqual(status, 0)
+            for name, contract in reference[
+                "normalized_json_output_sha256"
+            ].items():
+                self.assertEqual(
+                    _normalized_json_sha256(
+                        output / name,
+                        set(contract["omitted_keys"]),
+                        int(reference["significant_digits"]),
+                    ),
+                    contract["sha256"],
+                    msg=f"v0.15 pre-refactor numerical parity failed for {name}",
+                )
 
     def test_tampered_gaussian_fails_before_output_creation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
