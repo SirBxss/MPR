@@ -21,6 +21,7 @@ def build_expanded_autoregressive_parser(
     output_directory: Path,
     state_count: int,
     state_help: str,
+    occupancy_help: str,
 ) -> argparse.ArgumentParser:
     """Build the shared fixed-protocol autoregressive evaluation CLI."""
 
@@ -76,7 +77,7 @@ def build_expanded_autoregressive_parser(
         "--minimum-state-occupancy-fraction",
         type=float,
         default=0.05,
-        help="fail a restart whose fitted training occupancy falls below 5%%",
+        help=occupancy_help,
     )
     parser.add_argument(
         "--initialization-seed",
@@ -113,6 +114,9 @@ def _parser() -> argparse.ArgumentParser:
         output_directory=Path("outputs/models/expanded_aiohmm_v0150"),
         state_count=2,
         state_help="fixed at two for v0.15; other values are rejected",
+        occupancy_help=(
+            "fail a restart whose fitted training occupancy falls below 5%%"
+        ),
     )
 
 

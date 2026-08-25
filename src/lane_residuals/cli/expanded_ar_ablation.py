@@ -25,6 +25,9 @@ def _parser() -> argparse.ArgumentParser:
         output_directory=Path("outputs/models/one_state_ar_v0151"),
         state_count=1,
         state_help="fixed at one for v0.15.1; other values are rejected",
+        occupancy_help=(
+            "retained at the v0.15 value for protocol parity; inactive with one component"
+        ),
     )
     parser.add_argument(
         "--aiohmm-directory",
