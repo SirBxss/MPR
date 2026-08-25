@@ -34,8 +34,8 @@ are not the thesis execution path.
 | v0.14 | Clean-group evaluation protocol and Gaussian re-baseline | Implemented; four leave-one-clean-group-out folds within one same-day outing, equal-group and pooled metrics, and separate mixed-fragment transfer checks |
 | v0.15 | Two-state AIOHMM on the v0.14 protocol | Implemented; temporal dependence improves strongly, but marginal calibration and full generative acceptance do not pass |
 | v0.15.1 | One-state conditional AR ablation | Complete and reviewed; one-state wins all five macro sample metrics against the original two-state fit, while the AR ceiling remains active |
-| v0.15.2 | Two-state convergence audit | Implemented; exact private-corpus run must determine whether the v0.15.0 stopping rule confounded the latent-switching comparison |
-| v0.15.3 | One-state AR-boundary sensitivity | Begins only after v0.15.2; vary only the predeclared AR ceiling and test the recorded coverage prediction |
+| v0.15.2 | Two-state convergence audit | Complete and reviewed; one fold gains one iteration, every macro delta is at most `4e-4`, and the one-state conclusion is unchanged |
+| v0.15.3 | One-state AR-boundary sensitivity | Implemented; private run pending on the fixed `{0.98, 0.99, 0.995, 0.999}` grid with every other setting frozen |
 | v0.16 | RC-GAN | Begins only after the AIOHMM/AR audits and when the independent-drive/data-volume gate supports a defensible adversarial experiment |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
@@ -61,6 +61,15 @@ absolute improvement of `1e-3` standardized nats per training frame. Once the
 corrected two-state evidence is reviewed, v0.15.3 may vary only the AR ceiling.
 Additional independent outings remain necessary before an untouched final
 comparison, broad feature search, or RC-GAN work.
+
+v0.15.3 treats 0.98 as an immutable reviewed reference and fits only the three
+higher ceilings. A higher ceiling receives development support only when it
+reduces station-fold boundary contact, improves macro calibration, remains no
+worse on the predeclared temporal and energy criteria, and has no failed or
+selected nonconverged fit. Fold directions are reported even though the four
+groups are not independent journeys. If several candidates pass, the smallest
+is reported to avoid maximizing a noisy metric on the same outing. This is
+conservative development guidance, not final hyperparameter selection.
 
 ## Feature policy
 

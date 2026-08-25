@@ -877,6 +877,52 @@ latent switching. Negative model deltas always mean better. The diagnostic
 does not change the AR boundary, introduce a model family, authorize final
 selection, or estimate independent-journey generalization.
 
+## v0.15.3 one-state AR-boundary-sensitivity outputs
+
+The command accepts only the exact hash-reconciled v0.13.1 dataset and the
+complete v0.14.0, v0.15.0, reviewed v0.15.1, and reviewed v0.15.2 result
+directories. All references and their transitive lineage are validated before
+output is created. The CLI configuration must exactly reproduce v0.15.1 at
+the 0.98 baseline. It then fits the fixed 0.99, 0.995, and 0.999 candidates,
+changing only `maximum_absolute_autoregression`.
+
+The top-level output is exactly:
+
+```text
+candidates/
+  one_state_ar_cap_0_990/
+  one_state_ar_cap_0_995/
+  one_state_ar_cap_0_999/
+ar_boundary_model_comparison.csv
+ar_boundary_fold_comparison.csv
+ar_boundary_station_comparison.csv
+ar_boundary_sensitivity_diagnostics.png
+ar_boundary_sensitivity_summary.json
+```
+
+Each candidate directory contains the shared nine-file one-state
+evaluation/model contract. Its summary records the one permitted difference
+from v0.15.1 and the exact v0.15.1 hashes. The reviewed 0.98 files are not
+copied or regenerated.
+
+`ar_boundary_model_comparison.csv` contains seven macro rows: unconditional
+Gaussian, conditional Gaussian, corrected two-state AIOHMM, reviewed
+one-state 0.98, and the three candidate ceilings. This is the consolidated
+comparison required before paper reporting. `ar_boundary_fold_comparison.csv`
+contains the same seven models on each of four technical groups.
+`ar_boundary_station_comparison.csv` contains the four one-state ceilings on
+all 21 H100 stations, including both reference-cap and candidate-cap binding
+flags. The figure visualizes macro deltas, calibration, station profiles, and
+remaining boundary contact.
+
+The summary reports pairwise candidate deltas against all three frozen model
+roles, paired group directions, the predeclared conservative checks, and the
+smallest development-supported ceiling when one exists. The recorded pooled
+coverage hypothesis of approximately 0.918 is diagnostic and is not an
+acceptance or selection target. Command success means the sensitivity audit
+completed; it never authorizes a final model, journey-level generalization, or
+planner benefit.
+
 ## v0.11.0 sequence-contract AIOHMM outputs
 
 The command accepts the same exact seven-file v0.9.0 directory as v0.10.0. It
