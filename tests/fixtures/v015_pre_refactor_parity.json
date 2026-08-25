@@ -13,6 +13,10 @@
   "normalized_json_output_sha256": {
     "expanded_aiohmm_fold_models.json": {
       "omitted_keys": [
+        "convergence_criterion",
+        "em_last_absolute_log_probability_improvement_per_frame_standardized",
+        "em_last_convergence_measure",
+        "em_last_log_probability_improvement_standardized",
         "input_dependent_state_transitions_effective",
         "latent_state_switching"
       ],
@@ -20,6 +24,10 @@
     },
     "expanded_aiohmm_model.json": {
       "omitted_keys": [
+        "convergence_criterion",
+        "em_last_absolute_log_probability_improvement_per_frame_standardized",
+        "em_last_convergence_measure",
+        "em_last_log_probability_improvement_standardized",
         "input_dependent_state_transitions_effective",
         "latent_state_switching"
       ],
@@ -27,6 +35,7 @@
     },
     "expanded_aiohmm_summary.json": {
       "omitted_keys": [
+        "convergence_criterion",
         "gaussian_baseline_files_sha256",
         "gaussian_protocol_sha256",
         "input_dependent_state_transitions_effective",

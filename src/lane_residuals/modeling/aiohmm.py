@@ -34,6 +34,18 @@ IntegerArray = NDArray[np.int64]
 BooleanArray = NDArray[np.bool_]
 VERSION = "0.11.0"
 MAXIMUM_M_STEP_BACKTRACKING_STEPS = 12
+RELATIVE_TOTAL_LOG_PROBABILITY_CONVERGENCE = (
+    "relative_total_log_probability"
+)
+ABSOLUTE_LOG_PROBABILITY_IMPROVEMENT_PER_FRAME_CONVERGENCE = (
+    "absolute_log_probability_improvement_per_frame"
+)
+SUPPORTED_CONVERGENCE_CRITERIA = frozenset(
+    {
+        RELATIVE_TOTAL_LOG_PROBABILITY_CONVERGENCE,
+        ABSOLUTE_LOG_PROBABILITY_IMPROVEMENT_PER_FRAME_CONVERGENCE,
+    }
+)
 
 
 def _strict_json(path: Path) -> Any:
@@ -62,6 +74,7 @@ class AIOHMMConfig:
     maximum_em_iterations: int = 30
     minimum_em_iterations: int = 5
     convergence_tolerance: float = 1e-4
+    convergence_criterion: str = RELATIVE_TOTAL_LOG_PROBABILITY_CONVERGENCE
     regression_ridge_penalty: float = 1e-3
     emission_parameter_pooling_penalty: float = 10.0
     state_covariance_pooling: float = 0.50
@@ -126,6 +139,11 @@ class AIOHMMConfig:
                 raise ValueError(f"{name} must be finite")
         if self.convergence_tolerance <= 0.0:
             raise ValueError("convergence_tolerance must be positive")
+        if self.convergence_criterion not in SUPPORTED_CONVERGENCE_CRITERIA:
+            raise ValueError(
+                "convergence_criterion must be one of "
+                f"{sorted(SUPPORTED_CONVERGENCE_CRITERIA)}"
+            )
         if (
             self.regression_ridge_penalty < 0.0
             or self.emission_parameter_pooling_penalty < 0.0
@@ -272,6 +290,24 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
         if self._state is None:
             raise ValueError("AIOHMM is not fitted")
         return self._state
+
+    def _em_convergence_measure(
+        self,
+        *,
+        improvement: float,
+        previous_log_probability: float,
+        training_frame_count: int,
+    ) -> float:
+        """Return the configured dimensionless or per-frame EM stopping measure."""
+
+        if training_frame_count < 1:
+            raise ValueError("training_frame_count must be positive")
+        if (
+            self.config.convergence_criterion
+            == RELATIVE_TOTAL_LOG_PROBABILITY_CONVERGENCE
+        ):
+            return abs(improvement) / max(abs(previous_log_probability), 1.0)
+        return abs(improvement) / training_frame_count
 
     @property
     def initial_probabilities(self) -> FloatArray:
@@ -1061,6 +1097,8 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
         backtracked_m_step_count = 0
         maximum_backtracking_depth = 0
         rejected_m_step_count = 0
+        last_log_probability_improvement: float | None = None
+        last_convergence_measure: float | None = None
         warnings: list[str] = []
 
         for iteration in range(self.config.maximum_em_iterations):
@@ -1099,12 +1137,18 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
                 best_state = self._copy_state(current)
             if len(history) > 1:
                 improvement = history[-1] - history[-2]
-                relative_improvement = improvement / max(abs(history[-2]), 1.0)
+                convergence_measure = self._em_convergence_measure(
+                    improvement=improvement,
+                    previous_log_probability=history[-2],
+                    training_frame_count=training_data.frame_count,
+                )
+                last_log_probability_improvement = improvement
+                last_convergence_measure = convergence_measure
                 if improvement < -1e-7:
                     likelihood_decrease_count += 1
                 if (
                     iteration + 1 >= self.config.minimum_em_iterations
-                    and abs(relative_improvement) < self.config.convergence_tolerance
+                    and convergence_measure < self.config.convergence_tolerance
                 ):
                     converged = True
                     break
@@ -1199,6 +1243,22 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
                 np.max(np.abs(best_state.autoregressive_coefficients))
             ),
         }
+        if (
+            last_log_probability_improvement is not None
+            and last_convergence_measure is not None
+        ):
+            metrics.update(
+                {
+                    "em_last_log_probability_improvement_standardized": (
+                        last_log_probability_improvement
+                    ),
+                    "em_last_absolute_log_probability_improvement_per_frame_standardized": (
+                        abs(last_log_probability_improvement)
+                        / training_data.frame_count
+                    ),
+                    "em_last_convergence_measure": last_convergence_measure,
+                }
+            )
         validation_count = 0
         if validation_data is not None:
             validation_count = validation_data.sequence_count
@@ -1549,7 +1609,10 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
 
 
 __all__ = [
+    "ABSOLUTE_LOG_PROBABILITY_IMPROVEMENT_PER_FRAME_CONVERGENCE",
     "AIOHMMConfig",
     "AutoregressiveInputOutputHMM",
+    "RELATIVE_TOTAL_LOG_PROBABILITY_CONVERGENCE",
+    "SUPPORTED_CONVERGENCE_CRITERIA",
     "VERSION",
 ]
