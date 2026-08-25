@@ -41,6 +41,21 @@ AIOHMM_REQUIRED_FILES = frozenset(
     }
 )
 
+ONE_STATE_AR_VERSION = "0.15.1"
+ONE_STATE_AR_REQUIRED_FILES = frozenset(
+    {
+        "one_state_ar_evaluation.csv",
+        "one_state_ar_station_evaluation.csv",
+        "one_state_ar_frame_evaluation.csv",
+        "one_state_ar_state_evaluation.csv",
+        "one_state_ar_restart_evaluation.csv",
+        "one_state_ar_fold_models.json",
+        "one_state_ar_model.json",
+        "one_state_ar_diagnostics.png",
+        "one_state_ar_summary.json",
+    }
+)
+
 
 def load_expanded_gaussian_baseline(
     directory: str | Path,
@@ -269,11 +284,159 @@ def load_expanded_aiohmm_baseline(
     return summary, hashes
 
 
+def load_expanded_one_state_ar_baseline(
+    directory: str | Path,
+    *,
+    source_files_sha256: Mapping[str, str],
+    gaussian_files_sha256: Mapping[str, str],
+    aiohmm_files_sha256: Mapping[str, str],
+    folds: Sequence[DriveGroupedFold],
+    sample_count: int,
+    base_seed: int,
+) -> tuple[Mapping[str, Any], dict[str, str]]:
+    """Validate v0.15.1 as the immutable one-state comparison artifact."""
+
+    source = Path(directory)
+    if not source.is_dir():
+        raise FileNotFoundError(
+            f"v0.15.1 one-state AR directory not found: {source}"
+        )
+    actual = {path.name for path in source.iterdir() if path.is_file()}
+    if actual != ONE_STATE_AR_REQUIRED_FILES:
+        raise ExpandedSequenceContractError(
+            "v0.15.1 one-state AR directory filename set differs from the contract"
+        )
+    summary = read_json_object(source / "one_state_ar_summary.json")
+    fold_models = read_json_object(source / "one_state_ar_fold_models.json")
+    if (
+        summary.get("version") != ONE_STATE_AR_VERSION
+        or summary.get("status") != "complete"
+        or summary.get("purpose")
+        != "one_state_conditional_autoregressive_gaussian_ablation"
+        or summary.get("state_count") != 1
+        or summary.get("latent_state_switching") is not False
+        or summary.get("input_dependent_state_transitions_effective") is not False
+    ):
+        raise ExpandedSequenceContractError(
+            "v0.15.1 one-state AR summary is not accepted"
+        )
+    if (
+        summary.get("evaluation_scheme")
+        != "leave_one_clean_recording_group_out_within_one_outing"
+        or summary.get("random_frame_splits_used") is not False
+        or summary.get(
+            "same_folds_transforms_hyperparameters_sampling_and_metrics_as_v0150"
+        )
+        is not True
+        or summary.get("mixed_source_results_are_supplementary_only") is not True
+        or summary.get("final_model_selection_authorized") is not False
+    ):
+        raise ExpandedSequenceContractError(
+            "v0.15.1 one-state AR evaluation policy differs"
+        )
+    independence = summary.get("primary_group_independence")
+    if (
+        not isinstance(independence, Mapping)
+        or independence.get("technical_group_count") != len(folds)
+        or independence.get("independent_journey_count") != 1
+        or independence.get(
+            "groups_are_separated_portions_of_one_longer_same_day_outing"
+        )
+        is not True
+        or independence.get("journey_level_generalization_estimated") is not False
+    ):
+        raise ExpandedSequenceContractError(
+            "v0.15.1 recording-group independence declaration differs"
+        )
+    expected_source = dict(
+        sorted((str(key), str(value)) for key, value in source_files_sha256.items())
+    )
+    expected_gaussian = dict(
+        sorted((str(key), str(value)) for key, value in gaussian_files_sha256.items())
+    )
+    expected_aiohmm = dict(
+        sorted((str(key), str(value)) for key, value in aiohmm_files_sha256.items())
+    )
+    if (
+        summary.get("source_dataset_version") != "0.13.1"
+        or summary.get("source_files_sha256") != expected_source
+        or summary.get("gaussian_baseline_version") != GAUSSIAN_VERSION
+        or summary.get("gaussian_baseline_files_sha256") != expected_gaussian
+        or summary.get("two_state_aiohmm_reference_version") != AIOHMM_VERSION
+        or summary.get("two_state_aiohmm_reference_files_sha256")
+        != expected_aiohmm
+        or summary.get("sample_count") != sample_count
+        or summary.get("sampling_random_seed") != base_seed
+    ):
+        raise ExpandedSequenceContractError(
+            "v0.15.1 one-state AR lineage or Monte Carlo protocol differs"
+        )
+    expected_outputs = summary.get("output_files_sha256")
+    hashed_names = ONE_STATE_AR_REQUIRED_FILES - {"one_state_ar_summary.json"}
+    if not isinstance(expected_outputs, Mapping) or set(expected_outputs) != hashed_names:
+        raise ExpandedSequenceContractError(
+            "v0.15.1 one-state AR output hash set differs"
+        )
+    hashes: dict[str, str] = {}
+    for name in sorted(ONE_STATE_AR_REQUIRED_FILES):
+        digest = sha256_file(source / name)
+        hashes[name] = digest
+        if name != "one_state_ar_summary.json" and expected_outputs.get(name) != digest:
+            raise ExpandedSequenceContractError(
+                f"v0.15.1 one-state AR output hash mismatch: {name}"
+            )
+    if (
+        fold_models.get("version") != ONE_STATE_AR_VERSION
+        or fold_models.get("status") != "complete"
+        or fold_models.get("purpose")
+        != "v0151_clean_group_fold_one_state_ar_models"
+        or fold_models.get("state_count_fixed_before_evaluation") is not True
+    ):
+        raise ExpandedSequenceContractError(
+            "v0.15.1 one-state AR fold-model contract differs"
+        )
+    stored_models = fold_models.get("models")
+    if not isinstance(stored_models, Mapping) or set(stored_models) != {
+        fold.fold_id for fold in folds
+    }:
+        raise ExpandedSequenceContractError(
+            "v0.15.1 one-state AR fold model set differs"
+        )
+    for fold in folds:
+        payload = stored_models[fold.fold_id]
+        if not isinstance(payload, Mapping):
+            raise ExpandedSequenceContractError(
+                "v0.15.1 one-state fold model must be an object"
+            )
+        model = payload.get("model")
+        if (
+            payload.get("held_out_drive_id") != fold.held_out_drive_id
+            or payload.get("training_drive_ids") != list(fold.training_drive_ids)
+            or payload.get("standardizer") != fold.standardizer.to_dict()
+            or payload.get("held_out_drive_not_used_for_restart_selection") is not True
+            or not isinstance(model, Mapping)
+            or model.get("configuration", {}).get("state_count") != 1
+        ):
+            raise ExpandedSequenceContractError(
+                f"v0.15.1 fold or transform differs: {fold.fold_id}"
+            )
+    if summary.get("primary_clean_drive_ids") != [
+        fold.held_out_drive_id for fold in folds
+    ]:
+        raise ExpandedSequenceContractError(
+            "v0.15.1 one-state primary group cohort differs"
+        )
+    return summary, hashes
+
+
 __all__ = [
     "AIOHMM_REQUIRED_FILES",
     "AIOHMM_VERSION",
     "GAUSSIAN_REQUIRED_FILES",
     "GAUSSIAN_VERSION",
+    "ONE_STATE_AR_REQUIRED_FILES",
+    "ONE_STATE_AR_VERSION",
     "load_expanded_aiohmm_baseline",
     "load_expanded_gaussian_baseline",
+    "load_expanded_one_state_ar_baseline",
 ]
