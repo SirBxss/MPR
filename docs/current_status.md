@@ -7,13 +7,16 @@ critical path changes.
 ## Current checkpoint
 
 - Repository version: v0.15.4 development-model freeze and sampler.
-- Base on `main`: commit `94bf365`, the merged v0.15.3 AR-boundary audit.
-- Working branch: `modeling/v0.15.4-development-model-freeze`.
-- Integration state at this checkpoint: the three v0.15.4 implementation,
-  test, and documentation patches are applied locally; push/PR/merge still
-  need to be recorded here after they occur.
+- Integration state: merged to `main` at commit `38ddac5` through PR #6,
+  `MPR v0.15.4: freeze development residual model`.
+- Current follow-up branch: `maintenance/v0.15.4-post-merge-handoff`; it fixes
+  the CI startup configuration and records the revised v0.16 critical path.
 - User verification: 315 tests pass with two expected skips.
 - Real private freeze run: complete and independently approved.
+- The first GitHub Actions runs for v0.15.3 and v0.15.4 failed before creating
+  any jobs because `runner.temp` was referenced from job-level `env`. The
+  maintenance workflow uses a fixed Linux temporary path and adds the required
+  compile check. Its Python 3.10 and 3.12 jobs must both pass before merge.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the
   current corpus without new evidence.
@@ -95,22 +98,35 @@ or execute a planner.
 
 ## Next critical phase: v0.16 planner sensitivity
 
-Do not implement the BMW adapter from guesses. First obtain exact BMW-codebase
-symbols and signatures through the user's connected Copilot for:
+The primary experiment is now an MPR-owned deterministic reference planner,
+not a BMW-planner integration. This change keeps the first planner result
+reproducible and isolates the effect of the residual sequence from unavailable
+production configuration. BMW integration remains an optional later
+transfer-validation step and must still use exact, Copilot-confirmed symbols.
 
-1. the planner reference-path type and reviewed operation for applying signed
-   lateral offsets along its path-normal convention;
-2. the planner invocation/runner and the outputs available for evaluation;
-3. the source and temporal construction of all six schema-v1 conditions at
-   each planner timestep;
-4. scenario/reset boundaries and stable scenario identifiers;
-5. the baseline planner metrics and accepted comparison harness.
+Existing accepted artifacts are sufficient for the primary experiment:
 
-Then predeclare the smallest useful planner experiment before inspecting its
-results. At minimum compare the unchanged reference-path baseline with sampled
-residual perturbations using identical scenarios and planner settings. Record
-sampling seeds, sequence resets, failures, and paired scenario-level metrics.
-Do not claim improvement merely because the planner remains feasible.
+- `alignment_station_comparison.csv` provides aligned RLMB pseudo-reference
+  coordinates on H100 through `aligned_reference_x_m` and
+  `aligned_reference_y_m`;
+- the v0.13.1 sequence archive provides exact recording, pair, message,
+  timestamp, condition, and sequence identity;
+- v0.15.4 provides free-running signed residual draws on the same H100 grid.
+
+The v0.16 contract must be fixed before results are inspected. For each
+ego-relative planning snapshot, reconstruct the perturbed perceived path as
+`estimate(s) = pseudo_reference(s) + residual(s) * left_normal(s)`. Compare a
+zero-residual baseline and sampled-residual runs with identical initial state,
+speed, planner equations, numerical parameters, and horizon. Planner calls are
+independent snapshots; do not report a closed-loop simulation without the
+missing vehicle-state replay and frame propagation.
+
+Predeclare the smallest deterministic spatial lateral trajectory optimizer
+and paired metrics for lateral and heading deviation from the nominal path,
+curvature, curvature rate, lateral acceleration, jerk, objective value, and
+numerical failure. Record sampling seeds and sequence boundaries. This phase
+measures planner sensitivity; it does not establish planner benefit or BMW
+production behavior.
 
 The seed-repetition suggestion from review is deferred to the reporting or
 planner-evaluation phase. Repeated sampling seeds quantify Monte Carlo
