@@ -42,7 +42,7 @@ are not the thesis execution path.
 | v0.15.2 | Two-state convergence audit | Complete and reviewed; one fold gains one iteration, every macro delta is at most `4e-4`, and the one-state conclusion is unchanged |
 | v0.15.3 | One-state AR-boundary sensitivity | Complete and reviewed; 0.99, 0.995, and 0.999 share the same interior fit, while none passes every strict performance gate |
 | v0.15.4 | Development-model freeze and sampler | Implemented; freezes 0.99 for planner development as the smallest nonbinding structural ceiling, retains 0.98 and the failed strict gate, and exports physical free-running H100 samples |
-| v0.16 | Reproducible reference-planner sensitivity experiment | Begins after the MPR-owned snapshot planner, signed path-perturbation rule, numerical parameters, and paired metrics are fixed; BMW transfer validation is optional and separate |
+| v0.16 | Reference-planner temporal-order sensitivity | A0 zero, A1 within-sequence shuffled AR, and A2 frozen AR use the fixed propagated error-state planner; BMW validation is optional and separate |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -85,15 +85,13 @@ development-only, uses the same six features and H100 residual sign contract,
 and must be sampled free-running over complete condition sequences. Planner
 evaluation must report that 0.98 remains the reviewed performance reference.
 
-v0.16 first uses a deterministic MPR-owned reference planner so that every
-equation, numerical parameter, and metric is reproducible and the residual is
-the only changed input in a paired comparison. Each accepted ego-relative
-snapshot supplies an aligned RLMB nominal path. A generated signed H100
-residual is applied along that path's left normal to reconstruct the perceived
-path; the zero-residual and sampled-residual cases use identical speed,
-initial state, horizon, and planner configuration. The planner is evaluated
-snapshot-by-snapshot because the accepted artifacts do not contain the full
-vehicle-state and frame propagation needed for a closed-loop claim.
+v0.16 uses a deterministic MPR-owned reference planner. The primary comparison
+is frozen AR order against an exact within-sequence time shuffle of the same
+residual profiles. Snapshot-only evaluation cannot identify temporal-order
+effects, so a linearized lateral/heading error state is propagated around the
+recorded motion. Ego-relative paths are not stitched into a global trajectory,
+and the experiment is not vehicle-state replay. The fixed contract is in
+`docs/reference_planner_predeclaration.md`.
 
 The experiment may report sensitivity in nominal-path deviation, heading,
 curvature, curvature rate, lateral acceleration, jerk, objective value, and
