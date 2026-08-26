@@ -27,9 +27,11 @@ agents and new chats.
 - Do not ask Leon for detailed implementation progress. Ask the user only when
   a scientific decision or unavailable BMW interface blocks correct work.
 - The BMW codebase is unavailable here. Never invent its APIs, types, paths,
-  planner entry points, or metric interfaces. Give the user a focused prompt
-  to run through Copilot in the BMW workspace and wait for exact symbols and
-  signatures.
+  planner entry points, or metric interfaces. BMW details are required only
+  for an explicit BMW integration or transfer-validation task; they do not
+  block the MPR-owned reference-planner sensitivity experiment. When BMW
+  integration is required, give the user a focused Copilot prompt and wait for
+  exact symbols and signatures.
 
 ## Scientific invariants
 

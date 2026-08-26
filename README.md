@@ -91,7 +91,7 @@ by the 0.99, 0.995, and 0.999 fits. This is a structural release of the binding
 and the reviewed 0.98 reference remain explicit. A second command consumes
 physical six-feature condition sequences and exports deterministic,
 free-running H100 residual samples in metres. It does not alter path geometry,
-run the BMW planner, or claim planner benefit.
+run a planner, or claim planner benefit.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -692,8 +692,10 @@ python -m lane_residuals.cli.development_residual_sampling \
 
 Each input sequence receives exactly one model reset and is then sampled
 recursively from generated history. Padding remains zero. The resulting signed
-offsets still require the reviewed BMW reference-path adapter before a planner
-can consume them.
+offsets still require a reviewed path-perturbation adapter before a planner can
+consume them. The primary v0.16 experiment uses a reproducible MPR-owned
+reference planner; BMW integration is a separate optional transfer-validation
+step.
 
 ## Optional odometry-compensated reference-alignment validation
 
