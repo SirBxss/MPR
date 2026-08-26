@@ -138,10 +138,7 @@ def run_development_residual_sampling(
         "planner_executed": False,
         "planner_benefit_claimed": False,
         "final_model_selection_authorized": False,
-        "next_phase": (
-            "apply_sampled_signed_offsets_through_the_reviewed_BMW_"
-            "reference_path_adapter"
-        ),
+        "next_phase": "run_predeclared_mpr_reference_planner_sensitivity",
         "confidentiality": (
             "Samples derive from a model fitted to private BMW measurements."
         ),
