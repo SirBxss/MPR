@@ -6,7 +6,9 @@ from dataclasses import asdict, dataclass, replace
 import json
 import math
 from pathlib import Path
-from typing import Any, Mapping, Self
+from typing import Any, Mapping
+
+from typing_extensions import Self
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray

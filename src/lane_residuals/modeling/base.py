@@ -5,7 +5,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Self
+from typing import Mapping
+
+from typing_extensions import Self
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray

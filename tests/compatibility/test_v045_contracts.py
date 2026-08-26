@@ -6,11 +6,15 @@ import argparse
 import csv
 import json
 import tempfile
-import tomllib
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - exercised on Python 3.10
+    import tomli as tomllib
 
 import numpy as np
 

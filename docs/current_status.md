@@ -9,14 +9,17 @@ critical path changes.
 - Repository version: v0.15.4 development-model freeze and sampler.
 - Integration state: merged to `main` at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
-- Current follow-up branch: `maintenance/v0.15.4-post-merge-handoff`; it fixes
-  the CI startup configuration and records the revised v0.16 critical path.
+- The post-merge hand-off was merged through PR #7 at commit `22a2334`.
+- Current follow-up branch: `maintenance/python310-self-compatibility`; it
+  restores the Python 3.10 compatibility promised by `requires-python`.
 - User verification: 315 tests pass with two expected skips.
 - Real private freeze run: complete and independently approved.
-- The first GitHub Actions runs for v0.15.3 and v0.15.4 failed before creating
-  any jobs because `runner.temp` was referenced from job-level `env`. The
-  maintenance workflow uses a fixed Linux temporary path and adds the required
-  compile check. Its Python 3.10 and 3.12 jobs must both pass before merge.
+- The repaired workflow now starts correctly. Python 3.12 passes the complete
+  suite. Python 3.10 first exposed four direct imports of `typing.Self`, then
+  reached the suite and exposed a test-only `tomllib` import. The compatibility
+  branch uses `typing-extensions` for `Self` and a Python-below-3.11 `tomli`
+  test dependency. Both CI matrix jobs must pass before this follow-up is
+  merged.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the
   current corpus without new evidence.
