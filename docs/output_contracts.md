@@ -923,6 +923,60 @@ acceptance or selection target. Command success means the sensitivity audit
 completed; it never authorizes a final model, journey-level generalization, or
 planner benefit.
 
+## v0.15.4 development-model freeze and sampling outputs
+
+The freeze command accepts only the complete reviewed v0.15.1 one-state
+directory and v0.15.3 AR-boundary directory. It validates their exact file
+sets, recursive hashes, candidate configurations, convergence states, and the
+failed strict performance decision before creating output. The selected
+ceiling is fixed at 0.99 in code; it cannot be chosen through the CLI.
+
+The freeze output is exactly:
+
+```text
+development_residual_model.json
+development_model_freeze_summary.json
+```
+
+`development_residual_model.json` contains the all-clean one-state model and
+its physical-unit standardizer. It records the six condition features in
+required order, the signed 21-station H100 residual contract, the free-running
+sequence-reset sampling contract, hashes of every v0.15.1 and v0.15.3 source
+file, and the scientific limitations. The file is authorized for development
+planner experiments only. It does not authorize final model selection,
+independent-journey generalization, or a planner-benefit claim.
+
+`development_model_freeze_summary.json` records the fixed structural rationale:
+0.99 is the smallest tested nonbinding ceiling above the identical interior
+fit shared by 0.99, 0.995, and 0.999. It retains the reviewed 0.98 comparison,
+the strict v0.15.3 failure, both variants' binding-station evidence, the frozen
+model hash, and the next phase. This is not held-out performance selection.
+
+The sampling command accepts that exact frozen model plus one NPZ containing
+exactly:
+
+```text
+conditions       float array [B,T,6], physical units, zero padding
+lengths          integer array [B]
+sequence_ids     unique nonempty string array [B]
+feature_names    exact BMW condition schema v1 string array [6]
+```
+
+It writes exactly:
+
+```text
+sampled_residual_sequences.npz
+sampled_residual_sequences_summary.json
+```
+
+The sample NPZ contains `residual_samples_m` with shape `[S,B,T,21]`, plus
+`lengths`, `stations_m`, `sequence_ids`, and `feature_names`. Active values are
+signed residuals in metres and padded frames are exactly zero. Sampling is
+free-running: each generated frame uses generated residual history, and model
+state resets once at the start of each input sequence. The summary hashes both
+inputs and the sample file and records the seed and sample count. This command
+does not modify path geometry or execute a planner.
+
 ## v0.11.0 sequence-contract AIOHMM outputs
 
 The command accepts the same exact seven-file v0.9.0 directory as v0.10.0. It

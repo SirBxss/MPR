@@ -291,7 +291,21 @@ non-worse energy/lag/RMSE checks, consistent fold directions, and no failed or
 selected nonconverged fit. If more than one ceiling passes, the smallest is
 reported. Because all folds remain portions of one outing, even that result is
 not an unbiased final selection and must be confirmed on independent outings
-before freezing the planner model.
+before any final model-selection claim.
+
+## Development model frozen for planner experiments
+
+v0.15.4 separates an engineering freeze from scientific model selection. The
+0.99 candidate is bundled with its all-clean standardizer and model parameters
+because it is the smallest tested ceiling above the identical interior optimum
+shared by all higher candidates. The strict v0.15.3 performance gate remains
+failed and the reviewed 0.98 artifact remains the reporting reference.
+
+The planner-facing facade accepts physical condition tensors in the exact
+schema-v1 order, applies the bundled transform, samples recursively from
+generated residual history, and converts the result back to metres. Each input
+sequence receives one reset-prior draw. Sampling individual frames or carrying
+history across declared sequence boundaries violates the frozen contract.
 
 ## Limitations and next gate
 
@@ -313,10 +327,11 @@ before freezing the planner model.
 
 The current data are sufficient for implementation and exploratory Gaussian
 versus AIOHMM comparison. They are not sufficient for final state-count tuning,
-broad feature search, RC-GAN claims, or an untouched thesis test. The reviewed
-one-state result favors autoregression without latent switching on the current
-corpus, and the corrected two-state audit shows that this conclusion was not
-caused by premature EM stopping. The separate AR-boundary audit remains
-development evidence until it is confirmed on independent outings.
+broad feature search, a more complex model-family claim, or an untouched thesis
+test. The reviewed one-state result favors autoregression without latent
+switching on the current corpus, and the corrected two-state audit shows that
+this conclusion was not caused by premature EM stopping. The frozen v0.15.4
+bundle is therefore a development input to planner evaluation, not the final
+thesis model.
 The acquisition gate remains 8--12 independent physical drives, with at least
 two locked final test drives and preferably continuous 2--5 minute recordings.
