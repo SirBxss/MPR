@@ -281,6 +281,29 @@ and `feature_names`. Conditions use physical units and shape `[B,T,6]`; padded
 frames are zero. The exporter writes signed residuals in metres with shape
 `[samples,B,T,21]` and keeps padded frames zero.
 
+Build the fixed primary v0.16 scenario and v0.15.4 condition archives:
+
+```bash
+python -m lane_residuals.cli.reference_planner_scenarios \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  "outputs/diagnostics/validation/reference_alignment_batch_v052" \
+  --output-directory "outputs/planner/reference_planner_scenarios_v016"
+```
+
+Pass its `planner_condition_sequences.npz` to the v0.15.4 sampler with at
+least 20 draws, then run:
+
+```bash
+python -m lane_residuals.cli.reference_planner_sensitivity \
+  "outputs/planner/residual_samples_v0154" \
+  "outputs/planner/reference_planner_scenarios_v016/reference_planner_scenarios.npz" \
+  --shuffle-seed 20260827 \
+  --output-directory "outputs/planner/reference_planner_sensitivity_v016"
+```
+
+The fixed equations and claim limits are in
+`docs/reference_planner_predeclaration.md`.
+
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the
 canonical grouping manifest for the two physical recording sessions. The

@@ -1032,3 +1032,35 @@ state count, training-only marginal sequence-reset prior, emission-parameter
 pooling, covariance pooling/shrinkage, all seeds, output hashes, and the
 two-drive development-only limitation. All nine outputs are private BMW-derived
 artifacts and remain outside version control.
+
+## v0.16.0 reference-planner sensitivity outputs
+
+The scenario builder joins the accepted v0.13.1 profile archive to the v0.5.2
+aggregate alignment stations by exact `(recording_id, pair_index)`, retaining
+only `drive_001` through `drive_004`. It writes:
+
+```text
+reference_planner_scenarios.npz
+planner_condition_sequences.npz
+reference_planner_scenario_summary.json
+```
+
+The scenario NPZ contains physical `conditions[B,T,6]`, feature names,
+`lengths[B]`, `nominal_paths_xy_m[B,T,21,2]`, `sequence_ids[B]`, H100 stations,
+and source timestamps. Numeric padding is zero. The condition NPZ is the exact
+four-array v0.15.4 sampler input. The summary hashes sources and outputs.
+
+The sensitivity command consumes the scenario NPZ and complete hash-verified
+v0.15.4 sample directory. It writes:
+
+```text
+reference_planner_frame_metrics.npz
+reference_planner_sequence_metrics.csv
+reference_planner_sensitivity_summary.json
+```
+
+Frame metrics have shape `[3,S,B,T,8]` in arm order `zero`,
+`time_shuffled_ar`, `frozen_ar`. The CSV retains every arm/draw/sequence
+accumulation metric. The summary records fixed parameters, hashes, shuffle
+seed, and paired A2-minus-A1 Monte Carlo-draw intervals while denying BMW,
+benefit, global-replay, safety, and journey-generalization claims.

@@ -6,20 +6,17 @@ critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.15.4 development-model freeze and sampler.
+- Repository version: v0.16.0 implementation under review; no real planner
+  result has been run or interpreted yet.
 - Integration state: merged to `main` at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
-- Current follow-up branch: `maintenance/python310-self-compatibility`; it
-  restores the Python 3.10 compatibility promised by `requires-python`.
+- Python 3.10 compatibility was merged through PR #8 at commit `e833e5a`;
+  Python 3.10 and 3.12 CI both pass.
+- Current implementation branch: `planner/v0.16-reference-sensitivity`.
 - User verification: 315 tests pass with two expected skips.
+- v0.16 implementation verification: 323 tests pass with two expected skips.
 - Real private freeze run: complete and independently approved.
-- The repaired workflow now starts correctly. Python 3.12 passes the complete
-  suite. Python 3.10 first exposed four direct imports of `typing.Self`, then
-  reached the suite and exposed a test-only `tomllib` import. The compatibility
-  branch uses `typing-extensions` for `Self` and a Python-below-3.11 `tomli`
-  test dependency. Both CI matrix jobs must pass before this follow-up is
-  merged.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the
   current corpus without new evidence.
@@ -116,20 +113,17 @@ Existing accepted artifacts are sufficient for the primary experiment:
   timestamp, condition, and sequence identity;
 - v0.15.4 provides free-running signed residual draws on the same H100 grid.
 
-The v0.16 contract must be fixed before results are inspected. For each
-ego-relative planning snapshot, reconstruct the perturbed perceived path as
-`estimate(s) = pseudo_reference(s) + residual(s) * left_normal(s)`. Compare a
-zero-residual baseline and sampled-residual runs with identical initial state,
-speed, planner equations, numerical parameters, and horizon. Planner calls are
-independent snapshots; do not report a closed-loop simulation without the
-missing vehicle-state replay and frame propagation.
+The contract is fixed in `docs/reference_planner_predeclaration.md`. Claude's
+time-shuffled null and accumulation metrics were accepted. The earlier
+snapshot-only plan was rejected because it cannot identify temporal-order
+effects. The implementation propagates a linearized lateral/heading error state
+around recorded motion; it does not stitch ego-relative paths globally.
 
-Predeclare the smallest deterministic spatial lateral trajectory optimizer
-and paired metrics for lateral and heading deviation from the nominal path,
-curvature, curvature rate, lateral acceleration, jerk, objective value, and
-numerical failure. Record sampling seeds and sequence boundaries. This phase
-measures planner sensitivity; it does not establish planner benefit or BMW
-production behavior.
+The arms are A0 zero, A1 within-sequence time-shuffled frozen AR, and A2 frozen
+AR. A2 minus A1 is primary. A pure-NumPy tracking LQ controller avoids a solver
+dependency and reports fixed envelope violations rather than enforcing them.
+At least 20 paired Monte Carlo draws and per-sequence accumulation metrics are
+required.
 
 The seed-repetition suggestion from review is deferred to the reporting or
 planner-evaluation phase. Repeated sampling seeds quantify Monte Carlo
