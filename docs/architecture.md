@@ -72,6 +72,7 @@ outputs/diagnostics/
 └── archive/             preserved historical runs
 outputs/models/           ignored private model runs and residual vectors
 outputs/datasets/         ignored private sequence datasets and split manifests
+outputs/planner/          ignored planner-input and residual-sample exchanges
 tests/
 ├── domain/              scientific invariants
 ├── workflows/           orchestration and output behavior
@@ -199,6 +200,16 @@ predeclared higher ceilings, and consolidates both Gaussian baselines,
 corrected K=2, and all K=1 candidates. Candidate outputs remain in named
 subdirectories; cross-candidate tables and the dedicated plot live at the
 audit root.
+
+The v0.15.4 freeze is also orchestration, with one small model-facing facade.
+`workflows.development_model_freeze` verifies the complete v0.15.1 and v0.15.3
+hash trees, proves the higher-ceiling all-clean fits are identical except for
+their configured caps, and bundles the fixed 0.99 model without refitting.
+`modeling.development_residual.DevelopmentResidualModel` owns the only planner-
+facing statistical API: physical conditions are standardized, sampled through
+the existing free-running AIOHMM implementation, and converted back to signed
+H100 offsets in metres. `workflows.development_residual_sampling` serializes
+those offsets but deliberately contains no BMW path or planner dependency.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

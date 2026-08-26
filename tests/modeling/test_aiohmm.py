@@ -184,8 +184,17 @@ class AIOHMMTests(unittest.TestCase):
             path = Path(directory) / "aiohmm.json"
             self.model.save(path)
             restored = AutoregressiveInputOutputHMM.load(path)
+        restored_from_mapping = AutoregressiveInputOutputHMM.from_dict(
+            self.model.to_dict()
+        )
         np.testing.assert_allclose(
             restored.log_probability(self.validation),
+            self.model.log_probability(self.validation),
+            rtol=0.0,
+            atol=0.0,
+        )
+        np.testing.assert_allclose(
+            restored_from_mapping.log_probability(self.validation),
             self.model.log_probability(self.validation),
             rtol=0.0,
             atol=0.0,

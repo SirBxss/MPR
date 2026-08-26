@@ -13,6 +13,8 @@ v0.15.2 re-fits only the two-state model with the fixed absolute per-frame EM
 stopping rule and compares it with both reviewed autoregressive artifacts;
 v0.15.3 varies only the one-state AR ceiling over the fixed predeclared grid
 and consolidates both Gaussian and both reviewed autoregressive references;
+v0.15.4 freezes the structurally nonbinding 0.99 development model without
+refitting and exports physical free-running residual sequences for planner use;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -48,6 +50,8 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-evaluate-expanded-ar-ablation` | `python -m lane_residuals.cli.expanded_ar_ablation` | v0.15.1 fixed one-state conditional AR; isolates autoregression from latent switching with no evaluation drift | Complete unchanged v0.13.1 directory plus its exact v0.14.0 Gaussian and reviewed v0.15.0 AIOHMM result directories | One-state fold/station/frame/restart evidence, paired three-model diagnostics, models, and strict Gaussian/AIOHMM comparison summary |
 | `mpr-audit-expanded-aiohmm-convergence` | `python -m lane_residuals.cli.expanded_aiohmm_convergence` | v0.15.2 fixed two-state convergence audit; only the EM stopping scale and threshold differ from v0.15.0 | Complete unchanged v0.13.1 directory plus its exact v0.14.0 Gaussian, reviewed v0.15.0 AIOHMM, and reviewed v0.15.1 one-state AR directories | Corrected two-state fold/station/frame/state/restart evidence, old/new convergence comparison, diagnostic plot, models, and strict two-reference summary |
 | `mpr-audit-expanded-ar-boundary` | `python -m lane_residuals.cli.expanded_ar_boundary` | v0.15.3 fixed one-state AR-ceiling sensitivity; only 0.98, 0.99, 0.995, and 0.999 are evaluated | Complete unchanged v0.13.1 directory plus exact v0.14.0, reviewed v0.15.0, v0.15.1, and v0.15.2 result directories | Three candidate subdirectories, consolidated seven-row model table, paired fold/station tables, boundary/calibration plot, and strict lineage summary |
+| `mpr-freeze-development-residual-model` | `python -m lane_residuals.cli.development_model_freeze` | v0.15.4 fixed 0.99 development-model freeze; no refit, performance selection, or final-model claim | Complete reviewed v0.15.1 and v0.15.3 directories | Self-contained physical-unit sampler bundle and strict freeze summary |
+| `mpr-sample-development-residuals` | `python -m lane_residuals.cli.development_residual_sampling` | v0.15.4 deterministic free-running H100 residual generation; no path modification or planner execution | Frozen v0.15.4 model JSON and exact condition-sequence NPZ | Physical residual-sample NPZ and strict sampling summary |
 | `mpr-audit-reference-alignment` | `python -m lane_residuals.cli.alignment` | v0.5.1 odometry SE(2) compensation plus projection/resampling; no model training | One MCAP containing EDP, RLMB, and planar odometry | Alignment pair/station CSVs, comparison plot, and summary JSON |
 | `mpr-audit-reference-alignment-batch` | `python -m lane_residuals.cli.alignment_batch` | v0.5.1 exact-manifest motion-alignment validation; no model training | MCAP files/directories and exact `--drive-map` | Per-recording alignment outputs plus aggregate CSVs, plot, manifest, and summary |
 | `mpr-train-gaussian-baseline` | `python -m lane_residuals.cli.gaussian_baseline` | v0.6.0 canonical H100 export, leave-one-drive-out evaluation, and final Gaussian fit | Historical complete v0.5.0 or current complete v0.5.2 native alignment batch | Residual vectors, dataset/model summaries, fold/station evaluation CSVs, and diagnostics plot |
@@ -246,6 +250,36 @@ candidates. Every candidate changes only
 unconditional Gaussian, conditional Gaussian, corrected two-state AIOHMM,
 and all four one-state ceilings. A successful command means the audit was
 completed, not that a higher ceiling or final thesis model was accepted.
+
+Freeze the reviewed development model into a new empty directory:
+
+```bash
+python -m lane_residuals.cli.development_model_freeze \
+  "outputs/models/one_state_ar_boundary_v0153" \
+  --one-state-ar-directory "outputs/models/one_state_ar_v0151" \
+  --output-directory "outputs/models/development_residual_model_v0154"
+```
+
+The selected cap is fixed in code at 0.99. The command verifies every source
+hash, the failed strict performance decision, the identical higher-cap model
+payloads, and the absence of 0.99 boundary contact before writing two files.
+It never offers a CLI hyperparameter-selection flag.
+
+Generate residual sequences from a physical condition archive:
+
+```bash
+python -m lane_residuals.cli.development_residual_sampling \
+  "outputs/models/development_residual_model_v0154/development_residual_model.json" \
+  "outputs/planner/planner_condition_sequences.npz" \
+  --sample-count 128 \
+  --seed 20260826 \
+  --output-directory "outputs/planner/residual_samples_v0154"
+```
+
+The input NPZ must contain exactly `conditions`, `lengths`, `sequence_ids`,
+and `feature_names`. Conditions use physical units and shape `[B,T,6]`; padded
+frames are zero. The exporter writes signed residuals in metres with shape
+`[samples,B,T,21]` and keeps padded frames zero.
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

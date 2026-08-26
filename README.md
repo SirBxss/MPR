@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.15.3
+# Minimal Path-Residual Model (MPR) v0.15.4
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -82,6 +82,16 @@ omitted unconditional Gaussian to a consolidated comparison with the
 conditional Gaussian, corrected two-state AIOHMM, and all one-state
 candidates. Any supported ceiling remains a within-outing development choice;
 final selection still requires untouched independent outings.
+
+Version 0.15.4 freezes one development-only residual generator for planner
+experiments without refitting or claiming final model selection. It selects
+0.99 as the smallest tested ceiling above the common interior optimum shared
+by the 0.99, 0.995, and 0.999 fits. This is a structural release of the binding
+0.98 cap, not a held-out performance selection: the failed strict v0.15.3 gate
+and the reviewed 0.98 reference remain explicit. A second command consumes
+physical six-feature condition sequences and exports deterministic,
+free-running H100 residual samples in metres. It does not alter path geometry,
+run the BMW planner, or claim planner benefit.
 
 Version 0.11.0 implements the second thesis model family: an autoregressive
 input-output hidden Markov model (AIOHMM). It keeps the exact v0.9.0 sequences,
@@ -653,6 +663,37 @@ applies the predeclared conservative development checks. The recorded pooled
 coverage hypothesis of approximately 0.918 is diagnostic only and is never an
 acceptance target. The command does not authorize final model selection or a
 planner-level claim.
+
+## Development-model freeze and residual sampling
+
+Freeze the reviewed 0.99 all-clean development fit from the complete v0.15.3
+audit. The command validates every v0.15.1 and v0.15.3 source hash and never
+fits a model:
+
+```bash
+python -m lane_residuals.cli.development_model_freeze \
+  "outputs/models/one_state_ar_boundary_v0153" \
+  --one-state-ar-directory "outputs/models/one_state_ar_v0151" \
+  --output-directory "outputs/models/development_residual_model_v0154"
+```
+
+Prepare a condition archive with exact keys `conditions` (`[B,T,6]`, physical
+units), `lengths` (`[B]`), unique `sequence_ids` (`[B]`), and `feature_names`
+in the canonical schema-v1 order. Then generate physical residual sequences:
+
+```bash
+python -m lane_residuals.cli.development_residual_sampling \
+  "outputs/models/development_residual_model_v0154/development_residual_model.json" \
+  "outputs/planner/planner_condition_sequences.npz" \
+  --sample-count 128 \
+  --seed 20260826 \
+  --output-directory "outputs/planner/residual_samples_v0154"
+```
+
+Each input sequence receives exactly one model reset and is then sampled
+recursively from generated history. Padding remains zero. The resulting signed
+offsets still require the reviewed BMW reference-path adapter before a planner
+can consume them.
 
 ## Optional odometry-compensated reference-alignment validation
 

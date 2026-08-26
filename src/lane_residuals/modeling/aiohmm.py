@@ -1546,11 +1546,9 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
         return destination
 
     @classmethod
-    def load(cls, path: str | Path) -> Self:
-        source = Path(path)
-        if not source.is_file():
-            raise FileNotFoundError(f"AIOHMM model not found: {source}")
-        payload = _strict_json(source)
+    def from_dict(cls, payload: Mapping[str, Any]) -> Self:
+        """Reconstruct a validated model from its strict JSON mapping."""
+
         if not isinstance(payload, Mapping):
             raise ValueError("AIOHMM model payload must be an object")
         if payload.get("schema_version") != VERSION:
@@ -1606,6 +1604,14 @@ class AutoregressiveInputOutputHMM(ProbabilisticSequenceModel):
             raise ValueError(f"invalid AIOHMM model payload: {error}") from error
         model._set_state(state)
         return model
+
+    @classmethod
+    def load(cls, path: str | Path) -> Self:
+        source = Path(path)
+        if not source.is_file():
+            raise FileNotFoundError(f"AIOHMM model not found: {source}")
+        payload = _strict_json(source)
+        return cls.from_dict(payload)
 
 
 __all__ = [
