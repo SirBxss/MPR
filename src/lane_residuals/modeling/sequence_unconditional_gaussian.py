@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
-from typing import Any, Self
+from typing import Any
+
+from typing_extensions import Self
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
