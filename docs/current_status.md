@@ -15,10 +15,11 @@ critical path changes.
 - User verification: 315 tests pass with two expected skips.
 - Real private freeze run: complete and independently approved.
 - The repaired workflow now starts correctly. Python 3.12 passes the complete
-  suite. Python 3.10 exposed four direct imports of `typing.Self`, which was
-  added to the standard library only in Python 3.11. The compatibility branch
-  declares `typing-extensions` and imports `Self` from that backport. Both CI
-  matrix jobs must pass before this follow-up is merged.
+  suite. Python 3.10 first exposed four direct imports of `typing.Self`, then
+  reached the suite and exposed a test-only `tomllib` import. The compatibility
+  branch uses `typing-extensions` for `Self` and a Python-below-3.11 `tomli`
+  test dependency. Both CI matrix jobs must pass before this follow-up is
+  merged.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the
   current corpus without new evidence.
