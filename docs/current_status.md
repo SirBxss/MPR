@@ -201,21 +201,26 @@ The next experiment is a separately labelled A3 extension, not an amendment to
 the completed v0.16 result. It uses the immutable v0.14 unconditional Gaussian
 all-clean descriptive fit and asks whether the actual Gaussian exhibits the
 same directional planner trade as the A1 statistical null relative to A2.
-Because A3 changes both marginal and temporal structure, only v0.16 A2 minus A1
-supports a causal temporal-order interpretation.
+Because A3 changes marginal distribution, cross-station covariance, and
+temporal structure, only v0.16 A2 minus A1 supports a causal temporal-order
+interpretation.
 
-The proposed contract is in
+The independently reviewed and amended contract is in
 `docs/gaussian_planner_transfer_predeclaration.md`. It fixes the model source,
 128 draws, Gaussian seed `20260828`, independent two-sample bootstrap seed
 `20260829`, 20,000 replicates, four primary metrics, directional hypotheses,
-decision rule, and claim limits. It reuses accepted A1/A2 metrics without
-rerunning v0.16 and never refits a model.
+decision rule, short-sequence p95 handling, standardizer equality, marginal
+diagnostics, cohort-consistency counts, and claim limits. It reuses accepted
+A1/A2 metrics without rerunning v0.16 and never refits a model.
 
-Do not implement or execute A3 until the proposal receives independent review
-and the accepted version is committed. Generated scenario, sample, and planner
-outputs remain outside Git. BMW transfer validation remains optional and
-separate. The final untouched-drive phase remains blocked by the absence of
-independent outings; v0.16.1 does not satisfy that data gate.
+Claude's pre-execution review approved the experiment design and required five
+contract clarifications. They were accepted before any A3 implementation or
+output was created. Implementation may begin after the amended contract commit;
+real A3 execution must wait for the complete synthetic verification suite.
+Generated scenario, sample, and planner outputs remain outside Git. BMW
+transfer validation remains optional and separate. The final untouched-drive
+phase remains blocked by the absence of independent outings; v0.16.1 does not
+satisfy that data gate.
 
 The seed-repetition suggestion remains deferred. Repeated sampling seeds would
 quantify Monte Carlo sensitivity; they would not create independent-drive or
