@@ -79,7 +79,11 @@ are inspected.
 
 The primary cohort is fixed to clean groups `drive_001` through `drive_004`.
 Frames join to aligned paths by exact `(recording_id, pair_index)`. Every
-sequence has at least two frames and strictly increasing timestamps.
+sequence has at least two frames and strictly increasing timestamps. Singleton
+sequences are excluded before sampling because neither temporal propagation nor
+within-sequence shuffling is defined for them. Their IDs and counts are retained
+in the scenario summary; this eligibility rule does not inspect residual values
+or planner outcomes.
 
 At least 20 residual draws are required. Headline sequence metrics are
 time-integrated absolute lateral error, maximum absolute lateral error,

@@ -286,7 +286,7 @@ Build the fixed primary v0.16 scenario and v0.15.4 condition archives:
 ```bash
 python -m lane_residuals.cli.reference_planner_scenarios \
   "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
-  "outputs/diagnostics/validation/reference_alignment_batch_v052" \
+  "outputs/diagnostics/validation/reference_alignment_batch_v052_expanded" \
   --output-directory "outputs/planner/reference_planner_scenarios_v016"
 ```
 

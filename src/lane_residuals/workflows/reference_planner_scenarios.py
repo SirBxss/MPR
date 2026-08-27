@@ -148,9 +148,17 @@ def run_reference_planner_scenario_build(
             sequence_order.append(sequence_id)
             frames_by_sequence[sequence_id] = []
         frames_by_sequence[sequence_id].append(index)
-    lengths = np.asarray([len(frames_by_sequence[item]) for item in sequence_order], dtype=np.int64)
-    if np.any(lengths < 2):
-        raise ValueError("planner scenario contains a singleton sequence")
+    singleton_sequence_ids = tuple(
+        item for item in sequence_order if len(frames_by_sequence[item]) == 1
+    )
+    sequence_order = [
+        item for item in sequence_order if len(frames_by_sequence[item]) >= 2
+    ]
+    if not sequence_order:
+        raise ValueError("no temporal planner sequence contains at least two frames")
+    lengths = np.asarray(
+        [len(frames_by_sequence[item]) for item in sequence_order], dtype=np.int64
+    )
     maximum_time, batch = int(np.max(lengths)), len(sequence_order)
     conditions = np.zeros((batch, maximum_time, 6), dtype=np.float64)
     timestamps = np.zeros((batch, maximum_time), dtype=np.int64)
@@ -188,6 +196,13 @@ def run_reference_planner_scenario_build(
         "purpose": "primary_clean_reference_planner_scenario_build",
         "included_drive_ids": sorted(PRIMARY_CLEAN_DRIVES),
         "sequence_count": batch, "active_frame_count": int(np.sum(lengths)),
+        "singleton_sequence_exclusion": {
+            "rule": "exclude_before_sampling_when_active_frame_count_is_less_than_2",
+            "sequence_count": len(singleton_sequence_ids),
+            "frame_count": len(singleton_sequence_ids),
+            "sequence_ids": list(singleton_sequence_ids),
+            "uses_residual_or_planner_outcomes": False,
+        },
         "maximum_sequence_length": maximum_time,
         "stations_m": [float(value) for value in stations],
         "feature_names_in_required_order": list(BMW_CONDITION_FEATURE_NAMES),

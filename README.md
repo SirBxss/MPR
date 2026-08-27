@@ -8,6 +8,8 @@ Version 0.16.0 adds the predeclared temporal-order planner sensitivity
 experiment. It compares zero, within-sequence shuffled frozen-AR, and original
 frozen-AR residual order with a propagated linearized error state. It does not
 claim BMW-planner behavior, planner benefit, safety, or production readiness.
+Singleton sequences are excluded and audited before sampling because temporal
+propagation and within-sequence shuffling require at least two frames.
 
 Version 0.12.1 completes the read-only expanded-corpus inventory before any
 cross-MCAP sequence work. It recursively hashes and inspects every MCAP,

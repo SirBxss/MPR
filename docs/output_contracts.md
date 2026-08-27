@@ -1049,6 +1049,9 @@ The scenario NPZ contains physical `conditions[B,T,6]`, feature names,
 `lengths[B]`, `nominal_paths_xy_m[B,T,21,2]`, `sequence_ids[B]`, H100 stations,
 and source timestamps. Numeric padding is zero. The condition NPZ is the exact
 four-array v0.15.4 sampler input. The summary hashes sources and outputs.
+Sequences with fewer than two active frames are excluded before either archive
+is written. The summary records their IDs and counts and states that the gate
+does not use residual values or planner outcomes.
 
 The sensitivity command consumes the scenario NPZ and complete hash-verified
 v0.15.4 sample directory. It writes:

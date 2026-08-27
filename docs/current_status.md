@@ -123,7 +123,9 @@ The arms are A0 zero, A1 within-sequence time-shuffled frozen AR, and A2 frozen
 AR. A2 minus A1 is primary. A pure-NumPy tracking LQ controller avoids a solver
 dependency and reports fixed envelope violations rather than enforcing them.
 At least 20 paired Monte Carlo draws and per-sequence accumulation metrics are
-required.
+required. Clean singleton sequences are excluded before sampling and recorded
+in the scenario summary because they cannot support propagation or shuffling;
+the rule does not inspect residual values or planner outcomes.
 
 The seed-repetition suggestion from review is deferred to the reporting or
 planner-evaluation phase. Repeated sampling seeds quantify Monte Carlo

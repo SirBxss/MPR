@@ -16,6 +16,7 @@ from lane_residuals.workflows.development_residual_sampling import (
 from lane_residuals.workflows.reference_planner_scenarios import (
     CONDITION_FILENAME,
     SCENARIO_FILENAME,
+    SUMMARY_FILENAME as SCENARIO_SUMMARY_FILENAME,
 )
 from lane_residuals.workflows.reference_planner_sensitivity import (
     ARM_NAMES,
@@ -42,18 +43,22 @@ class ReferencePlannerSensitivityCliTest(unittest.TestCase):
         self.temporary.cleanup()
 
     def _write_expanded_input(self) -> None:
-        count = 4
+        count = 5
         base = {
             "residuals_m": np.zeros((count, 21)),
             "conditions": np.column_stack(
                 (np.full(count, 10.0), np.zeros((count, 5)))
             ),
-            "timestamps_ns_private": np.arange(count, dtype=np.int64) * 80_000_000 + 1,
-            "recording_ids": np.asarray(["recording_001"] * count),
+            "timestamps_ns_private": np.asarray(
+                [1, 80_000_001, 160_000_001, 240_000_001, 1], dtype=np.int64
+            ),
+            "recording_ids": np.asarray(
+                ["recording_001"] * 4 + ["recording_002"]
+            ),
             "drive_ids": np.asarray(["drive_001"] * count),
             "mcap_basenames_private": np.asarray(["private.mcap"] * count),
-            "sequence_ids": np.asarray(["sequence_a"] * count),
-            "pair_indices": np.arange(count, dtype=np.int64),
+            "sequence_ids": np.asarray(["sequence_a"] * 4 + ["singleton"]),
+            "pair_indices": np.asarray([0, 1, 2, 3, 0], dtype=np.int64),
             "estimate_message_indices": np.arange(count, dtype=np.int64),
             "stations_m": np.arange(0.0, 101.0, 5.0),
             "eligibility": np.ones(count, dtype=np.bool_),
@@ -117,18 +122,19 @@ class ReferencePlannerSensitivityCliTest(unittest.TestCase):
         ) as stream:
             writer = csv.DictWriter(stream, fieldnames=fields)
             writer.writeheader()
-            for pair in range(4):
-                for station in np.arange(0.0, 101.0, 5.0):
-                    writer.writerow(
-                        {
-                            "recording_id": "recording_001",
-                            "pair_index": pair,
-                            "station_m": station,
-                            "aligned_reference_x_m": station,
-                            "aligned_reference_y_m": 0.0,
-                            "h100_aligned_eligible": "True",
-                        }
-                    )
+            for recording, pairs in (("recording_001", range(4)), ("recording_002", range(1))):
+                for pair in pairs:
+                    for station in np.arange(0.0, 101.0, 5.0):
+                        writer.writerow(
+                            {
+                                "recording_id": recording,
+                                "pair_index": pair,
+                                "station_m": station,
+                                "aligned_reference_x_m": station,
+                                "aligned_reference_y_m": 0.0,
+                                "h100_aligned_eligible": "True",
+                            }
+                        )
         station_path = self.alignment / "alignment_station_comparison.csv"
         (self.alignment / "alignment_batch_summary.json").write_text(
             json.dumps({"version": "0.5.2", "status": "complete"}),
@@ -183,6 +189,20 @@ class ReferencePlannerSensitivityCliTest(unittest.TestCase):
             0,
         )
         self.assertTrue((scenario_directory / CONDITION_FILENAME).is_file())
+        scenario_summary = json.loads(
+            (scenario_directory / SCENARIO_SUMMARY_FILENAME).read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(
+            scenario_summary["singleton_sequence_exclusion"]["sequence_ids"],
+            ["singleton"],
+        )
+        self.assertFalse(
+            scenario_summary["singleton_sequence_exclusion"][
+                "uses_residual_or_planner_outcomes"
+            ]
+        )
         sample_directory = self.root / "samples"
         self._write_samples(scenario_directory, sample_directory)
         output = self.root / "evaluation"
