@@ -107,3 +107,36 @@ cannot carry the temporal-order conclusion by itself.
 The result may describe within-outing sensitivity of this fixed planner. It
 may not claim planner benefit, BMW behavior, production readiness, safety,
 physical ground truth, global replay, or journey-level generalization.
+
+## Amendment record: 2026-08-27
+
+This section was added after the first real planner output was inspected. That
+first output is rejected because review found that the Riccati recursion
+compared predicted state `x_(k+1)` with reference `r_k`. Commit `1244c48`
+corrected the implementation and made three corresponding documentation
+changes before the accepted run was produced:
+
+1. the objective description now states the corrected `x_(k+1)` versus
+   `r_(k+1)` indexing, terminal weighting, and optimized-objective meaning;
+2. the geometry paragraph now distinguishes left-normal geometry validation
+   from direct use of the equivalent signed Frenet offset; and
+3. the 0.3 m threshold-exceedance fraction was labelled descriptive and unable
+   to carry the temporal-order conclusion by itself.
+
+No arm, cohort, source artifact, seed, numerical planner parameter, headline
+metric, paired A2-minus-A1 estimand, interval rule, or claim limit changed. The
+third clarification was nevertheless a post-output demotion of one headline
+metric and is therefore declared explicitly. Under the original rule, the
+accepted corrected run reports three separating metrics and two indeterminate
+metrics: integrated absolute lateral error, maximum absolute lateral error,
+and constraint-violation fraction separate; final absolute lateral error and
+the 0.3 m exceedance fraction do not. Under the amended interpretation, the
+0.3 m result remains reported with the same indeterminate verdict but is also
+identified as descriptive. Its accepted arm means are only `0.000856` for A1
+and `0.001054` for A2, so neither interpretation relies on it for the
+temporal-order conclusion.
+
+This completion update also records the existing first-frame convention. A
+sequence's first frame has no preceding source interval, so it uses the first
+observed within-sequence interval; equivalently, `dt[0] = dt[1]`. This documents
+the executed implementation and does not change the accepted run.

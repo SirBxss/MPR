@@ -42,7 +42,7 @@ are not the thesis execution path.
 | v0.15.2 | Two-state convergence audit | Complete and reviewed; one fold gains one iteration, every macro delta is at most `4e-4`, and the one-state conclusion is unchanged |
 | v0.15.3 | One-state AR-boundary sensitivity | Complete and reviewed; 0.99, 0.995, and 0.999 share the same interior fit, while none passes every strict performance gate |
 | v0.15.4 | Development-model freeze and sampler | Implemented; freezes 0.99 for planner development as the smallest nonbinding structural ceiling, retains 0.98 and the failed strict gate, and exports physical free-running H100 samples |
-| v0.16 | Reference-planner temporal-order sensitivity | A0 zero, A1 within-sequence shuffled AR, and A2 frozen AR use the fixed propagated error-state planner; BMW validation is optional and separate |
+| v0.16 | Reference-planner temporal-order sensitivity | Complete and independently reviewed; temporal ordering changes the fixed planner's accumulated deviation and command smoothness within the current outing |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -99,6 +99,22 @@ numerical failures. It may not report planner benefit, closed-loop safety, BMW
 planner behavior, or production readiness. A later BMW transfer-validation
 experiment requires exact production interfaces and conventions but does not
 block the primary v0.16 result.
+
+The corrected 128-draw real run separates A2 frozen order from A1 shuffled
+order on three of five predeclared headline metrics. A2 increases integrated
+absolute lateral error by `0.176956 m s` and maximum absolute lateral error by
+`0.012402 m`, while reducing the fixed-envelope violation fraction by
+`0.093137`; all three paired-draw intervals exclude zero. Final absolute error
+and the 0.3 m exceedance fraction are indeterminate under the unchanged
+predeclared interval rule. The result shows that temporal correlation trades
+accumulated deviation against command smoothness for this fixed within-outing
+simulation. It does not establish planner benefit, comfort, safety, production
+behavior, or journey-level generalization.
+
+An unconditional-Gaussian A3 arm is not part of the accepted v0.16 experiment.
+It may be evaluated only as a separately predeclared extension because it
+changes both marginal and temporal structure. Its likely relation to the A1
+statistical null is a hypothesis, not a completed result.
 
 ## Feature policy
 

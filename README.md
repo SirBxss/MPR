@@ -699,10 +699,28 @@ python -m lane_residuals.cli.development_residual_sampling \
 
 Each input sequence receives exactly one model reset and is then sampled
 recursively from generated history. Padding remains zero. The resulting signed
-offsets still require a reviewed path-perturbation adapter before a planner can
-consume them. The primary v0.16 experiment uses a reproducible MPR-owned
-reference planner; BMW integration is a separate optional transfer-validation
-step.
+offsets are consumed by the reproducible MPR-owned v0.16 reference planner.
+That workflow validates their left-normal geometry and uses the equivalent
+signed Frenet offset directly; it does not emulate the BMW planner. BMW
+integration is a separate optional transfer-validation step.
+
+## Reference-planner temporal-order sensitivity
+
+The corrected v0.16 run evaluates 128 paired residual draws on 15 sequences
+and 4,083 active frames. A1 time-shuffles each A2 draw within sequence, so both
+arms retain the exact same multiset of H100 residual profiles and differ only
+in temporal order. Relative to A1, A2 frozen order increases integrated
+absolute lateral error by `0.176956 m s` and maximum absolute lateral error by
+`0.012402 m`, while reducing the fixed-envelope violation fraction by
+`0.093137`. All three predeclared paired-draw intervals exclude zero; final
+absolute error and the rare 0.3 m exceedance metric are indeterminate.
+
+This demonstrates temporal-order sensitivity for one fixed reference planner
+within one outing. It is a trade between accumulated deviation and command
+smoothness, not evidence of planner benefit, comfort, safety, BMW behavior, or
+journey-level generalization. Exact results, artifact hashes, the rejected
+pre-fix run, and the post-run amendment disclosure are recorded in
+`docs/current_status.md` and `docs/reference_planner_predeclaration.md`.
 
 ## Optional odometry-compensated reference-alignment validation
 
