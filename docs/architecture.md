@@ -211,6 +211,13 @@ the existing free-running AIOHMM implementation, and converted back to signed
 H100 offsets in metres. `workflows.development_residual_sampling` serializes
 those offsets but deliberately contains no BMW path or planner dependency.
 
+For v0.16, `domain.reference_planner` owns left-normal perturbation, signed
+origin curvature, and the pure-NumPy affine LQ error-state step.
+`workflows.reference_planner_scenarios` joins accepted immutable artifacts.
+`workflows.reference_planner_sensitivity` owns time shuffling, propagated
+A0/A1/A2 execution, paired metrics, lineage, and serialization. The two
+`cli.reference_planner_*` modules remain adapters. No BMW API is introduced.
+
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific
 behavior. Moving that arithmetic into a neutral domain geometry utility should
