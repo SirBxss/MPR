@@ -15,8 +15,9 @@ critical path changes.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
 - Python 3.10 compatibility was merged through PR #8 at commit `e833e5a`;
   Python 3.10 and 3.12 CI both pass.
-- Current implementation branch: `planner/v0.16-reference-sensitivity`,
-  reviewed remotely at commit `1244c48` before this completion update.
+- The complete v0.16 planner work was merged through PR #9 at commit
+  `e6f6307`; its post-merge GitHub Actions run passes.
+- Current predeclaration branch: `planner/v0.16.1-gaussian-transfer`.
 - Merged-main baseline verification: 315 tests pass with two expected skips.
 - Corrected v0.16 implementation verification: 324 tests pass with two
   expected skips. A non-constant-profile direct quadratic solve verifies the
@@ -194,19 +195,27 @@ result, and all primary contrasts nevertheless agree at the precision reported
 in the final review. This is numerical reproduction across environments, not
 byte identity; the hashes above remain the authoritative accepted lineage.
 
-## Next actions
+## Next phase: v0.16.1 Gaussian planner transfer
 
-Merge the reviewed v0.16 branch after this completion documentation is applied,
-the full suite passes, and Python 3.10/3.12 CI is green. Generated scenario,
-sample, and planner-output artifacts remain outside Git.
+The next experiment is a separately labelled A3 extension, not an amendment to
+the completed v0.16 result. It uses the immutable v0.14 unconditional Gaussian
+all-clean descriptive fit and asks whether the actual Gaussian exhibits the
+same directional planner trade as the A1 statistical null relative to A2.
+Because A3 changes both marginal and temporal structure, only v0.16 A2 minus A1
+supports a causal temporal-order interpretation.
 
-Claude's suggested unconditional-Gaussian A3 arm is scientifically useful but
-is not required for the accepted primary result. It changes both marginal and
-temporal structure, so it must not be added post hoc to this experiment. If
-pursued, define it as a separate v0.16.1 extension, predeclare its hypothesis,
-metric, direction, and reporting rule before implementation or execution, and
-report it regardless of outcome. BMW transfer validation remains optional and
-separate.
+The proposed contract is in
+`docs/gaussian_planner_transfer_predeclaration.md`. It fixes the model source,
+128 draws, Gaussian seed `20260828`, independent two-sample bootstrap seed
+`20260829`, 20,000 replicates, four primary metrics, directional hypotheses,
+decision rule, and claim limits. It reuses accepted A1/A2 metrics without
+rerunning v0.16 and never refits a model.
+
+Do not implement or execute A3 until the proposal receives independent review
+and the accepted version is committed. Generated scenario, sample, and planner
+outputs remain outside Git. BMW transfer validation remains optional and
+separate. The final untouched-drive phase remains blocked by the absence of
+independent outings; v0.16.1 does not satisfy that data gate.
 
 The seed-repetition suggestion remains deferred. Repeated sampling seeds would
 quantify Monte Carlo sensitivity; they would not create independent-drive or
