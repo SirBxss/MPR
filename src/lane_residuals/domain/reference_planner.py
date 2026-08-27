@@ -35,14 +35,34 @@ class ReferencePlannerConfig:
     maximum_dt_s: float = 0.25
 
     def __post_init__(self) -> None:
-        values = tuple(self.__dict__.values())
         if (
             isinstance(self.horizon_steps, bool)
             or not isinstance(self.horizon_steps, (int, np.integer))
             or self.horizon_steps < 1
         ):
             raise ValueError("horizon_steps must be a positive integer")
-        if not all(np.isfinite(float(value)) and float(value) > 0 for value in values):
+        positive_fields = (
+            "weight_lateral",
+            "weight_heading",
+            "weight_curvature",
+            "weight_curvature_rate",
+            "terminal_multiplier",
+            "maximum_abs_curvature_per_m",
+            "maximum_abs_curvature_rate_per_m_s",
+            "maximum_abs_lateral_acceleration_mps2",
+            "maximum_abs_lateral_jerk_mps3",
+            "maximum_abs_lateral_deviation_m",
+            "lateral_excursion_threshold_m",
+            "minimum_speed_mps",
+            "minimum_dt_s",
+            "maximum_dt_s",
+        )
+        if not all(
+            not isinstance(getattr(self, name), bool)
+            and np.isfinite(float(getattr(self, name)))
+            and float(getattr(self, name)) > 0.0
+            for name in positive_fields
+        ):
             raise ValueError("all reference-planner parameters must be positive")
         if self.minimum_dt_s >= self.maximum_dt_s:
             raise ValueError("minimum_dt_s must be smaller than maximum_dt_s")
@@ -145,53 +165,80 @@ def plan_reference_step(
         dtype=np.float64,
     )
     b = np.array([[0.0], [step_distance], [1.0]], dtype=np.float64)
-    q = np.diag(
-        [
-            2.0 * config.weight_lateral,
-            2.0 * config.weight_heading,
-            2.0 * config.weight_curvature_rate,
-        ]
+    next_state_cost = np.diag(
+        [2.0 * config.weight_lateral, 2.0 * config.weight_heading, 0.0]
     )
-    r = 2.0 * (config.weight_curvature + config.weight_curvature_rate)
-    n = np.array([[0.0], [0.0], [-2.0 * config.weight_curvature_rate]])
-    terminal = config.terminal_multiplier * q
-    terminal[2, 2] = 0.0
-    p_matrix = terminal
-    p_vector = np.array(
-        [-2.0 * config.terminal_multiplier * config.weight_lateral * references[-1], 0.0, 0.0]
+    previous_input_cost = np.diag(
+        [0.0, 0.0, 2.0 * config.weight_curvature_rate]
     )
-    first_gain: NDArray[np.float64] | None = None
-    first_offset = 0.0
-    for reference in references[::-1]:
-        linear = np.array([-2.0 * config.weight_lateral * reference, 0.0, 0.0])
-        hessian = float(r + (b.T @ p_matrix @ b)[0, 0])
-        gain_term = b.T @ p_matrix @ a + n.T
-        offset_term = float((b.T @ p_vector.reshape(-1, 1))[0, 0])
+    input_cost = 2.0 * (
+        config.weight_curvature + config.weight_curvature_rate
+    )
+    cross_cost = np.array(
+        [[0.0], [0.0], [-2.0 * config.weight_curvature_rate]]
+    )
+    p_matrix = np.zeros((3, 3), dtype=np.float64)
+    p_vector = np.zeros(3, dtype=np.float64)
+    policies: list[tuple[NDArray[np.float64], float]] = []
+    for reverse_index, reference in enumerate(references[::-1]):
+        multiplier = (
+            config.terminal_multiplier if reverse_index == 0 else 1.0
+        )
+        predicted_cost = multiplier * next_state_cost
+        predicted_linear = np.array(
+            [-2.0 * multiplier * config.weight_lateral * reference, 0.0, 0.0]
+        )
+        combined_matrix = p_matrix + predicted_cost
+        combined_vector = p_vector + predicted_linear
+        hessian = float(input_cost + (b.T @ combined_matrix @ b)[0, 0])
+        gain_term = b.T @ combined_matrix @ a + cross_cost.T
+        offset_term = float((b.T @ combined_vector.reshape(-1, 1))[0, 0])
         gain = gain_term / hessian
         offset = offset_term / hessian
-        p_matrix = q + a.T @ p_matrix @ a - gain_term.T @ gain
+        p_matrix = (
+            previous_input_cost
+            + a.T @ combined_matrix @ a
+            - gain_term.T @ gain
+        )
         p_matrix = 0.5 * (p_matrix + p_matrix.T)
-        p_vector = linear + a.T @ p_vector - gain_term.ravel() * offset
-        first_gain = gain
-        first_offset = offset
-    assert first_gain is not None
+        p_vector = (
+            a.T @ combined_vector - gain_term.ravel() * offset
+        )
+        policies.append((gain, offset))
+    policies.reverse()
     state = np.array(
         [lateral_error_m, heading_error_rad, previous_curvature_correction_per_m],
         dtype=np.float64,
     )
-    correction = -float((first_gain @ state)[0]) - first_offset
-    next_state = a @ state + b[:, 0] * correction
-    objective = (
-        config.weight_lateral * (lateral_error_m - residual[0]) ** 2
-        + config.weight_heading * heading_error_rad**2
-        + config.weight_curvature * correction**2
-        + config.weight_curvature_rate
-        * (correction - previous_curvature_correction_per_m) ** 2
-    )
+    objective = 0.0
+    first_correction: float | None = None
+    first_next_state: NDArray[np.float64] | None = None
+    for index, ((gain, offset), reference) in enumerate(
+        zip(policies, references)
+    ):
+        correction = -float((gain @ state)[0]) - offset
+        next_state = a @ state + b[:, 0] * correction
+        multiplier = (
+            config.terminal_multiplier
+            if index == config.horizon_steps - 1
+            else 1.0
+        )
+        objective += multiplier * (
+            config.weight_lateral * (next_state[0] - reference) ** 2
+            + config.weight_heading * next_state[1] ** 2
+        )
+        objective += config.weight_curvature * correction**2
+        objective += config.weight_curvature_rate * (correction - state[2]) ** 2
+        if index == 0:
+            first_correction = correction
+            first_next_state = next_state.copy()
+        state = next_state
+    if first_correction is None or first_next_state is None:
+        raise RuntimeError("reference-planner horizon produced no control policy")
     return PlannerStep(
-        lateral_error_m=float(next_state[0]),
-        heading_error_rad=float(next_state[1]),
-        curvature_correction_per_m=correction,
+        lateral_error_m=float(first_next_state[0]),
+        heading_error_rad=float(first_next_state[1]),
+        curvature_correction_per_m=first_correction,
         objective=float(objective),
     )
 

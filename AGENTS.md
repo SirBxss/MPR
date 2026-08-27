@@ -93,7 +93,7 @@ env PYTHONPATH=src \
 
 At v0.15.4 the expected baseline is 315 passing tests with two expected
 optional-dependency skips. Treat a changed count as something to explain.
-The v0.16 reference-planner implementation raises this to 323 passing tests
+The corrected v0.16 reference-planner implementation raises this to 324 passing tests
 with the same two expected skips.
 
 Do not push, merge, open a pull request, or modify external systems unless the

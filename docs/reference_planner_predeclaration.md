@@ -35,8 +35,11 @@ The simulation therefore propagates only a linearized error state
 It is a receding-horizon error-state sensitivity simulation, not vehicle-state
 replay or a global closed-loop reconstruction.
 
-At each active source timestamp, the workflow applies the signed residual
-along the aligned RLMB path's left normals, solves a finite-horizon tracking
+At each active source timestamp, the workflow reconstructs the signed residual
+along the aligned RLMB path's left normals to validate the geometry contract.
+The linearized Frenet planner consumes the mathematically equivalent signed
+lateral-offset profile directly; it does not propagate perceived-path global
+coordinates across ego-relative snapshots. It solves a finite-horizon tracking
 problem using current speed, executes the first correction over the observed
 interval, and carries the error state to the next frame. State resets once per
 declared sequence. The residual is treated as an exogenous time-indexed process
@@ -50,11 +53,13 @@ psi_error_next  = psi_error + v * dt * u
 u_previous_next = u
 ```
 
-The 25-step affine LQ objective contains lateral tracking error to the current
-H100 residual interpolated at `v*dt, 2*v*dt, ...`, heading error, curvature
-correction, and correction-rate regularization. A pure-NumPy backward Riccati
-recursion solves it. Constraints are not enforced; fixed envelopes are outcome
-metrics.
+The 25-step affine LQ objective compares each predicted next state
+`x_(k+1)` with the current H100 residual interpolated at
+`v*dt, 2*v*dt, ...`, and includes heading error, curvature correction, and
+correction-rate regularization. The last predicted-state tracking term receives
+the fixed terminal multiplier. A pure-NumPy backward Riccati recursion solves
+this exact objective and the stored objective metric is its optimized horizon
+value. Constraints are not enforced; fixed envelopes are outcome metrics.
 
 | Parameter | Fixed value |
 |---|---:|
@@ -96,6 +101,8 @@ across paired Monte Carlo draws. This is not a dataset confidence interval and
 does not estimate independent-journey uncertainty. Per-sequence rows are
 mandatory. An interval including zero is reported as indeterminate for this
 configuration, not automatically as evidence of no effect.
+The 0.3 m threshold-exceedance fraction is a descriptive secondary metric and
+cannot carry the temporal-order conclusion by itself.
 
 The result may describe within-outing sensitivity of this fixed planner. It
 may not claim planner benefit, BMW behavior, production readiness, safety,

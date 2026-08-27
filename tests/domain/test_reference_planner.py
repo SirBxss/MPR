@@ -57,6 +57,84 @@ class ReferencePlannerTest(unittest.TestCase):
         self.assertGreater(step.curvature_correction_per_m, 0.0)
         self.assertGreater(step.heading_error_rad, 0.0)
 
+    def test_nonconstant_reference_matches_direct_horizon_optimum(self) -> None:
+        config = ReferencePlannerConfig(horizon_steps=6)
+        residual = 0.002 * self.stations + 0.00002 * self.stations**2
+        speed = 12.0
+        dt_s = 0.08
+        distance = speed * dt_s
+        initial = np.asarray([0.03, -0.01, 0.004], dtype=np.float64)
+        references = np.interp(
+            distance * (np.arange(config.horizon_steps) + 1),
+            self.stations,
+            residual,
+        )
+
+        def objective(controls: np.ndarray) -> float:
+            lateral, heading, previous = initial
+            total = 0.0
+            for index, control in enumerate(controls):
+                lateral = lateral + distance * heading
+                heading = heading + distance * control
+                multiplier = (
+                    config.terminal_multiplier
+                    if index == config.horizon_steps - 1
+                    else 1.0
+                )
+                total += multiplier * (
+                    config.weight_lateral
+                    * (lateral - references[index]) ** 2
+                    + config.weight_heading * heading**2
+                )
+                total += config.weight_curvature * control**2
+                total += config.weight_curvature_rate * (control - previous) ** 2
+                previous = control
+            return float(total)
+
+        count = config.horizon_steps
+        epsilon = 1e-4
+        zero = np.zeros(count, dtype=np.float64)
+        zero_objective = objective(zero)
+        gradient = np.empty(count, dtype=np.float64)
+        hessian = np.empty((count, count), dtype=np.float64)
+        for first in range(count):
+            first_step = np.zeros(count, dtype=np.float64)
+            first_step[first] = epsilon
+            gradient[first] = (
+                objective(first_step) - objective(-first_step)
+            ) / (2.0 * epsilon)
+            hessian[first, first] = (
+                objective(first_step)
+                + objective(-first_step)
+                - 2.0 * zero_objective
+            ) / epsilon**2
+            for second in range(first):
+                second_step = np.zeros(count, dtype=np.float64)
+                second_step[second] = epsilon
+                hessian[first, second] = hessian[second, first] = (
+                    objective(first_step + second_step)
+                    - objective(first_step - second_step)
+                    - objective(-first_step + second_step)
+                    + objective(-first_step - second_step)
+                ) / (4.0 * epsilon**2)
+        direct_controls = np.linalg.solve(hessian, -gradient)
+        step = plan_reference_step(
+            lateral_error_m=float(initial[0]),
+            heading_error_rad=float(initial[1]),
+            previous_curvature_correction_per_m=float(initial[2]),
+            residual_profile_m=residual,
+            stations_m=self.stations,
+            speed_mps=speed,
+            dt_s=dt_s,
+            config=config,
+        )
+        self.assertAlmostEqual(
+            step.curvature_correction_per_m,
+            float(direct_controls[0]),
+            places=9,
+        )
+        self.assertAlmostEqual(step.objective, objective(direct_controls), places=9)
+
     def test_invalid_timestep_fails(self) -> None:
         with self.assertRaisesRegex(ValueError, "frame interval"):
             plan_reference_step(

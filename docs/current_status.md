@@ -6,8 +6,10 @@ critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.16.0 implementation under review; no real planner
-  result has been run or interpreted yet.
+- Repository version: corrected v0.16.0 implementation awaiting a repeated
+  real planner run. The first real
+  planner output used the pre-fix shifted reference indexing and is not an
+  accepted empirical result. Its residual samples remain reusable.
 - Integration state: merged to `main` at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -15,7 +17,9 @@ critical path changes.
   Python 3.10 and 3.12 CI both pass.
 - Current implementation branch: `planner/v0.16-reference-sensitivity`.
 - User verification: 315 tests pass with two expected skips.
-- v0.16 implementation verification: 323 tests pass with two expected skips.
+- Corrected v0.16 implementation verification: 324 tests pass with two
+  expected skips. A non-constant-profile direct quadratic solve verifies the
+  first curvature command and optimized horizon objective.
 - Real private freeze run: complete and independently approved.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the

@@ -213,7 +213,11 @@ def _run_arm_sequence(
         dt_s = float(intervals[frame])
         speed = float(speeds[frame])
         nominal_curvature = signed_curvature_at_origin(paths[frame])
-        perturb_path_left_normal(paths[frame], residuals[frame])
+        # Validate the exact left-normal geometry contract.  In the linearized
+        # Frenet error model, the equivalent planner reference is the signed
+        # lateral residual itself; global perceived-path coordinates are not
+        # propagated across ego-relative snapshots.
+        _perceived_path = perturb_path_left_normal(paths[frame], residuals[frame])
         step = plan_reference_step(
             lateral_error_m=lateral,
             heading_error_rad=heading,
