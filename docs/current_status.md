@@ -6,10 +6,11 @@ critical path changes.
 
 ## Current checkpoint
 
-- Repository version: corrected v0.16.0 implementation and real planner run
-  complete. Claude independently approved the corrected code and result with
-  nonblocking reporting comments. The first pre-fix planner output remains
-  rejected; its v0.15.4 residual samples were valid and were reused.
+- Repository version: v0.16.1 implementation complete on the current branch;
+  real A3 output has not been generated. The corrected v0.16 implementation
+  and real planner run are complete and independently approved. The first
+  pre-fix planner output remains rejected; its v0.15.4 residual samples were
+  valid and were reused.
 - Integration state: merged to `main` at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -22,6 +23,10 @@ critical path changes.
 - Corrected v0.16 implementation verification: 324 tests pass with two
   expected skips. A non-constant-profile direct quadratic solve verifies the
   first curvature command and optimized horizon objective.
+- v0.16.1 synthetic implementation verification: 329 tests pass with two
+  expected skips. The complete synthetic v0.13.1 through v0.16.1 chain covers
+  deterministic A3 sampling and transfer, exact standardizer mismatch, accepted
+  v0.16 hash mismatch, and sampling-summary tamper failures.
 - Real private freeze run: complete and independently approved.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the
@@ -214,13 +219,13 @@ diagnostics, cohort-consistency counts, and claim limits. It reuses accepted
 A1/A2 metrics without rerunning v0.16 and never refits a model.
 
 Claude's pre-execution review approved the experiment design and required five
-contract clarifications. They were accepted before any A3 implementation or
-output was created. Implementation may begin after the amended contract commit;
-real A3 execution must wait for the complete synthetic verification suite.
-Generated scenario, sample, and planner outputs remain outside Git. BMW
-transfer validation remains optional and separate. The final untouched-drive
-phase remains blocked by the absence of independent outings; v0.16.1 does not
-satisfy that data gate.
+contract clarifications. They were accepted in commit `4acd718` before any A3
+implementation or output was created. The implementation now provides separate
+strict sampling and A3-only transfer commands; the complete synthetic suite
+passes. Real A3 sampling is the next action. Generated scenario, sample, and
+planner outputs remain outside Git. BMW transfer validation remains optional
+and separate. The final untouched-drive phase remains blocked by the absence
+of independent outings; v0.16.1 does not satisfy that data gate.
 
 The seed-repetition suggestion remains deferred. Repeated sampling seeds would
 quantify Monte Carlo sensitivity; they would not create independent-drive or

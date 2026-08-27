@@ -1,8 +1,13 @@
-# Minimal Path-Residual Model (MPR) v0.16.0
+# Minimal Path-Residual Model (MPR) v0.16.1
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
+
+Version 0.16.1 adds the independently reviewed unconditional-Gaussian A3
+planner-transfer extension. It samples only the stored v0.14 all-clean
+descriptive fit, executes only A3, and compares it with immutable accepted
+v0.16 A1/A2 metrics under hard-pinned lineage and reporting rules.
 
 Version 0.16.0 adds the predeclared temporal-order planner sensitivity
 experiment. It compares zero, within-sequence shuffled frozen-AR, and original
@@ -721,6 +726,27 @@ smoothness, not evidence of planner benefit, comfort, safety, BMW behavior, or
 journey-level generalization. Exact results, artifact hashes, the rejected
 pre-fix run, and the post-run amendment disclosure are recorded in
 `docs/current_status.md` and `docs/reference_planner_predeclaration.md`.
+
+## Unconditional-Gaussian planner transfer
+
+v0.16.1 is a separate A3 extension. It samples the stored v0.14 all-clean
+unconditional Gaussian at 128 independent draws, verifies that its physical
+standardizer exactly matches the frozen v0.15.4 standardizer, records A3/A2
+per-station marginal diagnostics, and executes only A3 through the unchanged
+v0.16 planner. Accepted A1/A2 frame metrics remain immutable.
+
+The primary A3-minus-A2 comparison uses p95 curvature rate, p95 lateral jerk,
+mean absolute lateral error, and integrated absolute lateral error. Sequences
+shorter than 20 frames are excluded only from the primary p95 macros and remain
+in mandatory all-sequence robustness results. Independent two-sample bootstrap
+intervals quantify generated-ensemble Monte Carlo uncertainty, while `k/N`
+sign agreement describes cohort consistency without becoming another gate.
+
+A3 changes marginal distribution, cross-station covariance, and temporal
+structure simultaneously. It cannot replace v0.16's causal A2-minus-A1
+temporal-order result and cannot support generalization, benefit, comfort,
+safety, BMW-planner, or final-model-selection claims. The reviewed fixed
+contract is in `docs/gaussian_planner_transfer_predeclaration.md`.
 
 ## Optional odometry-compensated reference-alignment validation
 

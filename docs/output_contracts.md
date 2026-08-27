@@ -1067,3 +1067,47 @@ Frame metrics have shape `[3,S,B,T,8]` in arm order `zero`,
 accumulation metric. The summary records fixed parameters, hashes, shuffle
 seed, and paired A2-minus-A1 Monte Carlo-draw intervals while denying BMW,
 benefit, global-replay, safety, and journey-generalization claims.
+
+## v0.16.1 unconditional-Gaussian planner-transfer outputs
+
+The sampler consumes the complete exact v0.13.1 and v0.14 directories, the
+frozen v0.15.4 development model, the complete accepted A2 sample directory,
+and the accepted v0.16 scenario archive. It executes no planner and writes
+exactly:
+
+```text
+unconditional_gaussian_residual_samples.npz
+unconditional_gaussian_residual_samples_summary.json
+```
+
+The NPZ uses the v0.15.4 five-array sample schema and contains 128 independent-
+frame draws from the stored v0.14 all-clean unconditional Gaussian in physical
+metres. Spatial covariance is retained and padding is zero. The summary records
+every input/output hash, exact v0.14/v0.15.4 standardizer equality, seed
+`20260828`, and per-station A3/A2 means, population standard deviations, mean
+differences, and standard-deviation ratios. Marginal diagnostics have no gate.
+
+The transfer command consumes that complete two-file sample directory, the
+same accepted scenario NPZ, and the complete immutable v0.16 sensitivity
+directory. It runs only A3 and writes exactly:
+
+```text
+gaussian_transfer_frame_metrics.npz
+gaussian_transfer_sequence_metrics.csv
+gaussian_planner_transfer_summary.json
+```
+
+Frame metrics have shape `[S,B,T,8]` for `unconditional_gaussian` and retain
+the v0.16 metric order. The CSV contains one A3 row per draw and sequence with
+the four primary metrics plus secondary accumulation, objective, and envelope
+metrics. The summary records exact accepted hashes and content invariants,
+the >=20-frame primary p95 set, all-sequence p95 robustness macros, per-sequence
+and pooled summaries, A3-minus-A2 `k/N` sign agreement, and an independent
+two-sample 20,000-replicate bootstrap using seed `20260829`.
+
+The full decision requires both smoothness intervals above zero and both
+deviation intervals below zero. Smoothness-only and deviation-only outcomes are
+named separately. A3-minus-A1 is descriptive. A3-minus-A2 does not isolate
+temporal structure, and no output authorizes planner benefit, comfort, safety,
+BMW behavior, production readiness, global replay, final model selection, or
+journey-level generalization.

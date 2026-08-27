@@ -159,7 +159,7 @@ Each draw-level macro value is the arithmetic mean of its eligible sequence
 values, so aggregation remains equal-sequence rather than pooled-frame.
 Per-sequence and pooled-frame summaries are also mandatory. The two p95 metrics
 avoid the saturation of the v0.16 any-envelope indicator; mean absolute lateral
-error is the scale-free companion to the length-dependent integral.
+error is the frame-mean companion to the duration-dependent integral.
 
 Maximum lateral error, final lateral error, the 0.3 m exceedance fraction,
 constraint-violation fraction, objective, and individual envelope trip rates
