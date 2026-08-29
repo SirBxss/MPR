@@ -1105,6 +1105,16 @@ the >=20-frame primary p95 set, all-sequence p95 robustness macros, per-sequence
 and pooled summaries, A3-minus-A2 `k/N` sign agreement, and an independent
 two-sample 20,000-replicate bootstrap using seed `20260829`.
 
+The summary also contains
+`deviation_family_length_dependence_qualifier`. This single structured field
+records, for both deviation metrics, the equal-sequence difference and relative
+difference, reversing sequence IDs, active-frame share, length ranks, and the
+smallest longest-sequence prefix containing every reversal. It separately
+records the pooled-frame mean-deviation contrast and smoothness `k/N`. Its role
+is mandatory post-result interpretation; `changes_predeclared_decision` is
+always false. It prevents `full_planner_observable_trade_supported` from being
+read without the reviewed cohort qualifier and does not create a new gate.
+
 The full decision requires both smoothness intervals above zero and both
 deviation intervals below zero. Smoothness-only and deviation-only outcomes are
 named separately. A3-minus-A1 is descriptive. A3-minus-A2 does not isolate

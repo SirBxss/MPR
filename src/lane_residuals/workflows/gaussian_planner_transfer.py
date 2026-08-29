@@ -549,6 +549,107 @@ def _descriptive_arm_comparison(
     return result
 
 
+def _deviation_length_dependence_qualifier(
+    *,
+    a3_sequence: Mapping[str, FloatArray],
+    a2_sequence: Mapping[str, FloatArray],
+    comparisons: Mapping[str, Mapping[str, Any]],
+    pooled: Mapping[str, Mapping[str, float]],
+    lengths: IntegerArray,
+    sequence_ids: StringArray,
+) -> dict[str, Any]:
+    """Record the reviewed sequence-length qualifier without changing the gate."""
+
+    total_active_frames = int(np.sum(lengths))
+    if total_active_frames <= 0:
+        raise ValueError("deviation qualifier requires active frames")
+    descending_length_indices = np.argsort(-lengths, kind="stable")
+    descending_length_rank = np.empty(len(lengths), dtype=np.int64)
+    descending_length_rank[descending_length_indices] = np.arange(
+        1, len(lengths) + 1, dtype=np.int64
+    )
+    reversal: dict[str, Any] = {}
+    reversal_sets: list[set[str]] = []
+    for name in PRIMARY_METRICS[2:]:
+        difference = np.mean(a3_sequence[name], axis=0) - np.mean(
+            a2_sequence[name], axis=0
+        )
+        reversing = difference > 0.0
+        ties = difference == 0.0
+        reversing_ids = {
+            str(sequence_ids[index])
+            for index in np.flatnonzero(reversing).tolist()
+        }
+        reversal_sets.append(reversing_ids)
+        reversing_active_frames = int(np.sum(lengths[reversing]))
+        reversing_length_ranks = sorted(
+            int(value) for value in descending_length_rank[reversing].tolist()
+        )
+        comparison = comparisons[name]
+        a2_mean = float(comparison["a2_macro_mean"])
+        difference_mean = float(comparison["a3_minus_a2_mean_difference"])
+        reversal[name] = {
+            "hypothesised_direction": "lower",
+            "equal_sequence_macro_a3_minus_a2": difference_mean,
+            "equal_sequence_macro_a3_minus_a2_percent_of_a2": (
+                100.0 * difference_mean / a2_mean if a2_mean != 0.0 else None
+            ),
+            "reversing_sequence_count": int(np.count_nonzero(reversing)),
+            "zero_difference_sequence_count": int(np.count_nonzero(ties)),
+            "sequence_count": int(len(lengths)),
+            "reversing_sequence_ids": [
+                str(sequence_ids[index])
+                for index in np.flatnonzero(reversing).tolist()
+            ],
+            "reversing_active_frame_count": reversing_active_frames,
+            "active_frame_count": total_active_frames,
+            "reversing_active_frame_fraction": (
+                reversing_active_frames / total_active_frames
+            ),
+            "reversing_sequence_length_ranks_longest_first": (
+                reversing_length_ranks
+            ),
+            "longest_prefix_containing_all_reversing_sequences": (
+                max(reversing_length_ranks) if reversing_length_ranks else 0
+            ),
+            "reversing_sequence_count_among_two_longest": int(
+                np.count_nonzero(reversing[descending_length_indices[:2]])
+            ),
+        }
+    a3_pooled = float(pooled["unconditional_gaussian"]["mean_abs_lateral_error_m"])
+    a2_pooled = float(pooled["frozen_ar"]["mean_abs_lateral_error_m"])
+    pooled_difference = a3_pooled - a2_pooled
+    smoothness_agreement = {
+        name: {
+            "k": int(
+                comparisons[name]["hypothesised_sign_sequence_agreement"]["k"]
+            ),
+            "N": int(
+                comparisons[name]["hypothesised_sign_sequence_agreement"]["N"]
+            ),
+        }
+        for name in PRIMARY_METRICS[:2]
+    }
+    return {
+        "role": "mandatory_post_result_interpretation_not_a_decision_gate",
+        "changes_predeclared_decision": False,
+        "deviation_metrics": reversal,
+        "reversing_sequence_sets_identical": reversal_sets[0] == reversal_sets[1],
+        "pooled_frame_mean_abs_lateral_error_m": {
+            "a3": a3_pooled,
+            "a2": a2_pooled,
+            "a3_minus_a2": pooled_difference,
+            "a3_minus_a2_percent_of_a2": (
+                100.0 * pooled_difference / a2_pooled if a2_pooled != 0.0 else None
+            ),
+        },
+        "smoothness_hypothesised_sign_sequence_agreement": smoothness_agreement,
+        "smoothness_agreement_is_unanimous": all(
+            value["k"] == value["N"] for value in smoothness_agreement.values()
+        ),
+    }
+
+
 def run_gaussian_planner_transfer(
     *,
     gaussian_sample_directory: Path,
@@ -687,6 +788,14 @@ def run_gaussian_planner_transfer(
         arm: _pooled_frame_summary(frames, lengths=lengths)
         for arm, frames in frames_by_arm.items()
     }
+    deviation_length_qualifier = _deviation_length_dependence_qualifier(
+        a3_sequence=sequence_metrics["unconditional_gaussian"],
+        a2_sequence=sequence_metrics["frozen_ar"],
+        comparisons=comparisons,
+        pooled=pooled,
+        lengths=lengths,
+        sequence_ids=sequence_ids,
+    )
 
     ensure_empty_output_directory(output_directory)
     frame_path = output_directory / TRANSFER_FRAME_FILENAME
@@ -797,6 +906,9 @@ def run_gaussian_planner_transfer(
         "deviation_family_role": "informative_transfer_test",
         "overall_decision": decision,
         "full_planner_observable_trade_supported": decision == "full support",
+        "deviation_family_length_dependence_qualifier": (
+            deviation_length_qualifier
+        ),
         "temporal_model_difference_planner_observable_with_real_model": (
             decision == "full support"
         ),

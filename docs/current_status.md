@@ -1,16 +1,16 @@
 # Current project status
 
-Last updated: 2026-08-27. This is the first file a new agent should read after
+Last updated: 2026-08-29. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.16.1 implementation complete on the current branch;
-  real A3 output has not been generated. The corrected v0.16 implementation
-  and real planner run are complete and independently approved. The first
-  pre-fix planner output remains rejected; its v0.15.4 residual samples were
-  valid and were reused.
+- Repository version: v0.16.1 real A3 sampling and planner transfer complete,
+  independently reproduced, and approved on the current branch. The corrected
+  v0.16 implementation and real planner run remain complete and approved. The
+  first pre-fix v0.16 planner output remains rejected; its v0.15.4 residual
+  samples were valid and were reused.
 - Integration state: merged to `main` at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -18,7 +18,7 @@ critical path changes.
   Python 3.10 and 3.12 CI both pass.
 - The complete v0.16 planner work was merged through PR #9 at commit
   `e6f6307`; its post-merge GitHub Actions run passes.
-- Current predeclaration branch: `planner/v0.16.1-gaussian-transfer`.
+- Current implementation branch: `planner/v0.16.1-gaussian-transfer`.
 - Merged-main baseline verification: 315 tests pass with two expected skips.
 - Corrected v0.16 implementation verification: 324 tests pass with two
   expected skips. A non-constant-profile direct quadratic solve verifies the
@@ -27,6 +27,12 @@ critical path changes.
   expected skips. The complete synthetic v0.13.1 through v0.16.1 chain covers
   deterministic A3 sampling and transfer, exact standardizer mismatch, accepted
   v0.16 hash mismatch, and sampling-summary tamper failures.
+- Real v0.16.1 verification: A3 sampling passed the independent pre-planner
+  gate; Codex and Claude each re-executed all 1,920 A3 sequence runs and
+  522,624 active planner frames. Both reproduced every primary interval and
+  the predeclared `full support` decision. Claude returned final `GO` with one
+  mandatory non-gating length-dependence reporting qualifier, now encoded in
+  the summary contract and documentation.
 - Real private freeze run: complete and independently approved.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the
@@ -80,6 +86,10 @@ v0.15.3 source artifact and does not need to be duplicated into the freeze.
   temporal ordering changes planner behavior even when each sequence/draw
   retains exactly the same multiset of H100 residual profiles. This is a
   sensitivity result, not planner benefit or a production-planner result.
+- For the same planner and cohort, the v0.14 unconditional Gaussian is much
+  rougher than the frozen AR and has lower deviation under the predeclared
+  equal-sequence macro. The deviation half is length-dependent and must never
+  be reported without the exact cohort qualifier recorded below.
 - RLMB remains a pseudo-reference with the documented source and timing
   limitations.
 
@@ -200,32 +210,76 @@ result, and all primary contrasts nevertheless agree at the precision reported
 in the final review. This is numerical reproduction across environments, not
 byte identity; the hashes above remain the authoritative accepted lineage.
 
-## Next phase: v0.16.1 Gaussian planner transfer
+## Completed v0.16.1 Gaussian planner transfer
 
-The next experiment is a separately labelled A3 extension, not an amendment to
-the completed v0.16 result. It uses the immutable v0.14 unconditional Gaussian
-all-clean descriptive fit and asks whether the actual Gaussian exhibits the
-same directional planner trade as the A1 statistical null relative to A2.
-Because A3 changes marginal distribution, cross-station covariance, and
-temporal structure, only v0.16 A2 minus A1 supports a causal temporal-order
-interpretation.
+v0.16.1 is a separately labelled A3 extension, not an amendment to the
+completed v0.16 result. It uses the immutable v0.14 unconditional-Gaussian
+all-clean descriptive fit, runs only A3 through the accepted planner, and
+compares it with immutable accepted A1/A2 metrics. A3 changes marginal
+distribution, cross-station covariance, and temporal structure, so only the
+v0.16 A2-minus-A1 comparison supports a causal temporal-order interpretation.
 
-The independently reviewed and amended contract is in
-`docs/gaussian_planner_transfer_predeclaration.md`. It fixes the model source,
-128 draws, Gaussian seed `20260828`, independent two-sample bootstrap seed
-`20260829`, 20,000 replicates, four primary metrics, directional hypotheses,
-decision rule, short-sequence p95 handling, standardizer equality, marginal
-diagnostics, cohort-consistency counts, and claim limits. It reuses accepted
-A1/A2 metrics without rerunning v0.16 and never refits a model.
+The real run uses 128 independent A3 draws, 15 sequences, 4,083 active frames,
+Gaussian seed `20260828`, bootstrap seed `20260829`, and 20,000 independent
+two-sample bootstrap replicates. The three sequences shorter than 20 frames are
+excluded only from the primary p95 macros. All four intervals lie strictly in
+their predeclared directions:
 
-Claude's pre-execution review approved the experiment design and required five
-contract clarifications. They were accepted in commit `4acd718` before any A3
-implementation or output was created. The implementation now provides separate
-strict sampling and A3-only transfer commands; the complete synthetic suite
-passes. Real A3 sampling is the next action. Generated scenario, sample, and
-planner outputs remain outside Git. BMW transfer validation remains optional
-and separate. The final untouched-drive phase remains blocked by the absence
-of independent outings; v0.16.1 does not satisfy that data gate.
+| Metric | A2 | A3 | A3 minus A2 | Independent-draw interval | k/N |
+|---|---:|---:|---:|---:|---:|
+| p95 absolute curvature rate | 0.168162 | 1.938071 | +1.769909 | [1.760356, 1.779786] | 12/12 |
+| p95 absolute lateral jerk | 68.9550 | 791.1659 | +722.2110 | [719.136, 725.308] | 12/12 |
+| mean absolute lateral error | 0.0699641 m | 0.0586593 m | -0.0113049 m | [-0.0128263, -0.0097855] | 10/15 |
+| integrated absolute lateral error | 1.496831 m s | 1.418571 m s | -0.078260 m s | [-0.103351, -0.053499] | 10/15 |
+
+The predeclared rule therefore returns smoothness pass, deviation pass, and
+`overall_decision = full support`. This decision is retained exactly; the
+post-result cohort diagnostic is not promoted into a new gate.
+
+The deviation half is length-dependent. Mean absolute error is 16.2% lower
+under the equal-sequence macro and 5.4% lower in the pooled-frame summary, but
+both deviation metrics reverse on the same 5 of 15 sequences. Those sequences
+contain 2,365 of 4,083 active frames (57.9%) and rank 1st, 2nd, 6th, 7th, and
+8th by active-frame length. Thus all five are among the eight longest, both
+longest sequences reverse, and every sequence with at most 174 frames agrees.
+The final-review draft said "five of the six longest"; an exact rank audit
+corrected that wording to the ranks above. Smoothness agrees in the
+hypothesised direction on all 12 eligible sequences and every reported
+aggregation.
+
+The result may be stated only as a planner-observable model trade for this
+fixed reference planner and one outing. It does not establish that A3-minus-A2
+is caused only by temporal structure, that either model is generally better,
+planner benefit, comfort, safety, BMW behavior, production readiness, physical
+ground truth, final model selection, or generalization. The intervals quantify
+Monte Carlo draw uncertainty with the cohort fixed, not dataset, journey, or
+model-fitting uncertainty.
+
+Reviewed real-artifact lineage:
+
+```text
+unconditional_gaussian_residual_samples.npz
+458a255f76334b281889df48bf8f549bd7b1f2fd124579b958b41d5353a8c81f
+
+unconditional_gaussian_residual_samples_summary.json
+8b17a16be7d6f76b5a3d69f3b03f82e28f8105a4a60f4fe9df6aac60e806f0f2
+
+gaussian_transfer_frame_metrics.npz
+270480551b7fc0cb8c097fee6ff875b3e847f958e9928e5b053a78795671fe2f
+
+gaussian_transfer_sequence_metrics.csv
+1f10578ced9d05bab8472cecc0e6c346f2907b9c368a7da572ff23a723bcc1bf
+
+gaussian_planner_transfer_summary.json (with mandatory qualifier)
+2dcda2dc24da9148a64ab742a815592e874e07e8f7fb007822d2f85f04cec2fa
+```
+
+Codex reproduced the delivered frame archive bit for bit. Claude regenerated
+the A3 and accepted A2 ensembles independently, re-executed the planner, and
+matched all decisions to machine precision. Generated samples and planner
+outputs remain outside Git. BMW transfer validation remains optional and
+separate. The final untouched-drive phase is still blocked by the absence of
+independent outings; v0.16.1 does not satisfy that data gate.
 
 The seed-repetition suggestion remains deferred. Repeated sampling seeds would
 quantify Monte Carlo sensitivity; they would not create independent-drive or

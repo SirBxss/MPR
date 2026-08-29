@@ -292,6 +292,90 @@ class GaussianPlannerTransferWorkflowTests(unittest.TestCase):
                 "unsupported",
             },
         )
+        qualifier = transfer_summary[
+            "deviation_family_length_dependence_qualifier"
+        ]
+        self.assertEqual(
+            qualifier["role"],
+            "mandatory_post_result_interpretation_not_a_decision_gate",
+        )
+        self.assertFalse(qualifier["changes_predeclared_decision"])
+        length_by_id = dict(zip(self.sequence_ids.tolist(), self.lengths.tolist()))
+        reversal_sets = []
+        for name in PRIMARY_METRICS[2:]:
+            values = qualifier["deviation_metrics"][name]
+            reversing_ids = values["reversing_sequence_ids"]
+            reversal_sets.append(set(reversing_ids))
+            self.assertEqual(values["sequence_count"], 3)
+            self.assertEqual(values["reversing_sequence_count"], len(reversing_ids))
+            expected_frames = sum(length_by_id[value] for value in reversing_ids)
+            self.assertEqual(values["reversing_active_frame_count"], expected_frames)
+            self.assertEqual(values["active_frame_count"], 45)
+            self.assertEqual(
+                values["reversing_active_frame_fraction"], expected_frames / 45
+            )
+            expected_ranks = sorted(
+                ["sequence_long", "sequence_twenty", "sequence_short"].index(value)
+                + 1
+                for value in reversing_ids
+            )
+            self.assertEqual(
+                values["reversing_sequence_length_ranks_longest_first"],
+                expected_ranks,
+            )
+            self.assertEqual(
+                values["longest_prefix_containing_all_reversing_sequences"],
+                max(expected_ranks, default=0),
+            )
+            self.assertEqual(
+                values["reversing_sequence_count_among_two_longest"],
+                sum(
+                    value in {"sequence_long", "sequence_twenty"}
+                    for value in reversing_ids
+                ),
+            )
+            comparison = transfer_summary["primary_a3_minus_a2_comparisons"][name]
+            self.assertEqual(
+                values["equal_sequence_macro_a3_minus_a2"],
+                comparison["a3_minus_a2_mean_difference"],
+            )
+            self.assertEqual(
+                values["equal_sequence_macro_a3_minus_a2_percent_of_a2"],
+                100.0
+                * comparison["a3_minus_a2_mean_difference"]
+                / comparison["a2_macro_mean"],
+            )
+        self.assertEqual(
+            qualifier["reversing_sequence_sets_identical"],
+            reversal_sets[0] == reversal_sets[1],
+        )
+        pooled = qualifier["pooled_frame_mean_abs_lateral_error_m"]
+        expected_a3 = transfer_summary["pooled_frame_summaries"][
+            "unconditional_gaussian"
+        ]["mean_abs_lateral_error_m"]
+        expected_a2 = transfer_summary["pooled_frame_summaries"]["frozen_ar"][
+            "mean_abs_lateral_error_m"
+        ]
+        self.assertEqual(pooled["a3"], expected_a3)
+        self.assertEqual(pooled["a2"], expected_a2)
+        self.assertEqual(pooled["a3_minus_a2"], expected_a3 - expected_a2)
+        for name in PRIMARY_METRICS[:2]:
+            agreement = transfer_summary["primary_a3_minus_a2_comparisons"][name][
+                "hypothesised_sign_sequence_agreement"
+            ]
+            self.assertEqual(
+                qualifier["smoothness_hypothesised_sign_sequence_agreement"][name],
+                {"k": agreement["k"], "N": agreement["N"]},
+            )
+        self.assertEqual(
+            qualifier["smoothness_agreement_is_unanimous"],
+            all(
+                value["k"] == value["N"]
+                for value in qualifier[
+                    "smoothness_hypothesised_sign_sequence_agreement"
+                ].values()
+            ),
+        )
         with np.load(output / TRANSFER_FRAME_FILENAME, allow_pickle=False) as archive:
             self.assertEqual(archive["frame_metrics"].shape, (20, 3, 22, 8))
             self.assertTrue(np.all(archive["frame_metrics"][:, 0, 3:] == 0.0))
