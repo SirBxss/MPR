@@ -210,19 +210,29 @@ class SequenceUnconditionalGaussian(ProbabilisticSequenceModel):
         return destination
 
     @classmethod
-    def load(cls, path: str | Path) -> Self:
-        source = Path(path)
-        if not source.is_file():
-            raise FileNotFoundError(f"sequence unconditional Gaussian not found: {source}")
+    def from_dict(cls, payload: Any) -> Self:
+        """Reconstruct a validated stored v0.14 unconditional Gaussian."""
 
-        def reject(value: str) -> None:
-            raise ValueError(f"non-finite JSON constant is forbidden: {value}")
-
-        with source.open("r", encoding="utf-8") as handle:
-            payload = json.load(handle, parse_constant=reject)
         if not isinstance(payload, dict):
             raise ValueError("sequence unconditional Gaussian payload must be an object")
-        if payload.get("schema_version") != VERSION or payload.get("model_name") != "sequence_unconditional_gaussian":
+        required = {
+            "schema_version",
+            "model_name",
+            "temporal_dependency_order",
+            "condition_feature_count",
+            "covariance_regularization_standardized2",
+            "training_frame_count",
+            "mean_standardized",
+            "covariance_standardized2",
+        }
+        if set(payload) != required:
+            raise ValueError("sequence unconditional Gaussian fields differ")
+        if (
+            payload.get("schema_version") != VERSION
+            or payload.get("model_name") != "sequence_unconditional_gaussian"
+            or payload.get("temporal_dependency_order") != 0
+            or payload.get("condition_feature_count") != 0
+        ):
             raise ValueError("unexpected sequence unconditional Gaussian contract")
         model = cls(
             covariance_regularization=float(
@@ -236,6 +246,19 @@ class SequenceUnconditionalGaussian(ProbabilisticSequenceModel):
             regularization=float(payload["covariance_regularization_standardized2"]),
         )
         return model
+
+    @classmethod
+    def load(cls, path: str | Path) -> Self:
+        source = Path(path)
+        if not source.is_file():
+            raise FileNotFoundError(f"sequence unconditional Gaussian not found: {source}")
+
+        def reject(value: str) -> None:
+            raise ValueError(f"non-finite JSON constant is forbidden: {value}")
+
+        with source.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle, parse_constant=reject)
+        return cls.from_dict(payload)
 
 
 __all__ = ["SequenceUnconditionalGaussian", "VERSION"]

@@ -43,6 +43,7 @@ are not the thesis execution path.
 | v0.15.3 | One-state AR-boundary sensitivity | Complete and reviewed; 0.99, 0.995, and 0.999 share the same interior fit, while none passes every strict performance gate |
 | v0.15.4 | Development-model freeze and sampler | Implemented; freezes 0.99 for planner development as the smallest nonbinding structural ceiling, retains 0.98 and the failed strict gate, and exports physical free-running H100 samples |
 | v0.16 | Reference-planner temporal-order sensitivity | Complete and independently reviewed; temporal ordering changes the fixed planner's accumulated deviation and command smoothness within the current outing |
+| v0.16.1 | Unconditional-Gaussian planner transfer | Complete and independently reproduced; the predeclared full-support rule passes, with mandatory length-dependent qualification of the deviation family |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -111,10 +112,19 @@ accumulated deviation against command smoothness for this fixed within-outing
 simulation. It does not establish planner benefit, comfort, safety, production
 behavior, or journey-level generalization.
 
-An unconditional-Gaussian A3 arm is not part of the accepted v0.16 experiment.
-It may be evaluated only as a separately predeclared extension because it
-changes both marginal and temporal structure. Its likely relation to the A1
-statistical null is a hypothesis, not a completed result.
+The v0.16.1 A3 arm remains separate from the accepted v0.16 experiment. Its
+model source, seeds, primary metrics, short-sequence p95 rule, marginal
+diagnostics, independent-draw interval, directional hypotheses,
+cohort-consistency reporting, and claim limits were fixed before A3 existed.
+The real run passes both predeclared families: A3 is much rougher than A2 and
+has lower deviation under the equal-sequence macro. The deviation result is
+length-dependent, however: the same five sequences reverse both deviation
+metrics, contain 57.9% of active frames, and rank 1st, 2nd, 6th, 7th, and 8th
+by length. The pooled-frame mean-deviation reduction is 5.4%, versus 16.2%
+under equal sequence weighting. This non-gating qualifier must accompany the
+full-support decision. Because A3 changes marginal distribution, cross-station
+covariance, and temporal structure, it cannot replace the causal A2-minus-A1
+result or authorize a general model ranking.
 
 ## Feature policy
 

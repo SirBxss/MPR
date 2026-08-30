@@ -218,6 +218,16 @@ origin curvature, and the pure-NumPy affine LQ error-state step.
 A0/A1/A2 execution, paired metrics, lineage, and serialization. The two
 `cli.reference_planner_*` modules remain adapters. No BMW API is introduced.
 
+For v0.16.1, `workflows.unconditional_gaussian_residual_sampling` validates the
+complete v0.13.1/v0.14 lineage, reconstructs the stored descriptive Gaussian,
+checks exact physical-standardizer equality with v0.15.4, and writes the A3
+sample plus pre-planner marginal diagnostics. `workflows.gaussian_planner_transfer`
+loads accepted v0.16 metrics read-only, invokes the existing planner sequence
+primitive only for A3, and owns the two-sample interval and reporting contract.
+`workflows.gaussian_planner_transfer_contract` is the single hard-pinned real-
+artifact boundary. The two v0.16.1 CLI modules remain argument and exit-code
+adapters; no model is refitted and no BMW API is introduced.
+
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific
 behavior. Moving that arithmetic into a neutral domain geometry utility should

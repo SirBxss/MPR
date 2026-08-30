@@ -304,6 +304,41 @@ python -m lane_residuals.cli.reference_planner_sensitivity \
 The fixed equations and claim limits are in
 `docs/reference_planner_predeclaration.md`.
 
+Generate the fixed v0.16.1 A3 residual ensemble without running a planner:
+
+```bash
+python -m lane_residuals.cli.unconditional_gaussian_residual_sampling \
+  "outputs/datasets/expanded_sensor_sequence_dataset_v0131" \
+  "outputs/models/expanded_gaussian_v0140" \
+  "outputs/models/development_residual_model_v0154/development_residual_model.json" \
+  "outputs/planner/residual_samples_v0154_for_v016" \
+  "outputs/planner/reference_planner_scenarios_v016/reference_planner_scenarios.npz" \
+  --output-directory \
+  "outputs/planner/unconditional_gaussian_samples_v0161"
+```
+
+The command has no seed or sample-count override: the reviewed contract fixes
+128 draws and seed `20260828`. It validates the complete v0.13.1 and v0.14 file
+sets, the exact frozen-model/scenario/A2 hashes, exact v0.14/v0.15.4 physical
+standardizer equality, zero padding, and per-station A3/A2 marginal diagnostics
+before writing output. It does not execute the planner.
+
+After reviewing the sampler summary, execute only A3 and compare it with the
+immutable accepted A1/A2 metrics:
+
+```bash
+python -m lane_residuals.cli.gaussian_planner_transfer \
+  "outputs/planner/unconditional_gaussian_samples_v0161" \
+  "outputs/planner/reference_planner_scenarios_v016/reference_planner_scenarios.npz" \
+  "outputs/planner/reference_planner_sensitivity_v016" \
+  --output-directory \
+  "outputs/planner/gaussian_planner_transfer_v0161"
+```
+
+This command hard-pins the accepted v0.16 hashes and parameters, bootstrap
+seed `20260829`, 20,000 replicates, the >=20-frame primary p95 rule, metric
+directions, and claim limits. A0/A1/A2 are never rerun.
+
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the
 canonical grouping manifest for the two physical recording sessions. The
