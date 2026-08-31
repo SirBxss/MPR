@@ -62,6 +62,13 @@ agents and new chats.
 - Do not claim final model selection or planner benefit without the required
   independent data or completed planner experiment.
 - RC-GAN is not pursued on the current one-outing corpus.
+- The independently reviewed v0.16.2 audit is the final diagnostic on the
+  current generated ensembles. Do not add an A4 arm, refit, seed sweep,
+  planner-parameter sweep, or further post-hoc current-outing statistic.
+- The next primary scientific evidence requires additional independent clean
+  outings under a reviewed, locked final-data protocol. BMW-planner transfer is
+  optional and separate; it requires confirmed interfaces and a new reviewed
+  predeclaration and does not replace independent-outing validation.
 
 ## Implementation and artifact rules
 

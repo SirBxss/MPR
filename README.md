@@ -4,8 +4,9 @@ MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
 
-Version 0.16.2 adds the approved, lineage-locked A2/A3 cross-station structure
-audit. It consumes only the accepted generated ensembles and reports complete
+Version 0.16.2 adds the independently reviewed, lineage-locked A2/A3
+cross-station structure audit. It consumes only the accepted generated
+ensembles and reports complete
 population covariance/correlation matrices, every station pair and separation,
 and both pooled-frame and equal-sequence summaries. It is post-hoc descriptive
 evidence with no interval, hypothesis test, decision gate, causal attribution,
@@ -790,9 +791,16 @@ reported.
 
 Claude computed the closed statistic list before implementation, after the list
 was fixed. The accepted-artifact execution is therefore a lineage-controlled
-reproducibility run rather than a first look. The implementation reproduces the
-previously disclosed values, but the generated five-file artifact remains a
-review candidate until independent output review is complete.
+reproducibility run rather than a first look. The final review independently
+regenerated both ensembles and reproduced all 42,378 matrix values within
+`1.55e-15`; the implementation and five-file artifact are accepted.
+
+Pooled mean off-diagonal correlation is `0.3830158618` for A2 and
+`0.5335912782` for A3. Adjacent-station correlation is `0.7030729727` and
+`0.9689050398`, respectively. A3 exceeds A2 for 182 of 210 dependent station
+pairs and in all 15 sequence-wise direction tallies. These are descriptions of
+the exact generated ensembles, not a causal explanation of the planner result
+or a general model ranking. This completes current-ensemble diagnostics.
 
 ## Optional odometry-compensated reference-alignment validation
 

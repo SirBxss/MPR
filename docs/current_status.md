@@ -6,14 +6,14 @@ critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.16.2 spatial-structure audit implemented on its review
-  branch; the real five-file output remains pending independent acceptance.
-  v0.16.1 real A3 sampling and planner transfer are complete, independently
-  reproduced, approved, and merged. The corrected v0.16
+- Repository version: v0.16.2 spatial-structure audit complete, independently
+  reproduced, approved, and merged. v0.16.1 real A3 sampling and planner
+  transfer are also complete, independently reproduced, approved, and merged.
+  The corrected v0.16
   implementation and real planner run remain complete and approved. The first
   pre-fix v0.16 planner output remains rejected; its v0.15.4 residual samples
   were valid and were reused.
-- Integration state: merged to `main` at commit `38ddac5` through PR #6,
+- The v0.15.4 development freeze was merged at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
 - Python 3.10 compatibility was merged through PR #8 at commit `e833e5a`;
@@ -22,8 +22,11 @@ critical path changes.
   `e6f6307`; its post-merge GitHub Actions run passes.
 - The complete v0.16.1 Gaussian transfer was merged through PR #10 at commit
   `0f46758`; its post-merge Python 3.10 and 3.12 GitHub Actions jobs pass.
-- Current review branch: `analysis/v0.16.2-spatial-structure-audit`.
-- Merged-main baseline verification: 329 tests pass with two expected skips.
+- The complete v0.16.2 spatial-structure audit was merged through PR #11 at
+  commit `99feb14`; its post-merge Python 3.10 and 3.12 GitHub Actions jobs
+  pass.
+- Current maintenance branch: `maintenance/v0.16.2-final-handoff`.
+- Merged-main baseline verification: 339 tests pass with two expected skips.
 - v0.16.2 focused verification: 339 tests pass with two expected skips. The
   tests cover population arithmetic, exact output schemas, lineage tampering,
   extra inputs, nonzero padding, non-overwrite behavior, and CLI exit codes.
@@ -47,8 +50,8 @@ critical path changes.
 - The first v0.16.2 review returned `AMEND`. The corrected contract received a
   focused independent `GO` before implementation. The implementation reproduces
   the reviewer's previously disclosed fixed statistics on the accepted
-  artifacts; do not accept, merge, or reinterpret the phase until Claude
-  reviews the generated five-file output.
+  artifacts. Claude's final review independently regenerated both ensembles,
+  reconciled every output, and returned `GO`; the phase is accepted and closed.
 
 ## Frozen development model
 
@@ -297,9 +300,9 @@ The seed-repetition suggestion remains deferred. Repeated sampling seeds would
 quantify Monte Carlo sensitivity; they would not create independent-drive or
 dataset uncertainty.
 
-## Implemented v0.16.2 spatial-structure audit awaiting output review
+## Completed v0.16.2 spatial-structure audit
 
-The current bounded phase is a read-only descriptive audit of contemporaneous
+The completed bounded phase is a read-only descriptive audit of contemporaneous
 cross-station covariance and correlation in the accepted A2 and A3 residual
 ensembles. It addresses the specific open interpretation issue from the final
 v0.16.1 review: the A3 deviation result is length-dependent, while A3 differs
@@ -330,13 +333,45 @@ were adopted. The workflow implementation reproduces the disclosed pooled
 off-diagonal correlations (`0.3830158618` A2 and `0.5335912782` A3), adjacent
 correlations (`0.7030729727` and `0.9689050398`), 182/210 positive pair
 differences, and positive off-diagonal/adjacent differences in all 15 sequences.
-These are implementation-reproduction checks, not accepted new results; the
-five-file output still requires independent review.
+Claude's final read-only review regenerated A2 and A3 independently, reproduced
+all 42,378 matrix values within a maximum absolute difference of `1.55e-15`,
+reconciled every CSV and hash, confirmed 339 passing tests with two skips, and
+returned `GO`. The result and implementation were merged through PR #11.
 
-After that real numeric output is independently reviewed, this is the stopping
-point for current-data generated-ensemble diagnostics. Further substantive
-evidence requires independent clean outings or a separately predeclared
-BMW-planner transfer using confirmed interfaces.
+Accepted v0.16.2 artifact hashes:
+
+```text
+spatial_structure_matrices.npz
+cf4eac162018dd65be26b89b472dbc6fe65aab3aacedd46c22b82583d4ab951f
+
+spatial_structure_by_station_pair.csv
+773573ba00c18648259f7e055afde40d8c0e72a574b4298821ed75ad5524527f
+
+spatial_structure_by_separation.csv
+38fb5c157ca9b8424a64e7eeee4bc31d482ec12e5e0f5b916c9e27ca29433ca3
+
+spatial_structure_by_sequence.csv
+2f4e40ffd5e5ec70ddf262269315a278f0cb1a19ab4f87b0ea90255bc8cee842
+
+spatial_structure_audit_summary.json
+e11b9a90bba4aba2af07eacb2ca1bae50231e1c0b5fa90509edca7742531479e
+```
+
+For the thesis write-up, the 90, 95, and 100 m separation rows contain only
+three, two, and one station pairs, so their near-zero tail signs are not a
+structural finding. The A2 adjacent correlation also differs more between
+pooled and equal-sequence weighting (`0.7031` versus `0.7203`) than the
+off-diagonal statistic does; this is consistent with the predeclared
+finite-horizon mixture and is why both weightings must remain visible. The
+adjacent A2/A3 contrast is the clearest single summary, but it must be reported
+beside the separation profile.
+
+This is the stopping point for current-data generated-ensemble diagnostics.
+No A4 arm, refit, seed sweep, planner-parameter sweep, or additional post-hoc
+statistic is authorized. The primary next evidence requires independent clean
+outings under a separately reviewed, locked final-data protocol. Optional BMW-
+planner transfer remains separate, requires confirmed interfaces and a new
+predeclaration, and cannot replace independent-outing validation.
 
 ## Reading map
 

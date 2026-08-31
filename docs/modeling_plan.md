@@ -44,7 +44,7 @@ are not the thesis execution path.
 | v0.15.4 | Development-model freeze and sampler | Implemented; freezes 0.99 for planner development as the smallest nonbinding structural ceiling, retains 0.98 and the failed strict gate, and exports physical free-running H100 samples |
 | v0.16 | Reference-planner temporal-order sensitivity | Complete and independently reviewed; temporal ordering changes the fixed planner's accumulated deviation and command smoothness within the current outing |
 | v0.16.1 | Unconditional-Gaussian planner transfer | Complete and independently reproduced; the predeclared full-support rule passes, with mandatory length-dependent qualification of the deviation family |
-| v0.16.2 | A2/A3 cross-station structure audit | Amended contract received independent `GO`; read-only implementation reproduces the disclosed fixed statistics, while the five-file real output awaits independent review |
+| v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -140,9 +140,9 @@ diagnostic; no A4 arm or further model/planner sweep follows from it.
 The focused re-review returned `GO` before implementation. The workflow now
 hard-pins both complete source directories and writes only the predeclared
 numeric matrices and tables. Its accepted-artifact implementation check
-reproduces the reviewer's already disclosed statistic list; independent review
-of the resulting five files remains the acceptance gate, not a new scientific
-decision rule.
+reproduced the reviewer's already disclosed statistic list. The final review
+then independently regenerated both source ensembles, reconciled all five
+files, and returned `GO`; the audit is complete and merged.
 
 The v0.16.2 arm comparison uses the same nominal generated-profile count, but
 that count is not an inferential sample size: A2 is serially dependent and
@@ -151,6 +151,13 @@ sample size is authorized for the covariance/correlation estimands. Sequence-
 wise A2 structure is a finite-horizon mixture of reset, transient, conditional,
 and later free-running behavior, so a length association is confounded rather
 than evidence of physical spatial heterogeneity or a causal planner mechanism.
+
+No further implementation on the present generated ensembles is authorized.
+The primary next phase requires additional independent clean outings and a
+separately reviewed, locked final-data protocol before any final comparison.
+An optional BMW-planner transfer remains a distinct production-relevance study
+requiring confirmed interfaces and its own predeclaration; it cannot substitute
+for independent-outing evidence.
 
 ## Feature policy
 
