@@ -1,16 +1,16 @@
 # Current project status
 
-Last updated: 2026-08-29. This is the first file a new agent should read after
+Last updated: 2026-08-31. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
 ## Current checkpoint
 
 - Repository version: v0.16.1 real A3 sampling and planner transfer complete,
-  independently reproduced, and approved on the current branch. The corrected
-  v0.16 implementation and real planner run remain complete and approved. The
-  first pre-fix v0.16 planner output remains rejected; its v0.15.4 residual
-  samples were valid and were reused.
+  independently reproduced, approved, and merged. The corrected v0.16
+  implementation and real planner run remain complete and approved. The first
+  pre-fix v0.16 planner output remains rejected; its v0.15.4 residual samples
+  were valid and were reused.
 - Integration state: merged to `main` at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -18,8 +18,10 @@ critical path changes.
   Python 3.10 and 3.12 CI both pass.
 - The complete v0.16 planner work was merged through PR #9 at commit
   `e6f6307`; its post-merge GitHub Actions run passes.
-- Current implementation branch: `planner/v0.16.1-gaussian-transfer`.
-- Merged-main baseline verification: 315 tests pass with two expected skips.
+- The complete v0.16.1 Gaussian transfer was merged through PR #10 at commit
+  `0f46758`; its post-merge Python 3.10 and 3.12 GitHub Actions jobs pass.
+- Current review branch: `analysis/v0.16.2-spatial-structure-audit`.
+- Merged-main baseline verification: 329 tests pass with two expected skips.
 - Corrected v0.16 implementation verification: 324 tests pass with two
   expected skips. A non-constant-profile direct quadratic solve verifies the
   first curvature command and optimized horizon objective.
@@ -37,6 +39,8 @@ critical path changes.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the
   current corpus without new evidence.
+- v0.16.2 is predeclaration-only. Do not implement or run it before independent
+  review of `docs/spatial_structure_audit_predeclaration.md`.
 
 ## Frozen development model
 
@@ -284,6 +288,28 @@ independent outings; v0.16.1 does not satisfy that data gate.
 The seed-repetition suggestion remains deferred. Repeated sampling seeds would
 quantify Monte Carlo sensitivity; they would not create independent-drive or
 dataset uncertainty.
+
+## Proposed v0.16.2 spatial-structure audit
+
+The next bounded phase is a read-only descriptive audit of contemporaneous
+cross-station covariance and correlation in the accepted A2 and A3 residual
+ensembles. It addresses the specific open interpretation issue from the final
+v0.16.1 review: the A3 deviation result is length-dependent, while A3 differs
+from A2 in both station-wise scale and cross-station coherence.
+
+The audit consumes only the complete immutable A2 and A3 sample directories.
+It does not refit or resample a model, execute the planner, change the accepted
+v0.16/v0.16.1 decisions, or create an A4 arm. Pooled-frame and equal-sequence
+summaries are both mandatory. No interval, hypothesis test, or pass/fail gate
+is permitted because the result is post-hoc and generated-ensemble descriptive
+evidence.
+
+The exact proposed contract is in
+`docs/spatial_structure_audit_predeclaration.md`. Claude should review that
+document before implementation. After the real numeric output is independently
+reviewed, this is the stopping point for current-data generated-ensemble
+diagnostics. Further substantive evidence requires independent clean outings
+or a separately predeclared BMW-planner transfer using confirmed interfaces.
 
 ## Reading map
 

@@ -44,6 +44,7 @@ are not the thesis execution path.
 | v0.15.4 | Development-model freeze and sampler | Implemented; freezes 0.99 for planner development as the smallest nonbinding structural ceiling, retains 0.98 and the failed strict gate, and exports physical free-running H100 samples |
 | v0.16 | Reference-planner temporal-order sensitivity | Complete and independently reviewed; temporal ordering changes the fixed planner's accumulated deviation and command smoothness within the current outing |
 | v0.16.1 | Unconditional-Gaussian planner transfer | Complete and independently reproduced; the predeclared full-support rule passes, with mandatory length-dependent qualification of the deviation family |
+| v0.16.2 | A2/A3 cross-station structure audit | Predeclaration proposed for independent review; read-only post-hoc description with no new model, planner run, decision gate, or causal mechanism claim |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -125,6 +126,16 @@ under equal sequence weighting. This non-gating qualifier must accompany the
 full-support decision. Because A3 changes marginal distribution, cross-station
 covariance, and temporal structure, it cannot replace the causal A2-minus-A1
 result or authorize a general model ranking.
+
+The proposed v0.16.2 audit consumes the accepted A2 and A3 generated residual
+ensembles read-only and quantifies contemporaneous cross-station covariance and
+correlation. It is explicitly post-hoc: the approximate pooled correlation
+levels were already reported in the independent v0.16.1 review. It reports
+station-pair, separation, pooled-frame, and equal-sequence descriptions with no
+interval or pass/fail gate. It cannot establish that spatial coherence caused
+the length-dependent planner deviations or separate coherence from marginal
+scale. Its reviewed contract is the final current-data generated-ensemble
+diagnostic; no A4 arm or further model/planner sweep follows from it.
 
 ## Feature policy
 
