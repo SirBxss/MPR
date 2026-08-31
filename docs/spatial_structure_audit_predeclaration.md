@@ -1,13 +1,22 @@
 # v0.16.2 A2/A3 cross-station structure audit predeclaration
 
-Status: proposed for independent review on 2026-08-31, after the accepted
-v0.16.1 result and before implementation or generation of a v0.16.2 output.
+Status: amended on 2026-08-31 after an independent `AMEND` review and awaiting
+focused re-review, after the accepted v0.16.1 result and before implementation
+or generation of a v0.16.2 output.
 
 This is a post-hoc descriptive audit. Claude's final v0.16.1 review already
 reported that the pooled mean off-diagonal station correlation was about
 `0.383` for A2 and `0.534` for A3. Those values motivated this audit and are
 not unseen confirmatory outcomes. Every result will be retained regardless of
 direction.
+
+After this statistic list was fixed, the independent reviewer computed the
+complete audit on independently regenerated A2 and A3 ensembles while deciding
+whether the phase was worth performing. The reviewer therefore knows the full
+result before implementation. The accepted-artifact v0.16.2 run is a lineage-
+controlled reproducibility execution rather than a first look, and its summary
+must record this disclosure. No statistic was added or removed in response to
+the reviewer's computed values.
 
 ## Scientific question
 
@@ -16,11 +25,13 @@ ensembles differ in their contemporaneous cross-station covariance and
 correlation structure, and is the direction of the correlation difference
 consistent across station separations and planning sequences?
 
-The audit closes a specific interpretation gap in v0.16.1. The A3 sampler
-already reports station-wise mean and standard deviation, but not the spatial
-dependence between stations. The final planner review found that the A3-minus-
-A2 deviation contrast is length-dependent and noted both a near-field scale
-difference and a cross-station-coherence difference as plausible contributors.
+The audit documents one input difference that the v0.16.1 record leaves
+unquantified. The A3 sampler already reports station-wise mean and standard
+deviation, but not the dependence between stations. The final planner review
+found that the A3-minus-A2 deviation contrast is length-dependent and named a
+near-field scale difference and a cross-station-coherence difference as two
+plausible contributors. This audit measures the second of those. It narrows
+what is undescribed; it does not close the causal question, which remains open.
 
 This audit can quantify those two ensembles' spatial structure. It cannot
 identify whether marginal scale or cross-station coherence caused the planner
@@ -93,6 +104,17 @@ Padding is excluded. For one arm, concatenate every active vector from all
 128 draws and all 15 sequences into `X[N,21]`, where
 `N = 128 * 4,083 = 522,624` generated frame profiles.
 
+`N` is the exact profile count in each stored finite ensemble, not an
+inferential sample size. A3 profiles are temporally independent by construction.
+A2 profiles are serially dependent within each sequence and reset once at each
+sequence boundary, so the two arms do not have equal estimation precision for
+their underlying generators despite equal nominal profile counts. No scalar
+effective sample size is reported: the common stationary scalar-AR formula for
+a sample mean is not valid for these 21-dimensional covariance and correlation
+statistics under condition-dependent means, cross-station dependence, resets,
+and unequal sequence lengths. The reported moments remain exact descriptions
+of the two stored generated ensembles.
+
 For station `j`, calculate the population mean and covariance:
 
 ```text
@@ -110,6 +132,21 @@ The same population calculation is repeated separately for each sequence by
 pooling that sequence's 128 draws and active frames. No sequence is dropped;
 even the three-frame sequence contributes 384 generated profiles.
 
+An A2 per-sequence result describes that finite-horizon generated ensemble as
+presented to the planner; it is not an estimate of one stationary spatial
+parameter. A2 starts every sequence from its fitted marginal reset prior and
+then evolves autoregressively under that sequence's conditions. Sequence length
+therefore changes the mixture of reset, transient, and later free-running
+profiles, while the condition histories also differ between sequences. Any
+association between an A2 per-sequence correlation and sequence length is
+structurally confounded by those factors. It may not be interpreted as physical
+spatial heterogeneity across the outing or as a causal explanation of the
+v0.16.1 length-dependent planner result. It is not declared irrelevant to that
+planner result either, because the planner consumed the same finite-horizon
+sequences. A3 has no temporal state or dynamic reset transient, but its
+per-sequence values still describe finite Monte Carlo subsets. No per-sequence
+effective sample size is claimed for either arm.
+
 For each arm and for A3 minus A2, report:
 
 1. the complete 21-by-21 covariance matrix;
@@ -124,6 +161,14 @@ For each arm and for A3 minus A2, report:
 7. per-sequence mean off-diagonal and adjacent-station correlations, their
    A3-minus-A2 differences, and the descriptive `k/15` count with a positive
    difference.
+
+The 210 station pairs are functions of one 21-by-21 correlation matrix per arm
+and are strongly mutually dependent. The pair count is therefore one
+descriptive tally, not 210 independent comparisons. It must always be reported
+beside the complete separation profile and never as a standalone proportion.
+Likewise, a positive per-sequence `k/15` count describes consistency of
+direction only; it does not establish uniform effect magnitude or absence of a
+relationship with sequence length.
 
 The pooled result weights generated active frames equally. The per-sequence
 macro is the arithmetic mean of the 15 per-sequence statistics and weights
@@ -168,9 +213,10 @@ adjacent-station correlation, and both A3-minus-A2 differences.
 
 `spatial_structure_audit_summary.json` records exact input and output hashes,
 array schemas, counts, formula and weighting identities, pooled and equal-
-sequence results, pair and sequence directional counts, the already known
-post-hoc status, and all claim limitations. Strict JSON forbids NaN and
-infinity.
+sequence results, pair and sequence directional counts, the unequal temporal-
+dependence structure of the arms, the reviewer's pre-implementation calculation
+disclosure, the already known post-hoc status, and all claim limitations.
+Strict JSON forbids NaN and infinity.
 
 No figure is part of the scientific contract. Publication figures should be a
 separate read-only reporting layer after this numeric artifact is independently
@@ -183,6 +229,14 @@ A3 has higher, lower, or similar contemporaneous cross-station covariance or
 correlation than A2 under the reported pooled and equal-sequence summaries.
 It may describe how that difference varies with station separation and across
 the 15 fixed sequences.
+
+The separation profile may be described as generally decaying toward zero if
+the complete values support that wording, but it may not be called strictly
+monotonic unless every consecutive fixed separation value satisfies that exact
+property. A positive difference in all 15 sequences may be called uniform in
+direction only. No approximate-uniformity threshold for magnitude was fixed,
+so the audit may not claim that the difference is constant across sequences or
+does not vary with sequence length.
 
 It may not state that:
 
@@ -204,6 +258,12 @@ to the deviation result.
 v0.16.2 is the final planned diagnostic using the current generated ensembles.
 It authorizes no A4 arm, model refit, planner-parameter sweep, additional seed
 sweep, or new current-outing selection exercise.
+
+The statistic list in *Fixed calculations* is closed. Any additional cross-
+station statistic computed on these ensembles, including a partial correlation,
+eigenvalue spectrum, factor structure, or conditional-independence measure,
+requires a new predeclaration reviewed before computation. It may not be added
+to a v0.16.2 rerun after this output has been inspected.
 
 After independent review of the real v0.16.2 output, the next substantive
 scientific evidence requires either:

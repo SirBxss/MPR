@@ -39,8 +39,9 @@ critical path changes.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the
   current corpus without new evidence.
-- v0.16.2 is predeclaration-only. Do not implement or run it before independent
-  review of `docs/spatial_structure_audit_predeclaration.md`.
+- v0.16.2 is predeclaration-only. Its first independent review returned
+  `AMEND`; the corrected contract now awaits focused re-review. Do not implement
+  or run it before that review is complete.
 
 ## Frozen development model
 
@@ -305,11 +306,23 @@ is permitted because the result is post-hoc and generated-ensemble descriptive
 evidence.
 
 The exact proposed contract is in
-`docs/spatial_structure_audit_predeclaration.md`. Claude should review that
-document before implementation. After the real numeric output is independently
-reviewed, this is the stopping point for current-data generated-ensemble
-diagnostics. Further substantive evidence requires independent clean outings
-or a separately predeclared BMW-planner transfer using confirmed interfaces.
+`docs/spatial_structure_audit_predeclaration.md`. The first Claude review found
+useful interpretation risks but proposed a scalar effective-sample-size formula
+that is not valid for the audit's covariance/correlation estimands and described
+the sequence-wise difference as more uniform than the exact accepted artifacts
+support. The amended contract instead records unequal temporal dependence
+without inventing an effective sample size, treats reset/length effects as
+confounded rather than irrelevant, limits `k/15` to direction consistency,
+closes the statistic list, and strengthens the causal wording.
+
+Claude computed the complete fixed statistic list on independently regenerated
+ensembles during that review. This must remain disclosed: the later accepted-
+artifact run is a lineage-controlled reproducibility execution, not a first
+look. A focused re-review of the amended wording is required before
+implementation. After the real numeric output is independently reviewed, this
+is the stopping point for current-data generated-ensemble diagnostics. Further
+substantive evidence requires independent clean outings or a separately
+predeclared BMW-planner transfer using confirmed interfaces.
 
 ## Reading map
 
