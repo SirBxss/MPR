@@ -228,6 +228,15 @@ primitive only for A3, and owns the two-sample interval and reporting contract.
 artifact boundary. The two v0.16.1 CLI modules remain argument and exit-code
 adapters; no model is refitted and no BMW API is introduced.
 
+For v0.16.2, `domain.spatial_structure` contains only float64 population
+cross-station moment arithmetic. `workflows.spatial_structure_audit_contract`
+pins the four accepted A2/A3 source hashes and fixed dimensions, while
+`workflows.spatial_structure_audit` owns exact file/schema/summary validation,
+pooled and per-sequence orchestration, and the five-file numeric report.
+`cli.spatial_structure_audit` is an argument and exit-code adapter. The layer
+does not import a sampler or planner, so it cannot refit, resample, or execute
+an earlier experimental component.
+
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific
 behavior. Moving that arithmetic into a neutral domain geometry utility should

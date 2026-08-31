@@ -339,6 +339,23 @@ This command hard-pins the accepted v0.16 hashes and parameters, bootstrap
 seed `20260829`, 20,000 replicates, the >=20-frame primary p95 rule, metric
 directions, and claim limits. A0/A1/A2 are never rerun.
 
+Run the approved v0.16.2 read-only spatial-structure audit:
+
+```bash
+python -m lane_residuals.cli.spatial_structure_audit \
+  "outputs/planner/residual_samples_v0154_for_v016" \
+  "outputs/planner/unconditional_gaussian_samples_v0161" \
+  --output-directory \
+  "outputs/planner/spatial_structure_audit_v0162"
+```
+
+The command accepts no statistic, threshold, seed, or sample-count override.
+It requires the exact accepted two-file A2 and A3 directories and validates
+their fixed hashes, summary identities, axes, active values, and zero padding
+before creating output. It does not load raw data, refit or sample a model, or
+execute the planner. Exit code `0` means the descriptive five-file audit was
+written; input or contract drift returns `2` without creating output.
+
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the
 canonical grouping manifest for the two physical recording sessions. The

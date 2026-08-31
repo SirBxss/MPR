@@ -1121,3 +1121,59 @@ named separately. A3-minus-A1 is descriptive. A3-minus-A2 does not isolate
 temporal structure, and no output authorizes planner benefit, comfort, safety,
 BMW behavior, production readiness, global replay, final model selection, or
 journey-level generalization.
+
+## v0.16.2 A2/A3 cross-station structure audit outputs
+
+The audit consumes exactly the accepted v0.15.4 A2 and v0.16.1 A3 sample NPZ
+and summary in their complete two-file directories. All four SHA-256 values,
+both summary identities, the five-array NPZ schema, H100 stations, sequence
+axes, BMW condition schema v1, active-frame finiteness, and exact zero padding
+must pass before output is created. It writes exactly:
+
+```text
+spatial_structure_matrices.npz
+spatial_structure_by_station_pair.csv
+spatial_structure_by_separation.csv
+spatial_structure_by_sequence.csv
+spatial_structure_audit_summary.json
+```
+
+`spatial_structure_matrices.npz` has fixed arm order
+`[frozen_ar, unconditional_gaussian]` and exactly these arrays:
+
+```text
+arm_names                                  string  [2]
+stations_m                                 float64 [21]
+sequence_ids                               string  [15]
+lengths                                    int64   [15]
+pooled_means_m                             float64 [2,21]
+pooled_covariances_m2                      float64 [2,21,21]
+pooled_correlations                        float64 [2,21,21]
+pooled_covariance_difference_m2            float64 [21,21]
+pooled_correlation_difference              float64 [21,21]
+per_sequence_covariances_m2                float64 [2,15,21,21]
+per_sequence_correlations                  float64 [2,15,21,21]
+per_sequence_covariance_differences_m2     float64 [15,21,21]
+per_sequence_correlation_differences       float64 [15,21,21]
+```
+
+Difference arrays are unconditional Gaussian minus frozen AR. Object arrays
+and pickle are forbidden. Population covariance uses denominator `N`; padding
+is excluded. Each station variance must be finite and positive and correlation
+round-off is accepted only within absolute tolerance `1e-12`.
+
+The station-pair CSV contains the 210 unordered pairs in lexicographic station
+order with separation, both arms' covariance/correlation, and both differences.
+The separation CSV contains the 20 fixed separations with pair counts and
+unweighted means of those covariance/correlation values. The sequence CSV
+contains the 15 sequences in stored order with active length, each arm's mean
+off-diagonal and adjacent correlation, and the two differences.
+
+The strict JSON summary records all input hashes, hashes of the four non-summary
+outputs, array/CSV schemas, population formulas, counts, source seeds, pooled
+and equal-sequence summaries, the pair tally beside the complete separation
+profile, direction-only sequence tallies, unequal temporal dependence, the
+reviewer's pre-implementation calculation disclosure, and every claim limit.
+It reports no scalar effective sample size, p-value, interval, or decision gate.
+The summary omits its own hash to avoid recursive content. Generated outputs
+remain outside version control.

@@ -1,8 +1,8 @@
 # v0.16.2 A2/A3 cross-station structure audit predeclaration
 
-Status: amended on 2026-08-31 after an independent `AMEND` review and awaiting
-focused re-review, after the accepted v0.16.1 result and before implementation
-or generation of a v0.16.2 output.
+Status: approved `GO` on 2026-08-31 after an independent focused re-review of
+the amended contract, after the accepted v0.16.1 result and before workflow
+implementation or generation of a v0.16.2 output.
 
 This is a post-hoc descriptive audit. Claude's final v0.16.1 review already
 reported that the pooled mean off-diagonal station correlation was about
@@ -30,8 +30,10 @@ unquantified. The A3 sampler already reports station-wise mean and standard
 deviation, but not the dependence between stations. The final planner review
 found that the A3-minus-A2 deviation contrast is length-dependent and named a
 near-field scale difference and a cross-station-coherence difference as two
-plausible contributors. This audit measures the second of those. It narrows
-what is undescribed; it does not close the causal question, which remains open.
+plausible contributors. This audit quantifies the second of those two input
+differences. It does not estimate either one's contribution to the planner
+result. It narrows what is undescribed; it does not close the causal question,
+which remains open.
 
 This audit can quantify those two ensembles' spatial structure. It cannot
 identify whether marginal scale or cross-station coherence caused the planner
@@ -221,6 +223,9 @@ Strict JSON forbids NaN and infinity.
 No figure is part of the scientific contract. Publication figures should be a
 separate read-only reporting layer after this numeric artifact is independently
 reviewed, so plot formatting cannot change or obscure the audited values.
+
+Generated v0.16.2 outputs remain outside version control; only code, tests,
+contracts, and documentation are committed.
 
 ## Interpretation limits
 
