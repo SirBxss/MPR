@@ -95,7 +95,9 @@ At v0.15.4 the expected baseline is 315 passing tests with two expected
 optional-dependency skips. Treat a changed count as something to explain.
 The corrected v0.16 reference-planner implementation raises this to 324 passing tests
 with the same two expected skips. The reviewed v0.16.1 Gaussian-transfer
-implementation raises this to 329 passing tests with the same two skips.
+implementation raises this to 329 passing tests with the same two skips. The
+v0.16.2 spatial-structure audit raises this to 339 passing tests with the same
+two skips.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

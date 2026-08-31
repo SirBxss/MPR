@@ -1,16 +1,18 @@
 # Current project status
 
-Last updated: 2026-08-29. This is the first file a new agent should read after
+Last updated: 2026-08-31. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.16.1 real A3 sampling and planner transfer complete,
-  independently reproduced, and approved on the current branch. The corrected
-  v0.16 implementation and real planner run remain complete and approved. The
-  first pre-fix v0.16 planner output remains rejected; its v0.15.4 residual
-  samples were valid and were reused.
+- Repository version: v0.16.2 spatial-structure audit implemented on its review
+  branch; the real five-file output remains pending independent acceptance.
+  v0.16.1 real A3 sampling and planner transfer are complete, independently
+  reproduced, approved, and merged. The corrected v0.16
+  implementation and real planner run remain complete and approved. The first
+  pre-fix v0.16 planner output remains rejected; its v0.15.4 residual samples
+  were valid and were reused.
 - Integration state: merged to `main` at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -18,8 +20,13 @@ critical path changes.
   Python 3.10 and 3.12 CI both pass.
 - The complete v0.16 planner work was merged through PR #9 at commit
   `e6f6307`; its post-merge GitHub Actions run passes.
-- Current implementation branch: `planner/v0.16.1-gaussian-transfer`.
-- Merged-main baseline verification: 315 tests pass with two expected skips.
+- The complete v0.16.1 Gaussian transfer was merged through PR #10 at commit
+  `0f46758`; its post-merge Python 3.10 and 3.12 GitHub Actions jobs pass.
+- Current review branch: `analysis/v0.16.2-spatial-structure-audit`.
+- Merged-main baseline verification: 329 tests pass with two expected skips.
+- v0.16.2 focused verification: 339 tests pass with two expected skips. The
+  tests cover population arithmetic, exact output schemas, lineage tampering,
+  extra inputs, nonzero padding, non-overwrite behavior, and CLI exit codes.
 - Corrected v0.16 implementation verification: 324 tests pass with two
   expected skips. A non-constant-profile direct quadratic solve verifies the
   first curvature command and optimized horizon objective.
@@ -37,6 +44,11 @@ critical path changes.
 - The residual-modeling programme is frozen for planner development. Do not
   reopen model-family, state-count, convergence, or AR-ceiling searches on the
   current corpus without new evidence.
+- The first v0.16.2 review returned `AMEND`. The corrected contract received a
+  focused independent `GO` before implementation. The implementation reproduces
+  the reviewer's previously disclosed fixed statistics on the accepted
+  artifacts; do not accept, merge, or reinterpret the phase until Claude
+  reviews the generated five-file output.
 
 ## Frozen development model
 
@@ -284,6 +296,47 @@ independent outings; v0.16.1 does not satisfy that data gate.
 The seed-repetition suggestion remains deferred. Repeated sampling seeds would
 quantify Monte Carlo sensitivity; they would not create independent-drive or
 dataset uncertainty.
+
+## Implemented v0.16.2 spatial-structure audit awaiting output review
+
+The current bounded phase is a read-only descriptive audit of contemporaneous
+cross-station covariance and correlation in the accepted A2 and A3 residual
+ensembles. It addresses the specific open interpretation issue from the final
+v0.16.1 review: the A3 deviation result is length-dependent, while A3 differs
+from A2 in both station-wise scale and cross-station coherence.
+
+The audit consumes only the complete immutable A2 and A3 sample directories.
+It does not refit or resample a model, execute the planner, change the accepted
+v0.16/v0.16.1 decisions, or create an A4 arm. Pooled-frame and equal-sequence
+summaries are both mandatory. No interval, hypothesis test, or pass/fail gate
+is permitted because the result is post-hoc and generated-ensemble descriptive
+evidence.
+
+The exact approved contract is in
+`docs/spatial_structure_audit_predeclaration.md`. The first Claude review found
+useful interpretation risks but proposed a scalar effective-sample-size formula
+that is not valid for the audit's covariance/correlation estimands and described
+the sequence-wise difference as more uniform than the exact accepted artifacts
+support. The amended contract instead records unequal temporal dependence
+without inventing an effective sample size, treats reset/length effects as
+confounded rather than irrelevant, limits `k/15` to direction consistency,
+closes the statistic list, and strengthens the causal wording.
+
+Claude computed the complete fixed statistic list on independently regenerated
+ensembles during that review. This must remain disclosed: the later accepted-
+artifact run is a lineage-controlled reproducibility execution, not a first
+look. The focused re-review returned `GO`, and both optional wording suggestions
+were adopted. The workflow implementation reproduces the disclosed pooled
+off-diagonal correlations (`0.3830158618` A2 and `0.5335912782` A3), adjacent
+correlations (`0.7030729727` and `0.9689050398`), 182/210 positive pair
+differences, and positive off-diagonal/adjacent differences in all 15 sequences.
+These are implementation-reproduction checks, not accepted new results; the
+five-file output still requires independent review.
+
+After that real numeric output is independently reviewed, this is the stopping
+point for current-data generated-ensemble diagnostics. Further substantive
+evidence requires independent clean outings or a separately predeclared
+BMW-planner transfer using confirmed interfaces.
 
 ## Reading map
 

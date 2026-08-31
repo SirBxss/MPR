@@ -1,8 +1,15 @@
-# Minimal Path-Residual Model (MPR) v0.16.1
+# Minimal Path-Residual Model (MPR) v0.16.2
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
+
+Version 0.16.2 adds the approved, lineage-locked A2/A3 cross-station structure
+audit. It consumes only the accepted generated ensembles and reports complete
+population covariance/correlation matrices, every station pair and separation,
+and both pooled-frame and equal-sequence summaries. It is post-hoc descriptive
+evidence with no interval, hypothesis test, decision gate, causal attribution,
+planner execution, A4 arm, or final-model-selection claim.
 
 Version 0.16.1 adds the independently reviewed unconditional-Gaussian A3
 planner-transfer extension. It samples only the stored v0.14 all-clean
@@ -763,6 +770,29 @@ frame mean absolute error remains 5.4% lower, so the sign survives frame
 weighting but the magnitude falls to one third of the equal-sequence result.
 All five reversals are among the eight longest sequences, including both
 longest sequences. This diagnostic does not change the predeclared decision.
+
+## A2/A3 cross-station structure audit
+
+v0.16.2 reads the complete accepted A2 and A3 sample directories without
+refitting, resampling, or running the planner. Exact filenames, SHA-256 values,
+summary identities, H100 axes, BMW condition schema, zero padding, sample
+counts, sequence identities, and standardizer equality are validated before an
+output directory is created.
+
+The audit uses population moments over every active generated profile and
+repeats them separately within each sequence. It reports complete matrices,
+all 210 unordered station pairs, all 20 station separations, the pooled mean
+off-diagonal and adjacent correlations, and equal-sequence macro summaries.
+The equal nominal profile counts are not treated as equal inferential precision:
+A2 is serially dependent and sequence-reset, while A3 uses independent active
+frames. No scalar effective sample size, p-value, interval, or decision gate is
+reported.
+
+Claude computed the closed statistic list before implementation, after the list
+was fixed. The accepted-artifact execution is therefore a lineage-controlled
+reproducibility run rather than a first look. The implementation reproduces the
+previously disclosed values, but the generated five-file artifact remains a
+review candidate until independent output review is complete.
 
 ## Optional odometry-compensated reference-alignment validation
 
