@@ -45,6 +45,7 @@ are not the thesis execution path.
 | v0.16 | Reference-planner temporal-order sensitivity | Complete and independently reviewed; temporal ordering changes the fixed planner's accumulated deviation and command smoothness within the current outing |
 | v0.16.1 | Unconditional-Gaussian planner transfer | Complete and independently reproduced; the predeclared full-support rule passes, with mandatory length-dependent qualification of the deviation family |
 | v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
+| v0.17 | Prospective independent-outing intake and cohort lock | Predeclaration drafted before new data are available; independent review is required before implementation, and a real lock requires the outcome-blind availability gate |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -158,6 +159,21 @@ separately reviewed, locked final-data protocol before any final comparison.
 An optional BMW-planner transfer remains a distinct production-relevance study
 requiring confirmed interfaces and its own predeclaration; it cannot substitute
 for independent-outing evidence.
+
+v0.17 separates data intake from the later final comparison. Its draft contract
+is `docs/independent_outing_intake_predeclaration.md`. It fixes prospective
+physical-outing declarations, outcome-blind technical eligibility, a minimum
+of seven eligible new outings in addition to the one legacy development
+outing, deterministic hash-based final assignment, and an embargo on final-
+outing residuals, features, and model evidence. The 8--12-outing target remains
+an engineering planning rule rather than a formal power calculation. No v0.17
+workflow may be implemented until the contract receives independent `GO`.
+
+A successful real v0.17 lock still does not authorize final evaluation. The
+exact training corpus, frozen competitors, fitting rules, final-outing failure
+handling, sample seeds, outing-macro metrics, decision rule, and claim limits
+must be fixed in a second predeclaration and reviewed before embargoed final-
+outing values are read.
 
 ## Feature policy
 
