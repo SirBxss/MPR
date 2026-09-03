@@ -1,16 +1,20 @@
 # v0.17 independent-outing intake and cohort-lock predeclaration
 
-Status: amended draft dated 2026-09-03. The original draft was written before
-any additional-outing MCAP, derived residual, condition vector, or model result
-was available to the MPR implementation agent. Claude reviewed pushed commit
+Status: independently reviewed amended contract dated 2026-09-03. The original
+draft was written before any additional-outing MCAP, derived residual,
+condition vector, or model result was available to the MPR implementation
+agent. Claude reviewed pushed commit
 `189f948a71ca895fd5a4d8ff8275a2757b998c53` and returned `AMEND`. The originally
 named local patch-source commit `77d33d662882b48e2e8b6360cfc01f63f4e20bee`
 has the same repository tree, `86945dfef7c3156aff7f892c2713ca23897946a4`, so
-the review covered the intended content. This amendment resolves the review's
-three substantive findings and adopts its useful split-hardening suggestions.
-A focused independent re-review is required before workflow implementation.
-Every result will be retained regardless of whether the availability gate
-passes.
+the review covered the intended content. The first amendment resolved the
+review's three substantive findings and adopted its useful split-hardening
+suggestions. Claude's focused re-review of pushed commit
+`a41ec596bd7c2d23662ec24f8b1601eaf763d69a` returned one exact correction to
+the layout-dependence guarantee and explicitly required no further wording
+review after it was committed. This revision applies that correction, so
+workflow implementation is authorized. Every result will be retained
+regardless of whether the availability gate passes.
 
 This is an intake and cohort-lock phase, not the final model comparison. It
 creates the immutable provenance and outcome-blind development/final split
@@ -113,15 +117,21 @@ The first successful v0.17 lock is binding. Its reviewed
 `docs/current_status.md`, creating the project-level accepted-lock record. A
 successful re-execution with identical manifest bytes, raw bytes, reviewed
 code version, and contract is a reproduction of the same logical lock, not a
-second lock; it must produce identical four-file bytes, lock hash, roles, and
-opaque IDs. A different successful lock over any overlapping raw file content
-is a contract violation unless it is a declared superseding run under a dated,
-independently reviewed amendment. Such a run must supply the exact prior lock
-to the CLI; the workflow verifies its declared hash, successful status,
-raw-file hash map, and at least one overlapping raw file SHA-256 before writing
-output. It records the prior lock hash and overlap count in both new JSON files.
-A disjoint later corpus is a separate study/version and cannot silently replace
-the accepted v0.17 final cohort.
+second lock. Such a re-execution must produce an identical
+`independent_outing_lock.json` byte stream, lock hash, roles, and opaque IDs.
+When it differs only in the relative layout of the new-data root it remains the
+same logical lock; only the discovered relative-path column of
+`independent_outing_recordings.csv`, and the output hashes the summary records
+for it, may differ. Nothing else may differ. A different successful lock over
+any overlapping raw file content is a contract violation unless it is a
+declared superseding run under a dated, independently reviewed amendment. Such
+a run must supply the exact prior lock to the CLI; the workflow verifies its
+declared hash, successful status, raw-file hash map, and at least one
+overlapping raw file SHA-256 before writing output. One matching SHA-256 is the
+supersession trigger, not a sufficiency threshold. It records the prior lock
+hash and overlap count in both new JSON files. A disjoint later corpus is a
+separate study/version and cannot silently replace the accepted v0.17 final
+cohort.
 
 The workflow cannot discover an omitted prior lock outside its inputs. A null
 prior-lock declaration is therefore recorded as an attestation, while the
@@ -332,11 +342,12 @@ eligible-frame/sequence counts, every eligibility check, eligibility status,
 fingerprint, split score and rank when authorized, and cohort role.
 
 `independent_outing_lock.json` records the exact source and manifest hashes,
-canonicalized private-to-opaque mapping, raw file hash map, eligibility rules,
-all outing fingerprints, the fixed salt and split arithmetic, locked roles,
-legacy development count, attestation limits, prior-lock declaration and
-verification evidence, and explicit final-outing embargo. Strict JSON forbids
-NaN and infinity.
+canonicalized private-to-opaque mapping, raw file hash map keyed by unique
+private basename rather than relative path, eligibility rules, all outing
+fingerprints, the fixed salt and split arithmetic, locked roles, legacy
+development count, attestation limits, prior-lock declaration and verification
+evidence, and explicit final-outing embargo. Strict JSON forbids NaN and
+infinity.
 
 `independent_outing_intake_summary.json` records file/outing counts, duration
 and support counts, non-mutually-exclusive failure counts, availability-gate
@@ -354,14 +365,22 @@ are never overwritten. Raw MCAPs are never copied.
 
 All four outputs and the private acquisition manifest remain outside version
 control. Only code, tests, contracts, and non-private documentation are
-committed. All four files are byte-deterministic for the same manifest bytes,
-raw bytes, reviewed code version, and contract. They contain no absolute local
-path, wall-clock run timestamp, or environment-dependent ordering.
+committed. `independent_outing_lock.json` and `independent_outings.csv` are
+byte-deterministic for the same manifest bytes, raw bytes, reviewed code
+version, and contract, independently of where the new-data root is mounted or
+how it is internally arranged. `independent_outing_recordings.csv` additionally
+depends on each discovered relative path, and
+`independent_outing_intake_summary.json` inherits that dependence through the
+recorded output hashes. No output contains an absolute local path, a wall-clock
+run timestamp, or an environment-dependent ordering. The binding accepted-lock
+hash is therefore layout-independent by construction.
 
 ## Implementation acceptance before real data
 
-Implementation starts only after focused independent `GO` on this amended
-contract. Synthetic tests must prove:
+Implementation starts only after focused independent review explicitly
+authorizes it. The focused re-review authorized implementation after the exact
+layout-dependence correction above and required no additional wording review.
+Synthetic tests must prove:
 
 - strict manifest schema, prospective attestations, and exact recursive MCAP
   coverage;
@@ -379,8 +398,10 @@ contract. Synthetic tests must prove:
 - no role assignment when the availability gate fails;
 - immutable output, strict schema, hash lineage, no extra files, and no
   overwrite;
-- byte-identical four-file reproduction for identical inputs, with no absolute
-  path, run timestamp, or environment-dependent ordering;
+- byte-identical four-file reproduction for identical inputs and layout, and
+  identical lock bytes, lock hash, roles, and opaque IDs under a changed
+  new-data-root layout, with no absolute path, run timestamp, or
+  environment-dependent ordering;
 - absence of residual, condition, model, planner, and figure fields from every
   output; and
 - CLI exit statuses `0`, `2`, and `3`.

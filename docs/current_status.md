@@ -31,8 +31,13 @@ critical path changes.
   drafted before new data were available. Claude reviewed pushed commit
   `189f948` and returned `AMEND`. The apparent review-SHA mismatch is resolved:
   local patch-source commit `77d33d6` and pushed `git am` commit `189f948` have
-  the identical tree `86945df`. The contract is now amended and awaits focused
-  re-review; no v0.17 workflow or real output exists.
+  the identical tree `86945df`. Claude's focused re-review of pushed commit
+  `a41ec59` confirmed every original blocker and hardening point resolved and
+  returned one new `AMEND`: four-file byte identity had incorrectly ignored
+  the intentionally recorded relative-path column. The exact C1 correction is
+  now applied, the binding lock hash is explicitly layout-independent, and the
+  reviewer required no further wording review before implementation. No v0.17
+  workflow or real output exists yet.
 - Merged-main baseline verification: 339 tests pass with two expected skips.
 - v0.16.2 focused verification: 339 tests pass with two expected skips. The
   tests cover population arithmetic, exact output schemas, lineage tampering,
@@ -380,7 +385,7 @@ outings under a separately reviewed, locked final-data protocol. Optional BMW-
 planner transfer remains separate, requires confirmed interfaces and a new
 predeclaration, and cannot replace independent-outing validation.
 
-## Pending v0.17 independent-outing intake
+## Authorized v0.17 independent-outing intake
 
 The amended prospective contract is
 `docs/independent_outing_intake_predeclaration.md`. It was written before any
@@ -401,25 +406,26 @@ planning gate, not a formal sample-size analysis.
 
 Next actions are ordered:
 
-1. obtain focused independent re-review of the amended contract;
-2. resolve and re-review any remaining blocker;
-3. only after focused `GO`, implement and synthetically verify the four-file
-   intake workflow without importing modeling or planner code;
+1. commit and merge the final layout-independence wording correction;
+2. implement and synthetically verify the four-file intake workflow without
+   importing modeling or planner code;
+3. obtain focused independent implementation review and resolve every blocker;
 4. when data arrive, create the private acquisition manifest before outcome
    inspection and run the reviewed intake;
 5. independently reconcile the real lock; and
 6. predeclare and review the separate final comparison before reading any
    embargoed final-outing residual, feature, model, or plot.
 
-Do not implement the v0.17 workflow, open the final data, or draft evaluator
-code before the focused contract re-review. A branch push for independent
-review is allowed; do not open or merge a PR until review findings have been
-resolved.
+The contract review gate is satisfied once the exact wording correction is
+committed. Do not open the new data or draft evaluator code during intake
+implementation. Push the implementation branch only after synthetic
+verification, then request Claude's focused implementation review before
+opening or merging its PR.
 
 ## Reading map
 
 - `docs/modeling_plan.md`: phase gates, evidence, and data-acquisition limits.
-- `docs/independent_outing_intake_predeclaration.md`: draft v0.17 prospective
+- `docs/independent_outing_intake_predeclaration.md`: reviewed v0.17 prospective
   intake, deterministic split, and final-outing embargo.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
