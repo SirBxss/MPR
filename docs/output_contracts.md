@@ -1177,3 +1177,109 @@ reviewer's pre-implementation calculation disclosure, and every claim limit.
 It reports no scalar effective sample size, p-value, interval, or decision gate.
 The summary omits its own hash to avoid recursive content. Generated outputs
 remain outside version control.
+
+## v0.17.0 independent-outing intake and cohort-lock outputs
+
+The command consumes only the recursively discovered new-MCAP root, the exact
+bytes of the prospective private acquisition manifest, and—only for a declared
+supersession—the exact prior successful lock. It writes exactly four private
+files to a directory that must not already exist:
+
+```text
+independent_outing_recordings.csv
+independent_outings.csv
+independent_outing_lock.json
+independent_outing_intake_summary.json
+```
+
+The recording CSV has one row per discovered MCAP in deterministic basename
+order and this exact header:
+
+```text
+recording_id,outing_id,private_outing_label,mcap_basename_private,relative_path_private,file_size_bytes,sha256,raw_readable,raw_empty,duplicate_of_recording_id,raw_usable,chronological_index_within_outing,internal_start_log_time_ns_private,internal_end_log_time_ns_private,first_estimate_source_time_ns_private,last_estimate_source_time_ns_private,estimate_source_duration_s,estimate_source_timestamp_count,estimate_missing_source_timestamp_count,estimate_source_timestamps_strictly_increasing,required_topic_schema_compatible,estimate_topic_present,estimate_topic_message_count,estimate_topic_schema_compatible,map_topic_present,map_topic_message_count,map_topic_schema_compatible,odometry_topic_present,odometry_topic_message_count,odometry_topic_schema_compatible,decoded_estimate_message_count,decoded_map_message_count,topology_gate_candidate_count,sensor_topology_candidate_count,lane_map_topology_candidate_count,unknown_or_other_topology_candidate_count,h100_geometry_ready_count,h100_eligible_frame_count,sequence_count_touching_recording,boundary_to_previous_stitchable,eligible_sequence_stitched_to_previous,failure_codes,boundary_codes
+```
+
+The outing CSV has one row per declared outing in opaque-ID order and this
+exact header:
+
+```text
+outing_id,private_outing_label,acquisition_start_utc_private,separate_physical_session_declared,independence_basis_private,recording_count,raw_usable_recording_count,summed_usable_duration_s,usable_intervals_monotonic_nonoverlapping,topology_gate_candidate_count,non_sensor_topology_candidate_count,eligible_frame_count,sequence_count,retained_eligible_frame_count,has_raw_usable_recording,usable_duration_gate_passes,topology_gate_passes,eligible_frame_count_gate_passes,sequence_integrity_passes,technically_eligible,outing_fingerprint_sha256,split_score_sha256,split_rank,cohort_role,failure_codes
+```
+
+`independent_outing_lock.json` has these exact top-level fields:
+
+```text
+version
+purpose
+contract_revision
+status
+manifest
+legacy_development_outing_count
+raw_file_sha256_by_basename_private
+private_to_opaque_outing_id
+outings
+eligibility_rules
+availability_gate
+split_contract
+split_assignments_authorized
+role_counts
+attestations
+prior_successful_lock
+final_outing_embargo
+```
+
+The lock records manifest and raw hashes, content-only outing fingerprints,
+opaque IDs, every eligibility result, the exact salt and final-count formula,
+cohort roles when authorized, the one-outing legacy count, declaration limits,
+prior-lock reconciliation, and the embargo allowlist. It contains no relative
+or absolute path, environment value, or run timestamp, so its bytes and SHA-256
+are independent of the mounted root layout. The raw-file map is keyed by unique
+private basename and is reconciled exactly with each outing's nested hash map.
+
+`independent_outing_intake_summary.json` has these exact top-level fields:
+
+```text
+version
+purpose
+status
+contract_revision
+manifest_sha256
+mcap_file_count
+declared_new_outing_count
+eligible_new_outing_count
+ineligible_new_outing_count
+legacy_development_outing_count
+total_independent_outing_count_including_legacy
+raw_usable_recording_count
+summed_usable_duration_s
+eligible_h100_frame_count
+eligible_sequence_count
+availability_gate
+final_count
+role_counts
+failure_code_counts_non_mutually_exclusive
+attestation_status
+prior_successful_lock_sha256
+prior_successful_lock_verified
+overlapping_raw_sha256_count
+output_sha256
+summary_self_hash_recorded
+claim_limits
+next_authorized_action
+```
+
+`output_sha256` covers the two CSVs and lock; the summary deliberately records
+no recursive self-hash. The summary may inherit the recording CSV's relative-
+layout dependence. No file contains signed residual coordinates or summaries,
+condition values or distributions, model or planner quantities, generated
+samples, likelihoods, plots, or frame-level numeric features. Source-time
+bounds, fixed technical counts, durations, topology identities, fixed failure
+codes, and cohort identity are the only permitted intake evidence.
+
+When at least seven new outings pass every fixed gate, status is `locked`, roles
+are assigned, and the command returns `0`. Below seven, status is
+`insufficient_independent_outings`, every split score/rank/role is null or empty,
+all four files are still written, and the command returns `3`. Manifest,
+coverage, hash, prior-lock, or output-target errors return `2` before creating
+the output directory. Raw MCAPs, manifests, and all four outputs remain outside
+version control.

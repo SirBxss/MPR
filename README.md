@@ -1,8 +1,16 @@
-# Minimal Path-Residual Model (MPR) v0.16.2
+# Minimal Path-Residual Model (MPR) v0.17.0
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
+
+Version 0.17.0 implements the independently reviewed prospective independent-
+outing intake and cohort lock. It recursively reconciles a private acquisition
+manifest against newly acquired MCAP bytes, applies only the frozen raw,
+topology, H100, six-input-availability, duration, and sequence-integrity gates,
+and assigns content-hash-based development/final roles only when at least seven
+new physical outings are eligible. It exports no residual, condition, model, or
+planner values. No real v0.17 lock exists yet; new-outing data are still pending.
 
 Version 0.16.2 adds the independently reviewed, lineage-locked A2/A3
 cross-station structure audit. It consumes only the accepted generated
@@ -801,6 +809,33 @@ Pooled mean off-diagonal correlation is `0.3830158618` for A2 and
 pairs and in all 15 sequence-wise direction tallies. These are descriptions of
 the exact generated ensembles, not a causal explanation of the planner result
 or a general model ranking. This completes current-ensemble diagnostics.
+
+## Prospective independent-outing intake
+
+v0.17.0 implements the reviewed outcome-blind intake and cohort-lock contract
+without opening a new model or planner experiment. Before inspecting any new-
+outing outcome, create the strict private manifest described in
+`docs/independent_outing_intake_predeclaration.md`, close the acquisition batch,
+copy and replace every placeholder in
+`config/examples/independent_outings_v017.private.example.json`, and run:
+
+```bash
+python -m lane_residuals.cli.independent_outing_intake \
+  "data/raw/new_independent_outings" \
+  --acquisition-manifest \
+  "config/private/independent_outings_v017.private.json" \
+  --output-directory \
+  "outputs/diagnostics/data/independent_outing_intake_v017"
+```
+
+The initial run must not include `--prior-successful-lock`. A declared,
+independently reviewed supersession requires both the exact prior lock argument
+and the paired manifest fields. Exit `0` means at least seven technically
+eligible new outings were deterministically locked; exit `3` writes the same
+complete four-file audit without assigning any roles; usage or lineage errors
+exit `2` before the output directory is created. Every real manifest and output
+remains private and outside Git. A successful lock still does not authorize
+opening final-outing residuals or implementing the final comparison.
 
 ## Optional odometry-compensated reference-alignment validation
 

@@ -6,8 +6,11 @@ critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.16.2 spatial-structure audit complete, independently
-  reproduced, approved, and merged. v0.16.1 real A3 sampling and planner
+- Repository version: v0.17.0 independent-outing intake implemented and
+  synthetically verified; focused independent implementation review is next.
+  No real v0.17 lock or new-outing output exists. v0.16.2 spatial-structure
+  audit is complete, independently reproduced, approved, and merged. v0.16.1
+  real A3 sampling and planner
   transfer are also complete, independently reproduced, approved, and merged.
   The corrected v0.16
   implementation and real planner run remain complete and approved. The first
@@ -26,7 +29,9 @@ critical path changes.
   commit `99feb14`; its post-merge Python 3.10 and 3.12 GitHub Actions jobs
   pass.
 - The v0.16.2 final hand-off was merged through PR #12 at commit `1711b10`.
-- Current protocol branch: `protocol/v0.17-independent-outing-intake`.
+- The reviewed v0.17 protocol was merged through PR #13 at commit `4c700f9`.
+- Current implementation branch: `workflow/v0.17-independent-outing-intake`,
+  based on merged-main commit `4c700f9`.
 - The v0.17 prospective independent-outing intake and cohort-lock contract was
   drafted before new data were available. Claude reviewed pushed commit
   `189f948` and returned `AMEND`. The apparent review-SHA mismatch is resolved:
@@ -36,8 +41,15 @@ critical path changes.
   returned one new `AMEND`: four-file byte identity had incorrectly ignored
   the intentionally recorded relative-path column. The exact C1 correction is
   now applied, the binding lock hash is explicitly layout-independent, and the
-  reviewer required no further wording review before implementation. No v0.17
-  workflow or real output exists yet.
+  reviewer required no further wording review before implementation. The exact
+  four-file workflow, CLI, schemas, and synthetic acceptance tests are now
+  implemented; no real output exists yet.
+- v0.17.0 implementation verification: 380 tests pass with two expected skips.
+  The 41 new tests cover the strict manifest, exact recursive coverage,
+  eligibility boundaries, content-only split, distinct ID/rank orders,
+  deterministic/layout-independent artifacts, prior-lock supersession,
+  embargoed-field absence, non-overwrite behavior, raw-inspector primitives,
+  and CLI statuses 0/2/3.
 - Merged-main baseline verification: 339 tests pass with two expected skips.
 - v0.16.2 focused verification: 339 tests pass with two expected skips. The
   tests cover population arithmetic, exact output schemas, lineage tampering,
@@ -406,21 +418,21 @@ planning gate, not a formal sample-size analysis.
 
 Next actions are ordered:
 
-1. commit and merge the final layout-independence wording correction;
-2. implement and synthetically verify the four-file intake workflow without
-   importing modeling or planner code;
-3. obtain focused independent implementation review and resolve every blocker;
+1. push the synthetically verified v0.17.0 implementation branch;
+2. obtain focused independent implementation review and resolve every blocker;
+3. open the implementation PR only after the reviewer returns `GO`, then merge
+   only after both supported-Python CI jobs pass;
 4. when data arrive, create the private acquisition manifest before outcome
    inspection and run the reviewed intake;
 5. independently reconcile the real lock; and
 6. predeclare and review the separate final comparison before reading any
    embargoed final-outing residual, feature, model, or plot.
 
-The contract review gate is satisfied once the exact wording correction is
-committed. Do not open the new data or draft evaluator code during intake
-implementation. Push the implementation branch only after synthetic
-verification, then request Claude's focused implementation review before
-opening or merging its PR.
+The contract review gate and synthetic implementation gate are satisfied. Do
+not open the new data or draft evaluator code during implementation review.
+Push the implementation branch, then request Claude's focused implementation
+review before opening its PR. The reviewer should inspect the code and tests,
+not generate or inspect any real new-outing output.
 
 ## Reading map
 

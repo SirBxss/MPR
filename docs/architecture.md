@@ -33,6 +33,16 @@ same rows, transforms, seeds, and metrics.
 The categorization separates scientific arithmetic, orchestration, I/O, plots,
 and command adapters.
 
+The v0.17.0 intake is a separate pre-model layer. Its domain module owns the
+strict manifest, technical eligibility arithmetic, content-only fingerprints,
+and deterministic cohort assignment. Its I/O module performs strict-JSON and
+raw MCAP inspection while retaining only eligibility states and counts. The
+workflow owns exact coverage, prior-lock reconciliation, gap-aware sequence
+counting, and transactional four-file serialization; the CLI only maps
+arguments, logging, and exit codes. These modules do not import modeling,
+sampling, planner, evaluation, or visualization code and never serialize the
+numeric six-feature values computed transiently for availability checks.
+
 Topology auditing follows that categorization: domain code reconciles raw
 protobuf values with descriptor enum names, IO verifies and packages immutable
 inventory/alignment lineage, workflow code joins every EDP message to existing
@@ -236,6 +246,15 @@ pooled and per-sequence orchestration, and the five-file numeric report.
 `cli.spatial_structure_audit` is an argument and exit-code adapter. The layer
 does not import a sampler or planner, so it cannot refit, resample, or execute
 an earlier experimental component.
+
+For v0.17.0, `domain.independent_outing_intake` owns the exact acquisition-
+manifest and salted content-hash rules. `io.independent_outing_intake` reuses
+the accepted raw-inventory, H100 geometry, topology, and 50 ms odometry-speed
+primitives without creating a residual vector. `workflows.independent_outing_intake`
+combines those fixed states at the declared physical-outing unit, writes only
+counts/provenance/roles, and enforces first-lock or reviewed-supersession
+lineage before creating output. `cli.independent_outing_intake` is the sole new
+entry adapter. No final-outing outcome is exposed by this layer.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific
