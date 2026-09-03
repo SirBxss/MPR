@@ -1,6 +1,6 @@
 # Current project status
 
-Last updated: 2026-08-31. This is the first file a new agent should read after
+Last updated: 2026-09-03. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
@@ -25,7 +25,19 @@ critical path changes.
 - The complete v0.16.2 spatial-structure audit was merged through PR #11 at
   commit `99feb14`; its post-merge Python 3.10 and 3.12 GitHub Actions jobs
   pass.
-- Current maintenance branch: `maintenance/v0.16.2-final-handoff`.
+- The v0.16.2 final hand-off was merged through PR #12 at commit `1711b10`.
+- Current protocol branch: `protocol/v0.17-independent-outing-intake`.
+- The v0.17 prospective independent-outing intake and cohort-lock contract was
+  drafted before new data were available. Claude reviewed pushed commit
+  `189f948` and returned `AMEND`. The apparent review-SHA mismatch is resolved:
+  local patch-source commit `77d33d6` and pushed `git am` commit `189f948` have
+  the identical tree `86945df`. Claude's focused re-review of pushed commit
+  `a41ec59` confirmed every original blocker and hardening point resolved and
+  returned one new `AMEND`: four-file byte identity had incorrectly ignored
+  the intentionally recorded relative-path column. The exact C1 correction is
+  now applied, the binding lock hash is explicitly layout-independent, and the
+  reviewer required no further wording review before implementation. No v0.17
+  workflow or real output exists yet.
 - Merged-main baseline verification: 339 tests pass with two expected skips.
 - v0.16.2 focused verification: 339 tests pass with two expected skips. The
   tests cover population arithmetic, exact output schemas, lineage tampering,
@@ -373,9 +385,48 @@ outings under a separately reviewed, locked final-data protocol. Optional BMW-
 planner transfer remains separate, requires confirmed interfaces and a new
 predeclaration, and cannot replace independent-outing validation.
 
+## Authorized v0.17 independent-outing intake
+
+The amended prospective contract is
+`docs/independent_outing_intake_predeclaration.md`. It was written before any
+new-outing MCAP or derived value was available to the implementation agent.
+The phase is deliberately limited to private raw-file provenance,
+outcome-blind technical eligibility, deterministic cohort assignment, and a
+final-outing embargo. It fits no model and computes no scientific comparison.
+
+The fixed draft requires at least seven technically eligible new physical
+outings in addition to the one legacy development outing. All untouched final
+outings come from the new data. Split assignment is a deterministic salted
+SHA-256 ranking of content-only outing fingerprints and cannot use filenames,
+speed, curvature, confidence, residual, model, or planner results. The first
+successful lock is binding and its reviewed hash must be recorded in this
+file. Within the 8--12 total-outing planning window, only two or three new
+outings form the untouched final set. The intake target is an engineering
+planning gate, not a formal sample-size analysis.
+
+Next actions are ordered:
+
+1. commit and merge the final layout-independence wording correction;
+2. implement and synthetically verify the four-file intake workflow without
+   importing modeling or planner code;
+3. obtain focused independent implementation review and resolve every blocker;
+4. when data arrive, create the private acquisition manifest before outcome
+   inspection and run the reviewed intake;
+5. independently reconcile the real lock; and
+6. predeclare and review the separate final comparison before reading any
+   embargoed final-outing residual, feature, model, or plot.
+
+The contract review gate is satisfied once the exact wording correction is
+committed. Do not open the new data or draft evaluator code during intake
+implementation. Push the implementation branch only after synthetic
+verification, then request Claude's focused implementation review before
+opening or merging its PR.
+
 ## Reading map
 
 - `docs/modeling_plan.md`: phase gates, evidence, and data-acquisition limits.
+- `docs/independent_outing_intake_predeclaration.md`: reviewed v0.17 prospective
+  intake, deterministic split, and final-outing embargo.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
 - `docs/architecture.md`: package ownership and dependency boundaries.
