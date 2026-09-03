@@ -424,10 +424,22 @@ class FailClosedExtractionTests(unittest.TestCase):
             log_time_ns=2,
             publish_time_ns=2,
         )
+        topology_audit_candidate = estimated_frame_from_message(
+            _root_message(schema, [_path(schema)], topology=0),
+            message_index=1,
+            log_time_ns=2,
+            publish_time_ns=2,
+            require_sensor_topology=False,
+        )
         self.assertEqual(missing_time.estimator_state, "available_no_error")
         self.assertEqual(missing_time.conversion_state, "source_timestamp_missing")
         self.assertEqual(wrong_topology.estimator_state, "available_no_error")
         self.assertEqual(wrong_topology.conversion_state, "unexpected_topology_source")
+        self.assertEqual(topology_audit_candidate.conversion_state, "candidate_ready")
+        self.assertEqual(
+            topology_audit_candidate.topology_source,
+            "ROAD_TOPOLOGY_SOURCE_UNKNOWN",
+        )
 
     def test_two_keep_lane_paths_are_ambiguous(self):
         schema = _estimated_schema()
