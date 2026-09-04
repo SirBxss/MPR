@@ -45,7 +45,7 @@ are not the thesis execution path.
 | v0.16 | Reference-planner temporal-order sensitivity | Complete and independently reviewed; temporal ordering changes the fixed planner's accumulated deviation and command smoothness within the current outing |
 | v0.16.1 | Unconditional-Gaussian planner transfer | Complete and independently reproduced; the predeclared full-support rule passes, with mandatory length-dependent qualification of the deviation family |
 | v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
-| v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and synthetic acceptance suite complete; focused independent implementation review is required before PR or real-data use |
+| v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation independently approved and merged; real execution awaits prospectively manifested new-outing data |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -176,7 +176,9 @@ layout-dependence wording and explicitly authorized implementation without
 another wording review once that correction was committed. v0.17.0 now
 implements only that reviewed intake boundary. It requires focused independent
 implementation review before its PR is opened or any real new-outing corpus is
-processed.
+processed. That review found one package-initializer dependency wording issue;
+the focused correction received `GO`, and the implementation is merged. Real
+intake remains blocked only on the prospectively manifested new-outing corpus.
 
 A successful real v0.17 lock still does not authorize final evaluation. The
 exact training corpus, frozen competitors, fitting rules, final-outing failure
