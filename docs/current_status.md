@@ -36,8 +36,11 @@ critical path changes.
 - The independently approved v0.17.0 implementation was merged through PR #14
   at commit `6d3f34d`; the focused dependency-boundary correction is commit
   `2035f34` in that merge.
-- Current branch: `main` at the accepted v0.17.0 implementation. No further
-  scientific implementation is authorized before the real cohort lock.
+- Current implementation branch: `workflow/v0.17-data-arrival-readiness`, based
+  on accepted v0.17.0 `main` at `d690d83`. It adds only a first-arrival runbook
+  and an independent read-only initial-lock verifier; it is not yet merged and
+  adds no scientific analysis. No further scientific implementation is
+  authorized before the real cohort lock.
 - The v0.17 prospective independent-outing intake and cohort-lock contract was
   drafted before new data were available. Claude reviewed pushed commit
   `189f948` and returned `AMEND`. The apparent review-SHA mismatch is resolved:
@@ -59,6 +62,11 @@ critical path changes.
   deterministic/layout-independent artifacts, prior-lock supersession,
   embargoed-field absence, non-overwrite behavior, raw-inspector primitives,
   and CLI statuses 0/2/3.
+- v0.17 data-arrival-readiness verification: 384 tests pass with two expected
+  skips. The three added tests independently reconcile a complete synthetic
+  first lock without writes, fail on manifest/raw/output drift, and freeze the
+  runbook's initial-lock command, thresholds, outputs, and package-independence
+  boundary.
 - Merged-main baseline verification: 381 tests pass with two expected skips.
 - v0.16.2 focused verification: 339 tests pass with two expected skips. The
   tests cover population arithmetic, exact output schemas, lineage tampering,
@@ -431,24 +439,31 @@ Next actions are ordered:
    condition, model, or planner outcomes;
 2. before outcome inspection, close the acquisition batch and create the exact
    private manifest from the real basenames and physical-session declarations;
-3. run the merged v0.17.0 intake once into a new versioned output directory and
-   retain all four files whether the availability gate passes or fails;
-4. independently reconcile the real lock and record its accepted SHA-256 here;
+3. follow `docs/independent_outing_data_arrival_runbook.md`, run the merged
+   v0.17.0 intake once into a new versioned output directory, and retain all
+   four files whether the availability gate passes or fails;
+4. run the standalone read-only verifier, independently review the real lock,
+   and record its accepted SHA-256 here;
 5. only after a successful reconciled lock, predeclare and review the separate
    final comparison before reading any embargoed final-outing residual,
    feature, model, or plot.
 
-The intake implementation and review gates are satisfied. The project is now
-intentionally data-blocked: do not draft evaluator code, fit another model, or
-open any final-outing outcome before the real prospective lock exists. The next
-repository change should record and reconcile that real lock, not add another
-current-outing diagnostic.
+The intake implementation gates are satisfied. While data are pending, the
+only authorized repository preparation is the reviewed data-arrival runbook
+and independent lock verifier described above. The scientific programme
+remains intentionally data-blocked: do not draft evaluator code, fit another
+model, or open any final-outing outcome before the real prospective lock
+exists. After this readiness change is reviewed and merged, the next repository
+change should record and reconcile that real lock, not add another current-
+outing diagnostic.
 
 ## Reading map
 
 - `docs/modeling_plan.md`: phase gates, evidence, and data-acquisition limits.
 - `docs/independent_outing_intake_predeclaration.md`: reviewed v0.17 prospective
   intake, deterministic split, and final-outing embargo.
+- `docs/independent_outing_data_arrival_runbook.md`: exact initial manifest,
+  intake, independent verification, packaging, and review sequence.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
 - `docs/architecture.md`: package ownership and dependency boundaries.

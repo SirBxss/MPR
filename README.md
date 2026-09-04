@@ -11,6 +11,10 @@ topology, H100, six-input-availability, duration, and sequence-integrity gates,
 and assigns content-hash-based development/final roles only when at least seven
 new physical outings are eligible. It exports no residual, condition, model, or
 planner values. No real v0.17 lock exists yet; new-outing data are still pending.
+The exact first-arrival procedure is frozen in
+`docs/independent_outing_data_arrival_runbook.md`; its standalone standard-
+library verifier independently reconciles an initial four-file lock without
+decoding MCAP messages or writing output.
 
 Version 0.16.2 adds the independently reviewed, lineage-locked A2/A3
 cross-station structure audit. It consumes only the accepted generated
@@ -836,6 +840,12 @@ complete four-file audit without assigning any roles; usage or lineage errors
 exit `2` before the output directory is created. Every real manifest and output
 remains private and outside Git. A successful lock still does not authorize
 opening final-outing residuals or implementing the final comparison.
+
+Follow `docs/independent_outing_data_arrival_runbook.md` for the exact initial
+manifest, execution, independent-verification, packaging, and review sequence.
+After intake, run `scripts/inspection/verify_v017_intake_bundle.py` before
+sharing the four-file lock for review. The verifier intentionally supports the
+initial lock only; a supersession first requires a dated reviewed amendment.
 
 ## Optional odometry-compensated reference-alignment validation
 

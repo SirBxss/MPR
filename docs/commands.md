@@ -17,6 +17,8 @@ v0.15.4 freezes the structurally nonbinding 0.99 development model without
 refitting and exports physical free-running residual sequences for planner use;
 v0.17.0 adds the outcome-blind independent-outing intake and deterministic
 cohort lock without exporting residual, condition, model, or planner values;
+the first-arrival runbook adds a standalone initial-lock verifier that imports
+no project package and writes no files;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -382,6 +384,24 @@ gate passed and roles were locked. Exit `3` means all four audit files were
 written but fewer than seven new outings were eligible, so no role was assigned.
 Usage, manifest, exact-coverage, hash-lineage, or output-target failures return
 `2` before the output directory is created.
+
+For the first v0.17 lock, follow
+`docs/independent_outing_data_arrival_runbook.md` and then reconcile the exact
+raw root, manifest, and four-file output with the independent read-only tool:
+
+```bash
+python scripts/inspection/verify_v017_intake_bundle.py \
+  "data/raw/new_independent_outings" \
+  --acquisition-manifest \
+  "config/private/independent_outings_v017.private.json" \
+  --intake-output-directory \
+  "outputs/diagnostics/data/independent_outing_intake_v017"
+```
+
+Exit `0` and `"verification_status": "passed"` are required before review.
+The verifier supports an initial lock only, imports no `lane_residuals` module,
+decodes no MCAP message, and creates no output. It is not a replacement for the
+prospective manifest or independent review.
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the
