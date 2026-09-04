@@ -1,16 +1,16 @@
 # Current project status
 
-Last updated: 2026-09-03. This is the first file a new agent should read after
+Last updated: 2026-09-04. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.17.0 independent-outing intake implemented and
-  synthetically verified. Claude's focused implementation review returned one
-  `AMEND` concerning the legacy package initializer's transitive imports; the
-  contract and tests now state and freeze that behavior, and focused re-review
-  is next.
+- Repository version: v0.17.0 independent-outing intake implemented,
+  synthetically verified, independently approved, and merged. Claude's focused
+  implementation review returned one `AMEND` concerning the legacy package
+  initializer's transitive imports; the correction froze that graph and the
+  focused re-review returned `GO`.
   No real v0.17 lock or new-outing output exists. v0.16.2 spatial-structure
   audit is complete, independently reproduced, approved, and merged. v0.16.1
   real A3 sampling and planner
@@ -33,8 +33,11 @@ critical path changes.
   pass.
 - The v0.16.2 final hand-off was merged through PR #12 at commit `1711b10`.
 - The reviewed v0.17 protocol was merged through PR #13 at commit `4c700f9`.
-- Current implementation branch: `workflow/v0.17-independent-outing-intake`,
-  based on merged-main commit `4c700f9`.
+- The independently approved v0.17.0 implementation was merged through PR #14
+  at commit `6d3f34d`; the focused dependency-boundary correction is commit
+  `2035f34` in that merge.
+- Current branch: `main` at the accepted v0.17.0 implementation. No further
+  scientific implementation is authorized before the real cohort lock.
 - The v0.17 prospective independent-outing intake and cohort-lock contract was
   drafted before new data were available. Claude reviewed pushed commit
   `189f948` and returned `AMEND`. The apparent review-SHA mismatch is resolved:
@@ -46,14 +49,17 @@ critical path changes.
   now applied, the binding lock hash is explicitly layout-independent, and the
   reviewer required no further wording review before implementation. The exact
   four-file workflow, CLI, schemas, and synthetic acceptance tests are now
-  implemented; no real output exists yet.
+  implemented. Claude then reviewed pushed implementation commit `31905c5`,
+  returned one focused `AMEND` for the package-initializer dependency wording,
+  and returned `GO` after the correction at `2035f34`. PR #14 is merged; no real
+  output exists yet.
 - v0.17.0 implementation verification: 381 tests pass with two expected skips.
   The 42 new tests cover the strict manifest, exact recursive coverage,
   eligibility boundaries, content-only split, distinct ID/rank orders,
   deterministic/layout-independent artifacts, prior-lock supersession,
   embargoed-field absence, non-overwrite behavior, raw-inspector primitives,
   and CLI statuses 0/2/3.
-- Merged-main baseline verification: 339 tests pass with two expected skips.
+- Merged-main baseline verification: 381 tests pass with two expected skips.
 - v0.16.2 focused verification: 339 tests pass with two expected skips. The
   tests cover population arithmetic, exact output schemas, lineage tampering,
   extra inputs, nonzero padding, non-overwrite behavior, and CLI exit codes.
@@ -421,23 +427,22 @@ planning gate, not a formal sample-size analysis.
 
 Next actions are ordered:
 
-1. push the C1 contract-and-module-graph correction on the existing v0.17.0
-   implementation branch;
-2. obtain Claude's focused re-review of that self-contained correction;
-3. open the implementation PR only after the reviewer returns `GO`, then merge
-   only after both supported-Python CI jobs pass;
-4. when data arrive, create the private acquisition manifest before outcome
-   inspection and run the reviewed intake;
-5. independently reconcile the real lock; and
-6. predeclare and review the separate final comparison before reading any
-   embargoed final-outing residual, feature, model, or plot.
+1. acquire the planned independent-outing MCAPs without inspecting residual,
+   condition, model, or planner outcomes;
+2. before outcome inspection, close the acquisition batch and create the exact
+   private manifest from the real basenames and physical-session declarations;
+3. run the merged v0.17.0 intake once into a new versioned output directory and
+   retain all four files whether the availability gate passes or fails;
+4. independently reconcile the real lock and record its accepted SHA-256 here;
+5. only after a successful reconciled lock, predeclare and review the separate
+   final comparison before reading any embargoed final-outing residual,
+   feature, model, or plot.
 
-The synthetic implementation gate is satisfied; the focused implementation
-review remains `AMEND` until C1 is re-reviewed. Do not open the new data or
-draft evaluator code. Push the correction, then request Claude's focused
-re-review before opening the PR. The reviewer should inspect only the amended
-contract and dependency tests, not generate or inspect any real new-outing
-output.
+The intake implementation and review gates are satisfied. The project is now
+intentionally data-blocked: do not draft evaluator code, fit another model, or
+open any final-outing outcome before the real prospective lock exists. The next
+repository change should record and reconcile that real lock, not add another
+current-outing diagnostic.
 
 ## Reading map
 
