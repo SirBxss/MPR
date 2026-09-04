@@ -27,6 +27,10 @@ from lane_residuals.workflows.independent_outing_intake import (
     RECORDING_FIELDS,
     run_independent_outing_intake,
 )
+from scripts.inspection.verify_v017_intake_bundle import (
+    VerificationError,
+    verify_intake_bundle,
+)
 
 
 # Importing any lane_residuals submodule first executes the legacy root package
@@ -814,6 +818,129 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
         )
         loaded = frozenset(json.loads(completed.stdout))
         self.assertEqual(loaded, FROZEN_INTAKE_MODULE_ALLOWLIST)
+
+    def test_read_only_verifier_reconciles_initial_bundle_without_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            corpus, manifest, inspectors = self._success_fixture(root, nested=True)
+            output = root / "output"
+            self._run(_arguments(corpus, manifest, output), inspectors)
+            tracked = (
+                manifest,
+                *sorted(corpus.rglob("*.mcap")),
+                *sorted(output.iterdir()),
+            )
+            before = {path: path.read_bytes() for path in tracked}
+
+            result = verify_intake_bundle(corpus, manifest, output)
+
+            self.assertEqual(result["verification_status"], "passed")
+            self.assertEqual(result["lock_status"], "locked")
+            self.assertEqual(result["raw_mcap_count"], 7)
+            self.assertEqual(result["eligible_new_outing_count"], 7)
+            self.assertEqual(result["final_count"], 2)
+            self.assertTrue(result["split_assignments_authorized"])
+            self.assertEqual(result["files_written"], 0)
+            self.assertEqual(before, {path: path.read_bytes() for path in tracked})
+            self.assertEqual(
+                set(OUTPUT_NAMES), {path.name for path in output.iterdir()}
+            )
+
+    def test_read_only_verifier_rejects_manifest_raw_and_output_drift(self) -> None:
+        def tamper_split_assignment(
+            corpus: Path, manifest: Path, output: Path
+        ) -> None:
+            del corpus, manifest
+            lock_path = output / "independent_outing_lock.json"
+            lock = json.loads(lock_path.read_text(encoding="utf-8"))
+            lock["outings"][0]["cohort_role"] = "final_test"
+            _write_strict_json(lock_path, lock)
+            summary_path = output / "independent_outing_intake_summary.json"
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            summary["output_sha256"]["independent_outing_lock.json"] = (
+                hashlib.sha256(lock_path.read_bytes()).hexdigest()
+            )
+            _write_strict_json(summary_path, summary)
+
+        cases = (
+            (
+                "manifest",
+                "manifest SHA-256 lineage",
+                lambda corpus, manifest, output: manifest.write_bytes(
+                    manifest.read_bytes() + b"\n"
+                ),
+            ),
+            (
+                "raw",
+                "raw MCAP SHA-256 mismatch",
+                lambda corpus, manifest, output: next(
+                    iter(sorted(corpus.rglob("*.mcap")))
+                ).write_bytes(b"tampered-raw-mcap"),
+            ),
+            (
+                "output",
+                "output SHA-256 mismatch",
+                lambda corpus, manifest, output: (
+                    output / "independent_outing_recordings.csv"
+                ).write_bytes(
+                    (output / "independent_outing_recordings.csv").read_bytes() + b"\n"
+                ),
+            ),
+            ("split", "split assignment mismatch", tamper_split_assignment),
+        )
+        for name, message, mutate in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                corpus, manifest, inspectors = self._success_fixture(root)
+                output = root / "output"
+                self._run(_arguments(corpus, manifest, output), inspectors)
+                mutate(corpus, manifest, output)
+                with self.assertRaisesRegex(VerificationError, message):
+                    verify_intake_bundle(corpus, manifest, output)
+
+    def test_data_arrival_runbook_tracks_frozen_first_lock_surface(self) -> None:
+        repository = Path(__file__).resolve().parents[2]
+        runbook = (
+            repository / "docs/independent_outing_data_arrival_runbook.md"
+        ).read_text(encoding="utf-8")
+        first_lock = runbook.split("<!-- first-lock-command:start -->", 1)[1].split(
+            "<!-- first-lock-command:end -->", 1
+        )[0]
+        normalized_runbook = " ".join(runbook.split())
+        self.assertIn(
+            "python -m lane_residuals.cli.independent_outing_intake", first_lock
+        )
+        self.assertNotIn("--prior-successful-lock", first_lock)
+        self.assertIn("verify_v017_intake_bundle.py", runbook)
+        self.assertIn("config/private/independent_outings_v017.private.json", runbook)
+        self.assertIn("at least 7 technically eligible", normalized_runbook)
+        self.assertIn("120.0 seconds", normalized_runbook)
+        self.assertIn("500 eligible H100 frames", normalized_runbook)
+        for status in ("0", "2", "3"):
+            self.assertIn(f"Exit status `{status}`", runbook)
+        for output_name in OUTPUT_NAMES:
+            self.assertIn(output_name, runbook)
+
+        verifier_path = repository / "scripts/inspection/verify_v017_intake_bundle.py"
+        tree = ast.parse(
+            verifier_path.read_text(encoding="utf-8"), filename=str(verifier_path)
+        )
+        imported_modules = [
+            node.module or ""
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom)
+        ] + [
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        ]
+        self.assertFalse(
+            any(
+                module == "lane_residuals" or module.startswith("lane_residuals.")
+                for module in imported_modules
+            )
+        )
 
 
 class IndependentOutingCliTests(unittest.TestCase):
