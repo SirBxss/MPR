@@ -156,6 +156,7 @@ def inspect_mcap_for_inventory(
     recording_id: str,
     drive_id: str | None,
     required_topics: Sequence[RequiredTopic] = DEFAULT_REQUIRED_TOPICS,
+    precomputed_sha256: str | None = None,
 ) -> McapInventoryRecord:
     """Hash and inspect one MCAP while retaining every failure as evidence."""
 
@@ -169,17 +170,24 @@ def inspect_mcap_for_inventory(
     source = path.resolve()
     root = root.resolve()
     try:
-        relative_path = str(source.relative_to(root))
+        relative_path = source.relative_to(root).as_posix()
     except ValueError:
         relative_path = source.name
     hints = parse_filename_time_hints(source.name)
     size = source.stat().st_size
-    digest: str | None = None
+    if precomputed_sha256 is not None and (
+        not isinstance(precomputed_sha256, str)
+        or len(precomputed_sha256) != 64
+        or any(character not in "0123456789abcdef" for character in precomputed_sha256)
+    ):
+        raise ValueError("precomputed_sha256 must be a lowercase SHA-256")
+    digest: str | None = precomputed_sha256
     failures: list[str] = []
-    try:
-        digest = sha256_file(source)
-    except OSError as error:
-        failures.append(f"sha256_unreadable:{type(error).__name__}")
+    if digest is None:
+        try:
+            digest = sha256_file(source)
+        except OSError as error:
+            failures.append(f"sha256_unreadable:{type(error).__name__}")
 
     if size == 0:
         failures.append("empty_file")

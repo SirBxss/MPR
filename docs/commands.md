@@ -15,6 +15,8 @@ v0.15.3 varies only the one-state AR ceiling over the fixed predeclared grid
 and consolidates both Gaussian and both reviewed autoregressive references;
 v0.15.4 freezes the structurally nonbinding 0.99 development model without
 refitting and exports physical free-running residual sequences for planner use;
+v0.17.0 adds the outcome-blind independent-outing intake and deterministic
+cohort lock without exporting residual, condition, model, or planner values;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -62,6 +64,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-train-sequence-gaussian` | `python -m lane_residuals.cli.sequence_gaussian` | v0.10.0 conditional Gaussian temporal null under the common sequence/evaluation interface | Complete unchanged v0.9.0 sequential dataset directory | Fold/frame/station metrics, fold and descriptive models, temporal diagnostic plot, and strict JSON summary |
 | `mpr-train-sequence-aiohmm` | `python -m lane_residuals.cli.sequence_aiohmm` | v0.11.0 fixed-state AIOHMM; development-only and no held-out state-count/hyperparameter selection | Complete unchanged v0.9.0 sequential dataset directory | Common fold/frame/station metrics, state/restart diagnostics, fold and descriptive models, plot, and strict JSON summary |
 | `mpr-audit-corpus-inventory` | `python -m lane_residuals.cli.corpus_inventory` | v0.12.1 read-only, fail-closed expanded-corpus continuity/session audit | Recursive MCAP root and exact private basename-to-drive map | File/topic/edge CSVs, proposed groups, strict summary, and diagnostic plot |
+| `mpr-lock-independent-outings` | `python -m lane_residuals.cli.independent_outing_intake` | v0.17.0 prospective independent-outing intake and outcome-blind cohort lock; no model, sampler, planner, or final evaluation | Recursive new-MCAP root, strict private acquisition manifest, and an exact prior successful lock only for a declared supersession | Recording and outing CSV audits, immutable cohort lock, and strict intake summary |
 
 Run the expanded-corpus audit with a new empty output directory:
 
@@ -355,6 +358,30 @@ their fixed hashes, summary identities, axes, active values, and zero padding
 before creating output. It does not load raw data, refit or sample a model, or
 execute the planner. Exit code `0` means the descriptive five-file audit was
 written; input or contract drift returns `2` without creating output.
+
+Run the reviewed v0.17.0 independent-outing intake only after the private
+manifest has been created prospectively and the acquisition batch is closed:
+
+Copy `config/examples/independent_outings_v017.private.example.json` to the
+ignored private-config directory and replace every placeholder before use.
+
+```bash
+python -m lane_residuals.cli.independent_outing_intake \
+  "data/raw/new_independent_outings" \
+  --acquisition-manifest \
+  "config/private/independent_outings_v017.private.json" \
+  --output-directory \
+  "outputs/diagnostics/data/independent_outing_intake_v017"
+```
+
+The support thresholds and split rule are constants and have no CLI override.
+For an initial run, `--prior-successful-lock` is forbidden. For a manifest that
+declares a reviewed supersession, it is mandatory and must point to the exact
+prior successful `independent_outing_lock.json`. Exit `0` means the availability
+gate passed and roles were locked. Exit `3` means all four audit files were
+written but fewer than seven new outings were eligible, so no role was assigned.
+Usage, manifest, exact-coverage, hash-lineage, or output-target failures return
+`2` before the output directory is created.
 
 For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the

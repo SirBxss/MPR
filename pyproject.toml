@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mpr"
-version = "0.16.2"
+version = "0.17.0"
 description = "Shared sequence modeling and fail-closed MCAP corpus auditing"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -59,6 +59,7 @@ mpr-run-reference-planner-sensitivity = "lane_residuals.cli.reference_planner_se
 mpr-sample-unconditional-gaussian-residuals = "lane_residuals.cli.unconditional_gaussian_residual_sampling:main"
 mpr-run-gaussian-planner-transfer = "lane_residuals.cli.gaussian_planner_transfer:main"
 mpr-audit-spatial-structure = "lane_residuals.cli.spatial_structure_audit:main"
+mpr-lock-independent-outings = "lane_residuals.cli.independent_outing_intake:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

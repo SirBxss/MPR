@@ -1,0 +1,60 @@
+{
+  "version": "0.17",
+  "purpose": "prospective_independent_outing_intake",
+  "acquisition_batch_closed": true,
+  "created_before_outcome_inspection": true,
+  "legacy_development_outing_count": 1,
+  "prior_successful_lock_sha256": null,
+  "superseding_contract_amendment_id": null,
+  "outings": [
+    {
+      "private_outing_label": "new_physical_outing_01",
+      "acquisition_start_utc": "2026-09-10T08:00:00+00:00",
+      "separate_physical_session": true,
+      "independence_basis_private": "replace with the actual prospective session evidence",
+      "mcap_basenames_private": ["recording_chunk_001.mcap"]
+    },
+    {
+      "private_outing_label": "new_physical_outing_02",
+      "acquisition_start_utc": "2026-09-11T08:00:00+00:00",
+      "separate_physical_session": true,
+      "independence_basis_private": "replace with the actual prospective session evidence",
+      "mcap_basenames_private": ["recording_chunk_002.mcap"]
+    },
+    {
+      "private_outing_label": "new_physical_outing_03",
+      "acquisition_start_utc": "2026-09-12T08:00:00+00:00",
+      "separate_physical_session": true,
+      "independence_basis_private": "replace with the actual prospective session evidence",
+      "mcap_basenames_private": ["recording_chunk_003.mcap"]
+    },
+    {
+      "private_outing_label": "new_physical_outing_04",
+      "acquisition_start_utc": "2026-09-13T08:00:00+00:00",
+      "separate_physical_session": true,
+      "independence_basis_private": "replace with the actual prospective session evidence",
+      "mcap_basenames_private": ["recording_chunk_004.mcap"]
+    },
+    {
+      "private_outing_label": "new_physical_outing_05",
+      "acquisition_start_utc": "2026-09-14T08:00:00+00:00",
+      "separate_physical_session": true,
+      "independence_basis_private": "replace with the actual prospective session evidence",
+      "mcap_basenames_private": ["recording_chunk_005.mcap"]
+    },
+    {
+      "private_outing_label": "new_physical_outing_06",
+      "acquisition_start_utc": "2026-09-15T08:00:00+00:00",
+      "separate_physical_session": true,
+      "independence_basis_private": "replace with the actual prospective session evidence",
+      "mcap_basenames_private": ["recording_chunk_006.mcap"]
+    },
+    {
+      "private_outing_label": "new_physical_outing_07",
+      "acquisition_start_utc": "2026-09-16T08:00:00+00:00",
+      "separate_physical_session": true,
+      "independence_basis_private": "replace with the actual prospective session evidence",
+      "mcap_basenames_private": ["recording_chunk_007.mcap"]
+    }
+  ]
+}

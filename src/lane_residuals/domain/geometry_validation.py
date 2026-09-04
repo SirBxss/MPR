@@ -436,8 +436,17 @@ def estimated_frame_from_message(
     publish_time_ns: int,
     schema_fingerprint: str | None = None,
     payload_fingerprint: str | None = None,
+    require_sensor_topology: bool = True,
 ) -> EstimatedFrameAudit:
-    """Extract one estimate message without substituting another lane."""
+    """Extract one estimate message without substituting another lane.
+
+    ``require_sensor_topology=False`` is reserved for outcome-blind topology
+    auditing: it permits geometry validation before the topology gate is
+    applied separately. Existing callers retain the strict sensor-only default.
+    """
+
+    if type(require_sensor_topology) is not bool:
+        raise ValueError("require_sensor_topology must be bool")
 
     descriptor = getattr(message, "DESCRIPTOR", None)
     if descriptor is None:
@@ -491,7 +500,7 @@ def estimated_frame_from_message(
         conversion_state = "schema_bindings_incomplete"
     elif source_time_ns is None:
         conversion_state = "source_timestamp_missing"
-    elif topology_source != EXPECTED_TOPOLOGY_SOURCE:
+    elif require_sensor_topology and topology_source != EXPECTED_TOPOLOGY_SOURCE:
         conversion_state = "unexpected_topology_source"
     elif not keep_lane[0].model_structure_valid:
         conversion_state = "model_structure_invalid"
