@@ -287,8 +287,15 @@ only the following final-outing evidence may be read:
 
 No final-outing residual coordinate or summary, feature value or distribution,
 model prediction, likelihood, sample, metric, plot, or planner result may be
-opened or logged. The intake implementation must not import a modeling,
-sampling, planner, evaluation, or visualization module.
+opened or logged. No intake module may directly import a modeling, sampling,
+planner, evaluation, or visualization module, and no intake operation may call
+such a code path. Importing the intake CLI transitively loads part of the legacy
+`lane_residuals` package surface through the package `__init__`, which predates
+this phase and is shared by every workflow; those definition imports access no
+data and run no model, sampler, planner, evaluation, or visualization
+operation. The checkable guarantee is therefore the absence of direct intake
+dependencies plus a frozen allowlist of the `lane_residuals` modules loaded by
+the intake CLI.
 
 After lock, a final outing is never replaced because its eventual H100
 residuals or model metrics are inconvenient. A raw-byte or lineage mismatch
@@ -407,7 +414,9 @@ Synthetic tests must prove:
 - CLI exit statuses `0`, `2`, and `3`.
 
 The complete Python 3.10/3.12 test suite must pass. The implementation review
-must also confirm that the workflow has no modeling or planner dependency.
+must also confirm that the intake modules have no direct modeling or planner
+dependency and that the transitive intake-CLI module graph matches its frozen
+allowlist.
 Synthetic success does not authorize final-outing decoding beyond the intake
 allowlist.
 

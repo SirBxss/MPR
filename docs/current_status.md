@@ -7,7 +7,10 @@ critical path changes.
 ## Current checkpoint
 
 - Repository version: v0.17.0 independent-outing intake implemented and
-  synthetically verified; focused independent implementation review is next.
+  synthetically verified. Claude's focused implementation review returned one
+  `AMEND` concerning the legacy package initializer's transitive imports; the
+  contract and tests now state and freeze that behavior, and focused re-review
+  is next.
   No real v0.17 lock or new-outing output exists. v0.16.2 spatial-structure
   audit is complete, independently reproduced, approved, and merged. v0.16.1
   real A3 sampling and planner
@@ -44,8 +47,8 @@ critical path changes.
   reviewer required no further wording review before implementation. The exact
   four-file workflow, CLI, schemas, and synthetic acceptance tests are now
   implemented; no real output exists yet.
-- v0.17.0 implementation verification: 380 tests pass with two expected skips.
-  The 41 new tests cover the strict manifest, exact recursive coverage,
+- v0.17.0 implementation verification: 381 tests pass with two expected skips.
+  The 42 new tests cover the strict manifest, exact recursive coverage,
   eligibility boundaries, content-only split, distinct ID/rank orders,
   deterministic/layout-independent artifacts, prior-lock supersession,
   embargoed-field absence, non-overwrite behavior, raw-inspector primitives,
@@ -418,8 +421,9 @@ planning gate, not a formal sample-size analysis.
 
 Next actions are ordered:
 
-1. push the synthetically verified v0.17.0 implementation branch;
-2. obtain focused independent implementation review and resolve every blocker;
+1. push the C1 contract-and-module-graph correction on the existing v0.17.0
+   implementation branch;
+2. obtain Claude's focused re-review of that self-contained correction;
 3. open the implementation PR only after the reviewer returns `GO`, then merge
    only after both supported-Python CI jobs pass;
 4. when data arrive, create the private acquisition manifest before outcome
@@ -428,11 +432,12 @@ Next actions are ordered:
 6. predeclare and review the separate final comparison before reading any
    embargoed final-outing residual, feature, model, or plot.
 
-The contract review gate and synthetic implementation gate are satisfied. Do
-not open the new data or draft evaluator code during implementation review.
-Push the implementation branch, then request Claude's focused implementation
-review before opening its PR. The reviewer should inspect the code and tests,
-not generate or inspect any real new-outing output.
+The synthetic implementation gate is satisfied; the focused implementation
+review remains `AMEND` until C1 is re-reviewed. Do not open the new data or
+draft evaluator code. Push the correction, then request Claude's focused
+re-review before opening the PR. The reviewer should inspect only the amended
+contract and dependency tests, not generate or inspect any real new-outing
+output.
 
 ## Reading map
 

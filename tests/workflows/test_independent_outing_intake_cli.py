@@ -5,6 +5,9 @@ import ast
 import csv
 import hashlib
 import json
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -23,6 +26,67 @@ from lane_residuals.workflows.independent_outing_intake import (
     OUTING_FIELDS,
     RECORDING_FIELDS,
     run_independent_outing_intake,
+)
+
+
+# Importing any lane_residuals submodule first executes the legacy root package
+# initializer. Its eager compatibility re-exports include gaussian/modeling and
+# plotting definitions. The v0.17 modules do not directly depend on those
+# layers; this exact transitive graph makes the pre-existing footprint explicit
+# and forces review before it can change silently.
+FROZEN_INTAKE_MODULE_ALLOWLIST = frozenset(
+    {
+        "lane_residuals",
+        "lane_residuals.batch_pairing_audit",
+        "lane_residuals.cli",
+        "lane_residuals.cli.independent_outing_intake",
+        "lane_residuals.domain",
+        "lane_residuals.domain.alignment",
+        "lane_residuals.domain.alignment_contract",
+        "lane_residuals.domain.batch_pairing",
+        "lane_residuals.domain.conditional_features",
+        "lane_residuals.domain.corpus_inventory",
+        "lane_residuals.domain.edp_transitions",
+        "lane_residuals.domain.expanded_sequence_dataset",
+        "lane_residuals.domain.expanded_sequence_dataset_v0131",
+        "lane_residuals.domain.geometry_validation",
+        "lane_residuals.domain.independent_outing_intake",
+        "lane_residuals.domain.motion",
+        "lane_residuals.domain.pairing",
+        "lane_residuals.domain.path_source_probe",
+        "lane_residuals.domain.reference",
+        "lane_residuals.domain.residual_dataset",
+        "lane_residuals.domain.residuals",
+        "lane_residuals.domain.sequence_dataset",
+        "lane_residuals.edp_transition_audit",
+        "lane_residuals.gaussian",
+        "lane_residuals.geometry_validation",
+        "lane_residuals.io",
+        "lane_residuals.io.corpus_inventory",
+        "lane_residuals.io.expanded_sequence_dataset",
+        "lane_residuals.io.expanded_sequence_dataset_v0131",
+        "lane_residuals.io.independent_outing_intake",
+        "lane_residuals.io.mcap",
+        "lane_residuals.io.odometry",
+        "lane_residuals.io.reports",
+        "lane_residuals.legacy",
+        "lane_residuals.legacy.association_cli",
+        "lane_residuals.legacy.plotting",
+        "lane_residuals.legacy.preprocessing",
+        "lane_residuals.legacy.provisional_residuals",
+        "lane_residuals.mcap_io",
+        "lane_residuals.modeling",
+        "lane_residuals.modeling.gaussian",
+        "lane_residuals.pairing_audit",
+        "lane_residuals.path_source_probe",
+        "lane_residuals.plotting",
+        "lane_residuals.preprocessing",
+        "lane_residuals.reference_audit",
+        "lane_residuals.residual_extraction",
+        "lane_residuals.residuals",
+        "lane_residuals.workflows",
+        "lane_residuals.workflows.independent_outing_intake",
+    }
 )
 
 
@@ -707,9 +771,10 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
                 self._run(_arguments(corpus, manifest, output), inspectors)
             self.assertFalse(output.exists())
 
-    def test_intake_modules_do_not_import_forbidden_layers(self) -> None:
+    def test_intake_modules_do_not_directly_import_forbidden_layers(self) -> None:
         repository = Path(__file__).resolve().parents[2]
         paths = (
+            repository / "src/lane_residuals/cli/independent_outing_intake.py",
             repository / "src/lane_residuals/domain/independent_outing_intake.py",
             repository / "src/lane_residuals/io/independent_outing_intake.py",
             repository / "src/lane_residuals/workflows/independent_outing_intake.py",
@@ -729,6 +794,26 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
             ]
             for module in modules:
                 self.assertFalse(any(part in module.split(".") for part in forbidden), module)
+
+    def test_intake_cli_module_graph_matches_frozen_allowlist(self) -> None:
+        repository = Path(__file__).resolve().parents[2]
+        code = (
+            "import json, sys\n"
+            "import lane_residuals.cli.independent_outing_intake\n"
+            "print(json.dumps(sorted(name for name in sys.modules "
+            "if name.startswith('lane_residuals'))))\n"
+        )
+        completed = subprocess.run(
+            [sys.executable, "-c", code],
+            cwd=repository,
+            env={**os.environ, "PYTHONPATH": str(repository / "src")},
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=30,
+        )
+        loaded = frozenset(json.loads(completed.stdout))
+        self.assertEqual(loaded, FROZEN_INTAKE_MODULE_ALLOWLIST)
 
 
 class IndependentOutingCliTests(unittest.TestCase):

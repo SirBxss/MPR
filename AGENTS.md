@@ -105,7 +105,7 @@ with the same two expected skips. The reviewed v0.16.1 Gaussian-transfer
 implementation raises this to 329 passing tests with the same two skips. The
 v0.16.2 spatial-structure audit raises this to 339 passing tests with the same
 two skips.
-The v0.17.0 independent-outing intake raises this to 380 passing tests with the
+The v0.17.0 independent-outing intake raises this to 381 passing tests with the
 same two skips. No real v0.17 lock exists until new data arrive and the private
 prospective manifest is created.
 

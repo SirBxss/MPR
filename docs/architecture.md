@@ -39,9 +39,12 @@ and deterministic cohort assignment. Its I/O module performs strict-JSON and
 raw MCAP inspection while retaining only eligibility states and counts. The
 workflow owns exact coverage, prior-lock reconciliation, gap-aware sequence
 counting, and transactional four-file serialization; the CLI only maps
-arguments, logging, and exit codes. These modules do not import modeling,
-sampling, planner, evaluation, or visualization code and never serialize the
-numeric six-feature values computed transiently for availability checks.
+arguments, logging, and exit codes. These modules do not directly import
+modeling, sampling, planner, evaluation, or visualization code and never
+serialize the numeric six-feature values computed transiently for availability
+checks. The legacy root package initializer does eagerly load some unrelated
+definitions before every submodule import; the intake test suite freezes that
+transitive module graph and verifies that no intake operation calls it.
 
 Topology auditing follows that categorization: domain code reconciles raw
 protobuf values with descriptor enum names, IO verifies and packages immutable
