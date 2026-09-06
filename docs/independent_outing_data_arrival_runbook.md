@@ -23,6 +23,24 @@ figures, place the closed batch under one dedicated root such as:
 data/raw/new_independent_outings/
 ```
 
+Keep that new-outing root separate from the accepted legacy root. A common
+parent is already sufficient for a clean layout; do not flatten old and new
+MCAPs into one directory or move the accepted legacy bytes merely to simplify
+a command. Use one stable subdirectory per declared physical outing beneath
+the recursive new-outing root, for example:
+
+```text
+data/raw/
+├── mcap/                                  # accepted legacy lineage
+└── new_independent_outings/               # one recursive v0.17 input root
+    └── candidate_session_YYYY-MM-DD/      # all chunks from one outing
+```
+
+Later consumers must join accepted legacy and new data through their manifests,
+content hashes, and cohort lock rather than by treating one flat directory as
+a scientific cohort. Directory layout, filename numbering, and MCAP count do
+not define independent outings.
+
 The intake discovers `.mcap` files recursively. Every basename must be unique,
 including across subdirectories. Confirm the working revision and inspect only
 the file inventory:
