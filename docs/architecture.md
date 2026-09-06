@@ -258,6 +258,12 @@ combines those fixed states at the declared physical-outing unit, writes only
 counts/provenance/roles, and enforces first-lock or reviewed-supersession
 lineage before creating output. `cli.independent_outing_intake` is the sole new
 entry adapter. No final-outing outcome is exposed by this layer.
+`scripts/inspection/verify_v017_intake_bundle.py` is deliberately outside the
+package dependency graph. Using only the Python standard library, it rehashes
+an initial manifest, raw MCAP byte streams, and lock outputs and independently
+recomputes identity and cohort assignment. It never imports the implementation
+being checked, decodes MCAP messages, writes a file, or handles an unreviewed
+supersession.
 
 One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific

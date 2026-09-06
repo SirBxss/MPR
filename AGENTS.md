@@ -108,6 +108,8 @@ two skips.
 The v0.17.0 independent-outing intake raises this to 381 passing tests with the
 same two skips. No real v0.17 lock exists until new data arrive and the private
 prospective manifest is created.
+The v0.17 data-arrival verifier and runbook raise this to 384 passing tests with
+the same two skips. They add no model or current-data diagnostic.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
