@@ -1,6 +1,6 @@
 # Current project status
 
-Last updated: 2026-09-04. This is the first file a new agent should read after
+Last updated: 2026-09-06. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
@@ -11,7 +11,10 @@ critical path changes.
   implementation review returned one `AMEND` concerning the legacy package
   initializer's transitive imports; the correction froze that graph and the
   focused re-review returned `GO`.
-  No real v0.17 lock or new-outing output exists. v0.16.2 spatial-structure
+  No real v0.17 lock or new-outing output exists. One separate, outcome-blind
+  candidate outing containing 86 consecutive MCAP chunks has now arrived;
+  acquisition-time timezone provenance and the private manifest remain
+  unresolved. v0.16.2 spatial-structure
   audit is complete, independently reproduced, approved, and merged. v0.16.1
   real A3 sampling and planner
   transfer are also complete, independently reproduced, approved, and merged.
@@ -36,11 +39,10 @@ critical path changes.
 - The independently approved v0.17.0 implementation was merged through PR #14
   at commit `6d3f34d`; the focused dependency-boundary correction is commit
   `2035f34` in that merge.
-- Current implementation branch: `workflow/v0.17-data-arrival-readiness`, based
-  on accepted v0.17.0 `main` at `d690d83`. It adds only a first-arrival runbook
-  and an independent read-only initial-lock verifier; it is not yet merged and
-  adds no scientific analysis. No further scientific implementation is
-  authorized before the real cohort lock.
+- The v0.17 data-arrival runbook and independent read-only initial-lock verifier
+  were merged through PR #16 at commit `3765994`. They add no scientific
+  analysis. No further scientific implementation is authorized before the
+  real cohort lock.
 - The v0.17 prospective independent-outing intake and cohort-lock contract was
   drafted before new data were available. Claude reviewed pushed commit
   `189f948` and returned `AMEND`. The apparent review-SHA mismatch is resolved:
@@ -67,7 +69,7 @@ critical path changes.
   first lock without writes, fail on manifest/raw/output drift, and freeze the
   runbook's initial-lock command, thresholds, outputs, and package-independence
   boundary.
-- Merged-main baseline verification: 381 tests pass with two expected skips.
+- Merged-main baseline verification: 384 tests pass with two expected skips.
 - v0.16.2 focused verification: 339 tests pass with two expected skips. The
   tests cover population arithmetic, exact output schemas, lineage tampering,
   extra inputs, nonzero padding, non-overwrite behavior, and CLI exit codes.
@@ -93,6 +95,65 @@ critical path changes.
   the reviewer's previously disclosed fixed statistics on the accepted
   artifacts. Claude's final review independently regenerated both ensembles,
   reconciled every output, and returned `GO`; the phase is accepted and closed.
+
+## Raw-data chronology and 2026-09-06 arrival checkpoint
+
+The raw-data history has three distinct stages. Preserve this order and do not
+retroactively replace a historical file count with a later one:
+
+| Stage | MCAP files | Scientific unit and status |
+|---|---:|---|
+| Early fixed cohort | 10 | Historical corpus used by the early fixed-cohort workflows. Its ten-file documentation remains correct for those versions. |
+| Accepted expanded legacy lineage | 67 | Later accepted legacy corpus. v0.17 treats its evidence as one legacy development outing, not 67 independent outings. |
+| Newly arrived candidate set | 86 | One separately started, consecutively recorded physical outing. Technical eligibility has not yet been evaluated. |
+
+A fresh read-only reconciliation of the accepted expanded legacy root reported
+exactly 67 accepted lineage entries and 67 files in the legacy directory. It
+found no duplicate legacy basenames, no accepted file missing, no file outside
+the accepted lineage, and zero accepted-file SHA-256 mismatches. The legacy
+bytes and accepted lineage are therefore unchanged.
+
+The recorded legacy reconciliation output is:
+
+```text
+accepted lineage count: 67
+legacy directory count: 67
+duplicate legacy basenames: []
+accepted files missing: []
+files outside accepted lineage: 0
+first extra basenames: []
+last extra basenames: []
+accepted-file hash mismatches: 0
+```
+
+The separate candidate-root comparison reported 86 MCAPs, no duplicate
+candidate basenames, no basename overlap with the 67-file legacy root, and zero
+byte-identical overlap. The user confirmed that all 86 chunks belong to one
+new physical drive that started separately from the legacy outing. The
+filename timestamp timezone is not yet known, and no candidate residual,
+condition, model, planner, or figure has been inspected.
+
+The recorded legacy-versus-candidate comparison output is:
+
+```text
+legacy MCAP count: 67
+candidate MCAP count: 86
+duplicate candidate basenames: []
+basename overlaps: []
+byte-identical overlaps:
+byte-identical overlap count: 0
+```
+
+The two roots contain 153 MCAP files in total, but 153 is not an inferential
+sample size. Under the reviewed v0.17 contract, the accepted legacy evidence is
+one development outing and the 86-file candidate can contribute at most one
+new eligible outing after the technical gate. Even if it passes, at least six
+additional eligible new physical outings are needed to reach the minimum of
+seven. Keep the accepted legacy root in place and the new files under the
+separate recursive `data/raw/new_independent_outings/` root, with one stable
+subdirectory per physical outing. Later workflows must combine them through
+their manifests, content hashes, and cohort lock, not by flattening raw files
+into one directory.
 
 ## Frozen development model
 
@@ -435,27 +496,33 @@ planning gate, not a formal sample-size analysis.
 
 Next actions are ordered:
 
-1. acquire the planned independent-outing MCAPs without inspecting residual,
-   condition, model, or planner outcomes;
-2. before outcome inspection, close the acquisition batch and create the exact
-   private manifest from the real basenames and physical-session declarations;
-3. follow `docs/independent_outing_data_arrival_runbook.md`, run the merged
+1. preserve the arrived 86 chunks unchanged as one declared candidate outing
+   and remain outcome-blind;
+2. confirm the acquisition timestamp's timezone from MCAP metadata or the data
+   provider; do not infer it silently from the filename;
+3. either acquire the remaining separate outings before closing the first
+   acquisition batch, or explicitly close and audit this one-outing batch with
+   the expectation that the availability gate cannot yet pass;
+4. before outcome inspection, create the exact private manifest from the real
+   basenames and physical-session declarations;
+5. follow `docs/independent_outing_data_arrival_runbook.md`, run the merged
    v0.17.0 intake once into a new versioned output directory, and retain all
    four files whether the availability gate passes or fails;
-4. run the standalone read-only verifier, independently review the real lock,
-   and record its accepted SHA-256 here;
-5. only after a successful reconciled lock, predeclare and review the separate
+6. run the standalone read-only verifier; if the availability gate fails,
+   preserve that audit and add later outcome-blind acquisitions only through a
+   new manifest and new versioned output; if it passes, independently review
+   the real lock and record its accepted SHA-256 here;
+7. only after a successful reconciled lock, predeclare and review the separate
    final comparison before reading any embargoed final-outing residual,
    feature, model, or plot.
 
-The intake implementation gates are satisfied. While data are pending, the
-only authorized repository preparation is the reviewed data-arrival runbook
-and independent lock verifier described above. The scientific programme
-remains intentionally data-blocked: do not draft evaluator code, fit another
-model, or open any final-outing outcome before the real prospective lock
-exists. After this readiness change is reviewed and merged, the next repository
-change should record and reconcile that real lock, not add another current-
-outing diagnostic.
+The intake implementation gates are satisfied and real candidate data have
+begun to arrive, but the required new-outing count has not. The scientific
+programme remains intentionally data-blocked: do not draft evaluator code, fit
+another model, or open any final-outing outcome before the real prospective
+lock exists. After this dated checkpoint is reviewed and merged, the next
+repository change should record and reconcile a real intake audit or successful
+lock, not add another current-outing diagnostic.
 
 ## Reading map
 

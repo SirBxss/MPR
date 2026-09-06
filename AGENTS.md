@@ -52,6 +52,10 @@ agents and new chats.
   fitting, early stopping, restarts, transforms, or hyperparameters.
 - Current primary evidence is four technical recording groups from one
   same-day outing. It does not estimate independent-journey generalization.
+- Never infer independent-outing count from MCAP count, filename numbering,
+  directory count, continuous-block count, or technical recording-group count.
+  Only the prospectively recorded physical-session declarations determine the
+  outing unit. Read `docs/current_status.md` for the dated raw-data chronology.
 - The frozen v0.15.4 planner-development model is K=1 with AR ceiling 0.99.
   This is a structural release of the binding 0.98 constraint, not a held-out
   performance selection. The failed v0.15.3 strict gate and reviewed 0.98

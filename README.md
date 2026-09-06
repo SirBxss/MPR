@@ -10,11 +10,23 @@ manifest against newly acquired MCAP bytes, applies only the frozen raw,
 topology, H100, six-input-availability, duration, and sequence-integrity gates,
 and assigns content-hash-based development/final roles only when at least seven
 new physical outings are eligible. It exports no residual, condition, model, or
-planner values. No real v0.17 lock exists yet; new-outing data are still pending.
+planner values. No real v0.17 lock exists yet.
 The exact first-arrival procedure is frozen in
 `docs/independent_outing_data_arrival_runbook.md`; its standalone standard-
 library verifier independently reconciles an initial four-file lock without
 decoding MCAP messages or writing output.
+
+The 2026-09-06 arrival checkpoint must not be confused with the historical raw
+corpora. MPR began with a ten-MCAP fixed cohort. The later accepted expanded
+legacy lineage contains 67 MCAP files; a fresh read-only reconciliation found
+all 67 accepted basenames, no duplicate basenames, no files outside that
+lineage, and no SHA-256 mismatch. A separate new candidate set contains 86
+MCAP chunks from one consecutively recorded physical outing, with no basename
+or byte-content overlap against the legacy lineage.
+Those 86 files are one candidate outing, not 86 independent outings. No new-
+outing residual, condition, model, planner, or figure has been inspected, and
+the filename timestamp timezone remains unresolved. Exact current status and
+the next outcome-blind steps are recorded in `docs/current_status.md`.
 
 Version 0.16.2 adds the independently reviewed, lineage-locked A2/A3
 cross-station structure audit. It consumes only the accepted generated

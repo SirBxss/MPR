@@ -403,7 +403,8 @@ The verifier supports an initial lock only, imports no `lane_residuals` module,
 decodes no MCAP message, and creates no output. It is not a replacement for the
 prospective manifest or independent review.
 
-For the accepted ten-MCAP corpus, the historical `--drive-map` flag must point
+For the historical v0.4.5/v0.5.0 accepted ten-MCAP corpus, the `--drive-map`
+flag must point
 to `config/private/mcap_sessions.private.json`. That session map is the
 canonical grouping manifest for the two physical recording sessions. The
 separate three-entry private drive-map copy is unused and must not be used,
