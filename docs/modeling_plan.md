@@ -45,7 +45,8 @@ are not the thesis execution path.
 | v0.16 | Reference-planner temporal-order sensitivity | Complete and independently reviewed; temporal ordering changes the fixed planner's accumulated deviation and command smoothness within the current outing |
 | v0.16.1 | Unconditional-Gaussian planner transfer | Complete and independently reproduced; the predeclared full-support rule passes, with mandatory length-dependent qualification of the deviation family |
 | v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
-| v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and arrival verifier are independently approved and merged; one outcome-blind 86-chunk candidate outing has arrived, but no real intake or lock exists |
+| v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and arrival verifier are independently approved and merged; the first 86-chunk real audit is preserved with no role assignment, and no successful cohort lock exists |
+| v0.17.1 | Exact EDP schema-v2 compatibility | Evidence recorded and narrow amendment drafted; focused independent review is required before implementation |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -174,15 +175,21 @@ workflow was permitted until focused independent review authorized it. The
 focused re-review of the amended contract required one exact correction to the
 layout-dependence wording and explicitly authorized implementation without
 another wording review once that correction was committed. v0.17.0 now
-implements only that reviewed intake boundary. It requires focused independent
-implementation review before its PR is opened or any real new-outing corpus is
-processed. That review found one package-initializer dependency wording issue;
-the focused correction received `GO`, and the implementation is merged. Real
-intake is now blocked on completing the private prospective manifest and
-confirming the unresolved acquisition-time timezone for the first candidate
-outing. The arrived set contains 86 consecutive chunks from one separate
-physical outing and therefore contributes at most one of the required seven
-eligible new outings. File or chunk count must not be used as outing count.
+implements only that reviewed intake boundary. Its focused implementation
+review found one package-initializer dependency wording issue; the correction
+received `GO`, and the implementation is merged. The private prospective
+manifest was completed, its CEST filename times were reconciled to internal
+UTC, and the first real intake was executed and independently reconciled. It
+correctly assigned no role, both because only one new outing exists and because
+the technical decoder failed closed on a newer BMW EDP descriptor that removed
+the legacy model-parameter Boolean. Privacy-safe complete-message evidence and
+a Copilot read-only BMW source trace support a narrow generation-aware adapter.
+That evidence is recorded in `docs/bmw_edp_schema_evidence.md`; the exact
+v0.17.1 amendment is drafted in
+`docs/independent_outing_schema_v2_amendment.md` and requires focused
+independent review before code changes. The arrived set remains one physical
+outing and can contribute at most one of seven required new outings. File or
+chunk count must not be used as outing count.
 
 A successful real v0.17 lock still does not authorize final evaluation. The
 exact training corpus, frozen competitors, fitting rules, final-outing failure

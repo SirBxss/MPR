@@ -10,7 +10,8 @@ manifest against newly acquired MCAP bytes, applies only the frozen raw,
 topology, H100, six-input-availability, duration, and sequence-integrity gates,
 and assigns content-hash-based development/final roles only when at least seven
 new physical outings are eligible. It exports no residual, condition, model, or
-planner values. No real v0.17 lock exists yet.
+planner values. The first real one-outing intake audit has now run and failed
+closed with no role assignment; no successful v0.17 cohort lock exists yet.
 The exact first-arrival procedure is frozen in
 `docs/independent_outing_data_arrival_runbook.md`; its standalone standard-
 library verifier independently reconciles an initial four-file lock without
@@ -23,10 +24,13 @@ all 67 accepted basenames, no duplicate basenames, no files outside that
 lineage, and no SHA-256 mismatch. A separate new candidate set contains 86
 MCAP chunks from one consecutively recorded physical outing, with no basename
 or byte-content overlap against the legacy lineage.
-Those 86 files are one candidate outing, not 86 independent outings. No new-
-outing residual, condition, model, planner, or figure has been inspected, and
-the filename timestamp timezone remains unresolved. Exact current status and
-the next outcome-blind steps are recorded in `docs/current_status.md`.
+Those 86 files are one candidate outing, not 86 independent outings. Filename
+wall-clock time was confirmed as CEST and reconciled to internal UTC. No new-
+outing residual, condition, model, planner, or figure has been inspected. The
+real v0.17.0 audit exposed a BMW EDP schema-v2 transition, now recorded in
+`docs/bmw_edp_schema_evidence.md`; a narrow v0.17.1 compatibility amendment is
+drafted for review but is not yet implementation-authorized. Exact current
+status and the next outcome-blind steps are in `docs/current_status.md`.
 
 Version 0.16.2 adds the independently reviewed, lineage-locked A2/A3
 cross-station structure audit. It consumes only the accepted generated

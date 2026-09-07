@@ -6,6 +6,13 @@ residual inspection, model fitting, sampling, planner execution, or final
 evaluation. If any new-outing outcome has already been inspected, stop and
 record that outing as development-only before continuing.
 
+Checkpoint note (2026-09-07): the first 86-file batch has completed this
+v0.17.0 procedure and its failed-availability output is immutable. Do not repeat
+that run or overwrite it. The encountered BMW EDP schema transition is recorded
+in `docs/bmw_edp_schema_evidence.md`; the draft v0.17.1 compatibility amendment
+in `docs/independent_outing_schema_v2_amendment.md` requires focused independent
+`GO` before code changes or a new versioned re-execution.
+
 ## 1. Preserve the prospective boundary
 
 Collect genuinely separate physical outings, not merely separate MCAP chunks.
