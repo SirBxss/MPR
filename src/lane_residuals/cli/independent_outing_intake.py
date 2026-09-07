@@ -44,6 +44,14 @@ def _parser() -> argparse.ArgumentParser:
         help="exact prior successful lock required only for declared supersession",
     )
     parser.add_argument(
+        "--amended-from-failed-intake-directory",
+        type=Path,
+        help=(
+            "preserved four-file failed v0.17.0 audit to reconcile before "
+            "writing an amended v0.17.1 audit"
+        ),
+    )
+    parser.add_argument(
         "--log-level",
         choices=("DEBUG", "INFO", "WARNING", "ERROR"),
         default="INFO",

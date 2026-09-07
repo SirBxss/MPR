@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import math
 import shutil
@@ -43,6 +44,11 @@ from ..domain.independent_outing_intake import (
     evaluate_outing_eligibility,
     outing_fingerprint_sha256,
     parse_acquisition_manifest,
+)
+from ..domain.path_source_probe import (
+    ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256,
+    ESTIMATE_DESCRIPTOR_IDENTITY_SOURCE,
+    LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256,
 )
 from ..io.corpus_inventory import inspect_mcap_for_inventory, sha256_file
 from ..io.independent_outing_intake import (
@@ -138,6 +144,12 @@ OUTPUT_NAMES = (
     "independent_outing_intake_summary.json",
 )
 
+SCHEMA_COMPATIBILITY_AMENDMENT_ID = "v0.17.1-edp-schema-v2-2026-09-07"
+LEGACY_FAILED_AUDIT_CONTRACT_REVISION = (
+    "v0.17.0-reviewed-2026-09-03-layout-c1"
+)
+SCHEMA_COMPATIBILITY_FIELD = "schema_compatibility_amendment"
+
 LOCK_TOP_LEVEL_FIELDS = frozenset(
     {
         "version",
@@ -157,8 +169,87 @@ LOCK_TOP_LEVEL_FIELDS = frozenset(
         "attestations",
         "prior_successful_lock",
         "final_outing_embargo",
+        SCHEMA_COMPATIBILITY_FIELD,
     }
 )
+
+SUMMARY_TOP_LEVEL_FIELDS = frozenset(
+    {
+        "version",
+        "purpose",
+        "status",
+        "contract_revision",
+        "manifest_sha256",
+        "mcap_file_count",
+        "declared_new_outing_count",
+        "eligible_new_outing_count",
+        "ineligible_new_outing_count",
+        "legacy_development_outing_count",
+        "total_independent_outing_count_including_legacy",
+        "raw_usable_recording_count",
+        "summed_usable_duration_s",
+        "eligible_h100_frame_count",
+        "eligible_sequence_count",
+        "availability_gate",
+        "final_count",
+        "role_counts",
+        "failure_code_counts_non_mutually_exclusive",
+        "attestation_status",
+        "prior_successful_lock_sha256",
+        "prior_successful_lock_verified",
+        "overlapping_raw_sha256_count",
+        "output_sha256",
+        "summary_self_hash_recorded",
+        "claim_limits",
+        "next_authorized_action",
+        SCHEMA_COMPATIBILITY_FIELD,
+    }
+)
+
+_LEGACY_FAILED_LOCK_FIELDS = LOCK_TOP_LEVEL_FIELDS - {
+    SCHEMA_COMPATIBILITY_FIELD
+}
+_LEGACY_FAILED_SUMMARY_FIELDS = SUMMARY_TOP_LEVEL_FIELDS - {
+    SCHEMA_COMPATIBILITY_FIELD
+}
+_LOCK_OUTING_FIELDS = frozenset(
+    {
+        "outing_id",
+        "private_outing_label",
+        "acquisition_start_utc_private",
+        "mcap_sha256_by_basename_private",
+        "outing_fingerprint_sha256",
+        "technically_eligible",
+        "raw_usable_recording_count",
+        "summed_usable_duration_ns",
+        "eligible_frame_count",
+        "sequence_count",
+        "split_score_sha256",
+        "split_rank",
+        "cohort_role",
+    }
+)
+_SCHEMA_AMENDMENT_FIELDS = frozenset(
+    {
+        "amendment_id",
+        "descriptor_identity_source",
+        "allowed_flag_absent_estimate_file_descriptor_sha256",
+        "legacy_estimate_file_descriptor_reference_sha256",
+        "legacy_validity_rule",
+        "observed_estimate_file_descriptor_sha256",
+        "amended_from_failed_audit",
+    }
+)
+_LEGACY_VALIDITY_RULE = {
+    "descriptor_rule": (
+        "structural_v0.17.0_binding_no_exhaustive_descriptor_allowlist"
+    ),
+    "field_name": "model_parameters_optional_flag",
+    "field_number": 8,
+    "protobuf_type": "bool",
+    "explicit_presence_required": True,
+    "required_value": True,
+}
 
 
 @dataclass(frozen=True)
@@ -217,6 +308,292 @@ def _hash_files(files_by_basename: Mapping[str, Path]) -> dict[str, str]:
         basename: sha256_file(files_by_basename[basename])
         for basename in sorted(files_by_basename)
     }
+
+
+def _exact_mapping_fields(
+    value: Any,
+    expected: frozenset[str],
+    name: str,
+) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{name} must be a JSON object")
+    actual = set(value)
+    if actual != expected:
+        raise ValueError(
+            f"{name} schema differs: missing={sorted(expected - actual)}, "
+            f"extra={sorted(actual - expected)}"
+        )
+    return value
+
+
+def _read_exact_csv(
+    path: Path,
+    expected_fields: tuple[str, ...],
+) -> list[dict[str, str]]:
+    if not path.is_file():
+        raise ValueError(f"required failed-audit CSV is missing: {path}")
+    with path.open(encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if tuple(reader.fieldnames or ()) != expected_fields:
+            raise ValueError(f"failed-audit CSV schema differs: {path.name}")
+        rows = list(reader)
+    if any(
+        None in row or any(value is None for value in row.values())
+        for row in rows
+    ):
+        raise ValueError(f"failed-audit CSV row shape differs: {path.name}")
+    return rows
+
+
+def _validate_failed_audit_directory(
+    *,
+    supplied_directory: Path | None,
+    manifest: AcquisitionManifest,
+    manifest_sha256: str,
+    current_hashes: Mapping[str, str],
+) -> dict[str, Any] | None:
+    """Reconcile one immutable failed v0.17.0 audit before any output write."""
+
+    if supplied_directory is None:
+        return None
+    if manifest.prior_successful_lock_sha256 is not None:
+        raise ValueError(
+            "--amended-from-failed-intake-directory is forbidden when the "
+            "manifest declares a prior successful lock"
+        )
+    source = supplied_directory.expanduser().resolve()
+    if not source.is_dir():
+        raise ValueError(f"failed-audit directory is not a directory: {source}")
+    children = tuple(source.iterdir())
+    actual_names = {item.name for item in children}
+    if actual_names != set(OUTPUT_NAMES) or any(not item.is_file() for item in children):
+        raise ValueError(
+            "failed-audit file set differs: "
+            f"missing={sorted(set(OUTPUT_NAMES) - actual_names)}, "
+            f"extra={sorted(actual_names - set(OUTPUT_NAMES))}"
+        )
+
+    lock_payload, _ = read_strict_json_with_bytes(source / OUTPUT_NAMES[2])
+    summary_payload, _ = read_strict_json_with_bytes(source / OUTPUT_NAMES[3])
+    lock = _exact_mapping_fields(
+        lock_payload,
+        _LEGACY_FAILED_LOCK_FIELDS,
+        "failed-audit lock",
+    )
+    summary = _exact_mapping_fields(
+        summary_payload,
+        _LEGACY_FAILED_SUMMARY_FIELDS,
+        "failed-audit summary",
+    )
+
+    nested_fields = (
+        (lock.get("manifest"), frozenset({"version", "purpose", "sha256"}), "lock manifest"),
+        (
+            lock.get("availability_gate"),
+            frozenset(
+                {
+                    "minimum_eligible_new_outing_count",
+                    "eligible_new_outing_count",
+                    "total_independent_outing_count_including_legacy",
+                    "passed",
+                }
+            ),
+            "lock availability gate",
+        ),
+        (
+            summary.get("availability_gate"),
+            frozenset({"minimum_eligible_new_outing_count", "passed"}),
+            "summary availability gate",
+        ),
+        (
+            lock.get("prior_successful_lock"),
+            frozenset(
+                {
+                    "declared_sha256",
+                    "supplied",
+                    "verified",
+                    "overlapping_raw_sha256_count",
+                    "superseding_contract_amendment_id",
+                }
+            ),
+            "lock prior-successful-lock evidence",
+        ),
+        (
+            lock.get("attestations"),
+            frozenset(
+                {
+                    "verification_status",
+                    "acquisition_batch_closed",
+                    "created_before_outcome_inspection",
+                    "null_prior_successful_lock_declared",
+                    "outings",
+                }
+            ),
+            "lock attestations",
+        ),
+        (
+            lock.get("final_outing_embargo"),
+            frozenset({"active", "allowed_evidence", "embargoed_numeric_evidence"}),
+            "lock final-outing embargo",
+        ),
+    )
+    for value, expected, name in nested_fields:
+        _exact_mapping_fields(value, expected, f"failed-audit {name}")
+
+    split_contract = _exact_mapping_fields(
+        lock.get("split_contract"),
+        frozenset(
+            {
+                "salt_ascii",
+                "fingerprint_encoding",
+                "score_encoding",
+                "final_count_formula",
+                "final_count",
+                "opaque_id_order",
+                "role_order",
+            }
+        ),
+        "failed-audit split contract",
+    )
+    old_outings = lock.get("outings")
+    if not isinstance(old_outings, list) or not old_outings:
+        raise ValueError("failed-audit lock outings are missing")
+    for index, raw_outing in enumerate(old_outings):
+        outing = _exact_mapping_fields(
+            raw_outing,
+            _LOCK_OUTING_FIELDS,
+            f"failed-audit lock outings[{index}]",
+        )
+        if any(
+            outing.get(field) is not None
+            for field in ("split_score_sha256", "split_rank", "cohort_role")
+        ):
+            raise ValueError("failed audit contains an assigned cohort role")
+
+    attestations = lock["attestations"]
+    raw_attestation_outings = attestations["outings"]
+    if not isinstance(raw_attestation_outings, list):
+        raise ValueError("failed-audit outing attestations must be an array")
+    for index, raw_attestation in enumerate(raw_attestation_outings):
+        _exact_mapping_fields(
+            raw_attestation,
+            frozenset(
+                {"outing_id", "separate_physical_session", "independence_basis_private"}
+            ),
+            f"failed-audit attestations.outings[{index}]",
+        )
+
+    lock_manifest = lock["manifest"]
+    initial_prior = lock["prior_successful_lock"]
+    expected_initial_prior = {
+        "declared_sha256": None,
+        "supplied": False,
+        "verified": False,
+        "overlapping_raw_sha256_count": 0,
+        "superseding_contract_amendment_id": None,
+    }
+    if (
+        lock.get("version") != VERSION
+        or summary.get("version") != VERSION
+        or lock.get("purpose") != PURPOSE
+        or summary.get("purpose") != PURPOSE
+        or lock.get("contract_revision") != LEGACY_FAILED_AUDIT_CONTRACT_REVISION
+        or summary.get("contract_revision") != LEGACY_FAILED_AUDIT_CONTRACT_REVISION
+        or lock.get("status") != "insufficient_independent_outings"
+        or summary.get("status") != "insufficient_independent_outings"
+        or lock.get("split_assignments_authorized") is not False
+        or split_contract.get("final_count") is not None
+        or summary.get("final_count") is not None
+        or lock.get("role_counts") != {"unassigned": len(old_outings)}
+        or summary.get("role_counts") != {"unassigned": len(old_outings)}
+        or dict(initial_prior) != expected_initial_prior
+        or summary.get("prior_successful_lock_sha256") is not None
+        or summary.get("prior_successful_lock_verified") is not False
+        or summary.get("overlapping_raw_sha256_count") != 0
+        or lock_manifest.get("version") != MANIFEST_VERSION
+        or lock_manifest.get("purpose") != MANIFEST_PURPOSE
+        or lock_manifest.get("sha256") != manifest_sha256
+        or summary.get("manifest_sha256") != manifest_sha256
+    ):
+        raise ValueError("supplied directory is not a reconciled failed v0.17.0 audit")
+
+    old_raw_map = _strict_prior_raw_map(lock)
+    if old_raw_map != dict(current_hashes):
+        raise ValueError("failed-audit raw-file hash map differs from current corpus")
+
+    recordings = _read_exact_csv(source / OUTPUT_NAMES[0], RECORDING_FIELDS)
+    outings_csv = _read_exact_csv(source / OUTPUT_NAMES[1], OUTING_FIELDS)
+    recording_raw_map: dict[str, str] = {}
+    for row in recordings:
+        basename = row["mcap_basename_private"]
+        digest = row["sha256"]
+        if basename in recording_raw_map:
+            raise ValueError("failed-audit recordings contain a duplicate basename")
+        recording_raw_map[basename] = digest
+    if recording_raw_map != dict(current_hashes):
+        raise ValueError("failed-audit recording CSV differs from current corpus")
+    if len(outings_csv) != len(old_outings) or any(
+        row["split_score_sha256"]
+        or row["split_rank"]
+        or row["cohort_role"]
+        for row in outings_csv
+    ):
+        raise ValueError("failed-audit outing CSV contains a cohort assignment")
+
+    output_hashes = {
+        name: sha256_file(source / name) for name in OUTPUT_NAMES
+    }
+    old_sibling_hashes = summary.get("output_sha256")
+    if (
+        not isinstance(old_sibling_hashes, Mapping)
+        or set(old_sibling_hashes) != set(OUTPUT_NAMES[:3])
+        or any(
+            old_sibling_hashes.get(name) != output_hashes[name]
+            for name in OUTPUT_NAMES[:3]
+        )
+    ):
+        raise ValueError("failed-audit sibling output hashes do not reconcile")
+
+    return {
+        "contract_revision": LEGACY_FAILED_AUDIT_CONTRACT_REVISION,
+        "manifest_sha256": manifest_sha256,
+        "output_sha256": dict(sorted(output_hashes.items())),
+    }
+
+
+def _schema_compatibility_amendment(
+    *,
+    observed_descriptor_hashes: Sequence[str],
+    amended_from_failed_audit: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    observed = tuple(sorted(set(observed_descriptor_hashes)))
+    for digest in observed:
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise ValueError("observed estimate descriptor identity is invalid")
+    payload = {
+        "amendment_id": SCHEMA_COMPATIBILITY_AMENDMENT_ID,
+        "descriptor_identity_source": ESTIMATE_DESCRIPTOR_IDENTITY_SOURCE,
+        "allowed_flag_absent_estimate_file_descriptor_sha256": (
+            ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256
+        ),
+        "legacy_estimate_file_descriptor_reference_sha256": (
+            LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256
+        ),
+        "legacy_validity_rule": dict(_LEGACY_VALIDITY_RULE),
+        "observed_estimate_file_descriptor_sha256": list(observed),
+        "amended_from_failed_audit": (
+            None
+            if amended_from_failed_audit is None
+            else dict(amended_from_failed_audit)
+        ),
+    }
+    if set(payload) != _SCHEMA_AMENDMENT_FIELDS:
+        raise AssertionError("schema-compatibility amendment shape changed")
+    return payload
 
 
 def _manifest_fingerprints(
@@ -350,7 +727,15 @@ def _validate_prior_lock(
         raise ValueError("prior successful lock SHA-256 does not match the manifest")
     if not isinstance(payload, Mapping):
         raise ValueError("prior successful lock must be a JSON object")
-    if set(payload) != LOCK_TOP_LEVEL_FIELDS:
+    prior_revision = payload.get("contract_revision")
+    expected_fields = (
+        LOCK_TOP_LEVEL_FIELDS
+        if prior_revision == CONTRACT_REVISION
+        else _LEGACY_FAILED_LOCK_FIELDS
+        if prior_revision == LEGACY_FAILED_AUDIT_CONTRACT_REVISION
+        else frozenset()
+    )
+    if not expected_fields or set(payload) != expected_fields:
         raise ValueError("prior successful lock top-level schema differs")
     availability_gate = payload.get("availability_gate")
     manifest_evidence = payload.get("manifest")
@@ -358,7 +743,8 @@ def _validate_prior_lock(
     if (
         payload.get("version") != VERSION
         or payload.get("purpose") != PURPOSE
-        or payload.get("contract_revision") != CONTRACT_REVISION
+        or prior_revision
+        not in {CONTRACT_REVISION, LEGACY_FAILED_AUDIT_CONTRACT_REVISION}
         or payload.get("status") != "locked"
         or type(payload.get("legacy_development_outing_count")) is not int
         or payload["legacy_development_outing_count"] != 1
@@ -641,6 +1027,7 @@ def _lock_payload(
     availability_passed: bool,
     final_count: int | None,
     prior_evidence: Mapping[str, Any],
+    schema_compatibility_amendment: Mapping[str, Any],
 ) -> dict[str, Any]:
     eligible_count = sum(item.eligibility.technically_eligible for item in results)
     role_counts = Counter(
@@ -749,6 +1136,7 @@ def _lock_payload(
             ],
             "embargoed_numeric_evidence": True,
         },
+        SCHEMA_COMPATIBILITY_FIELD: dict(schema_compatibility_amendment),
     }
 
 
@@ -762,6 +1150,7 @@ def _summary_payload(
     prior_evidence: Mapping[str, Any],
     output_hashes: Mapping[str, str],
     recording_rows: Sequence[Mapping[str, Any]],
+    schema_compatibility_amendment: Mapping[str, Any],
 ) -> dict[str, Any]:
     eligible_count = sum(item.eligibility.technically_eligible for item in results)
     roles = Counter(item.assignment.cohort_role or "unassigned" for item in results)
@@ -827,6 +1216,7 @@ def _summary_payload(
             if availability_passed
             else "retain_this_audit_and_acquire_more_outcome_blind_data"
         ),
+        SCHEMA_COMPATIBILITY_FIELD: dict(schema_compatibility_amendment),
     }
 
 
@@ -878,6 +1268,7 @@ def run_independent_outing_intake(
         arguments.acquisition_manifest
     )
     manifest = parse_acquisition_manifest(manifest_payload)
+    manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
     root = arguments.new_mcap_root.expanduser().resolve()
     files = discover_mcaps(root)
     files_by_basename = _validate_exact_coverage(files, manifest)
@@ -887,6 +1278,16 @@ def run_independent_outing_intake(
     prior_evidence = _validate_prior_lock(
         manifest=manifest,
         supplied_path=arguments.prior_successful_lock,
+        current_hashes=hashes_by_basename,
+    )
+    amended_from_failed_audit = _validate_failed_audit_directory(
+        supplied_directory=getattr(
+            arguments,
+            "amended_from_failed_intake_directory",
+            None,
+        ),
+        manifest=manifest,
+        manifest_sha256=manifest_sha256,
         current_hashes=hashes_by_basename,
     )
 
@@ -1012,7 +1413,28 @@ def run_independent_outing_intake(
         for record in sorted(records, key=lambda item: item.basename)
     ]
     outing_rows = [_outing_row(item) for item in sorted(results, key=lambda value: value.assignment.outing_id)]
-    manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
+    observed_descriptor_hashes = tuple(
+        sorted(
+            {
+                digest
+                for technical in technical_by_recording.values()
+                for digest in technical.estimate_file_descriptor_sha256
+            }
+        )
+    )
+    decoded_estimate_count = sum(
+        technical.estimate_message_count
+        for technical in technical_by_recording.values()
+    )
+    if bool(observed_descriptor_hashes) is not bool(decoded_estimate_count):
+        raise ValueError(
+            "observed estimate descriptor identities do not reconcile with "
+            "decoded estimate messages"
+        )
+    schema_compatibility_amendment = _schema_compatibility_amendment(
+        observed_descriptor_hashes=observed_descriptor_hashes,
+        amended_from_failed_audit=amended_from_failed_audit,
+    )
     lock = _lock_payload(
         manifest=manifest,
         manifest_sha256=manifest_sha256,
@@ -1021,6 +1443,7 @@ def run_independent_outing_intake(
         availability_passed=availability_passed,
         final_count=final_count,
         prior_evidence=prior_evidence,
+        schema_compatibility_amendment=schema_compatibility_amendment,
     )
     summary = _write_outputs_transactionally(
         output_directory=output_directory,
@@ -1036,6 +1459,7 @@ def run_independent_outing_intake(
             prior_evidence=prior_evidence,
             output_hashes=hashes,
             recording_rows=recording_rows,
+            schema_compatibility_amendment=schema_compatibility_amendment,
         ),
     )
     return dict(summary), 0 if availability_passed else 3
@@ -1046,5 +1470,6 @@ __all__ = [
     "OUTING_FIELDS",
     "OUTPUT_NAMES",
     "RECORDING_FIELDS",
+    "SUMMARY_TOP_LEVEL_FIELDS",
     "run_independent_outing_intake",
 ]

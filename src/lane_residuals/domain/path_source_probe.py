@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
 from statistics import median
-from typing import Any
+from typing import Any, Literal
 
 from ..io.mcap import (
     McapDependencyError,
@@ -34,6 +34,21 @@ from ..io.mcap import (
 DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC = "/adp/estimated_drive_paths"
 DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA = "Adp.Perception.EstimatedDrivePaths"
 EXPECTED_SENSOR_TOPOLOGY_SYMBOL = "ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY"
+ESTIMATE_DESCRIPTOR_IDENTITY_SOURCE = (
+    "sha256(message.DESCRIPTOR.file.serialized_pb)"
+)
+ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256 = (
+    "dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4"
+)
+LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256 = (
+    "f6ae6e61378ea6d3a07d6d7128b232db55d1e00e49c4fd9cd3708c4acea6992f"
+)
+
+EstimateDescriptorGeneration = Literal[
+    "legacy_v1",
+    "candidate_v2",
+    "unsupported",
+]
 
 _FIELD_TYPE_NAMES = {
     1: "double",
@@ -58,6 +73,7 @@ _FIELD_TYPE_NAMES = {
 _LABEL_NAMES = {1: "optional", 2: "required", 3: "repeated"}
 _MESSAGE_TYPE = 11
 _ENUM_TYPE = 14
+_INT64_TYPE = 3
 _BOOL_TYPE = 8
 _REPEATED_LABEL = 3
 _DEFAULT_MAX_REPEATED_ITEMS_PER_FIELD = 64
@@ -136,6 +152,9 @@ class ProtobufPathSemanticTuple:
     model_parameters_optional_flag_present: bool
     model_parameters_optional_flag_value: bool | None
     model_parameters_optional_flag_presence_evidence: str
+    descriptor_generation: EstimateDescriptorGeneration
+    model_availability_rule: str
+    model_availability_valid: bool
     segment_starts_count: int | None
     curvature_change_count: int | None
     drive_path_confidences_count: int | None
@@ -180,6 +199,9 @@ class ProtobufPathSemanticTuple:
             "model_parameters_optional_flag_presence_evidence": (
                 self.model_parameters_optional_flag_presence_evidence
             ),
+            "descriptor_generation": self.descriptor_generation,
+            "model_availability_rule": self.model_availability_rule,
+            "model_availability_valid": self.model_availability_valid,
             "array_counts": {
                 "segment_starts": self.segment_starts_count,
                 "curvature_change": self.curvature_change_count,
@@ -256,6 +278,9 @@ class ProtobufJointPathSemanticAudit:
     """Joint role/error/model audit for the sampled direct paths."""
 
     status: str
+    descriptor_file_sha256: str | None
+    descriptor_generation: EstimateDescriptorGeneration
+    descriptor_generation_failure_code: str | None
     missing_required_fields: tuple[str, ...]
     field_bindings: tuple[tuple[str, str | None], ...]
     messages: tuple[ProtobufMessageSemanticAudit, ...]
@@ -276,6 +301,12 @@ class ProtobufJointPathSemanticAudit:
                 "are not converted to geometry and are not training data"
             ),
             "raw_numeric_values_exported": False,
+            "descriptor_file_sha256": self.descriptor_file_sha256,
+            "descriptor_identity_source": ESTIMATE_DESCRIPTOR_IDENTITY_SOURCE,
+            "descriptor_generation": self.descriptor_generation,
+            "descriptor_generation_failure_code": (
+                self.descriptor_generation_failure_code
+            ),
             "candidate_definitions": {
                 "keep_lane_no_error": (
                     "the same decoded path has LANE_ROLE_KEEP_LANE and an "
@@ -289,12 +320,15 @@ class ProtobufJointPathSemanticAudit:
                 ),
                 "joint_audit_candidate": (
                     "keep_lane_no_error and model_structure_valid are true, "
-                    "and model_parameters_optional_flag is explicitly true"
+                    "and the generation-specific model-availability rule "
+                    "passes: explicit true Boolean field 8 for legacy_v1, or "
+                    "explicit model_parameters presence for exact candidate_v2"
                 ),
             },
             "model_flag_warning": (
-                "model_parameters_optional_flag is reported literally; its "
-                "domain meaning still requires authoritative documentation"
+                "model_parameters_optional_flag remains mandatory only for "
+                "legacy_v1; its absence is accepted only for the exact pinned "
+                "candidate_v2 file descriptor"
             ),
             "candidate_warning": (
                 "a joint_audit_candidate is necessary but not sufficient for "
@@ -841,23 +875,114 @@ class _JointAuditBindings:
             ),
         )
 
-    def missing_required(self) -> tuple[str, ...]:
-        """Return fields needed for a strict joint audit candidate."""
+    def missing_required(
+        self,
+        *,
+        require_model_parameters_optional_flag: bool = True,
+    ) -> tuple[str, ...]:
+        """Return generation-specific fields needed for conversion."""
 
         required = {
             "drive_paths": self.drive_paths,
             "role": self.role,
             "error": self.error,
             "model_parameters": self.model_parameters,
-            "model_parameters_optional_flag": (self.model_parameters_optional_flag),
             "x_0": self.x_0,
             "y_0": self.y_0,
             "theta_0": self.theta_0,
             "curvature_0": self.curvature_0,
             "segment_starts": self.segment_starts,
             "curvature_change": self.curvature_change,
+            "index_0": self.index_0,
         }
+        if require_model_parameters_optional_flag:
+            required["model_parameters_optional_flag"] = (
+                self.model_parameters_optional_flag
+            )
         return tuple(sorted(name for name, field in required.items() if field is None))
+
+
+@dataclass(frozen=True)
+class EstimateDescriptorSupport:
+    """Generation-aware descriptor decision derived from message-owned bytes."""
+
+    descriptor_file_sha256: str | None
+    generation: EstimateDescriptorGeneration
+    supported: bool
+    model_parameters_optional_flag_required: bool
+    missing_required_fields: tuple[str, ...]
+    failure_code: str | None
+
+
+def _legacy_model_flag_binding_valid(field: Any | None) -> bool:
+    return bool(
+        field is not None
+        and int(getattr(field, "number", -1)) == 8
+        and int(getattr(field, "type", -1)) == _BOOL_TYPE
+        and not _field_is_repeated(field)
+    )
+
+
+def _index_binding_valid(field: Any | None) -> bool:
+    return bool(
+        field is not None
+        and int(getattr(field, "number", -1)) == 7
+        and int(getattr(field, "type", -1)) == _INT64_TYPE
+        and not _field_is_repeated(field)
+    )
+
+
+def estimate_descriptor_support(message: Any) -> EstimateDescriptorSupport:
+    """Classify one EDP message without trusting MCAP or caller audit hashes."""
+
+    descriptor = getattr(message, "DESCRIPTOR", None)
+    if descriptor is None:
+        return EstimateDescriptorSupport(
+            descriptor_file_sha256=None,
+            generation="unsupported",
+            supported=False,
+            model_parameters_optional_flag_required=False,
+            missing_required_fields=("message_descriptor",),
+            failure_code="estimate_descriptor_missing",
+        )
+    bindings = _joint_audit_bindings(descriptor)
+    descriptor_sha256 = _schema_fingerprint(descriptor)
+    if descriptor_sha256 == ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256:
+        generation: EstimateDescriptorGeneration = "candidate_v2"
+        flag_required = False
+        generation_failure = (
+            "candidate_v2_descriptor_contract_mismatch"
+            if (
+                bindings.model_parameters_optional_flag is not None
+                or not _index_binding_valid(bindings.index_0)
+            )
+            else None
+        )
+    elif _legacy_model_flag_binding_valid(
+        bindings.model_parameters_optional_flag
+    ):
+        generation = "legacy_v1"
+        flag_required = True
+        generation_failure = (
+            None
+            if _index_binding_valid(bindings.index_0)
+            else "legacy_index_0_descriptor_contract_mismatch"
+        )
+    else:
+        generation = "unsupported"
+        flag_required = False
+        generation_failure = "unsupported_estimate_descriptor_generation"
+    missing = bindings.missing_required(
+        require_model_parameters_optional_flag=flag_required,
+    )
+    return EstimateDescriptorSupport(
+        descriptor_file_sha256=descriptor_sha256,
+        generation=generation,
+        supported=generation != "unsupported" and generation_failure is None,
+        model_parameters_optional_flag_required=flag_required,
+        missing_required_fields=missing,
+        failure_code=generation_failure,
+    )
 
 
 def _field_by_name(descriptor: Any | None, name: str) -> Any | None:
@@ -1001,6 +1126,7 @@ def _audit_one_path(
     message_index: int,
     path_index: int,
     bindings: _JointAuditBindings,
+    descriptor_support: EstimateDescriptorSupport | None = None,
 ) -> ProtobufPathSemanticTuple:
     role_symbol, role_source = _effective_enum_symbol(path_message, bindings.role)
     error_symbol, error_source = _effective_enum_symbol(path_message, bindings.error)
@@ -1019,8 +1145,17 @@ def _audit_one_path(
         path_message,
         bindings.model_parameters_optional_flag,
     )
-    flag_value = (
-        None if flag_value_raw is _FIELD_VALUE_MISSING else bool(flag_value_raw)
+    flag_value = flag_value_raw if type(flag_value_raw) is bool else None
+    support = descriptor_support or EstimateDescriptorSupport(
+        descriptor_file_sha256=None,
+        generation="legacy_v1",
+        supported=True,
+        model_parameters_optional_flag_required=True,
+        missing_required_fields=(),
+        failure_code=None,
+    )
+    legacy_flag_valid = bool(
+        flag_present and type(flag_value_raw) is bool and flag_value_raw is True
     )
 
     confidence_values = _repeated_values(
@@ -1087,8 +1222,26 @@ def _audit_one_path(
     is_keep_lane = role_symbol == "LANE_ROLE_KEEP_LANE"
     is_no_error = error_symbol == "DRIVE_PATH_ERROR_NO_ERROR"
     is_keep_lane_no_error = is_keep_lane and is_no_error
+    model_availability_rule = (
+        "explicit_true_boolean_field_8"
+        if support.generation == "legacy_v1"
+        else "explicit_model_parameters_without_field_8"
+        if support.generation == "candidate_v2"
+        else "unsupported_descriptor_generation"
+    )
+    model_availability_valid = bool(
+        support.supported
+        and model_usable
+        and (
+            legacy_flag_valid
+            if support.model_parameters_optional_flag_required
+            else bindings.model_parameters_optional_flag is None
+        )
+    )
     is_joint_candidate = bool(
-        is_keep_lane_no_error and model_structure_valid and flag_value is True
+        is_keep_lane_no_error
+        and model_structure_valid
+        and model_availability_valid
     )
 
     failure_codes: list[str] = []
@@ -1125,7 +1278,11 @@ def _audit_one_path(
             failure_codes.append("non_finite_curvature_change")
         if interval_count_matches is False:
             failure_codes.append("interval_count_mismatch")
-        if flag_value is not True:
+        if not support.supported:
+            failure_codes.append(
+                support.failure_code or "unsupported_estimate_descriptor_generation"
+            )
+        elif support.model_parameters_optional_flag_required and not legacy_flag_valid:
             failure_codes.append("model_parameters_optional_flag_not_true")
 
     if is_joint_candidate:
@@ -1136,8 +1293,10 @@ def _audit_one_path(
         candidate_status = "excluded_error"
     elif not model_structure_valid:
         candidate_status = "failed_model_structure"
+    elif not support.supported:
+        candidate_status = "failed_schema_generation"
     else:
-        candidate_status = "failed_model_flag"
+        candidate_status = "failed_model_availability"
 
     return ProtobufPathSemanticTuple(
         message_index=message_index,
@@ -1151,6 +1310,9 @@ def _audit_one_path(
         model_parameters_optional_flag_present=flag_present,
         model_parameters_optional_flag_value=flag_value,
         model_parameters_optional_flag_presence_evidence=flag_evidence,
+        descriptor_generation=support.generation,
+        model_availability_rule=model_availability_rule,
+        model_availability_valid=model_availability_valid,
         segment_starts_count=(None if segment_starts is None else len(segment_starts)),
         curvature_change_count=(
             None if curvature_change is None else len(curvature_change)
@@ -1185,7 +1347,19 @@ def _audit_joint_path_semantics(
     max_paths_per_message: int,
 ) -> ProtobufJointPathSemanticAudit:
     bindings = _joint_audit_bindings(descriptor)
-    missing_required = bindings.missing_required()
+    descriptor_support = (
+        estimate_descriptor_support(samples[0])
+        if samples
+        else EstimateDescriptorSupport(
+            descriptor_file_sha256=_schema_fingerprint(descriptor),
+            generation="unsupported",
+            supported=False,
+            model_parameters_optional_flag_required=False,
+            missing_required_fields=(),
+            failure_code="no_decoded_message_for_generation_decision",
+        )
+    )
+    missing_required = descriptor_support.missing_required_fields
     audited_paths: list[ProtobufPathSemanticTuple] = []
     audited_messages: list[ProtobufMessageSemanticAudit] = []
 
@@ -1198,6 +1372,7 @@ def _audit_joint_path_semantics(
                 message_index=message_index,
                 path_index=path_index,
                 bindings=bindings,
+                descriptor_support=descriptor_support,
             )
             for path_index, path in enumerate(inspected_values)
         ]
@@ -1235,6 +1410,7 @@ def _audit_joint_path_semantics(
                 joint_audit_candidate_path_count=candidate_count,
                 safe_for_later_conversion=(
                     not missing_required
+                    and descriptor_support.supported
                     and _source_time_ns(message) is not None
                     and topology_symbol == EXPECTED_SENSOR_TOPOLOGY_SYMBOL
                     and keep_lane_count == 1
@@ -1260,7 +1436,9 @@ def _audit_joint_path_semantics(
     )
     total_truncated = sum(message.truncated_path_count for message in audited_messages)
     status = (
-        "required_schema_fields_missing"
+        "unsupported_descriptor_generation"
+        if not descriptor_support.supported
+        else "required_schema_fields_missing"
         if missing_required
         else "completed_with_truncation"
         if total_truncated
@@ -1298,6 +1476,9 @@ def _audit_joint_path_semantics(
     }
     return ProtobufJointPathSemanticAudit(
         status=status,
+        descriptor_file_sha256=descriptor_support.descriptor_file_sha256,
+        descriptor_generation=descriptor_support.generation,
+        descriptor_generation_failure_code=descriptor_support.failure_code,
         missing_required_fields=missing_required,
         field_bindings=bindings.public_paths(),
         messages=tuple(audited_messages),
