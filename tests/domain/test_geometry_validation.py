@@ -582,8 +582,16 @@ class FailClosedExtractionTests(unittest.TestCase):
                 lambda path: delattr(path.model_parameters, "index_0"),
             ),
             (
-                "index non-integer",
+                "index not int-convertible",
                 lambda path: setattr(path.model_parameters, "index_0", None),
+            ),
+            (
+                "index boolean",
+                lambda path: setattr(path.model_parameters, "index_0", True),
+            ),
+            (
+                "index non-integral numeric",
+                lambda path: setattr(path.model_parameters, "index_0", 1.5),
             ),
             (
                 "index out of range",

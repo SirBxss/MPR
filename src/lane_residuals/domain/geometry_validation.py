@@ -29,6 +29,7 @@ from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from itertools import pairwise
+from numbers import Integral
 from typing import Any, Literal
 
 import numpy as np
@@ -411,13 +412,12 @@ def _spline_parameters_from_path(
             "index_anchor_unavailable",
             "index_0 accessor is unavailable",
         )
-    try:
-        index = int(index_value)
-    except (TypeError, ValueError, OverflowError) as error:
+    if isinstance(index_value, bool) or not isinstance(index_value, Integral):
         raise GeometryValidationError(
             "index_anchor_not_integer",
-            "index_0 is not an integer",
-        ) from error
+            "index_0 must be a non-Boolean integer",
+        )
+    index = int(index_value)
     return SplineParameters(
         x_0=_numeric_scalar(model, bindings.x_0),
         y_0=_numeric_scalar(model, bindings.y_0),

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independently verify one initial v0.17 intake bundle without decoding MCAPs.
+"""Verify one initial or schema-amended v0.17 intake without decoding MCAPs.
 
 This script deliberately uses only the Python standard library and imports no
 ``lane_residuals`` module. It reads immutable bytes, fixed counts, identities,
@@ -1592,8 +1592,8 @@ def verify_intake_bundle(
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Independently verify an initial v0.17 intake bundle using only "
-            "hash, count, identity, and cohort-role evidence."
+            "Independently verify an initial or schema-amended v0.17 intake "
+            "bundle using only hash, count, identity, and cohort-role evidence."
         )
     )
     parser.add_argument("raw_mcap_root", type=Path)
