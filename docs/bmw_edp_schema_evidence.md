@@ -90,7 +90,7 @@ cardinality across both observed generations:
 | `curvature_0` | 4 | finite initial curvature |
 | `segment_starts` | 5 | repeated, finite, strictly increasing, length at least 2 |
 | `curvature_change` | 6 | repeated, finite, length one less than `segment_starts` |
-| `index_0` | 7 | retained descriptor evidence; not a substitute validity flag |
+| `index_0` | 7 | required non-Boolean integer anchor; must satisfy `0 <= index_0 < len(segment_starts)`; not a substitute validity flag |
 
 The complete candidate audit found:
 
@@ -99,14 +99,20 @@ The complete candidate audit found:
 | MCAP files | 86 |
 | decoded estimate messages | 17,163 |
 | keep-lane/no-error paths | 17,119 |
-| structurally valid keep-lane/no-error paths | 17,119 |
+| paths passing the probe's pre-conversion structural subset | 17,119 |
 | paths truncated by the audit | 0 |
 | legacy-rule joint candidates | 0 |
 
 All 86 files have the same candidate schema fingerprint. All 86 fail the
-legacy binding check only on `model_parameters_optional_flag`. Thus the zero
-candidate count under the legacy rule is not evidence that the candidate
-model geometry is missing or malformed.
+legacy binding check only on `model_parameters_optional_flag`. The probe's
+`model_structure_valid` subset checks finite initial parameters, segment
+starts, and curvature-change values and lengths; it does not execute the
+converter's mandatory `index_0` integer and range checks or H100 conversion.
+The candidate descriptor does bind `index_0` as optional int64 field 7, but
+the effective value still requires converter validation. Thus the zero
+candidate count under the legacy rule is not evidence that model geometry is
+unavailable, and the 17,119 subset count is not evidence that every path has
+already passed the complete converter.
 
 The complete audit also records, without relaxing the gate:
 
@@ -135,7 +141,10 @@ Evidence artifact hashes:
 
 The following facts were reported as confirmed from the BMW repository. Exact
 line numbers are approximate because the repository is unavailable here; the
-symbol and repository-relative path are the durable locator.
+symbol and repository-relative path are the durable locator. The inspected
+local mirror has rewritten/squashed history and reports the same change under
+multiple IDs, so the commit IDs below are trace clues rather than stable
+upstream citations.
 
 ### Schema transition
 

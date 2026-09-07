@@ -29,8 +29,9 @@ wall-clock time was confirmed as CEST and reconciled to internal UTC. No new-
 outing residual, condition, model, planner, or figure has been inspected. The
 real v0.17.0 audit exposed a BMW EDP schema-v2 transition, now recorded in
 `docs/bmw_edp_schema_evidence.md`; a narrow v0.17.1 compatibility amendment is
-drafted for review but is not yet implementation-authorized. Exact current
-status and the next outcome-blind steps are in `docs/current_status.md`.
+being amended after its first focused review and is not yet implementation-
+authorized. Exact current status and the next outcome-blind steps are in
+`docs/current_status.md`.
 
 Version 0.16.2 adds the independently reviewed, lineage-locked A2/A3
 cross-station structure audit. It consumes only the accepted generated

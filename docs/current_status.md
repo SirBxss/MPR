@@ -15,8 +15,9 @@ critical path changes.
   and assigned no role. No successful v0.17 cohort lock exists. The candidate
   descriptor is a newer BMW EDP generation that removed the legacy model-
   parameter Boolean. Complete privacy-safe evidence and a read-only BMW source
-  trace support a narrow v0.17.1 amendment, now drafted for focused review; no
-  compatibility code is yet authorized. v0.16.2 spatial-structure
+  trace support a narrow v0.17.1 amendment. Its first focused review returned
+  `AMEND`; the documentation-only correction is awaiting focused re-review and
+  no compatibility code is yet authorized. v0.16.2 spatial-structure
   audit is complete, independently reproduced, approved, and merged. v0.16.1
   real A3 sampling and planner
   transfer are also complete, independently reproduced, approved, and merged.
@@ -60,8 +61,8 @@ critical path changes.
   four-file workflow, CLI, schemas, and synthetic acceptance tests are now
   implemented. Claude then reviewed pushed implementation commit `31905c5`,
   returned one focused `AMEND` for the package-initializer dependency wording,
-  and returned `GO` after the correction at `2035f34`. PR #14 is merged; no real
-  output exists yet.
+  and returned `GO` after the correction at `2035f34`. PR #14 is merged; the
+  later real one-outing audit is recorded below.
 - v0.17.0 implementation verification: 381 tests pass with two expected skips.
   The 42 new tests cover the strict manifest, exact recursive coverage,
   eligibility boundaries, content-only split, distinct ID/rank orders,
@@ -204,8 +205,11 @@ The initial run reported all 86 files as
 consistent serialized-descriptor fingerprint,
 `dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4`,
 which retains all used nested spline bindings but omits legacy Boolean field 8.
-All 17,119 keep-lane/no-error paths in the complete audit pass the existing
-fixed structure checks. The legacy fingerprint is
+All 17,119 keep-lane/no-error paths in the complete audit pass the schema
+probe's pre-conversion structural subset. That subset does not execute the
+converter's mandatory `index_0` integer/range checks or H100 conversion, so it
+must not be described as the complete converter gate. The candidate descriptor
+does retain `index_0` as int64 field 7. The legacy descriptor reference is
 `f6ae6e61378ea6d3a07d6d7128b232db55d1e00e49c4fd9cd3708c4acea6992f`.
 
 Copilot's read-only BMW source trace reports that the schema-v2 transition made
@@ -221,9 +225,16 @@ yet the exact post-H100 topology-candidate count. The schema adapter may restore
 geometry conversion while the outing still correctly fails the topology gate.
 
 `docs/independent_outing_schema_v2_amendment.md` therefore proposes a narrow
-v0.17.1 exact-generation adapter. It is draft-only. No decoder change or real
-re-run is authorized until Claude reviews the exact pushed documentation commit
-and returns `GO`.
+v0.17.1 exact-generation adapter. Claude reviewed pushed commit `2d139251` (tree
+`13aa4f35`) and returned `AMEND`: descriptor identity had to be separated from
+the MCAP schema-record/caller audit hash, the additive output-lineage schema had
+to be exact, and mandatory `index_0` validation had to be explicit. The amended
+draft resolves those points, defines machine-checkable failed-audit lineage,
+and records that batch01 must still exit 3 with no role assignment because it
+declares only one outing. The review report SHA-256 is
+`fdbeff33bccda9f1eebb0e7fc62827af986448ff28d3fe5fd0e9a0c91b43ef20`.
+No decoder change or real re-run is authorized until Claude reviews the exact
+amended commit and returns `GO`.
 
 ## Frozen development model
 
@@ -568,9 +579,10 @@ Next actions are ordered:
 
 1. preserve the 86 raw chunks, exact manifest, v0.17.0 output, schema probes,
    and complete audit unchanged;
-2. push the documentation-only v0.17.1 evidence/amendment commit and request
-   focused Claude review of that exact commit;
-3. only after `GO`, implement the exact-generation adapter and its tests on the
+2. push the amended documentation-only v0.17.1 contract commit and request
+   focused Claude re-review of that exact commit;
+3. only after the amended contract receives `GO`, implement the exact-
+   generation adapter and its tests on the
    same branch, then request a separate focused implementation review;
 4. only after implementation `GO` and green CI, execute the unchanged closed
    batch into a new v0.17.1 output directory and run the updated standalone
