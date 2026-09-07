@@ -1,6 +1,8 @@
+import hashlib
 import json
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from lane_residuals import probe_decoded_protobuf_messages
 
@@ -215,7 +217,7 @@ def _joint_schema(*, explicit_initial_presence=False):
         ),
         _v7_field(
             "model_parameters_optional_flag",
-            4,
+            8,
             8,
             default_value=False,
         ),
@@ -331,6 +333,18 @@ def _joint_message(schema, paths):
             "drive_paths": list(paths),
         },
     )
+
+
+def _candidate_v2_joint_schema():
+    schema = _joint_schema()
+    schema.path_fields[:] = [
+        field
+        for field in schema.path_fields
+        if field.name != "model_parameters_optional_flag"
+    ]
+    schema.path.fields = schema.path_fields
+    schema.root.file.serialized_pb = b"synthetic-exact-candidate-v2"
+    return schema
 
 
 class PathSourceProbeTests(unittest.TestCase):
@@ -907,6 +921,35 @@ class PathSourceProbeTests(unittest.TestCase):
             "0.12345",
         ):
             self.assertNotIn(raw_value, serialized)
+
+    def test_joint_audit_accepts_exact_v2_without_legacy_flag(self):
+        schema = _candidate_v2_joint_schema()
+        expected_hash = hashlib.sha256(schema.root.file.serialized_pb).hexdigest()
+        path_message = _joint_path(schema, include_flag=False)
+        with patch(
+            "lane_residuals.domain.path_source_probe."
+            "ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256",
+            expected_hash,
+        ):
+            joint = probe_decoded_protobuf_messages(
+                self._decoded(_joint_message(schema, [path_message]))
+            ).to_dict()["joint_path_semantics"]
+        self.assertEqual(joint["descriptor_file_sha256"], expected_hash)
+        self.assertEqual(joint["descriptor_generation"], "candidate_v2")
+        self.assertIsNone(joint["descriptor_generation_failure_code"])
+        self.assertTrue(joint["paths"][0]["model_availability_valid"])
+        self.assertTrue(joint["paths"][0]["is_joint_audit_candidate"])
+
+    def test_joint_audit_rejects_unpinned_flag_absent_generation(self):
+        schema = _candidate_v2_joint_schema()
+        joint = probe_decoded_protobuf_messages(
+            self._decoded(
+                _joint_message(schema, [_joint_path(schema, include_flag=False)])
+            )
+        ).to_dict()["joint_path_semantics"]
+        self.assertEqual(joint["status"], "unsupported_descriptor_generation")
+        self.assertEqual(joint["descriptor_generation"], "unsupported")
+        self.assertEqual(joint["summary"]["joint_audit_candidate_paths"], 0)
 
     def test_joint_audit_accepts_implicit_proto3_zero_initial_values(self):
         schema = _joint_schema()

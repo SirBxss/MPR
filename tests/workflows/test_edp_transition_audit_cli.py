@@ -97,7 +97,7 @@ def _schema():
             default_value=None,
             has_presence=True,
         ),
-        _field("model_parameters_optional_flag", 4, 8, default_value=False),
+        _field("model_parameters_optional_flag", 8, 8, default_value=False),
         _field("drive_path_confidences", 5, 1, repeated=True, default_value=()),
         _field("lane_topology_ids", 6, 4, repeated=True, default_value=()),
     ]

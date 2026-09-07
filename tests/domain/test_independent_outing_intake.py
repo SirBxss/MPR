@@ -11,6 +11,7 @@ from lane_residuals.domain.independent_outing_intake import (
     SPLIT_SALT,
     FrameTechnicalEvidence,
     OutingEligibilityEvidence,
+    RecordingTechnicalEvidence,
     assign_cohorts,
     evaluate_outing_eligibility,
     fixed_final_count,
@@ -103,6 +104,28 @@ class IndependentOutingManifestTests(unittest.TestCase):
 
 
 class IndependentOutingRuleTests(unittest.TestCase):
+    def test_recording_descriptor_identities_are_exactly_reconciled(self) -> None:
+        with self.assertRaisesRegex(ValueError, "sorted and unique"):
+            RecordingTechnicalEvidence(
+                estimate_message_count=1,
+                map_message_count=0,
+                frames=(),
+                estimate_file_descriptor_sha256=("b" * 64, "a" * 64),
+            )
+        with self.assertRaisesRegex(ValueError, "require a descriptor hash"):
+            RecordingTechnicalEvidence(
+                estimate_message_count=1,
+                map_message_count=0,
+                frames=(),
+            )
+        with self.assertRaisesRegex(ValueError, "require decoded estimate"):
+            RecordingTechnicalEvidence(
+                estimate_message_count=0,
+                map_message_count=0,
+                frames=(),
+                estimate_file_descriptor_sha256=("a" * 64,),
+            )
+
     def test_frame_state_fails_closed(self) -> None:
         with self.assertRaisesRegex(ValueError, "inconsistent"):
             FrameTechnicalEvidence(
