@@ -250,18 +250,24 @@ pooled and per-sequence orchestration, and the five-file numeric report.
 does not import a sampler or planner, so it cannot refit, resample, or execute
 an earlier experimental component.
 
-For v0.17.0, `domain.independent_outing_intake` owns the exact acquisition-
+For v0.17.0 and its reviewed v0.17.1 compatibility amendment,
+`domain.independent_outing_intake` owns the exact acquisition-
 manifest and salted content-hash rules. `io.independent_outing_intake` reuses
 the accepted raw-inventory, H100 geometry, topology, and 50 ms odometry-speed
-primitives without creating a residual vector. `workflows.independent_outing_intake`
+primitives without creating a residual vector. Descriptor-generation identity
+is derived only from `message.DESCRIPTOR.file.serialized_pb`: legacy remains
+structural with explicit-true Boolean field 8, while flag absence is accepted
+only for the one pinned v2 descriptor. `workflows.independent_outing_intake`
 combines those fixed states at the declared physical-outing unit, writes only
-counts/provenance/roles, and enforces first-lock or reviewed-supersession
-lineage before creating output. `cli.independent_outing_intake` is the sole new
-entry adapter. No final-outing outcome is exposed by this layer.
+counts/provenance/roles, and enforces first-lock, reviewed supersession, or
+exact failed-audit amendment lineage before creating output.
+`cli.independent_outing_intake` remains the sole entry adapter. No final-outing
+outcome is exposed by this layer.
 `scripts/inspection/verify_v017_intake_bundle.py` is deliberately outside the
 package dependency graph. Using only the Python standard library, it rehashes
-an initial manifest, raw MCAP byte streams, and lock outputs and independently
-recomputes identity and cohort assignment. It never imports the implementation
+an initial manifest, raw MCAP byte streams, lock outputs, and an optionally
+supplied preserved failed audit. It independently recomputes identity, cohort
+assignment, and additive amendment lineage. It never imports the implementation
 being checked, decodes MCAP messages, writes a file, or handles an unreviewed
 supersession.
 

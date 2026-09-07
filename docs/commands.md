@@ -17,8 +17,10 @@ v0.15.4 freezes the structurally nonbinding 0.99 development model without
 refitting and exports physical free-running residual sequences for planner use;
 v0.17.0 adds the outcome-blind independent-outing intake and deterministic
 cohort lock without exporting residual, condition, model, or planner values;
-the first-arrival runbook adds a standalone initial-lock verifier that imports
-no project package and writes no files;
+v0.17.1 preserves that contract while adding one exact EDP schema-v2
+compatibility amendment and machine-checkable failed-audit lineage; the
+first-arrival runbook adds a standalone verifier that imports no project
+package and writes no files;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -66,7 +68,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-train-sequence-gaussian` | `python -m lane_residuals.cli.sequence_gaussian` | v0.10.0 conditional Gaussian temporal null under the common sequence/evaluation interface | Complete unchanged v0.9.0 sequential dataset directory | Fold/frame/station metrics, fold and descriptive models, temporal diagnostic plot, and strict JSON summary |
 | `mpr-train-sequence-aiohmm` | `python -m lane_residuals.cli.sequence_aiohmm` | v0.11.0 fixed-state AIOHMM; development-only and no held-out state-count/hyperparameter selection | Complete unchanged v0.9.0 sequential dataset directory | Common fold/frame/station metrics, state/restart diagnostics, fold and descriptive models, plot, and strict JSON summary |
 | `mpr-audit-corpus-inventory` | `python -m lane_residuals.cli.corpus_inventory` | v0.12.1 read-only, fail-closed expanded-corpus continuity/session audit | Recursive MCAP root and exact private basename-to-drive map | File/topic/edge CSVs, proposed groups, strict summary, and diagnostic plot |
-| `mpr-lock-independent-outings` | `python -m lane_residuals.cli.independent_outing_intake` | v0.17.0 prospective independent-outing intake and outcome-blind cohort lock; no model, sampler, planner, or final evaluation | Recursive new-MCAP root, strict private acquisition manifest, and an exact prior successful lock only for a declared supersession | Recording and outing CSV audits, immutable cohort lock, and strict intake summary |
+| `mpr-lock-independent-outings` | `python -m lane_residuals.cli.independent_outing_intake` | v0.17.0 prospective intake plus the exact v0.17.1 EDP schema-v2 amendment; no model, sampler, planner, or final evaluation | Recursive new-MCAP root, strict private acquisition manifest, an exact prior successful lock only for a declared supersession, and optionally a preserved failed v0.17.0 audit for amended lineage | Recording and outing CSV audits, immutable cohort lock, and strict intake summary |
 
 Run the expanded-corpus audit with a new empty output directory:
 
@@ -361,8 +363,10 @@ before creating output. It does not load raw data, refit or sample a model, or
 execute the planner. Exit code `0` means the descriptive five-file audit was
 written; input or contract drift returns `2` without creating output.
 
-Run the reviewed v0.17.0 independent-outing intake only after the private
-manifest has been created prospectively and the acquisition batch is closed:
+Run the historical v0.17.0 initial independent-outing intake only after the
+private manifest has been created prospectively and the acquisition batch is
+closed. The first batch has already completed this exact command and must not
+be rerun or overwritten:
 
 Copy `config/examples/independent_outings_v017.private.example.json` to the
 ignored private-config directory and replace every placeholder before use.
@@ -399,9 +403,51 @@ python scripts/inspection/verify_v017_intake_bundle.py \
 ```
 
 Exit `0` and `"verification_status": "passed"` are required before review.
-The verifier supports an initial lock only, imports no `lane_residuals` module,
-decodes no MCAP message, and creates no output. It is not a replacement for the
-prospective manifest or independent review.
+The verifier supports both preserved v0.17.0 and amended v0.17.1 outputs,
+imports no `lane_residuals` module, decodes no MCAP message, and creates no
+output. It is not a replacement for the prospective manifest or independent
+review.
+
+After the v0.17.1 implementation receives its separate focused review `GO` and
+CI passes, reproduce batch01 under the amended contract in a new empty
+directory. Supply the preserved failed audit; do not supply
+`--prior-successful-lock` and do not modify the manifest:
+
+```bash
+cd ~/PycharmProjects/MPR
+
+PYTHONPATH=src python -m lane_residuals.cli.independent_outing_intake \
+  "data/raw/new_independent_outings" \
+  --acquisition-manifest \
+  "config/private/independent_outings_v017.private.json" \
+  --amended-from-failed-intake-directory \
+  "outputs/diagnostics/data/independent_outing_intake_v017" \
+  --output-directory \
+  "outputs/locks/independent_outing_intake_v0171_batch01"
+intake_status=$?
+echo "intake exit status: ${intake_status}"
+```
+
+For this one-outing manifest, the expected status is `3`: all four amended
+files are written, `status` is `insufficient_independent_outings`, and no role
+is assigned. Verify them independently with the same failed-audit directory:
+
+```bash
+python scripts/inspection/verify_v017_intake_bundle.py \
+  "data/raw/new_independent_outings" \
+  --acquisition-manifest \
+  "config/private/independent_outings_v017.private.json" \
+  --amended-from-failed-intake-directory \
+  "outputs/diagnostics/data/independent_outing_intake_v017" \
+  --intake-output-directory \
+  "outputs/locks/independent_outing_intake_v0171_batch01"
+```
+
+The verifier must exit `0` and report `verification_status: passed`, the exact
+v0.17.1 contract revision, amendment ID, and `files_written: 0`. For batch01,
+review must reject an amended output whose
+`schema_compatibility_amendment.amended_from_failed_audit` is null. Do not run
+either amended command before implementation review authorization.
 
 For the historical v0.4.5/v0.5.0 accepted ten-MCAP corpus, the `--drive-map`
 flag must point

@@ -6,7 +6,8 @@ critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.17.0 independent-outing intake implemented,
+- Repository version: v0.17.1 EDP schema-compatibility implementation awaiting
+  focused implementation review. Its v0.17.0 independent-outing intake base is
   synthetically verified, independently approved, and merged. Claude's focused
   implementation review returned one `AMEND` concerning the legacy package
   initializer's transitive imports; the correction froze that graph and the
@@ -16,8 +17,10 @@ critical path changes.
   descriptor is a newer BMW EDP generation that removed the legacy model-
   parameter Boolean. Complete privacy-safe evidence and a read-only BMW source
   trace support a narrow v0.17.1 amendment. Its first focused review returned
-  `AMEND`; the documentation-only correction is awaiting focused re-review and
-  no compatibility code is yet authorized. v0.16.2 spatial-structure
+  `AMEND`; the corrected contract then received `GO`. The bounded decoder,
+  intake, independent verifier, and synthetic regression suite are now
+  implemented and await a separate focused implementation review. No private
+  candidate-data re-execution is yet authorized. v0.16.2 spatial-structure
   audit is complete, independently reproduced, approved, and merged. v0.16.1
   real A3 sampling and planner
   transfer are also complete, independently reproduced, approved, and merged.
@@ -48,6 +51,18 @@ critical path changes.
   real cohort lock.
 - The raw-data chronology and first 86-file arrival checkpoint were merged
   through PR #17 at commit `fc46ce5`.
+- Claude's focused v0.17.1 contract re-review covered pushed commit `b51bee3`
+  and exact tree `a846fe8`, returned `GO`, and authorized only the bounded
+  compatibility implementation. Local patch-source commit `b51fb21` has the
+  same reviewed tree. The report SHA-256 is
+  `f35ca84085eef36590f5cc4af513a21c9e676be3c2273f853b3b1b1c72062ce1`.
+- The bounded v0.17.1 implementation now contains separate feature, test, and
+  final hardening commits for the decoder, intake, additive failed-audit
+  lineage, independent verifier, strict non-Boolean integer anchor handling,
+  and synthetic contract coverage. The exact user-applied commit must be
+  recorded after application; no patch-source SHA is treated as the review
+  identity. These changes are not yet independently reviewed and do not
+  authorize a private batch run.
 - The v0.17 prospective independent-outing intake and cohort-lock contract was
   drafted before new data were available. Claude reviewed pushed commit
   `189f948` and returned `AMEND`. The apparent review-SHA mismatch is resolved:
@@ -75,6 +90,13 @@ critical path changes.
   runbook's initial-lock command, thresholds, outputs, and package-independence
   boundary.
 - Merged-main baseline verification: 384 tests pass with two expected skips.
+- v0.17.1 implementation verification: 402 tests pass with two expected skips.
+  The added tests cover exact message-owned descriptor identity, unrestricted
+  structural legacy admission with explicit-true Boolean field 8, exact pinned
+  flag-absent v2 admission, unsupported and drifted generation failure, all
+  structural/index failures for both generations, equal downstream geometry
+  and eligibility, exact additive JSON lineage, pre-write failed-audit
+  reconciliation, deterministic output, and independent verifier coupling.
 - First real v0.17.0 batch audit: all 86 MCAPs are raw-usable, summed usable
   duration is `1707.738856448 s`, the availability status is
   `insufficient_independent_outings`, no role is assigned, and the standalone
@@ -224,17 +246,19 @@ This does not change the predeclared all-SENSOR primary-cohort rule and is not
 yet the exact post-H100 topology-candidate count. The schema adapter may restore
 geometry conversion while the outing still correctly fails the topology gate.
 
-`docs/independent_outing_schema_v2_amendment.md` therefore proposes a narrow
-v0.17.1 exact-generation adapter. Claude reviewed pushed commit `2d139251` (tree
+`docs/independent_outing_schema_v2_amendment.md` defines a narrow v0.17.1
+exact-generation adapter. Claude reviewed pushed commit `2d139251` (tree
 `13aa4f35`) and returned `AMEND`: descriptor identity had to be separated from
 the MCAP schema-record/caller audit hash, the additive output-lineage schema had
 to be exact, and mandatory `index_0` validation had to be explicit. The amended
-draft resolves those points, defines machine-checkable failed-audit lineage,
+draft resolved those points, defines machine-checkable failed-audit lineage,
 and records that batch01 must still exit 3 with no role assignment because it
-declares only one outing. The review report SHA-256 is
+declares only one outing. The first review report SHA-256 is
 `fdbeff33bccda9f1eebb0e7fc62827af986448ff28d3fe5fd0e9a0c91b43ef20`.
-No decoder change or real re-run is authorized until Claude reviews the exact
-amended commit and returns `GO`.
+Claude's focused re-review then returned `GO` on exact tree `a846fe8`. The
+bounded implementation is complete, but a real re-run remains forbidden until
+Claude reviews the exact user-applied implementation head and returns a
+separate `GO`, and both CI jobs pass.
 
 ## Frozen development model
 
@@ -579,12 +603,11 @@ Next actions are ordered:
 
 1. preserve the 86 raw chunks, exact manifest, v0.17.0 output, schema probes,
    and complete audit unchanged;
-2. push the amended documentation-only v0.17.1 contract commit and request
-   focused Claude re-review of that exact commit;
-3. only after the amended contract receives `GO`, implement the exact-
-   generation adapter and its tests on the
-   same branch, then request a separate focused implementation review;
-4. only after implementation `GO` and green CI, execute the unchanged closed
+2. retain the focused contract `GO` for exact tree `a846fe8`;
+3. push the completed exact-generation implementation and tests on the same
+   branch, wait for green Python 3.10/3.12 CI, and request a separate focused
+   Claude implementation review of the exact head;
+4. only after that implementation `GO` and green CI, execute the unchanged closed
    batch into a new v0.17.1 output directory and run the updated standalone
    verifier;
 5. independently review the amended four-file audit before accepting any
@@ -599,8 +622,9 @@ The intake implementation gates are satisfied and the first real audit is
 preserved, but the required new-outing count has not. The scientific programme
 remains intentionally data-blocked: do not draft evaluator code, fit another
 model, or open any final-outing outcome before a successful prospective lock.
-The only current implementation candidate is the independently reviewed,
-narrow schema-v2 compatibility adapter; no current-outing diagnostic is added.
+The narrow schema-v2 adapter is the only completed unreviewed implementation;
+it adds no current-outing diagnostic. The private batch remains closed until
+the separate implementation review returns `GO`.
 
 ## Reading map
 
@@ -611,8 +635,9 @@ narrow schema-v2 compatibility adapter; no current-outing diagnostic is added.
   intake, independent verification, packaging, and review sequence.
 - `docs/bmw_edp_schema_evidence.md`: durable MPR descriptor observations and
   Copilot-reported BMW source trace for the EDP v1-to-v2 transition.
-- `docs/independent_outing_schema_v2_amendment.md`: draft v0.17.1 exact-
-  generation compatibility boundary; review is required before implementation.
+- `docs/independent_outing_schema_v2_amendment.md`: reviewed v0.17.1 exact-
+  generation compatibility boundary and the remaining implementation-review
+  and real-run gates.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
 - `docs/architecture.md`: package ownership and dependency boundaries.

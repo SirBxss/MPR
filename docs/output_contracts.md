@@ -1178,12 +1178,14 @@ It reports no scalar effective sample size, p-value, interval, or decision gate.
 The summary omits its own hash to avoid recursive content. Generated outputs
 remain outside version control.
 
-## v0.17.0 independent-outing intake and cohort-lock outputs
+## v0.17.0/v0.17.1 independent-outing intake and cohort-lock outputs
 
 The command consumes only the recursively discovered new-MCAP root, the exact
 bytes of the prospective private acquisition manifest, and—only for a declared
-supersession—the exact prior successful lock. It writes exactly four private
-files to a directory that must not already exist:
+supersession—the exact prior successful lock. The v0.17.1 amended interface can
+also consume one preserved failed v0.17.0 four-file audit through
+`--amended-from-failed-intake-directory`. It writes exactly four private files
+to a directory that must not already exist:
 
 ```text
 independent_outing_recordings.csv
@@ -1226,6 +1228,7 @@ role_counts
 attestations
 prior_successful_lock
 final_outing_embargo
+schema_compatibility_amendment
 ```
 
 The lock records manifest and raw hashes, content-only outing fingerprints,
@@ -1235,6 +1238,9 @@ prior-lock reconciliation, and the embargo allowlist. It contains no relative
 or absolute path, environment value, or run timestamp, so its bytes and SHA-256
 are independent of the mounted root layout. The raw-file map is keyed by unique
 private basename and is reconciled exactly with each outing's nested hash map.
+The last listed key exists only under the exact v0.17.1 contract revision;
+preserved v0.17.0 artifacts retain their original schema and remain readable by
+the standalone verifier.
 
 `independent_outing_intake_summary.json` has these exact top-level fields:
 
@@ -1266,7 +1272,59 @@ output_sha256
 summary_self_hash_recorded
 claim_limits
 next_authorized_action
+schema_compatibility_amendment
 ```
+
+The last listed key exists only under the exact v0.17.1 contract revision. In
+both the lock and summary it has this exact schema and identical content:
+
+```json
+{
+  "amendment_id": "v0.17.1-edp-schema-v2-2026-09-07",
+  "descriptor_identity_source": "sha256(message.DESCRIPTOR.file.serialized_pb)",
+  "allowed_flag_absent_estimate_file_descriptor_sha256": "dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4",
+  "legacy_estimate_file_descriptor_reference_sha256": "f6ae6e61378ea6d3a07d6d7128b232db55d1e00e49c4fd9cd3708c4acea6992f",
+  "legacy_validity_rule": {
+    "descriptor_rule": "structural_v0.17.0_binding_no_exhaustive_descriptor_allowlist",
+    "field_name": "model_parameters_optional_flag",
+    "field_number": 8,
+    "protobuf_type": "bool",
+    "explicit_presence_required": true,
+    "required_value": true
+  },
+  "observed_estimate_file_descriptor_sha256": [],
+  "amended_from_failed_audit": null
+}
+```
+
+The observed-descriptor list is sorted and unique. It contains only SHA-256
+identities recomputed from decoded messages' own serialized file descriptors;
+it is empty exactly when no estimate message was decoded. The optional
+`amended_from_failed_audit` value is either null or an object with exactly:
+
+```text
+contract_revision
+manifest_sha256
+output_sha256
+```
+
+`output_sha256` contains exactly the four v0.17.0 output filenames and their
+recomputed byte hashes. When the failed-audit argument is supplied, the
+producer validates before writing that the directory contains exactly those
+four files, both JSON files have their exact original v0.17.0 schemas and
+contract revision, the old status is `insufficient_independent_outings`, no
+role was assigned, the summary's three sibling hashes reconcile, its manifest
+hash equals the current manifest bytes, and its recording basename/hash map
+equals the current raw corpus. The standalone verifier receives the same
+directory and reconstructs this lineage independently. A mismatch is an error;
+the prior failed output is never edited or copied into the amended directory.
+
+The v0.17.1 `contract_revision` is exactly
+`v0.17.1-reviewed-2026-09-07-schema-v2-a1`. Its descriptor compatibility is
+limited to the preserved structural legacy rule with explicit Boolean field 8
+equal to true and the one pinned flag-absent v2 descriptor above. It does not
+weaken any topology, geometry, causal-input, duration, sequence, split, embargo,
+or claim rule.
 
 `output_sha256` covers the two CSVs and lock; the summary deliberately records
 no recursive self-hash. The summary may inherit the recording CSV's relative-
@@ -1282,4 +1340,7 @@ are assigned, and the command returns `0`. Below seven, status is
 all four files are still written, and the command returns `3`. Manifest,
 coverage, hash, prior-lock, or output-target errors return `2` before creating
 the output directory. Raw MCAPs, manifests, and all four outputs remain outside
-version control.
+version control. For identical manifest and raw bytes, code, contract, and
+supplied failed-audit directory contents, the outputs are byte-deterministic;
+changing the supplied failed-audit contents changes or invalidates the amended
+lineage rather than being ignored.

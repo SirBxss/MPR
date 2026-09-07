@@ -13,9 +13,10 @@ implementation for the thesis; LEEM is historical reference material only.
    - `docs/commands.md` for supported entry points;
    - `docs/bmw_edp_schema_evidence.md` before changing any estimated-drive-
      path schema binding; and
-   - `docs/independent_outing_schema_v2_amendment.md` for the proposed v0.17.1
-     compatibility boundary, which is not implementation-authorized until its
-     focused independent review returns `GO`.
+   - `docs/independent_outing_schema_v2_amendment.md` for the reviewed v0.17.1
+     compatibility boundary. Its contract review returned `GO`; its completed
+     implementation still requires a separate focused `GO` before real data
+     may be re-executed.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
@@ -120,6 +121,9 @@ The v0.17 data-arrival verifier and runbook raise this to 384 passing tests with
 the same two skips. They add no model or current-data diagnostic. The first
 real v0.17.0 audit is preserved but is not a successful cohort lock; read
 `docs/current_status.md` before any v0.17.1 work.
+The v0.17.1 schema-v2 compatibility implementation raises this to 402 passing
+tests with the same two skips. Do not run the private candidate batch until a
+focused independent implementation review returns `GO` on the exact commit.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

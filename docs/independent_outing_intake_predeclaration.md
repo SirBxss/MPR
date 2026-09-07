@@ -317,6 +317,13 @@ python -m lane_residuals.cli.independent_outing_intake \
   [--log-level INFO]
 ```
 
+Historical-surface note: the separately reviewed amendment
+`docs/independent_outing_schema_v2_amendment.md`, ID
+`v0.17.1-edp-schema-v2-2026-09-07`, adds one optional
+`--amended-from-failed-intake-directory` argument and one exact additive JSON
+key. This original v0.17.0 command block is retained unchanged as historical
+contract evidence rather than retroactively rewritten.
+
 `--prior-successful-lock` is absent for an initial run. It is mandatory exactly
 when the manifest declares a prior successful lock, forbidden otherwise, and
 must identify that exact strict-JSON lock artifact. Supplying it does not by

@@ -1,7 +1,9 @@
 # v0.17.1 estimated-drive-path schema-v2 compatibility amendment
 
-Status: amended draft for focused independent re-review. Not implementation-
-authorized.
+Status: contract review `GO` received for the exact reviewed tree. The bounded
+implementation is complete, but it is not authorized for real candidate-data
+execution until a separate focused implementation review returns `GO` and CI
+passes.
 
 Date: 2026-09-07.
 
@@ -209,8 +211,9 @@ values, or the observed topology distribution. Synthetic tests must cover:
   legacy rule;
 - v2 parameters present with any non-NO_ERROR enum fails;
 - absent parameters, non-finite scalars, short/non-increasing segment starts,
-  non-finite changes, count mismatch, missing/non-integer `index_0`, and an
-  out-of-range `index_0` fail for both generations;
+  non-finite changes, count mismatch, missing/non-integer `index_0` (including
+  a value that `int()` cannot consume, while rejecting `bool` explicitly), and
+  an out-of-range `index_0` fail for both generations;
 - an unknown fingerprint with v2-like fields fails;
 - candidate-v2 field-number, type, or cardinality drift changes the internally
   computed fingerprint and fails;
@@ -334,6 +337,8 @@ Before any implementation, the reviewer must verify:
   outing threshold; and
 - no candidate outcome or post-hoc threshold informed the amendment.
 
-`GO` authorizes only the implementation boundary above. `AMEND` requires a
-new exact commit and focused re-review. Until `GO`, no decoder or intake code
-may change and the original v0.17.0 result remains the operative audit.
+The contract `GO` authorizes only the implementation boundary above. The
+completed implementation requires its own focused independent review before
+any real candidate-data run. `AMEND` at either gate requires a new exact commit
+and focused re-review. Until implementation `GO`, the original v0.17.0 result
+remains the operative real-data audit.

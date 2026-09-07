@@ -46,7 +46,7 @@ are not the thesis execution path.
 | v0.16.1 | Unconditional-Gaussian planner transfer | Complete and independently reproduced; the predeclared full-support rule passes, with mandatory length-dependent qualification of the deviation family |
 | v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
 | v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and arrival verifier are independently approved and merged; the first 86-chunk real audit is preserved with no role assignment, and no successful cohort lock exists |
-| v0.17.1 | Exact EDP schema-v2 compatibility | First contract review returned `AMEND`; the documentation-only correction is awaiting focused re-review before implementation |
+| v0.17.1 | Exact EDP schema-v2 compatibility | Corrected contract received focused `GO`; bounded decoder/intake/verifier implementation and synthetic tests are complete, but a separate implementation `GO` is required before the private batch is re-run |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -188,10 +188,12 @@ That evidence is recorded in `docs/bmw_edp_schema_evidence.md`; the exact
 v0.17.1 amendment is drafted in
 `docs/independent_outing_schema_v2_amendment.md`. Its first focused review
 returned `AMEND` for descriptor-hash identity, additive output lineage, and
-mandatory `index_0` wording; the corrected exact contract requires focused
-re-review before code changes. The arrived set remains one physical
-outing and can contribute at most one of seven required new outings. File or
-chunk count must not be used as outing count.
+mandatory `index_0` wording. The corrected exact contract received `GO`, and
+the bounded generation-aware decoder, intake lineage, standalone verifier, and
+synthetic tests are implemented. A separate focused implementation review and
+green CI remain mandatory before the unchanged private batch is re-run. The
+arrived set remains one physical outing and can contribute at most one of seven
+required new outings. File or chunk count must not be used as outing count.
 
 A successful real v0.17 lock still does not authorize final evaluation. The
 exact training corpus, frozen competitors, fitting rules, final-outing failure
