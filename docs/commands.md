@@ -408,10 +408,10 @@ imports no `lane_residuals` module, decodes no MCAP message, and creates no
 output. It is not a replacement for the prospective manifest or independent
 review.
 
-After the v0.17.1 implementation receives its separate focused review `GO` and
-CI passes, reproduce batch01 under the amended contract in a new empty
-directory. Supply the preserved failed audit; do not supply
-`--prior-successful-lock` and do not modify the manifest:
+The v0.17.1 implementation received focused review `GO` and green CI. The
+following batch01 command was then executed once under the amended contract in
+a new directory. It supplied the preserved failed audit, no prior successful
+lock, and the unchanged manifest. Retain it as command history; do not rerun it:
 
 ```bash
 cd ~/PycharmProjects/MPR
@@ -419,35 +419,35 @@ cd ~/PycharmProjects/MPR
 PYTHONPATH=src python -m lane_residuals.cli.independent_outing_intake \
   "data/raw/new_independent_outings" \
   --acquisition-manifest \
-  "config/private/independent_outings_v017.private.json" \
+  "config/private/independent_outings_v017_batch01.private.json" \
   --amended-from-failed-intake-directory \
-  "outputs/diagnostics/data/independent_outing_intake_v017" \
+  "outputs/diagnostics/data/independent_outing_intake_v017_batch01" \
   --output-directory \
   "outputs/locks/independent_outing_intake_v0171_batch01"
 intake_status=$?
 echo "intake exit status: ${intake_status}"
 ```
 
-For this one-outing manifest, the expected status is `3`: all four amended
-files are written, `status` is `insufficient_independent_outings`, and no role
-is assigned. Verify them independently with the same failed-audit directory:
+For this one-outing manifest, stored status is
+`insufficient_independent_outings`: all four amended files were written and no
+role was assigned. They were independently verified with the same failed-audit
+directory:
 
 ```bash
 python scripts/inspection/verify_v017_intake_bundle.py \
   "data/raw/new_independent_outings" \
   --acquisition-manifest \
-  "config/private/independent_outings_v017.private.json" \
+  "config/private/independent_outings_v017_batch01.private.json" \
   --amended-from-failed-intake-directory \
-  "outputs/diagnostics/data/independent_outing_intake_v017" \
+  "outputs/diagnostics/data/independent_outing_intake_v017_batch01" \
   --intake-output-directory \
   "outputs/locks/independent_outing_intake_v0171_batch01"
 ```
 
-The verifier must exit `0` and report `verification_status: passed`, the exact
-v0.17.1 contract revision, amendment ID, and `files_written: 0`. For batch01,
-review must reject an amended output whose
-`schema_compatibility_amendment.amended_from_failed_audit` is null. Do not run
-either amended command before implementation review authorization.
+The verifier reports `verification_status: passed`, the exact v0.17.1 contract
+revision and amendment ID, and `files_written: 0`. The non-null failed-audit
+lineage reconciles all four v0.17.0 files. The exact accepted result and its
+review boundary are in `docs/independent_outing_batch01_v0171_result.md`.
 
 For the historical v0.4.5/v0.5.0 accepted ten-MCAP corpus, the `--drive-map`
 flag must point

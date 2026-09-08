@@ -33,10 +33,14 @@ wall-clock time was confirmed as CEST and reconciled to internal UTC. No new-
 outing residual, condition, model, planner, or figure has been inspected. The
 real v0.17.0 audit exposed a BMW EDP schema-v2 transition, now recorded in
 `docs/bmw_edp_schema_evidence.md`. Claude returned `GO` on the corrected narrow
-v0.17.1 contract, and the bounded decoder/intake/verifier implementation plus
-synthetic tests are complete. The private batch must not be re-executed until
-Claude returns a separate focused implementation `GO` on the exact commit and
-CI passes. Exact current status and the next outcome-blind steps are in
+v0.17.1 contract and implementation. The amended real run then decoded all
+17,163 estimate messages and restored 5,289 H100-ready paths, but all 5,289
+candidates were LANE_MAP and none was SENSOR_TOPOLOGY. The unchanged primary
+gate therefore retained zero eligible frames and assigned no role. The
+standalone verifier passed, Claude's final real-output review returned `GO`,
+and the result is accepted as a negative technical audit—not a successful
+cohort lock. Exact lineage, interpretation, and next acquisition steps are in
+`docs/independent_outing_batch01_v0171_result.md` and
 `docs/current_status.md`.
 
 Version 0.16.2 adds the independently reviewed, lineage-locked A2/A3

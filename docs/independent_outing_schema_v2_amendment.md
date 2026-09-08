@@ -1,9 +1,10 @@
 # v0.17.1 estimated-drive-path schema-v2 compatibility amendment
 
-Status: contract review `GO` received for the exact reviewed tree. The bounded
-implementation is complete, but it is not authorized for real candidate-data
-execution until a separate focused implementation review returns `GO` and CI
-passes.
+Status: complete. The contract, bounded implementation, and real amended
+batch01 output each received focused independent `GO`. Batch01 is an accepted
+negative technical audit with no role assignment, not a successful cohort
+lock. Its exact result is recorded in
+`docs/independent_outing_batch01_v0171_result.md`.
 
 Date: 2026-09-07.
 
@@ -337,8 +338,9 @@ Before any implementation, the reviewer must verify:
   outing threshold; and
 - no candidate outcome or post-hoc threshold informed the amendment.
 
-The contract `GO` authorizes only the implementation boundary above. The
-completed implementation requires its own focused independent review before
-any real candidate-data run. `AMEND` at either gate requires a new exact commit
-and focused re-review. Until implementation `GO`, the original v0.17.0 result
-remains the operative real-data audit.
+The contract `GO` authorized only the implementation boundary above. The
+implementation and real batch01 output subsequently received their separate
+focused `GO` decisions. The v0.17.0 and v0.17.1 outputs are both immutable
+lineage evidence. No review authorizes a gate relaxation, another batch01 run,
+model fit, sampling, planner execution, final-outing inspection, or scientific
+generalization.

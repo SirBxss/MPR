@@ -1322,9 +1322,11 @@ the prior failed output is never edited or copied into the amended directory.
 The v0.17.1 `contract_revision` is exactly
 `v0.17.1-reviewed-2026-09-07-schema-v2-a1`. Its descriptor compatibility is
 limited to the preserved structural legacy rule with explicit Boolean field 8
-equal to true and the one pinned flag-absent v2 descriptor above. It does not
-weaken any topology, geometry, causal-input, duration, sequence, split, embargo,
-or claim rule.
+equal to true and the one pinned flag-absent v2 descriptor above. Both
+generations additionally require the consumed `index_0` binding to be
+non-repeated int64 field 7; its value must be a non-Boolean integer within the
+supplied boundary range. It does not weaken any topology, geometry,
+causal-input, duration, sequence, split, embargo, or claim rule.
 
 `output_sha256` covers the two CSVs and lock; the summary deliberately records
 no recursive self-hash. The summary may inherit the recording CSV's relative-
