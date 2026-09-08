@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,6 +16,10 @@ from lane_residuals.domain.independent_outing_intake import (
     FrameTechnicalEvidence,
 )
 from lane_residuals.domain.pairing import ego_relative_path_from_points
+from lane_residuals.domain.path_source_probe import (
+    ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256,
+    LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256,
+)
 from lane_residuals.io.independent_outing_intake import (
     _DecodedEstimate,
     _DecodedReference,
@@ -54,6 +59,56 @@ def _curve() -> SplineCurve:
 
 
 class IndependentOutingIntakeIoTests(unittest.TestCase):
+    def test_descriptor_identity_ignores_inconsistent_mcap_schema_bytes(self) -> None:
+        message = SimpleNamespace(
+            DESCRIPTOR=SimpleNamespace(
+                fields=(),
+                file=SimpleNamespace(serialized_pb=b"message-owned-descriptor"),
+            )
+        )
+        decoded_stream = [
+            (
+                SimpleNamespace(
+                    name="Adp.Perception.EstimatedDrivePaths",
+                    data=b"different-mcap-file-descriptor-set",
+                ),
+                SimpleNamespace(
+                    topic="/adp/estimated_drive_paths",
+                    message_encoding="protobuf",
+                ),
+                SimpleNamespace(log_time=1, publish_time=1),
+                message,
+            )
+        ]
+        with (
+            patch(
+                "lane_residuals.io.independent_outing_intake."
+                "iter_decoded_mcap_messages",
+                return_value=iter(decoded_stream),
+            ),
+            patch(
+                "lane_residuals.io.independent_outing_intake."
+                "source_time_ns_from_message",
+                return_value=None,
+            ),
+            patch(
+                "lane_residuals.io.independent_outing_intake."
+                "estimated_frame_from_message",
+                return_value=SimpleNamespace(
+                    source_time_ns=None,
+                    candidate_ready=False,
+                    candidate=None,
+                    conversion_state="unsupported_estimate_descriptor_generation",
+                ),
+            ),
+        ):
+            estimates, _, failures = _decode_geometry_streams(Path("schema.mcap"))
+        self.assertEqual(failures, ())
+        self.assertEqual(
+            estimates[0].descriptor_file_sha256,
+            hashlib.sha256(b"message-owned-descriptor").hexdigest(),
+        )
+
     def test_strict_json_retains_exact_bytes_and_rejects_invalid_values(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -155,6 +210,9 @@ class IndependentOutingIntakeIoTests(unittest.TestCase):
                         frame=frame,
                         curve=_curve(),
                         path=estimate_path,
+                        descriptor_file_sha256=(
+                            LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256
+                        ),
                         decoded=object(),
                     )
                 ],
@@ -205,6 +263,84 @@ class IndependentOutingIntakeIoTests(unittest.TestCase):
         self.assertEqual(lane_map.non_sensor_topology_candidate_count, 1)
         self.assertEqual(lane_map.eligible_frame_count, 0)
 
+    def test_semantically_equal_v1_v2_frames_have_equal_downstream_eligibility(self) -> None:
+        estimate_path = _straight_path(100.0)
+        reference_path = _straight_path(101.0, 0.5)
+        frame = SimpleNamespace(
+            estimator_state="available_no_error",
+            topology_source=EXPECTED_TOPOLOGY_SOURCE,
+        )
+        condition = SimpleNamespace(
+            estimated_mean_abs_curvature_per_m=0.0,
+            estimated_curvature_delta_per_m=0.0,
+            confidence_near_mean=0.9,
+            confidence_middle_mean=0.8,
+            confidence_far_mean=0.7,
+        )
+
+        def decoded(descriptor_hash: str):
+            return (
+                [
+                    _DecodedEstimate(
+                        message_index=0,
+                        source_time_ns=1_000_000_000,
+                        frame=frame,
+                        curve=_curve(),
+                        path=estimate_path,
+                        descriptor_file_sha256=descriptor_hash,
+                        decoded=object(),
+                    )
+                ],
+                [
+                    _DecodedReference(
+                        message_index=0,
+                        source_time_ns=1_000_000_000,
+                        path=reference_path,
+                    )
+                ],
+                (),
+            )
+
+        evidence = []
+        with (
+            patch(
+                "lane_residuals.io.independent_outing_intake._load_odometry",
+                return_value=(SimpleNamespace(samples=(object(), object())), None),
+            ),
+            patch(
+                "lane_residuals.io.independent_outing_intake."
+                "selected_keep_lane_confidences",
+                return_value=(0.9,) * 20,
+            ),
+            patch(
+                "lane_residuals.io.independent_outing_intake."
+                "summarize_estimate_conditions",
+                return_value=condition,
+            ),
+            patch(
+                "lane_residuals.io.independent_outing_intake."
+                "derive_unsigned_odometry_speed",
+                return_value=SimpleNamespace(),
+            ),
+        ):
+            for descriptor_hash in (
+                LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256,
+                ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256,
+            ):
+                with patch(
+                    "lane_residuals.io.independent_outing_intake."
+                    "_decode_geometry_streams",
+                    return_value=decoded(descriptor_hash),
+                ):
+                    evidence.append(
+                        inspect_recording_technical_evidence(
+                            Path("generation.mcap"), raw_usable=True
+                        )
+                    )
+        self.assertEqual(evidence[0].frames, evidence[1].frames)
+        self.assertEqual(evidence[0].eligible_frame_count, 1)
+        self.assertEqual(evidence[1].eligible_frame_count, 1)
+
     def test_boundary_odometry_exception_is_limited_to_first_edp_message(self) -> None:
         estimate_path = _straight_path(100.0)
         reference_path = _straight_path(101.0, 0.5)
@@ -221,6 +357,9 @@ class IndependentOutingIntakeIoTests(unittest.TestCase):
                     frame=frame,
                     curve=_curve(),
                     path=estimate_path,
+                    descriptor_file_sha256=(
+                        LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256
+                    ),
                     decoded=object(),
                 )
                 for index, timestamp in enumerate(timestamps)

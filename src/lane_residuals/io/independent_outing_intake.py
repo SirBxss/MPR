@@ -41,6 +41,7 @@ from ..domain.pairing import (
 from ..domain.path_source_probe import (
     DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA,
     DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC,
+    estimate_descriptor_support,
 )
 from ..domain.residual_dataset import CANONICAL_MODEL_STATIONS_M
 from .expanded_sequence_dataset_v0131 import (
@@ -127,6 +128,7 @@ class _DecodedEstimate:
     frame: EstimatedFrameAudit | None
     curve: SplineCurve | None
     path: EgoRelativePath | None
+    descriptor_file_sha256: str | None
     decoded: Any = None
     failure_code: str | None = None
 
@@ -162,6 +164,9 @@ def _decode_geometry_streams(
                 source_time = None
             if topic == DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC:
                 index = len(estimates)
+                descriptor_file_sha256 = estimate_descriptor_support(
+                    decoded
+                ).descriptor_file_sha256
                 frame: EstimatedFrameAudit | None = None
                 curve: SplineCurve | None = None
                 estimate_path: EgoRelativePath | None = None
@@ -201,6 +206,7 @@ def _decode_geometry_streams(
                         frame=frame,
                         curve=curve,
                         path=estimate_path,
+                        descriptor_file_sha256=descriptor_file_sha256,
                         decoded=decoded,
                         failure_code=failure,
                     )
@@ -502,6 +508,15 @@ def inspect_recording_technical_evidence(
         estimate_message_count=len(estimates),
         map_message_count=len(references),
         frames=tuple(frames),
+        estimate_file_descriptor_sha256=tuple(
+            sorted(
+                {
+                    item.descriptor_file_sha256
+                    for item in estimates
+                    if item.descriptor_file_sha256 is not None
+                }
+            )
+        ),
         failure_codes=tuple(sorted(set(recording_failures))),
     )
 

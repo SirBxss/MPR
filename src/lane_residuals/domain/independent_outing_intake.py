@@ -18,7 +18,7 @@ VERSION = "0.17.0"
 MANIFEST_VERSION = "0.17"
 PURPOSE = "independent_outing_intake_and_cohort_lock"
 MANIFEST_PURPOSE = "prospective_independent_outing_intake"
-CONTRACT_REVISION = "v0.17.0-reviewed-2026-09-03-layout-c1"
+CONTRACT_REVISION = "v0.17.1-reviewed-2026-09-07-schema-v2-a1"
 SPLIT_SALT = b"MPR-v0.17-final-split-v1"
 MINIMUM_ELIGIBLE_NEW_OUTING_COUNT = 7
 MINIMUM_USABLE_DURATION_NS = 120_000_000_000
@@ -262,6 +262,7 @@ class RecordingTechnicalEvidence:
     estimate_message_count: int
     map_message_count: int
     frames: tuple[FrameTechnicalEvidence, ...]
+    estimate_file_descriptor_sha256: tuple[str, ...] = ()
     failure_codes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
@@ -272,6 +273,15 @@ class RecordingTechnicalEvidence:
             raise ValueError("technical frames must have unique ordered message indices")
         if len(self.failure_codes) != len(set(self.failure_codes)):
             raise ValueError("recording failure codes must be unique")
+        descriptor_hashes = self.estimate_file_descriptor_sha256
+        if descriptor_hashes != tuple(sorted(set(descriptor_hashes))):
+            raise ValueError("estimate file-descriptor hashes must be sorted and unique")
+        for digest in descriptor_hashes:
+            _lowercase_sha256(digest, "estimate file-descriptor SHA-256")
+        if self.estimate_message_count == 0 and descriptor_hashes:
+            raise ValueError("descriptor hashes require decoded estimate messages")
+        if self.estimate_message_count > 0 and not descriptor_hashes:
+            raise ValueError("decoded estimate messages require a descriptor hash")
 
     @property
     def topology_candidate_count(self) -> int:

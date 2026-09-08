@@ -16,12 +16,19 @@ from unittest.mock import patch
 from lane_residuals.cli.independent_outing_intake import main
 from lane_residuals.domain.corpus_inventory import McapInventoryRecord, TopicCompatibility
 from lane_residuals.domain.independent_outing_intake import (
+    CONTRACT_REVISION,
     EXPECTED_TOPOLOGY_SOURCE,
     FrameTechnicalEvidence,
     RecordingTechnicalEvidence,
 )
+from lane_residuals.domain.path_source_probe import (
+    ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256,
+    ESTIMATE_DESCRIPTOR_IDENTITY_SOURCE,
+    LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256,
+)
 from lane_residuals.io.reports import write_strict_json as _write_strict_json
 from lane_residuals.workflows.independent_outing_intake import (
+    SCHEMA_COMPATIBILITY_AMENDMENT_ID,
     OUTPUT_NAMES,
     OUTING_FIELDS,
     RECORDING_FIELDS,
@@ -125,6 +132,7 @@ class _SyntheticInspectors:
         self.frame_count_by_basename: dict[str, int] = {}
         self.topology_by_basename: dict[str, str] = {}
         self.source_start_by_basename: dict[str, int] = {}
+        self.descriptor_hashes_by_basename: dict[str, tuple[str, ...]] = {}
 
     def inventory(
         self,
@@ -192,6 +200,12 @@ class _SyntheticInspectors:
             estimate_message_count=count,
             map_message_count=count,
             frames=frames,
+            estimate_file_descriptor_sha256=(
+                self.descriptor_hashes_by_basename.get(
+                    path.name,
+                    (LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256,),
+                )
+            ),
         )
 
 
@@ -241,14 +255,37 @@ def _make_corpus(root: Path, count: int = 7, *, nested: bool = False) -> tuple[P
     return corpus, names
 
 
-def _arguments(root: Path, manifest: Path, output: Path, prior: Path | None = None) -> argparse.Namespace:
+def _arguments(
+    root: Path,
+    manifest: Path,
+    output: Path,
+    prior: Path | None = None,
+    amended_from_failed: Path | None = None,
+) -> argparse.Namespace:
     return argparse.Namespace(
         new_mcap_root=root,
         acquisition_manifest=manifest,
         output_directory=output,
         prior_successful_lock=prior,
+        amended_from_failed_intake_directory=amended_from_failed,
         log_level="INFO",
     )
+
+
+def _downgrade_to_legacy_audit(output: Path) -> None:
+    lock_path = output / "independent_outing_lock.json"
+    summary_path = output / "independent_outing_intake_summary.json"
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    lock.pop("schema_compatibility_amendment")
+    summary.pop("schema_compatibility_amendment")
+    lock["contract_revision"] = "v0.17.0-reviewed-2026-09-03-layout-c1"
+    summary["contract_revision"] = "v0.17.0-reviewed-2026-09-03-layout-c1"
+    _write_strict_json(lock_path, lock)
+    summary["output_sha256"]["independent_outing_lock.json"] = hashlib.sha256(
+        lock_path.read_bytes()
+    ).hexdigest()
+    _write_strict_json(summary_path, summary)
 
 
 class IndependentOutingWorkflowTests(unittest.TestCase):
@@ -304,6 +341,7 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
                     "attestations",
                     "prior_successful_lock",
                     "final_outing_embargo",
+                    "schema_compatibility_amendment",
                 },
             )
             self.assertEqual(
@@ -336,7 +374,39 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
                     "summary_self_hash_recorded",
                     "claim_limits",
                     "next_authorized_action",
+                    "schema_compatibility_amendment",
                 },
+            )
+            expected_amendment = {
+                "amendment_id": SCHEMA_COMPATIBILITY_AMENDMENT_ID,
+                "descriptor_identity_source": ESTIMATE_DESCRIPTOR_IDENTITY_SOURCE,
+                "allowed_flag_absent_estimate_file_descriptor_sha256": (
+                    ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256
+                ),
+                "legacy_estimate_file_descriptor_reference_sha256": (
+                    LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256
+                ),
+                "legacy_validity_rule": {
+                    "descriptor_rule": (
+                        "structural_v0.17.0_binding_no_exhaustive_descriptor_allowlist"
+                    ),
+                    "field_name": "model_parameters_optional_flag",
+                    "field_number": 8,
+                    "protobuf_type": "bool",
+                    "explicit_presence_required": True,
+                    "required_value": True,
+                },
+                "observed_estimate_file_descriptor_sha256": [
+                    LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256
+                ],
+                "amended_from_failed_audit": None,
+            }
+            self.assertEqual(lock["contract_revision"], CONTRACT_REVISION)
+            self.assertEqual(
+                lock["schema_compatibility_amendment"], expected_amendment
+            )
+            self.assertEqual(
+                summary["schema_compatibility_amendment"], expected_amendment
             )
             self.assertEqual(lock["status"], "locked")
             self.assertTrue(lock["split_assignments_authorized"])
@@ -382,6 +452,29 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
             )
             self.assertEqual(hashes_a["independent_outings.csv"], hashes_b["independent_outings.csv"])
             self.assertEqual(hashes_a["independent_outing_lock.json"], hashes_b["independent_outing_lock.json"])
+
+    def test_observed_descriptor_identities_are_sorted_unique_union(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            corpus, manifest, inspectors = self._success_fixture(root)
+            inspectors.descriptor_hashes_by_basename["new_outing_01.mcap"] = (
+                ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256,
+                LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256,
+            )
+            summary, _ = self._run(
+                _arguments(corpus, manifest, root / "output"), inspectors
+            )
+            self.assertEqual(
+                summary["schema_compatibility_amendment"][
+                    "observed_estimate_file_descriptor_sha256"
+                ],
+                sorted(
+                    {
+                        ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256,
+                        LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256,
+                    }
+                ),
+            )
 
     def test_split_is_invariant_to_names_labels_times_and_manifest_order(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -446,6 +539,205 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
             lock = json.loads((output / "independent_outing_lock.json").read_text())
             self.assertFalse(lock["split_assignments_authorized"])
             self.assertFalse(lock["final_outing_embargo"]["active"])
+
+    def test_failed_audit_lineage_is_additive_deterministic_and_verified(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            corpus, names = _make_corpus(root, count=1)
+            manifest = _write_manifest(
+                root / "manifest.json",
+                _manifest_payload([_outing("private-1", names[0], 1)]),
+            )
+            inspectors = _SyntheticInspectors()
+            failed = root / "failed-v0170"
+            _, first_status = self._run(
+                _arguments(corpus, manifest, failed), inspectors
+            )
+            self.assertEqual(first_status, 3)
+            _downgrade_to_legacy_audit(failed)
+            legacy_result = verify_intake_bundle(corpus, manifest, failed)
+            self.assertEqual(legacy_result["verification_status"], "passed")
+            self.assertEqual(
+                legacy_result["contract_revision"],
+                "v0.17.0-reviewed-2026-09-03-layout-c1",
+            )
+
+            outputs = (root / "amended-a", root / "amended-b")
+            summaries = []
+            for output in outputs:
+                summary, status = self._run(
+                    _arguments(
+                        corpus,
+                        manifest,
+                        output,
+                        amended_from_failed=failed,
+                    ),
+                    inspectors,
+                )
+                self.assertEqual(status, 3)
+                summaries.append(summary)
+            self.assertEqual(summaries[0], summaries[1])
+            for name in OUTPUT_NAMES:
+                self.assertEqual(
+                    (outputs[0] / name).read_bytes(),
+                    (outputs[1] / name).read_bytes(),
+                )
+
+            expected_hashes = {
+                name: hashlib.sha256((failed / name).read_bytes()).hexdigest()
+                for name in OUTPUT_NAMES
+            }
+            amendment = summaries[0]["schema_compatibility_amendment"]
+            self.assertEqual(
+                amendment["amended_from_failed_audit"],
+                {
+                    "contract_revision": (
+                        "v0.17.0-reviewed-2026-09-03-layout-c1"
+                    ),
+                    "manifest_sha256": hashlib.sha256(
+                        manifest.read_bytes()
+                    ).hexdigest(),
+                    "output_sha256": dict(sorted(expected_hashes.items())),
+                },
+            )
+            with (outputs[0] / OUTPUT_NAMES[1]).open(
+                encoding="utf-8", newline=""
+            ) as handle:
+                self.assertTrue(
+                    all(not row["cohort_role"] for row in csv.DictReader(handle))
+                )
+            result = verify_intake_bundle(
+                corpus,
+                manifest,
+                outputs[0],
+                failed,
+            )
+            self.assertEqual(result["verification_status"], "passed")
+            self.assertEqual(result["contract_revision"], CONTRACT_REVISION)
+            self.assertEqual(
+                result["schema_compatibility_amendment_id"],
+                SCHEMA_COMPATIBILITY_AMENDMENT_ID,
+            )
+
+    def test_failed_audit_reconciliation_rejects_drift_before_output(self) -> None:
+        mutations = (
+            (
+                "extra file",
+                "file set differs",
+                lambda failed: (failed / "extra.txt").write_text(
+                    "extra", encoding="utf-8"
+                ),
+            ),
+            (
+                "status",
+                "not a reconciled failed",
+                lambda failed: self._mutate_json(
+                    failed / OUTPUT_NAMES[2],
+                    lambda payload: payload.__setitem__("status", "locked"),
+                ),
+            ),
+            (
+                "schema",
+                "schema differs",
+                lambda failed: self._mutate_json(
+                    failed / OUTPUT_NAMES[2],
+                    lambda payload: payload.__setitem__("unexpected", True),
+                ),
+            ),
+            (
+                "recording hash",
+                "recording CSV differs",
+                lambda failed: self._mutate_recording_hash(
+                    failed / OUTPUT_NAMES[0]
+                ),
+            ),
+            (
+                "sibling hash",
+                "sibling output hashes",
+                lambda failed: self._mutate_json(
+                    failed / OUTPUT_NAMES[3],
+                    lambda payload: payload["output_sha256"].__setitem__(
+                        OUTPUT_NAMES[0], "0" * 64
+                    ),
+                ),
+            ),
+        )
+        for name, expected_error, mutate in mutations:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                corpus, names = _make_corpus(root, count=1)
+                manifest = _write_manifest(
+                    root / "manifest.json",
+                    _manifest_payload([_outing("private-1", names[0], 1)]),
+                )
+                inspectors = _SyntheticInspectors()
+                failed = root / "failed"
+                self._run(_arguments(corpus, manifest, failed), inspectors)
+                _downgrade_to_legacy_audit(failed)
+                mutate(failed)
+                output = root / "amended"
+                with self.assertRaisesRegex(ValueError, expected_error):
+                    self._run(
+                        _arguments(
+                            corpus,
+                            manifest,
+                            output,
+                            amended_from_failed=failed,
+                        ),
+                        inspectors,
+                    )
+                self.assertFalse(output.exists())
+
+    @staticmethod
+    def _mutate_json(path: Path, mutation) -> None:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        mutation(payload)
+        _write_strict_json(path, payload)
+
+    @staticmethod
+    def _mutate_recording_hash(path: Path) -> None:
+        with path.open(encoding="utf-8", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        rows[0]["sha256"] = "0" * 64
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=RECORDING_FIELDS)
+            writer.writeheader()
+            writer.writerows(rows)
+
+    def test_verifier_requires_and_rechecks_supplied_failed_audit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            corpus, names = _make_corpus(root, count=1)
+            manifest = _write_manifest(
+                root / "manifest.json",
+                _manifest_payload([_outing("private-1", names[0], 1)]),
+            )
+            inspectors = _SyntheticInspectors()
+            failed = root / "failed"
+            amended = root / "amended"
+            self._run(_arguments(corpus, manifest, failed), inspectors)
+            _downgrade_to_legacy_audit(failed)
+            self._run(
+                _arguments(
+                    corpus,
+                    manifest,
+                    amended,
+                    amended_from_failed=failed,
+                ),
+                inspectors,
+            )
+            with self.assertRaisesRegex(
+                VerificationError, "schema compatibility amendment differs"
+            ):
+                verify_intake_bundle(corpus, manifest, amended)
+            (failed / OUTPUT_NAMES[0]).write_bytes(
+                (failed / OUTPUT_NAMES[0]).read_bytes() + b"\n"
+            )
+            with self.assertRaisesRegex(
+                VerificationError,
+                "recording CSV|sibling output hashes",
+            ):
+                verify_intake_bundle(corpus, manifest, amended, failed)
 
     def test_120_second_and_500_frame_boundaries_are_inclusive(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -684,6 +976,7 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
             corpus, manifest, inspectors = self._success_fixture(initial_root)
             first_output = initial_root / "output"
             self._run(_arguments(corpus, manifest, first_output), inspectors)
+            _downgrade_to_legacy_audit(first_output)
             prior = first_output / "independent_outing_lock.json"
             prior_hash = hashlib.sha256(prior.read_bytes()).hexdigest()
 
@@ -944,6 +1237,35 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
 
 
 class IndependentOutingCliTests(unittest.TestCase):
+    @patch("lane_residuals.cli.independent_outing_intake.run_independent_outing_intake")
+    def test_cli_accepts_failed_audit_lineage_directory(self, run) -> None:
+        run.return_value = (
+            {
+                "mcap_file_count": 1,
+                "declared_new_outing_count": 1,
+                "eligible_new_outing_count": 0,
+                "status": "insufficient_independent_outings",
+            },
+            3,
+        )
+        status = main(
+            [
+                "new-root",
+                "--acquisition-manifest",
+                "manifest.json",
+                "--output-directory",
+                "output",
+                "--amended-from-failed-intake-directory",
+                "failed-v0170",
+            ]
+        )
+        self.assertEqual(status, 3)
+        arguments = run.call_args.args[0]
+        self.assertEqual(
+            arguments.amended_from_failed_intake_directory,
+            Path("failed-v0170"),
+        )
+
     @patch("lane_residuals.cli.independent_outing_intake.run_independent_outing_intake")
     def test_cli_returns_success_and_insufficient_statuses(self, run) -> None:
         summary = {

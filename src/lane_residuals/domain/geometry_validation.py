@@ -29,6 +29,7 @@ from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from itertools import pairwise
+from numbers import Integral
 from typing import Any, Literal
 
 import numpy as np
@@ -44,6 +45,7 @@ from .path_source_probe import (
     _effective_field_value,
     _joint_audit_bindings,
     _repeated_values,
+    estimate_descriptor_support,
 )
 from ..legacy.preprocessing import project_points_to_polyline
 
@@ -156,6 +158,8 @@ class EstimatedFrameAudit:
     interval_count: int | None
     payload_fingerprint: str | None = field(default=None, repr=False)
     candidate: SplineParameters | None = field(default=None, repr=False)
+    descriptor_file_sha256: str | None = None
+    descriptor_generation: str = "unclassified"
 
     @property
     def candidate_ready(self) -> bool:
@@ -408,13 +412,12 @@ def _spline_parameters_from_path(
             "index_anchor_unavailable",
             "index_0 accessor is unavailable",
         )
-    try:
-        index = int(index_value)
-    except (TypeError, ValueError, OverflowError) as error:
+    if isinstance(index_value, bool) or not isinstance(index_value, Integral):
         raise GeometryValidationError(
             "index_anchor_not_integer",
-            "index_0 is not an integer",
-        ) from error
+            "index_0 must be a non-Boolean integer",
+        )
+    index = int(index_value)
     return SplineParameters(
         x_0=_numeric_scalar(model, bindings.x_0),
         y_0=_numeric_scalar(model, bindings.y_0),
@@ -455,7 +458,8 @@ def estimated_frame_from_message(
             "estimated path message has no Protobuf descriptor",
         )
     bindings = _joint_audit_bindings(descriptor)
-    missing = bindings.missing_required()
+    descriptor_support = estimate_descriptor_support(message)
+    missing = descriptor_support.missing_required_fields
     source_time_ns = _source_time(message)
     topology_source = "UNAVAILABLE_ENUM_VALUE"
     if bindings.topology_source is not None:
@@ -470,6 +474,7 @@ def estimated_frame_from_message(
             message_index=message_index,
             path_index=path_index,
             bindings=bindings,
+            descriptor_support=descriptor_support,
         )
         for path_index, path in enumerate(path_values)
     ]
@@ -496,6 +501,11 @@ def estimated_frame_from_message(
     )
     if estimator_state != "available_no_error":
         conversion_state = "not_attempted_estimator_unavailable"
+    elif not descriptor_support.supported:
+        conversion_state = (
+            descriptor_support.failure_code
+            or "unsupported_estimate_descriptor_generation"
+        )
     elif missing:
         conversion_state = "schema_bindings_incomplete"
     elif source_time_ns is None:
@@ -504,7 +514,7 @@ def estimated_frame_from_message(
         conversion_state = "unexpected_topology_source"
     elif not keep_lane[0].model_structure_valid:
         conversion_state = "model_structure_invalid"
-    elif keep_lane[0].model_parameters_optional_flag_value is not True:
+    elif not keep_lane[0].model_availability_valid:
         conversion_state = "model_flag_not_true"
     else:
         selected_path = path_values[keep_lane[0].path_index]
@@ -534,6 +544,8 @@ def estimated_frame_from_message(
         interval_count=interval_count,
         payload_fingerprint=payload_fingerprint or _payload_fingerprint(message),
         candidate=candidate,
+        descriptor_file_sha256=descriptor_support.descriptor_file_sha256,
+        descriptor_generation=descriptor_support.generation,
     )
 
 

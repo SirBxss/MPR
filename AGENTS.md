@@ -10,7 +10,13 @@ implementation for the thesis; LEEM is historical reference material only.
    - `docs/modeling_plan.md` for scientific gates and phase decisions;
    - `docs/output_contracts.md` for exact artifact schemas;
    - `docs/architecture.md` for ownership boundaries;
-   - `docs/commands.md` for supported entry points.
+   - `docs/commands.md` for supported entry points;
+   - `docs/bmw_edp_schema_evidence.md` before changing any estimated-drive-
+     path schema binding; and
+   - `docs/independent_outing_schema_v2_amendment.md` for the reviewed v0.17.1
+     compatibility boundary; and
+   - `docs/independent_outing_batch01_v0171_result.md` for the accepted real
+     amended audit, its exact lineage, interpretation, and remaining data gate.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
@@ -110,10 +116,16 @@ implementation raises this to 329 passing tests with the same two skips. The
 v0.16.2 spatial-structure audit raises this to 339 passing tests with the same
 two skips.
 The v0.17.0 independent-outing intake raises this to 381 passing tests with the
-same two skips. No real v0.17 lock exists until new data arrive and the private
-prospective manifest is created.
+same two skips.
 The v0.17 data-arrival verifier and runbook raise this to 384 passing tests with
-the same two skips. They add no model or current-data diagnostic.
+the same two skips. They add no model or current-data diagnostic. The first
+real v0.17.0 audit is preserved but is not a successful cohort lock; read
+`docs/current_status.md` before any v0.17.1 work.
+The v0.17.1 schema-v2 compatibility implementation raises this to 402 passing
+tests with the same two skips. Its implementation and real batch01 audit both
+received focused independent `GO`. Batch01 contributes zero eligible outings;
+do not rerun it or relax topology, H100/map-pairing, anchor, or causal-input
+gates. Further evidence requires new prospectively declared physical outings.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

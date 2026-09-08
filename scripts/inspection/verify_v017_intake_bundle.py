@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independently verify one initial v0.17 intake bundle without decoding MCAPs.
+"""Verify one initial or schema-amended v0.17 intake without decoding MCAPs.
 
 This script deliberately uses only the Python standard library and imports no
 ``lane_residuals`` module. It reads immutable bytes, fixed counts, identities,
@@ -25,7 +25,19 @@ VERSION = "0.17.0"
 MANIFEST_VERSION = "0.17"
 PURPOSE = "independent_outing_intake_and_cohort_lock"
 MANIFEST_PURPOSE = "prospective_independent_outing_intake"
-CONTRACT_REVISION = "v0.17.0-reviewed-2026-09-03-layout-c1"
+LEGACY_CONTRACT_REVISION = "v0.17.0-reviewed-2026-09-03-layout-c1"
+CONTRACT_REVISION = "v0.17.1-reviewed-2026-09-07-schema-v2-a1"
+SCHEMA_COMPATIBILITY_AMENDMENT_ID = "v0.17.1-edp-schema-v2-2026-09-07"
+ESTIMATE_DESCRIPTOR_IDENTITY_SOURCE = (
+    "sha256(message.DESCRIPTOR.file.serialized_pb)"
+)
+ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256 = (
+    "dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4"
+)
+LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256 = (
+    "f6ae6e61378ea6d3a07d6d7128b232db55d1e00e49c4fd9cd3708c4acea6992f"
+)
+SCHEMA_COMPATIBILITY_FIELD = "schema_compatibility_amendment"
 SPLIT_SALT = b"MPR-v0.17-final-split-v1"
 MINIMUM_ELIGIBLE_NEW_OUTING_COUNT = 7
 MINIMUM_USABLE_DURATION_S = 120.0
@@ -172,7 +184,7 @@ MANIFEST_OUTING_FIELDS = frozenset(
         "mcap_basenames_private",
     }
 )
-LOCK_FIELDS = frozenset(
+LEGACY_LOCK_FIELDS = frozenset(
     {
         "version",
         "purpose",
@@ -210,7 +222,7 @@ LOCK_OUTING_FIELDS = frozenset(
         "cohort_role",
     }
 )
-SUMMARY_FIELDS = frozenset(
+LEGACY_SUMMARY_FIELDS = frozenset(
     {
         "version",
         "purpose",
@@ -241,6 +253,29 @@ SUMMARY_FIELDS = frozenset(
         "next_authorized_action",
     }
 )
+LOCK_FIELDS = LEGACY_LOCK_FIELDS | {SCHEMA_COMPATIBILITY_FIELD}
+SUMMARY_FIELDS = LEGACY_SUMMARY_FIELDS | {SCHEMA_COMPATIBILITY_FIELD}
+SCHEMA_AMENDMENT_FIELDS = frozenset(
+    {
+        "amendment_id",
+        "descriptor_identity_source",
+        "allowed_flag_absent_estimate_file_descriptor_sha256",
+        "legacy_estimate_file_descriptor_reference_sha256",
+        "legacy_validity_rule",
+        "observed_estimate_file_descriptor_sha256",
+        "amended_from_failed_audit",
+    }
+)
+LEGACY_VALIDITY_RULE = {
+    "descriptor_rule": (
+        "structural_v0.17.0_binding_no_exhaustive_descriptor_allowlist"
+    ),
+    "field_name": "model_parameters_optional_flag",
+    "field_number": 8,
+    "protobuf_type": "bool",
+    "explicit_presence_required": True,
+    "required_value": True,
+}
 
 
 class VerificationError(ValueError):
@@ -508,10 +543,232 @@ def _validate_output_directory(output: Path) -> None:
         )
 
 
+def _failed_audit_lineage(
+    *,
+    directory: Path,
+    manifest_sha256: str,
+    current_raw_hashes: Mapping[str, str],
+) -> dict[str, Any]:
+    """Independently reconcile a preserved failed v0.17.0 audit."""
+
+    source = directory.expanduser().resolve()
+    _validate_output_directory(source)
+    lock_payload, _ = _read_strict_json(source / OUTPUT_NAMES[2])
+    summary_payload, _ = _read_strict_json(source / OUTPUT_NAMES[3])
+    lock = _exact_fields(lock_payload, LEGACY_LOCK_FIELDS, "failed-audit lock")
+    summary = _exact_fields(
+        summary_payload,
+        LEGACY_SUMMARY_FIELDS,
+        "failed-audit summary",
+    )
+    nested_fields = (
+        (lock.get("manifest"), frozenset({"version", "purpose", "sha256"}), "manifest"),
+        (
+            lock.get("availability_gate"),
+            frozenset(
+                {
+                    "minimum_eligible_new_outing_count",
+                    "eligible_new_outing_count",
+                    "total_independent_outing_count_including_legacy",
+                    "passed",
+                }
+            ),
+            "availability gate",
+        ),
+        (
+            summary.get("availability_gate"),
+            frozenset({"minimum_eligible_new_outing_count", "passed"}),
+            "summary availability gate",
+        ),
+        (
+            lock.get("prior_successful_lock"),
+            frozenset(
+                {
+                    "declared_sha256",
+                    "supplied",
+                    "verified",
+                    "overlapping_raw_sha256_count",
+                    "superseding_contract_amendment_id",
+                }
+            ),
+            "prior successful lock",
+        ),
+        (
+            lock.get("attestations"),
+            frozenset(
+                {
+                    "verification_status",
+                    "acquisition_batch_closed",
+                    "created_before_outcome_inspection",
+                    "null_prior_successful_lock_declared",
+                    "outings",
+                }
+            ),
+            "attestations",
+        ),
+        (
+            lock.get("final_outing_embargo"),
+            frozenset({"active", "allowed_evidence", "embargoed_numeric_evidence"}),
+            "final outing embargo",
+        ),
+        (
+            lock.get("split_contract"),
+            frozenset(set(SPLIT_CONTRACT_BASE) | {"final_count"}),
+            "split contract",
+        ),
+    )
+    for value, fields, name in nested_fields:
+        _exact_fields(value, fields, f"failed-audit {name}")
+
+    outings = lock.get("outings")
+    if not isinstance(outings, list) or not outings:
+        raise VerificationError("failed-audit lock outings are missing")
+    for index, value in enumerate(outings):
+        outing = _exact_fields(
+            value,
+            LOCK_OUTING_FIELDS,
+            f"failed-audit lock outings[{index}]",
+        )
+        if any(
+            outing[field] is not None
+            for field in ("split_score_sha256", "split_rank", "cohort_role")
+        ):
+            raise VerificationError("failed audit contains an assigned cohort role")
+
+    attestations = lock["attestations"]
+    if not isinstance(attestations["outings"], list):
+        raise VerificationError("failed-audit outing attestations must be an array")
+    for index, value in enumerate(attestations["outings"]):
+        _exact_fields(
+            value,
+            frozenset(
+                {"outing_id", "separate_physical_session", "independence_basis_private"}
+            ),
+            f"failed-audit attestations.outings[{index}]",
+        )
+
+    expected_initial_prior = {
+        "declared_sha256": None,
+        "supplied": False,
+        "verified": False,
+        "overlapping_raw_sha256_count": 0,
+        "superseding_contract_amendment_id": None,
+    }
+    if (
+        lock.get("version") != VERSION
+        or summary.get("version") != VERSION
+        or lock.get("purpose") != PURPOSE
+        or summary.get("purpose") != PURPOSE
+        or lock.get("contract_revision") != LEGACY_CONTRACT_REVISION
+        or summary.get("contract_revision") != LEGACY_CONTRACT_REVISION
+        or lock.get("status") != "insufficient_independent_outings"
+        or summary.get("status") != "insufficient_independent_outings"
+        or lock.get("split_assignments_authorized") is not False
+        or lock["split_contract"].get("final_count") is not None
+        or summary.get("final_count") is not None
+        or lock.get("role_counts") != {"unassigned": len(outings)}
+        or summary.get("role_counts") != {"unassigned": len(outings)}
+        or dict(lock["prior_successful_lock"]) != expected_initial_prior
+        or summary.get("prior_successful_lock_sha256") is not None
+        or summary.get("prior_successful_lock_verified") is not False
+        or summary.get("overlapping_raw_sha256_count") != 0
+        or lock["manifest"].get("version") != MANIFEST_VERSION
+        or lock["manifest"].get("purpose") != MANIFEST_PURPOSE
+        or lock["manifest"].get("sha256") != manifest_sha256
+        or summary.get("manifest_sha256") != manifest_sha256
+    ):
+        raise VerificationError("supplied directory is not a failed v0.17.0 audit")
+
+    raw_map = lock.get("raw_file_sha256_by_basename_private")
+    if not isinstance(raw_map, Mapping) or set(raw_map) != set(current_raw_hashes):
+        raise VerificationError("failed-audit raw-file hash coverage differs")
+    for basename, expected_digest in current_raw_hashes.items():
+        if (
+            _lowercase_sha256(raw_map[basename], "failed-audit raw hash")
+            != expected_digest
+        ):
+            raise VerificationError("failed-audit raw-file hashes differ")
+
+    recordings = _read_csv(source / OUTPUT_NAMES[0], RECORDING_FIELDS)
+    outings_csv = _read_csv(source / OUTPUT_NAMES[1], OUTING_FIELDS)
+    recording_map: dict[str, str] = {}
+    for row in recordings:
+        basename = row["mcap_basename_private"]
+        if basename in recording_map:
+            raise VerificationError("failed-audit recording basenames are not unique")
+        recording_map[basename] = row["sha256"]
+    if recording_map != dict(current_raw_hashes):
+        raise VerificationError("failed-audit recording CSV differs from current raw bytes")
+    if len(outings_csv) != len(outings) or any(
+        row["split_score_sha256"] or row["split_rank"] or row["cohort_role"]
+        for row in outings_csv
+    ):
+        raise VerificationError("failed-audit outing CSV contains a cohort assignment")
+
+    output_hashes = {name: _sha256_file(source / name) for name in OUTPUT_NAMES}
+    sibling_hashes = summary.get("output_sha256")
+    if (
+        not isinstance(sibling_hashes, Mapping)
+        or set(sibling_hashes) != set(OUTPUT_NAMES[:3])
+        or any(
+            _lowercase_sha256(sibling_hashes[name], f"failed-audit hash for {name}")
+            != output_hashes[name]
+            for name in OUTPUT_NAMES[:3]
+        )
+    ):
+        raise VerificationError("failed-audit sibling output hashes do not reconcile")
+    return {
+        "contract_revision": LEGACY_CONTRACT_REVISION,
+        "manifest_sha256": manifest_sha256,
+        "output_sha256": dict(sorted(output_hashes.items())),
+    }
+
+
+def _validate_schema_compatibility_amendment(
+    value: Any,
+    *,
+    expected_failed_audit: Mapping[str, Any] | None,
+) -> tuple[str, ...]:
+    amendment = _exact_fields(
+        value,
+        SCHEMA_AMENDMENT_FIELDS,
+        "schema compatibility amendment",
+    )
+    if (
+        amendment["amendment_id"] != SCHEMA_COMPATIBILITY_AMENDMENT_ID
+        or amendment["descriptor_identity_source"]
+        != ESTIMATE_DESCRIPTOR_IDENTITY_SOURCE
+        or amendment["allowed_flag_absent_estimate_file_descriptor_sha256"]
+        != ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256
+        or amendment["legacy_estimate_file_descriptor_reference_sha256"]
+        != LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256
+        or not _typed_json_equal(
+            amendment["legacy_validity_rule"], LEGACY_VALIDITY_RULE
+        )
+        or not _typed_json_equal(
+            amendment["amended_from_failed_audit"], expected_failed_audit
+        )
+    ):
+        raise VerificationError("schema compatibility amendment differs")
+    observed = amendment["observed_estimate_file_descriptor_sha256"]
+    if not isinstance(observed, list):
+        raise VerificationError("observed estimate descriptor identities must be an array")
+    validated = tuple(
+        _lowercase_sha256(value, "observed estimate descriptor identity")
+        for value in observed
+    )
+    if list(validated) != sorted(set(validated)):
+        raise VerificationError(
+            "observed estimate descriptor identities must be sorted and unique"
+        )
+    return validated
+
+
 def verify_intake_bundle(
     raw_mcap_root: Path,
     acquisition_manifest: Path,
     intake_output_directory: Path,
+    amended_from_failed_intake_directory: Path | None = None,
 ) -> dict[str, Any]:
     """Verify initial-lock bytes, identities, assignments, and CSV reconciliation."""
 
@@ -527,14 +784,34 @@ def verify_intake_bundle(
 
     lock_payload, lock_bytes = _read_strict_json(output / OUTPUT_NAMES[2])
     summary_payload, _ = _read_strict_json(output / OUTPUT_NAMES[3])
-    lock = _exact_fields(lock_payload, LOCK_FIELDS, "intake lock")
-    summary = _exact_fields(summary_payload, SUMMARY_FIELDS, "intake summary")
+    if not isinstance(lock_payload, Mapping) or not isinstance(summary_payload, Mapping):
+        raise VerificationError("intake lock and summary must be JSON objects")
+    lock_revision = lock_payload.get("contract_revision")
+    summary_revision = summary_payload.get("contract_revision")
+    if lock_revision != summary_revision:
+        raise VerificationError("lock and summary contract revisions differ")
+    if lock_revision == CONTRACT_REVISION:
+        lock = _exact_fields(lock_payload, LOCK_FIELDS, "intake lock")
+        summary = _exact_fields(summary_payload, SUMMARY_FIELDS, "intake summary")
+        amended_contract = True
+    elif lock_revision == LEGACY_CONTRACT_REVISION:
+        if amended_from_failed_intake_directory is not None:
+            raise VerificationError(
+                "a failed-audit directory cannot be supplied for a legacy output"
+            )
+        lock = _exact_fields(lock_payload, LEGACY_LOCK_FIELDS, "intake lock")
+        summary = _exact_fields(
+            summary_payload,
+            LEGACY_SUMMARY_FIELDS,
+            "intake summary",
+        )
+        amended_contract = False
+    else:
+        raise VerificationError("lock contract revision is not supported")
 
     for name, payload in (("lock", lock), ("summary", summary)):
         if payload["version"] != VERSION or payload["purpose"] != PURPOSE:
             raise VerificationError(f"{name} identity differs from v0.17.0")
-        if payload["contract_revision"] != CONTRACT_REVISION:
-            raise VerificationError(f"{name} contract revision differs")
     if lock["status"] != summary["status"]:
         raise VerificationError("lock and summary statuses differ")
     if lock["status"] not in {"locked", "insufficient_independent_outings"}:
@@ -582,6 +859,35 @@ def verify_intake_bundle(
     raw_hashes = {
         basename: _sha256_file(raw_paths[basename]) for basename in sorted(raw_paths)
     }
+    expected_failed_audit = (
+        _failed_audit_lineage(
+            directory=amended_from_failed_intake_directory,
+            manifest_sha256=manifest_sha256,
+            current_raw_hashes=raw_hashes,
+        )
+        if amended_from_failed_intake_directory is not None
+        else None
+    )
+    observed_descriptor_hashes: tuple[str, ...] = ()
+    if amended_contract:
+        observed_descriptor_hashes = _validate_schema_compatibility_amendment(
+            lock[SCHEMA_COMPATIBILITY_FIELD],
+            expected_failed_audit=expected_failed_audit,
+        )
+        summary_observed = _validate_schema_compatibility_amendment(
+            summary[SCHEMA_COMPATIBILITY_FIELD],
+            expected_failed_audit=expected_failed_audit,
+        )
+        if (
+            summary_observed != observed_descriptor_hashes
+            or not _typed_json_equal(
+                lock[SCHEMA_COMPATIBILITY_FIELD],
+                summary[SCHEMA_COMPATIBILITY_FIELD],
+            )
+        ):
+            raise VerificationError(
+                "lock and summary schema compatibility amendments differ"
+            )
     lock_raw = lock["raw_file_sha256_by_basename_private"]
     if not isinstance(lock_raw, Mapping) or set(lock_raw) != set(raw_hashes):
         raise VerificationError("lock raw-file hash map coverage differs")
@@ -993,6 +1299,23 @@ def verify_intake_bundle(
         f"recording_{index:03d}" for index in range(1, len(recordings) + 1)
     ]:
         raise VerificationError("recording CSV rows are not in deterministic basename order")
+    decoded_estimate_count = sum(
+        int(
+            _csv_int(
+                row["decoded_estimate_message_count"],
+                "recording decoded estimate message count",
+            )
+            or 0
+        )
+        for row in recordings
+    )
+    if amended_contract and bool(observed_descriptor_hashes) is not bool(
+        decoded_estimate_count
+    ):
+        raise VerificationError(
+            "observed estimate descriptor identities do not reconcile with "
+            "decoded estimate messages"
+        )
 
     if len(outings_csv) != declared_count:
         raise VerificationError("outing CSV row count differs")
@@ -1247,6 +1570,10 @@ def verify_intake_bundle(
 
     return {
         "version": VERSION,
+        "contract_revision": lock_revision,
+        "schema_compatibility_amendment_id": (
+            SCHEMA_COMPATIBILITY_AMENDMENT_ID if amended_contract else None
+        ),
         "verification_status": "passed",
         "verification_scope": "lineage_identity_split_and_report_reconciliation_only",
         "technical_evidence_redecoded": False,
@@ -1265,13 +1592,18 @@ def verify_intake_bundle(
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Independently verify an initial v0.17 intake bundle using only "
-            "hash, count, identity, and cohort-role evidence."
+            "Independently verify an initial or schema-amended v0.17 intake "
+            "bundle using only hash, count, identity, and cohort-role evidence."
         )
     )
     parser.add_argument("raw_mcap_root", type=Path)
     parser.add_argument("--acquisition-manifest", required=True, type=Path)
     parser.add_argument("--intake-output-directory", required=True, type=Path)
+    parser.add_argument(
+        "--amended-from-failed-intake-directory",
+        type=Path,
+        help="preserved failed v0.17.0 audit reconciled by the amended bundle",
+    )
     return parser
 
 
@@ -1282,6 +1614,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             arguments.raw_mcap_root,
             arguments.acquisition_manifest,
             arguments.intake_output_directory,
+            arguments.amended_from_failed_intake_directory,
         )
     except (OSError, TypeError, ValueError) as error:
         print(f"ERROR {error}", file=sys.stderr)

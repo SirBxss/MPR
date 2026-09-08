@@ -1,20 +1,28 @@
 # Current project status
 
-Last updated: 2026-09-06. This is the first file a new agent should read after
+Last updated: 2026-09-08. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.17.0 independent-outing intake implemented,
-  synthetically verified, independently approved, and merged. Claude's focused
+- Repository version: v0.17.1 EDP schema compatibility implemented,
+  synthetically verified, independently approved, and exercised on the closed
+  real batch01. Its v0.17.0 independent-outing intake base is independently
+  approved and merged. Claude's earlier focused
   implementation review returned one `AMEND` concerning the legacy package
   initializer's transitive imports; the correction froze that graph and the
   focused re-review returned `GO`.
-  No real v0.17 lock or new-outing output exists. One separate, outcome-blind
-  candidate outing containing 86 consecutive MCAP chunks has now arrived;
-  acquisition-time timezone provenance and the private manifest remain
-  unresolved. v0.16.2 spatial-structure
+  A real v0.17.0 one-outing audit now exists, passed independent reconciliation,
+  and assigned no role. No successful v0.17 cohort lock exists. The candidate
+  descriptor is a newer BMW EDP generation that removed the legacy model-
+  parameter Boolean. Complete privacy-safe evidence and a read-only BMW source
+  trace support a narrow v0.17.1 amendment. Its first focused review returned
+  `AMEND`; the corrected contract, implementation, and real amended audit then
+  each received focused `GO`. The adapter restored H100 conversion, but the
+  resulting candidate set is entirely LANE_MAP and contains zero eligible
+  SENSOR_TOPOLOGY frames. No role was assigned and no successful cohort lock
+  exists. v0.16.2 spatial-structure
   audit is complete, independently reproduced, approved, and merged. v0.16.1
   real A3 sampling and planner
   transfer are also complete, independently reproduced, approved, and merged.
@@ -43,6 +51,21 @@ critical path changes.
   were merged through PR #16 at commit `3765994`. They add no scientific
   analysis. No further scientific implementation is authorized before the
   real cohort lock.
+- The raw-data chronology and first 86-file arrival checkpoint were merged
+  through PR #17 at commit `fc46ce5`.
+- Claude's focused v0.17.1 contract re-review covered pushed commit `b51bee3`
+  and exact tree `a846fe8`, returned `GO`, and authorized only the bounded
+  compatibility implementation. Local patch-source commit `b51fb21` has the
+  same reviewed tree. The report SHA-256 is
+  `f35ca84085eef36590f5cc4af513a21c9e676be3c2273f853b3b1b1c72062ce1`.
+- The bounded v0.17.1 implementation contains separate feature, test, and
+  final hardening commits for the decoder, intake, additive failed-audit
+  lineage, independent verifier, strict non-Boolean integer anchor handling,
+  and synthetic contract coverage. Claude reviewed exact pushed commit
+  `ad8f72e`, tree `1210048`, reproduced 402 tests with two expected skips, and
+  returned implementation `GO`. The implementation-review report SHA-256 is
+  `7cb78f59eb77eca0da85e81a9961096ccbd57adddd547f70404e13fa6a7928e7`.
+  No patch-source SHA is treated as the review identity.
 - The v0.17 prospective independent-outing intake and cohort-lock contract was
   drafted before new data were available. Claude reviewed pushed commit
   `189f948` and returned `AMEND`. The apparent review-SHA mismatch is resolved:
@@ -56,8 +79,8 @@ critical path changes.
   four-file workflow, CLI, schemas, and synthetic acceptance tests are now
   implemented. Claude then reviewed pushed implementation commit `31905c5`,
   returned one focused `AMEND` for the package-initializer dependency wording,
-  and returned `GO` after the correction at `2035f34`. PR #14 is merged; no real
-  output exists yet.
+  and returned `GO` after the correction at `2035f34`. PR #14 is merged; the
+  later real one-outing audit is recorded below.
 - v0.17.0 implementation verification: 381 tests pass with two expected skips.
   The 42 new tests cover the strict manifest, exact recursive coverage,
   eligibility boundaries, content-only split, distinct ID/rank orders,
@@ -70,6 +93,29 @@ critical path changes.
   runbook's initial-lock command, thresholds, outputs, and package-independence
   boundary.
 - Merged-main baseline verification: 384 tests pass with two expected skips.
+- v0.17.1 implementation verification: 402 tests pass with two expected skips.
+  The added tests cover exact message-owned descriptor identity, unrestricted
+  structural legacy admission with explicit-true Boolean field 8, exact pinned
+  flag-absent v2 admission, unsupported and drifted generation failure, all
+  structural/index failures for both generations, equal downstream geometry
+  and eligibility, exact additive JSON lineage, pre-write failed-audit
+  reconciliation, deterministic output, and independent verifier coupling.
+- First real v0.17.0 batch audit: all 86 MCAPs are raw-usable, summed usable
+  duration is `1707.738856448 s`, the availability status is
+  `insufficient_independent_outings`, no role is assigned, and the standalone
+  verifier passes. The original output is immutable evidence, not a successful
+  cohort lock.
+- Real v0.17.1 amended batch01 audit: the same 86 raw files and manifest were
+  reconciled to the preserved failed audit. The adapter decoded 17,163 estimate
+  messages and produced 5,289 H100-ready candidates; all candidates are
+  LANE_MAP, none is SENSOR_TOPOLOGY, and zero frames or sequences are eligible.
+  The outing remains technically ineligible, contributes zero of seven
+  required new outings, and has no role. The standard-library verifier passed
+  over the real raw hashes with `files_written=0`; it independently verifies
+  lineage/report reconciliation but does not re-decode technical counts.
+  Claude's final real-output review returned `GO`. Exact hashes, failure counts,
+  interpretation limits, and acquisition implications are in
+  `docs/independent_outing_batch01_v0171_result.md`.
 - v0.16.2 focused verification: 339 tests pass with two expected skips. The
   tests cover population arithmetic, exact output schemas, lineage tampering,
   extra inputs, nonzero padding, non-overwrite behavior, and CLI exit codes.
@@ -96,7 +142,7 @@ critical path changes.
   artifacts. Claude's final review independently regenerated both ensembles,
   reconciled every output, and returned `GO`; the phase is accepted and closed.
 
-## Raw-data chronology and 2026-09-06 arrival checkpoint
+## Raw-data chronology and 2026-09-07 intake checkpoint
 
 The raw-data history has three distinct stages. Preserve this order and do not
 retroactively replace a historical file count with a later one:
@@ -105,7 +151,7 @@ retroactively replace a historical file count with a later one:
 |---|---:|---|
 | Early fixed cohort | 10 | Historical corpus used by the early fixed-cohort workflows. Its ten-file documentation remains correct for those versions. |
 | Accepted expanded legacy lineage | 67 | Later accepted legacy corpus. v0.17 treats its evidence as one legacy development outing, not 67 independent outings. |
-| Newly arrived candidate set | 86 | One separately started, consecutively recorded physical outing. Technical eligibility has not yet been evaluated. |
+| Newly arrived candidate set | 86 | One separately started, consecutively recorded physical outing. The first v0.17.0 technical audit is complete but failed closed before H100 eligibility because of an exact BMW EDP schema-generation mismatch. |
 
 A fresh read-only reconciliation of the accepted expanded legacy root reported
 exactly 67 accepted lineage entries and 67 files in the legacy directory. It
@@ -129,9 +175,11 @@ accepted-file hash mismatches: 0
 The separate candidate-root comparison reported 86 MCAPs, no duplicate
 candidate basenames, no basename overlap with the 67-file legacy root, and zero
 byte-identical overlap. The user confirmed that all 86 chunks belong to one
-new physical drive that started separately from the legacy outing. The
-filename timestamp timezone is not yet known, and no candidate residual,
-condition, model, planner, or figure has been inspected.
+new physical drive that started separately from the legacy outing. Filename
+wall-clock timestamps are CEST (UTC+02:00), corroborated by internal MCAP UTC
+timestamps; the prospective manifest records the first internal time as
+`2025-08-21T14:37:46+00:00`. No candidate residual, condition, model, planner,
+or figure has been inspected.
 
 The recorded legacy-versus-candidate comparison output is:
 
@@ -154,6 +202,89 @@ separate recursive `data/raw/new_independent_outings/` root, with one stable
 subdirectory per physical outing. Later workflows must combine them through
 their manifests, content hashes, and cohort lock, not by flattening raw files
 into one directory.
+
+## First real v0.17.0 audit and schema-v2 checkpoint
+
+The exact private manifest was closed before outcome inspection and has
+SHA-256:
+
+```text
+8025ce2a73fc28b1457e0b15c4c870b5d54f80c6913c64a5ea2d4e9877e4c41d
+```
+
+The v0.17.0 intake decoded 17,163 estimate and 17,163 map messages plus 52,012
+odometry messages. All 86 recordings were raw-readable and raw-usable; their
+usable intervals were monotonic and non-overlapping. The run wrote all four
+required files, assigned no role, exposed no outcome value, and exited with the
+expected insufficient-outings status. The standalone verifier passed at commit
+`fc46ce533ba6555224d0264e91e7ef7483ace9dc`.
+
+The immutable original output hashes are:
+
+```text
+independent_outing_recordings.csv
+0f4d0f4e285c676abcadb00b94ee259384867a04330d93fbd6284f7d4d3dabb4
+
+independent_outings.csv
+51c8b42f6c7d31b7af1e8817cf295fee999c06897d5ea12ab3d368002cf41c9e
+
+independent_outing_lock.json
+9ee7565bd800c11773e17917838efdd5ddc3440c6803aa3a8a65631c8a778e60
+
+independent_outing_intake_summary.json
+81f9511575bae84036df98557fa8e63e19db2223e75b0c2cac3cc8d48b96fc0a
+```
+
+The initial run reported all 86 files as
+`estimate_schema_bindings_incomplete`. A 200-message paired probe and complete
+86-file privacy-safe audit isolated the cause: the candidate corpus has one
+consistent serialized-descriptor fingerprint,
+`dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4`,
+which retains all used nested spline bindings but omits legacy Boolean field 8.
+All 17,119 keep-lane/no-error paths in the complete audit pass the schema
+probe's pre-conversion structural subset. That subset does not execute the
+converter's mandatory `index_0` integer/range checks or H100 conversion, so it
+must not be described as the complete converter gate. The candidate descriptor
+does retain `index_0` as int64 field 7. The legacy descriptor reference is
+`f6ae6e61378ea6d3a07d6d7128b232db55d1e00e49c4fd9cd3708c4acea6992f`.
+
+Copilot's read-only BMW source trace reports that the schema-v2 transition made
+`model_parameters` required, removed the optional wrapper/validity binding and
+Boolean field together with a major-version bump, but retained exact
+`DrivePath.error == DRIVE_PATH_ERROR_NO_ERROR` as the semantic validity gate.
+The trace and all evidence limitations are preserved in
+`docs/bmw_edp_schema_evidence.md`.
+
+The complete audit observed 16,376 LANE_MAP and 787 SENSOR_TOPOLOGY messages.
+This does not change the predeclared all-SENSOR primary-cohort rule and is not
+yet the exact post-H100 topology-candidate count. The schema adapter may restore
+geometry conversion while the outing still correctly fails the topology gate.
+
+`docs/independent_outing_schema_v2_amendment.md` defines a narrow v0.17.1
+exact-generation adapter. Claude reviewed pushed commit `2d139251` (tree
+`13aa4f35`) and returned `AMEND`: descriptor identity had to be separated from
+the MCAP schema-record/caller audit hash, the additive output-lineage schema had
+to be exact, and mandatory `index_0` validation had to be explicit. The amended
+draft resolved those points, defines machine-checkable failed-audit lineage,
+and records that batch01 must still exit 3 with no role assignment because it
+declares only one outing. The first review report SHA-256 is
+`fdbeff33bccda9f1eebb0e7fc62827af986448ff28d3fe5fd0e9a0c91b43ef20`.
+Claude's focused re-review then returned `GO` on exact tree `a846fe8`. The
+bounded implementation was applied at pushed commit `ad8f72e`, tree `1210048`.
+Both CI jobs passed and Claude returned implementation `GO`. The real amended
+run and standalone verification then completed under that exact code, and
+Claude's final real-output review returned `GO`; its report SHA-256 is
+`a33506179c1719207cb3b89b7744dc4ea1e82f07269941e9656874c93ce28c4e`.
+
+The real result is an accepted negative technical audit. Of 17,163 decoded
+estimate messages, 5,289 paths reached H100 geometry readiness. All 5,289
+candidates are LANE_MAP; none is SENSOR_TOPOLOGY, so the frozen primary gate is
+sufficient to force zero eligible frames. This does not prove topology was the
+only obstacle: the outing's 787 SENSOR messages produced no H100-ready
+candidate, and H100/map-pairing, coverage, anchor, and causal-input failures
+must not be relaxed post hoc to recover them. The candidate set, not the whole
+outing, is uniformly LANE_MAP. The exact audit record is
+`docs/independent_outing_batch01_v0171_result.md`.
 
 ## Frozen development model
 
@@ -496,33 +627,29 @@ planning gate, not a formal sample-size analysis.
 
 Next actions are ordered:
 
-1. preserve the arrived 86 chunks unchanged as one declared candidate outing
-   and remain outcome-blind;
-2. confirm the acquisition timestamp's timezone from MCAP metadata or the data
-   provider; do not infer it silently from the filename;
-3. either acquire the remaining separate outings before closing the first
-   acquisition batch, or explicitly close and audit this one-outing batch with
-   the expectation that the availability gate cannot yet pass;
-4. before outcome inspection, create the exact private manifest from the real
-   basenames and physical-session declarations;
-5. follow `docs/independent_outing_data_arrival_runbook.md`, run the merged
-   v0.17.0 intake once into a new versioned output directory, and retain all
-   four files whether the availability gate passes or fails;
-6. run the standalone read-only verifier; if the availability gate fails,
-   preserve that audit and add later outcome-blind acquisitions only through a
-   new manifest and new versioned output; if it passes, independently review
-   the real lock and record its accepted SHA-256 here;
-7. only after a successful reconciled lock, predeclare and review the separate
-   final comparison before reading any embargoed final-outing residual,
-   feature, model, or plot.
+1. preserve the 86 raw chunks, exact manifest, v0.17.0 and v0.17.1 outputs,
+   schema probes, verifier result, and all review reports unchanged;
+2. apply this documentation-only handoff to the reviewed implementation branch,
+   push the existing PR #18, and merge only after Python 3.10/3.12 CI passes;
+3. continue acquiring separate outcome-blind physical outings through new
+   manifests and versioned outputs until at least seven new outings are
+   technically eligible; where operationally possible, acquire the same
+   SENSOR_TOPOLOGY domain as the accepted development lineage;
+4. if the available production configuration emits only LANE_MAP, treat that
+   as a domain-change blocker requiring a new prospective scientific contract,
+   not as permission to relax the current gates; and
+5. only after a successful reconciled cohort lock, predeclare and review the
+   separate final comparison before reading any embargoed final-outing outcome.
 
-The intake implementation gates are satisfied and real candidate data have
-begun to arrive, but the required new-outing count has not. The scientific
-programme remains intentionally data-blocked: do not draft evaluator code, fit
-another model, or open any final-outing outcome before the real prospective
-lock exists. After this dated checkpoint is reviewed and merged, the next
-repository change should record and reconcile a real intake audit or successful
-lock, not add another current-outing diagnostic.
+The intake implementation gates are satisfied and the first real audit is
+preserved, but the required new-outing count has not. The scientific programme
+remains intentionally data-blocked: do not draft evaluator code, fit another
+model, or open any final-outing outcome before a successful prospective lock.
+The narrow schema-v2 adapter and batch01 audit are independently approved, but
+batch01 contributes zero eligible outings. No further current-batch diagnostic,
+model-family experiment, gate change, model fit, sampler run, or planner run is
+authorized. The project is data-blocked pending new prospectively declared
+physical outings.
 
 ## Reading map
 
@@ -531,6 +658,12 @@ lock, not add another current-outing diagnostic.
   intake, deterministic split, and final-outing embargo.
 - `docs/independent_outing_data_arrival_runbook.md`: exact initial manifest,
   intake, independent verification, packaging, and review sequence.
+- `docs/bmw_edp_schema_evidence.md`: durable MPR descriptor observations and
+  Copilot-reported BMW source trace for the EDP v1-to-v2 transition.
+- `docs/independent_outing_schema_v2_amendment.md`: reviewed v0.17.1 exact-
+  generation compatibility boundary and completed review gates.
+- `docs/independent_outing_batch01_v0171_result.md`: accepted amended batch01
+  lineage, technical result, interpretation limits, and next acquisition gate.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
 - `docs/architecture.md`: package ownership and dependency boundaries.

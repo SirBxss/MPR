@@ -45,6 +45,7 @@ from ..domain.path_source_probe import (
     _audit_one_path,
     _joint_audit_bindings,
     _repeated_values,
+    estimate_descriptor_support,
 )
 from ..visualization.edp_transitions import (
     plot_transition_metrics as _plot_transition_metrics,
@@ -197,6 +198,7 @@ def _decode_one_estimate_message(
         )
 
     bindings = _joint_audit_bindings(descriptor)
+    descriptor_support = estimate_descriptor_support(decoded)
     path_values = _repeated_values(decoded, bindings.drive_paths) or []
     path_audits = tuple(
         _audit_one_path(
@@ -204,6 +206,7 @@ def _decode_one_estimate_message(
             message_index=message_index,
             path_index=path_index,
             bindings=bindings,
+            descriptor_support=descriptor_support,
         )
         for path_index, path in enumerate(path_values)
     )

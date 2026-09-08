@@ -22,6 +22,7 @@ from .path_source_probe import (
     _effective_field_value,
     _joint_audit_bindings,
     _repeated_values,
+    estimate_descriptor_support,
 )
 
 
@@ -168,12 +169,14 @@ def decode_topology_message(
     wire_consistent = decoded_value is not None and effective_wire == decoded_value
 
     paths = _repeated_values(message, bindings.drive_paths) or []
+    descriptor_support = estimate_descriptor_support(message)
     audits = [
         _audit_one_path(
             path,
             message_index=message_index,
             path_index=index,
             bindings=bindings,
+            descriptor_support=descriptor_support,
         )
         for index, path in enumerate(paths)
     ]

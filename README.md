@@ -1,20 +1,25 @@
-# Minimal Path-Residual Model (MPR) v0.17.0
+# Minimal Path-Residual Model (MPR) v0.17.1
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
 
-Version 0.17.0 implements the independently reviewed prospective independent-
-outing intake and cohort lock. It recursively reconciles a private acquisition
+Version 0.17.1 retains the independently reviewed prospective independent-
+outing intake and cohort lock and adds one narrowly pinned BMW EDP schema-v2
+compatibility path. It recursively reconciles a private acquisition
 manifest against newly acquired MCAP bytes, applies only the frozen raw,
 topology, H100, six-input-availability, duration, and sequence-integrity gates,
 and assigns content-hash-based development/final roles only when at least seven
-new physical outings are eligible. It exports no residual, condition, model, or
-planner values. No real v0.17 lock exists yet.
+new physical outings are eligible. The v2 path is admitted only when the
+decoded message's own serialized file descriptor matches the reviewed exact
+SHA-256; legacy descriptors remain structurally admitted only with an
+explicitly true Boolean field 8. It exports no residual, condition, model, or
+planner values. The first real one-outing v0.17.0 audit failed closed with no
+role assignment; no successful v0.17 cohort lock exists yet.
 The exact first-arrival procedure is frozen in
 `docs/independent_outing_data_arrival_runbook.md`; its standalone standard-
-library verifier independently reconciles an initial four-file lock without
-decoding MCAP messages or writing output.
+library verifier independently reconciles preserved v0.17.0 and amended
+v0.17.1 four-file outputs without decoding MCAP messages or writing output.
 
 The 2026-09-06 arrival checkpoint must not be confused with the historical raw
 corpora. MPR began with a ten-MCAP fixed cohort. The later accepted expanded
@@ -23,10 +28,20 @@ all 67 accepted basenames, no duplicate basenames, no files outside that
 lineage, and no SHA-256 mismatch. A separate new candidate set contains 86
 MCAP chunks from one consecutively recorded physical outing, with no basename
 or byte-content overlap against the legacy lineage.
-Those 86 files are one candidate outing, not 86 independent outings. No new-
-outing residual, condition, model, planner, or figure has been inspected, and
-the filename timestamp timezone remains unresolved. Exact current status and
-the next outcome-blind steps are recorded in `docs/current_status.md`.
+Those 86 files are one candidate outing, not 86 independent outings. Filename
+wall-clock time was confirmed as CEST and reconciled to internal UTC. No new-
+outing residual, condition, model, planner, or figure has been inspected. The
+real v0.17.0 audit exposed a BMW EDP schema-v2 transition, now recorded in
+`docs/bmw_edp_schema_evidence.md`. Claude returned `GO` on the corrected narrow
+v0.17.1 contract and implementation. The amended real run then decoded all
+17,163 estimate messages and restored 5,289 H100-ready paths, but all 5,289
+candidates were LANE_MAP and none was SENSOR_TOPOLOGY. The unchanged primary
+gate therefore retained zero eligible frames and assigned no role. The
+standalone verifier passed, Claude's final real-output review returned `GO`,
+and the result is accepted as a negative technical audit—not a successful
+cohort lock. Exact lineage, interpretation, and next acquisition steps are in
+`docs/independent_outing_batch01_v0171_result.md` and
+`docs/current_status.md`.
 
 Version 0.16.2 adds the independently reviewed, lineage-locked A2/A3
 cross-station structure audit. It consumes only the accepted generated

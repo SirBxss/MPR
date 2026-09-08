@@ -1,6 +1,8 @@
 import math
+import hashlib
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import numpy as np
 
@@ -110,7 +112,7 @@ def _estimated_schema():
             default_value=None,
             has_presence=True,
         ),
-        _field("model_parameters_optional_flag", 4, 8, default_value=False),
+        _field("model_parameters_optional_flag", 8, 8, default_value=False),
         _field("drive_path_confidences", 5, 1, repeated=True, default_value=()),
         _field("lane_topology_ids", 6, 4, repeated=True, default_value=()),
     ]
@@ -180,6 +182,18 @@ def _root_message(schema, paths, *, timestamp=100, topology=1):
     if timestamp is not None:
         values["time_stamp"] = timestamp
     return _Message(schema.root, values)
+
+
+def _candidate_v2_schema():
+    schema = _estimated_schema()
+    schema.path_fields[:] = [
+        field
+        for field in schema.path_fields
+        if field.name != "model_parameters_optional_flag"
+    ]
+    schema.path.fields = schema.path_fields
+    schema.root.file.serialized_pb = b"synthetic-exact-candidate-v2"
+    return schema
 
 
 def _parameters(
@@ -409,6 +423,285 @@ class FailClosedExtractionTests(unittest.TestCase):
         self.assertEqual(audit.conversion_state, "candidate_ready")
         self.assertFalse(audit.candidate.index_0_explicitly_present)
         self.assertEqual(audit.candidate.index_0_presence_evidence, "implicit_default")
+
+    def test_exact_candidate_v2_accepts_absent_flag_from_message_descriptor(self):
+        schema = _candidate_v2_schema()
+        expected_hash = hashlib.sha256(schema.root.file.serialized_pb).hexdigest()
+        for caller_fingerprint in (None, "unrelated-caller-value", "0" * 64):
+            with self.subTest(caller_fingerprint=caller_fingerprint):
+                path_message = _path(schema)
+                delattr(path_message, "model_parameters_optional_flag")
+                with patch(
+                    "lane_residuals.domain.path_source_probe."
+                    "ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256",
+                    expected_hash,
+                ):
+                    audit = estimated_frame_from_message(
+                        _root_message(schema, [path_message]),
+                        message_index=0,
+                        log_time_ns=1,
+                        publish_time_ns=1,
+                        schema_fingerprint=caller_fingerprint,
+                    )
+                self.assertTrue(audit.candidate_ready)
+                self.assertEqual(audit.descriptor_file_sha256, expected_hash)
+                self.assertEqual(audit.descriptor_generation, "candidate_v2")
+                self.assertEqual(audit.schema_fingerprint, caller_fingerprint)
+
+    def test_unpinned_flag_absent_descriptor_fails_closed(self):
+        schema = _candidate_v2_schema()
+        path_message = _path(schema)
+        delattr(path_message, "model_parameters_optional_flag")
+        audit = estimated_frame_from_message(
+            _root_message(schema, [path_message]),
+            message_index=0,
+            log_time_ns=1,
+            publish_time_ns=1,
+            schema_fingerprint=(
+                "dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4"
+            ),
+        )
+        self.assertEqual(audit.descriptor_generation, "unsupported")
+        self.assertEqual(
+            audit.conversion_state,
+            "unsupported_estimate_descriptor_generation",
+        )
+
+    def test_pinned_candidate_identity_rejects_a_descriptor_with_field_8(self):
+        schema = _estimated_schema()
+        own_hash = hashlib.sha256(schema.root.file.serialized_pb).hexdigest()
+        with patch(
+            "lane_residuals.domain.path_source_probe."
+            "ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256",
+            own_hash,
+        ):
+            audit = estimated_frame_from_message(
+                _root_message(schema, [_path(schema)]),
+                message_index=0,
+                log_time_ns=1,
+                publish_time_ns=1,
+            )
+        self.assertEqual(audit.descriptor_generation, "candidate_v2")
+        self.assertEqual(
+            audit.conversion_state,
+            "candidate_v2_descriptor_contract_mismatch",
+        )
+
+    def test_legacy_field_8_requires_explicit_true_boolean(self):
+        schema = _estimated_schema()
+        for model_flag in (False, None, 1):
+            with self.subTest(model_flag=model_flag):
+                path_message = _path(schema, model_flag=model_flag)
+                if model_flag is None:
+                    delattr(path_message, "model_parameters_optional_flag")
+                audit = estimated_frame_from_message(
+                    _root_message(schema, [path_message]),
+                    message_index=0,
+                    log_time_ns=1,
+                    publish_time_ns=1,
+                    schema_fingerprint=(
+                        "dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4"
+                    ),
+                )
+                self.assertEqual(audit.descriptor_generation, "legacy_v1")
+                self.assertEqual(audit.conversion_state, "model_flag_not_true")
+
+        honest = estimated_frame_from_message(
+            _root_message(schema, [_path(schema, model_flag=True)]),
+            message_index=0,
+            log_time_ns=1,
+            publish_time_ns=1,
+            schema_fingerprint=(
+                "dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4"
+            ),
+        )
+        self.assertEqual(honest.descriptor_generation, "legacy_v1")
+        self.assertTrue(honest.candidate_ready)
+
+    def test_candidate_v2_still_requires_no_error_and_valid_index(self):
+        schema = _candidate_v2_schema()
+        expected_hash = hashlib.sha256(schema.root.file.serialized_pb).hexdigest()
+        cases = (
+            ("reported error", _path(schema, error=2), "not_attempted_estimator_unavailable"),
+            ("out of range", _path(schema), "index_anchor_out_of_range"),
+            ("not integer", _path(schema), "index_anchor_not_integer"),
+        )
+        cases[0][1].__dict__.pop("model_parameters_optional_flag", None)
+        cases[1][1].__dict__.pop("model_parameters_optional_flag", None)
+        cases[1][1].model_parameters.index_0 = 99
+        cases[2][1].__dict__.pop("model_parameters_optional_flag", None)
+        cases[2][1].model_parameters.index_0 = None
+        with patch(
+            "lane_residuals.domain.path_source_probe."
+            "ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256",
+            expected_hash,
+        ):
+            for name, path_message, expected_state in cases:
+                with self.subTest(name=name):
+                    audit = estimated_frame_from_message(
+                        _root_message(schema, [path_message]),
+                        message_index=0,
+                        log_time_ns=1,
+                        publish_time_ns=1,
+                    )
+                    self.assertEqual(audit.conversion_state, expected_state)
+
+    def test_all_structural_failures_remain_closed_for_both_generations(self):
+        mutations = (
+            ("parameters absent", lambda path: delattr(path, "model_parameters")),
+            (
+                "non-finite scalar",
+                lambda path: setattr(path.model_parameters, "x_0", float("nan")),
+            ),
+            (
+                "short starts",
+                lambda path: setattr(path.model_parameters, "segment_starts", [0.0]),
+            ),
+            (
+                "non-increasing starts",
+                lambda path: setattr(
+                    path.model_parameters, "segment_starts", [0.0, 0.0, 10.0]
+                ),
+            ),
+            (
+                "non-finite changes",
+                lambda path: setattr(
+                    path.model_parameters,
+                    "curvature_change",
+                    [0.0, float("inf")],
+                ),
+            ),
+            (
+                "count mismatch",
+                lambda path: setattr(
+                    path.model_parameters, "curvature_change", [0.0]
+                ),
+            ),
+            (
+                "index missing",
+                lambda path: delattr(path.model_parameters, "index_0"),
+            ),
+            (
+                "index not int-convertible",
+                lambda path: setattr(path.model_parameters, "index_0", None),
+            ),
+            (
+                "index boolean",
+                lambda path: setattr(path.model_parameters, "index_0", True),
+            ),
+            (
+                "index non-integral numeric",
+                lambda path: setattr(path.model_parameters, "index_0", 1.5),
+            ),
+            (
+                "index out of range",
+                lambda path: setattr(path.model_parameters, "index_0", 99),
+            ),
+        )
+        for generation in ("legacy_v1", "candidate_v2"):
+            for name, mutate in mutations:
+                with self.subTest(generation=generation, name=name):
+                    schema = (
+                        _estimated_schema()
+                        if generation == "legacy_v1"
+                        else _candidate_v2_schema()
+                    )
+                    path_message = _path(schema)
+                    if generation == "candidate_v2":
+                        delattr(path_message, "model_parameters_optional_flag")
+                    mutate(path_message)
+                    expected_hash = hashlib.sha256(
+                        schema.root.file.serialized_pb
+                    ).hexdigest()
+                    pinned = (
+                        expected_hash
+                        if generation == "candidate_v2"
+                        else "not-the-legacy-decision-source"
+                    )
+                    with patch(
+                        "lane_residuals.domain.path_source_probe."
+                        "ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256",
+                        pinned,
+                    ):
+                        audit = estimated_frame_from_message(
+                            _root_message(schema, [path_message]),
+                            message_index=0,
+                            log_time_ns=1,
+                            publish_time_ns=1,
+                        )
+                    self.assertFalse(audit.candidate_ready)
+
+    def test_v1_and_v2_produce_identical_spline_parameters(self):
+        legacy_schema = _estimated_schema()
+        candidate_schema = _candidate_v2_schema()
+        candidate_hash = hashlib.sha256(
+            candidate_schema.root.file.serialized_pb
+        ).hexdigest()
+        legacy_path = _path(legacy_schema)
+        candidate_path = _path(candidate_schema)
+        delattr(candidate_path, "model_parameters_optional_flag")
+        legacy = estimated_frame_from_message(
+            _root_message(legacy_schema, [legacy_path]),
+            message_index=0,
+            log_time_ns=1,
+            publish_time_ns=1,
+        )
+        with patch(
+            "lane_residuals.domain.path_source_probe."
+            "ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256",
+            candidate_hash,
+        ):
+            candidate = estimated_frame_from_message(
+                _root_message(candidate_schema, [candidate_path]),
+                message_index=0,
+                log_time_ns=1,
+                publish_time_ns=1,
+            )
+        self.assertTrue(legacy.candidate_ready and candidate.candidate_ready)
+        self.assertEqual(legacy.candidate.index_0, candidate.candidate.index_0)
+        for attribute in (
+            "x_0",
+            "y_0",
+            "theta_0",
+            "curvature_0",
+            "segment_starts",
+            "curvature_change",
+        ):
+            np.testing.assert_array_equal(
+                getattr(legacy.candidate, attribute),
+                getattr(candidate.candidate, attribute),
+            )
+
+    def test_candidate_descriptor_drift_fails_exact_hash_gate(self):
+        for drift_name, mutate in (
+            ("number", lambda field: setattr(field, "number", 70)),
+            ("type", lambda field: setattr(field, "type", 5)),
+            ("cardinality", lambda field: setattr(field, "is_repeated", True)),
+        ):
+            with self.subTest(drift_name=drift_name):
+                schema = _candidate_v2_schema()
+                pinned_hash = hashlib.sha256(
+                    schema.root.file.serialized_pb
+                ).hexdigest()
+                schema.root.file.serialized_pb = (
+                    f"candidate-v2-with-{drift_name}-drift".encode("ascii")
+                )
+                mutate(schema.model_fields[-1])
+                path_message = _path(schema)
+                delattr(path_message, "model_parameters_optional_flag")
+                with patch(
+                    "lane_residuals.domain.path_source_probe."
+                    "ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256",
+                    pinned_hash,
+                ):
+                    audit = estimated_frame_from_message(
+                        _root_message(schema, [path_message]),
+                        message_index=0,
+                        log_time_ns=1,
+                        publish_time_ns=1,
+                    )
+                self.assertEqual(audit.descriptor_generation, "unsupported")
+                self.assertFalse(audit.candidate_ready)
 
     def test_missing_timestamp_and_unexpected_topology_are_separate_blocks(self):
         schema = _estimated_schema()

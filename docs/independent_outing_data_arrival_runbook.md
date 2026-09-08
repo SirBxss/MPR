@@ -6,6 +6,15 @@ residual inspection, model fitting, sampling, planner execution, or final
 evaluation. If any new-outing outcome has already been inspected, stop and
 record that outing as development-only before continuing.
 
+Checkpoint note (2026-09-07): the first 86-file batch has completed this
+v0.17.0 procedure and its failed-availability output is immutable. Do not repeat
+that run or overwrite it. The encountered BMW EDP schema transition is recorded
+in `docs/bmw_edp_schema_evidence.md`. The exact v0.17.1 compatibility contract,
+implementation, and amended real output each received focused independent
+`GO`. The batch01 re-execution is complete and must not be repeated. Its
+accepted negative result is recorded in
+`docs/independent_outing_batch01_v0171_result.md`.
+
 ## 1. Preserve the prospective boundary
 
 Collect genuinely separate physical outings, not merely separate MCAP chunks.
@@ -212,7 +221,96 @@ accepted lock is recorded only by adding the exact accepted
 `independent_outing_lock.json` SHA-256 to `docs/current_status.md` in a later
 documentation commit.
 
-## 6. Stop after the accepted lock
+## 6. Preserved v0.17.1 batch01 re-execution
+
+This section applies only to the already closed 86-file batch01. It does not
+replace or retroactively edit Sections 1–5. The prospective manifest bytes,
+raw MCAP bytes, and original v0.17.0 four-file output must remain unchanged.
+Do not set `superseding_contract_amendment_id` and do not supply
+`--prior-successful-lock`: the original audit failed before producing a
+successful lock.
+
+The exact implementation received focused independent `GO`, both CI jobs
+passed, and the following command was executed once into a new output directory
+while supplying the preserved v0.17.0 failed audit. It is retained as audit
+history; do not run it again:
+
+```bash
+cd ~/PycharmProjects/MPR
+
+PYTHONPATH=src python -m lane_residuals.cli.independent_outing_intake \
+  "data/raw/new_independent_outings" \
+  --acquisition-manifest \
+  "config/private/independent_outings_v017_batch01.private.json" \
+  --amended-from-failed-intake-directory \
+  "outputs/diagnostics/data/independent_outing_intake_v017_batch01" \
+  --output-directory \
+  "outputs/locks/independent_outing_intake_v0171_batch01"
+
+intake_status=$?
+echo "intake exit status: ${intake_status}"
+```
+
+The contract-implied exit status is `3`, not `0`: the unchanged manifest
+declares only one physical outing and the technical gate retained zero eligible
+outings. All four amended output files exist, status is
+`insufficient_independent_outings`, and no cohort role is assigned. The
+delivered review record did not retain the terminal transcript, so this exit
+code is entailed by stored status rather than separately evidenced.
+
+Reconcile the amended output with the independent standard-library verifier,
+passing the same preserved failed-audit directory:
+
+```bash
+python scripts/inspection/verify_v017_intake_bundle.py \
+  "data/raw/new_independent_outings" \
+  --acquisition-manifest \
+  "config/private/independent_outings_v017_batch01.private.json" \
+  --amended-from-failed-intake-directory \
+  "outputs/diagnostics/data/independent_outing_intake_v017_batch01" \
+  --intake-output-directory \
+  "outputs/locks/independent_outing_intake_v0171_batch01" \
+  2>&1 | tee \
+  ~/Downloads/MPR/independent_outing_intake_v0171_batch01_verifier.json
+
+verifier_status=${PIPESTATUS[0]}
+echo "verifier exit status: ${verifier_status}"
+```
+
+The verifier reported `verification_status: passed`,
+`contract_revision: v0.17.1-reviewed-2026-09-07-schema-v2-a1`,
+`schema_compatibility_amendment_id: v0.17.1-edp-schema-v2-2026-09-07`, and
+`files_written: 0`. Exit `0` is entailed by the verifier's stored successful
+result but was not separately retained in the delivered terminal record. The
+verifier independently rehashed the prior four files, current manifest, and raw
+corpus. The accepted batch01 amendment contains a non-null
+`schema_compatibility_amendment.amended_from_failed_audit` object with all four
+reconciled v0.17.0 hashes.
+
+Package only the four amended outputs and the saved complete verifier output
+for review. Do not include raw MCAPs or any outcome values:
+
+```bash
+cd ~/PycharmProjects/MPR
+
+zip -j \
+  ~/Downloads/MPR/independent_outing_intake_v0171_batch01_review.zip \
+  outputs/locks/independent_outing_intake_v0171_batch01/independent_outing_recordings.csv \
+  outputs/locks/independent_outing_intake_v0171_batch01/independent_outings.csv \
+  outputs/locks/independent_outing_intake_v0171_batch01/independent_outing_lock.json \
+  outputs/locks/independent_outing_intake_v0171_batch01/independent_outing_intake_summary.json \
+  ~/Downloads/MPR/independent_outing_intake_v0171_batch01_verifier.json
+
+git rev-parse HEAD
+```
+
+Codex reconciled the four outputs and verifier result. Claude's independent
+real-output review returned `GO`; report SHA-256
+`a33506179c1719207cb3b89b7744dc4ea1e82f07269941e9656874c93ce28c4e`.
+The accepted result and claim limits are recorded in
+`docs/independent_outing_batch01_v0171_result.md`.
+
+## 7. Stop after the accepted lock
 
 Even a reviewed exit-`0` lock authorizes only the next predeclaration. It does
 not authorize a final model comparison. Codex must draft the exact training,
