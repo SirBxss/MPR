@@ -4,9 +4,9 @@ MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
 
-For a meeting-ready summary of the Gaussian, autoregressive, and latent-state
-results—including the common metrics, comparison figure, model-by-model
-conclusion, and scientific limits—see
+For a meeting-ready, output-driven comparison of the Gaussian, autoregressive,
+and latent-state results—including the plotting command, four common metrics,
+model-by-model conclusion, and scientific limits—see
 [`docs/model_comparison.md`](docs/model_comparison.md).
 
 Version 0.17.1 retains the independently reviewed prospective independent-

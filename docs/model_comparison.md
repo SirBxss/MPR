@@ -1,138 +1,154 @@
 # Reviewed development-model comparison
 
-This is the concise comparison to use in project meetings and the mid-term
-presentation. It consolidates the accepted v0.14--v0.15.4 evidence without
-refitting a model or adding a new post-hoc diagnostic. The primary cohort is
-the same for every row: 4,084 frames in 16 sequences, grouped into four clean
-technical recording groups from one longer same-day physical outing.
+This is the concise model comparison for project meetings and the mid-term
+presentation. It compares the accepted v0.14--v0.15.3 outputs without refitting
+a model or inspecting raw data. Every model uses the same primary cohort:
+4,084 frames in 16 sequences, grouped into four technical recording groups
+from one longer same-day physical outing.
 
-The most important conclusion is that there is **no universal winner**. The
-unconditional Gaussian is strongest on marginal fidelity and calibration. A
-one-state autoregressive model is decisively stronger on temporal fidelity.
-The tested two-state latent switch does not earn its extra complexity. The
-0.99 one-state AR remains the engineering development freeze, while final
-model selection remains unauthorized until independent outings exist.
+There is no universal winner. The corrected two-state AIOHMM has the lowest
+stored macro observed-history NLL, while the simpler models are stronger on
+different free-running properties. Independent outings are still required
+before final model selection.
 
-![Five-metric comparison of MPR development models](figures/model_comparison_overview.svg)
+## Generate the comparison directly from model outputs
 
-The figure is reproducible with:
+The plotting script contains no metric values. It reads these two accepted
+v0.15.3 files directly:
 
-```bash
-MPLBACKEND=Agg python scripts/inspection/render_model_comparison.py
+```text
+ar_boundary_model_comparison.csv
+ar_boundary_fold_comparison.csv
 ```
 
-## What changed between the models
+The v0.15.3 workflow generated those files only after validating the complete
+lineage of the v0.14 Gaussian, corrected v0.15.2 AIOHMM, v0.15.1 one-state AR,
+and v0.15.3 boundary-candidate outputs. Run:
+
+```bash
+python scripts/inspection/render_model_comparison.py \
+  "outputs/models/one_state_ar_boundary_v0153" \
+  --output \
+  "outputs/reports/model_comparison_v0171/model_comparison.png"
+```
+
+Use a new output path if the file already exists. The command fails closed on
+an unexpected CSV schema, model identity, artifact version, held-out-group
+set, non-finite value, or disagreement between the stored macro mean and the
+four fold rows.
+
+The 16:9 Python figure contains only four metrics. Diamonds are stored macro
+means; circles are the four held-out-group values where the consolidated fold
+file provides them. The NLL panel is macro-only because the v0.15.3 fold file
+does not contain NLL.
+
+## Models being compared
 
 ```mermaid
 flowchart LR
-    U["Unconditional Gaussian<br/>marginal leader"] -->|"add six causal features"| C["Conditional Gaussian<br/>no marginal gain"]
-    C -->|"add AR(1) memory"| A["One-state AR<br/>temporal leader"]
-    A -->|"add latent switching"| H["Two-state AIOHMM<br/>complexity not earned"]
+    U["Unconditional Gaussian"] -->|"add six causal features"| C["Conditional Gaussian"]
+    C -->|"add AR(1) memory"| A["One-state AR"]
+    A -->|"add a second state and input-dependent transitions"| H["Two-state AIOHMM"]
 ```
 
-This progression isolates the value of each additional modeling assumption.
-The comparison is not between unrelated pipelines: folds, evaluation rows,
-training-only transformations, sample counts, and common metrics are held
-fixed by the reviewed workflow contracts.
+The last arrow represents the tested v0.15.2 architecture. A two-state model
+with fixed transitions was not tested, so the result must not be generalized
+to every possible latent-state model.
 
-## Metric comparison
+## Four headline metrics
 
-All scores below are macro-averaged over the four held-out technical groups.
-Lower is better except for coverage itself, whose nominal target is 0.95.
-
-| Model | Sample-mean RMSE (m) | Frame energy (m) | Normalized sequence energy (m) | 95% coverage | Lag-one error | Main reading |
-|---|---:|---:|---:|---:|---:|---|
-| Unconditional Gaussian | **0.359350** | **0.984050** | 0.297740 | **0.937690** | approximately 0.958 | Best marginal location, distribution, and calibration |
-| Six-feature conditional Gaussian | 0.362535 | 0.994829 | 0.286028 | 0.928183 | 0.888345 | No marginal gain over the unconditional baseline; sequence energy is lower |
-| One-state conditional AR, cap 0.98 | 0.364830 | 1.007659 | **0.276110** | 0.907818 | 0.008472 | Best complete-sequence energy and near-best temporal fidelity |
-| Two-state AIOHMM, v0.15.0 | 0.374542 | 1.018113 | 0.286286 | 0.868940 | 0.018276 | Captures persistence, but is worse than one-state AR and more complex |
-| Frozen one-state AR, cap 0.99 | 0.365110 | 1.009150 | 0.276216 | 0.917083 | **0.007590** | Best lag-one match; fixed development sampler, not a final selection |
-
-The v0.15.2 convergence correction changed every two-state macro metric by at
-most `4e-4`; it did not change the conclusion that the one-state AR is the
-more defensible temporal model. The table retains the directly published
-v0.15.0 row so its displayed precision remains traceable.
-
-## What the metrics mean
-
-| Metric | Question answered | Why it is needed | Important limitation |
-|---|---|---|---|
-| Sample-mean RMSE | Is the generated mean path-residual profile close to the observed profile? | Familiar measure of average point-prediction accuracy in metres | Does not test spread, joint shape, or time dependence |
-| Multivariate frame energy score | Does the generated 21-station distribution match each observed H100 residual vector? | Proper sample-based score that evaluates joint frame-level distribution quality | Treats a frame at a time and therefore cannot validate temporal dynamics |
-| Normalized sequence energy score | Does a free-running generated complete sequence resemble the observed sequence? | Tests the joint temporal-spatial output while controlling for sequence length | One scalar cannot diagnose whether an error is spatial or temporal |
-| Marginal 95% coverage | Do station-wise generated intervals contain observations at approximately the advertised rate? | Standard calibration check; the target is 0.95 | Marginal coverage alone does not prove correct joint dependence |
-| Lag-one correlation error | Does generation reproduce frame-to-frame persistence at each station? | Direct diagnostic of temporal structure | Can be excellent while marginal scale or calibration is poor |
-
-Observed-history negative log-likelihood is also a proper and well-known
-density metric for Gaussian and AIOHMM fits, but it is intentionally absent
-from the cross-family headline plot. It is not available for every possible
-sample-only model family, and observed-history likelihood does not test
-free-running accumulation. Complexity measures such as parameter count,
-training time, and inference time were not part of the frozen cross-model
-evidence and must not be invented for presentation.
-
-## Which model outperforms the others?
-
-The answer depends on the property being evaluated:
-
-- **Marginal winner: unconditional Gaussian.** It has the lowest RMSE and
-  frame energy and the coverage closest to 0.95.
-- **Temporal winner: one-state AR.** The reviewed 0.98 version has the lowest
-  normalized sequence energy; the frozen 0.99 version has the lowest lag-one
-  error. Both reduce lag-one error by roughly two orders of magnitude relative
-  to either Gaussian baseline.
-- **Complexity decision: one state over two.** The two-state AIOHMM does not
-  improve the one-state AR on the five displayed metrics, so the observed
-  evidence does not justify latent switching.
-- **Development deployment: frozen one-state AR at 0.99.** The 0.99 ceiling is
-  the smallest tested nonbinding ceiling and removes artificial boundary
-  contact. It was selected structurally for planner development, not because
-  it passed the strict v0.15.3 performance gate.
-- **Final winner: none yet.** The four evaluation groups are portions of one
-  outing, so they cannot establish transfer to independent journeys.
-
-For a single presentation sentence:
-
-> The unconditional Gaussian best matches frame-level marginals, while a
-> one-state AR model best reproduces temporal sequences; latent switching did
-> not help, and independent outings are still required for final selection.
-
-## Planner evidence: why temporal structure matters
-
-The later reference-planner experiments do not change the model-selection
-result, but they show that the generative differences are operationally
-meaningful under one fixed MPR-owned sensitivity simulation.
-
-| Comparison | Reviewed result | Interpretation |
+| Metric | What it measures | Why it remains in the figure |
 |---|---|---|
-| Frozen AR order (A2) minus shuffled order (A1) | Integrated absolute lateral error `+0.176956 m s`; maximum absolute lateral error `+0.012402 m`; constraint-violation fraction `-0.093137`. All three paired-draw intervals exclude zero. | Temporal order changes planner behavior even when each draw retains the same residual profiles; the signs show a trade, not planner benefit. |
-| Unconditional Gaussian (A3) versus frozen AR (A2) | A3 p95 curvature rate `1.938071` versus `0.168162`; A3 p95 lateral jerk `791.1659` versus `68.9550` (both about 11.5 times rougher). | Independent-frame sampling is much less smooth than autoregressive sampling. |
-| A3 versus A2 deviation | Equal-sequence mean absolute lateral error is 16.2% lower for A3 and integrated absolute error is 5.2% lower, but the direction reverses in 5 of 15 sequences containing 57.9% of active frames. | The deviation result is length-dependent and cannot support a general winner. |
-| Cross-station structure | Pooled adjacent correlation: A2 `0.703073`, A3 `0.968905`; A3 exceeds A2 for 182 of 210 station pairs. | A3 and A2 differ in spatial structure as well as temporal structure, so A3-minus-A2 is not a causal temporal comparison. |
+| Mean observed-history negative log-likelihood (NLL) | Density assigned to held-out sequences while conditioning on the true previous residual | Standard probabilistic fit measure; lower is better |
+| Sample-mean RMSE | Accuracy of the generated mean H100 residual profile in metres | Familiar marginal accuracy measure; lower is better |
+| Normalized sequence energy score | Sample-based joint quality of a complete free-running sequence, normalized for length | Evaluates generated sequence distributions; lower is better |
+| Median absolute lag-one correlation error | Median over 21 stations of the error in generated frame-to-frame correlation | Direct temporal-persistence diagnostic; lower is better |
 
-Only A2-minus-A1 isolates temporal ordering. A3-minus-A2 changes marginal,
-spatial, and temporal properties together. None of these results demonstrates
-BMW-planner behavior, closed-loop safety, comfort, or production benefit.
+NLL and the three sample metrics answer different questions. NLL is evaluated
+under observed-history conditioning, commonly called teacher forcing. The
+planner-facing sampler must instead run recursively from its own generated
+history. A model can therefore improve NLL without improving free-running
+generation. Negative NLL values are valid for continuous densities; the
+comparison rule remains lower is better.
 
-## Evidence boundary and next decision
+## Rounded reference values
+
+The plot reads full-precision values from the CSVs. This table is only a
+rounded reference for discussion.
+
+| Model | Observed-history NLL | RMSE (m) | Sequence energy (m) | Median lag-one error |
+|---|---:|---:|---:|---:|
+| Unconditional Gaussian | -36.186 | 0.359354 | 0.297737 | 0.958332 |
+| Six-feature conditional Gaussian | -36.184 | 0.362535 | 0.286028 | 0.888345 |
+| One-state conditional AR, cap 0.98 | -40.967 | 0.364830 | 0.276110 | 0.008472 |
+| Corrected two-state AIOHMM, v0.15.2 | -42.335 | 0.374553 | 0.286337 | 0.018340 |
+| Frozen one-state AR, cap 0.99 | -40.967 | 0.365110 | 0.276216 | 0.007590 |
+
+No value is marked as a universal winner. The table reports macro means, while
+the figure exposes the available fold values. Their directions are not always
+unanimous and the four groups are not independent outings.
+
+## Scientific interpretation
+
+- **Observed-history density:** the corrected two-state AIOHMM has the lowest
+  macro NLL, about 1.37 below either one-state AR. The latent switch therefore
+  adds a macro density-fit advantage under teacher forcing; the consolidated
+  fold file does not provide NLL values for a group-direction claim.
+- **Marginal mean:** the unconditional Gaussian has the lowest macro RMSE, but
+  only two of four held-out technical groups favour that ordering. Call it the
+  lowest macro mean, not a general marginal winner.
+- **Free-running sequence score:** the 0.98 one-state AR has the lowest macro
+  sequence energy, but the 0.98-versus-0.99 direction splits two groups each.
+  The caps are not distinguishable on this evidence by sequence energy.
+- **Temporal persistence:** the frozen 0.99 AR has the lowest macro lag-one
+  error, with three of four groups favouring it over 0.98. More importantly,
+  the one-state AR beats the corrected two-state model on lag-one error in all
+  four groups.
+- **Complexity decision:** the non-degenerate two-state model fits observed
+  histories better but does not retain that advantage across the free-running
+  evaluation, particularly temporal fidelity. This is consistent with an
+  observed-history/free-running mismatch; it does not by itself prove a causal
+  mechanism. Because the planner consumes free-running sequences, one-state AR
+  remains the more defensible development architecture.
+- **Development freeze:** cap 0.99 remains fixed because it is the smallest
+  tested nonbinding ceiling, not because it won a performance comparison.
+- **Final selection:** no model is a final winner. The evidence is within one
+  outing and `final_model_selection_authorized=false` remains binding.
+
+For one presentation sentence:
+
+> The two-state AIOHMM fits observed histories best, but the simpler one-state
+> AR is more faithful in free-running temporal generation; the small
+> macro-metric differences still require confirmation on independent outings.
+
+## Planner relevance
+
+The accepted planner evidence supports one concise point: temporal structure
+matters. A2-minus-A1 isolates temporal ordering because A1 shuffles exactly
+the same residual profiles within each sequence. A3-minus-A2 does not isolate
+one cause because the unconditional Gaussian changes marginal, spatial, and
+temporal structure together. The unconditional A3 samples were about 11.5
+times rougher than A2 on p95 curvature rate and lateral jerk, while their
+deviation result depended strongly on sequence length. These are sensitivity
+results, not planner benefit or a general model ranking.
+
+## Evidence boundary
 
 - RLMB is a pseudo-reference, not lane ground truth.
-- The current comparison estimates within-outing technical-group transfer,
-  not independent-journey generalization.
+- The four technical groups are portions of one outing, not four independent
+  journeys or 4,084 independent observations.
+- Fold points in the figure show descriptive variation; they are not
+  confidence intervals or journey-level uncertainty estimates.
 - The strict v0.15.3 performance gate remains failed.
-- `final_model_selection_authorized=false` remains binding.
-- RC-GAN, diffusion, another model family, or a new hyperparameter sweep is
-  not justified on the same single-outing evidence.
-- The next scientific comparison begins only after the prospective v0.17
-  intake locks enough eligible independent SENSOR_TOPOLOGY outings.
+- RC-GAN, diffusion, another model family, or a new current-data sweep is not
+  justified until the prospective v0.17 intake locks enough eligible
+  independent SENSOR_TOPOLOGY outings.
 
 ## Provenance
 
-The consolidated model values originate from the accepted v0.14 Gaussian,
-v0.15.0 AIOHMM, v0.15.1 one-state-AR, v0.15.3 AR-boundary, and v0.15.4 freeze
-artifacts. The principal consolidated source is
-`ar_boundary_model_comparison.csv` in the immutable v0.15.3 output. Planner
-values are the accepted v0.16, v0.16.1, and v0.16.2 outputs already recorded
-in `docs/current_status.md` and their predeclarations. This document and its
-figure are reporting views over accepted values; they are not new scientific
-artifacts or authorization to run another current-data analysis.
+The comparison consumes the consolidated `ar_boundary_model_comparison.csv`
+and `ar_boundary_fold_comparison.csv` from the immutable v0.15.3 output. Those
+files trace to the v0.14.0 Gaussian baselines, v0.15.1 one-state AR, corrected
+v0.15.2 two-state AIOHMM, and v0.15.3 AR candidates. The v0.15.4 freeze changes
+only the packaging and development authorization of the 0.99 model; it does
+not replace the v0.15.3 comparison values.

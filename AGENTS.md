@@ -126,6 +126,9 @@ tests with the same two skips. Its implementation and real batch01 audit both
 received focused independent `GO`. Batch01 contributes zero eligible outings;
 do not rerun it or relax topology, H100/map-pairing, anchor, or causal-input
 gates. Further evidence requires new prospectively declared physical outings.
+The reporting-only output-driven model comparison raises this to 404 passing
+tests with the same two skips. It does not authorize a model fit, a new metric,
+or final model selection.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
