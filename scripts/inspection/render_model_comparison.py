@@ -22,9 +22,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.lines import Line2D
-from matplotlib.ticker import FuncFormatter
+from matplotlib.patches import Patch
 
 
 MACRO_FILENAME = "ar_boundary_model_comparison.csv"
@@ -64,7 +62,6 @@ class ModelSpec:
     model_id: str
     label: str
     artifact_version: str
-    color: str
 
 
 @dataclass(frozen=True)
@@ -73,8 +70,6 @@ class MetricSpec:
     title: str
     detail: str
     precision: int
-    fold_values_available: bool
-    logarithmic: bool = False
 
 
 # Model identities and labels are fixed by the reviewed v0.15.3 contract.
@@ -84,31 +79,26 @@ MODELS = (
         "unconditional_gaussian",
         "Unconditional Gaussian",
         "0.14.0",
-        "#0072B2",
     ),
     ModelSpec(
         "conditional_gaussian",
         "Conditional Gaussian",
         "0.14.0",
-        "#56B4E9",
     ),
     ModelSpec(
         "one_state_ar_cap_0_980",
-        "One-state AR, cap 0.98",
+        "One-state AR (cap 0.98)",
         "0.15.1",
-        "#009E73",
     ),
     ModelSpec(
         "corrected_two_state_aiohmm",
-        "Corrected two-state AIOHMM",
+        "Two-state AIOHMM",
         "0.15.2",
-        "#D55E00",
     ),
     ModelSpec(
         "one_state_ar_cap_0_990",
-        "Frozen AR, cap 0.99",
+        "Frozen AR (cap 0.99)",
         "0.15.3",
-        "#E69F00",
     ),
 )
 
@@ -123,34 +113,33 @@ ALL_MODEL_IDS = frozenset(
 METRICS = (
     MetricSpec(
         "mean_joint_negative_log_likelihood_physical",
-        "Mean observed-history NLL",
-        "physical density · macro only",
+        "1. Observed-history NLL",
+        "Continuous-density score; negative values are valid",
         3,
-        False,
     ),
     MetricSpec(
         "sample_mean_prediction_rmse_m",
-        "Sample-mean RMSE",
-        "metres",
+        "2. Prediction RMSE",
+        "Metres; free-running samples",
         6,
-        True,
     ),
     MetricSpec(
         "mean_normalized_sequence_energy_score_m",
-        "Normalized sequence energy score",
-        "metres · free-running",
+        "3. Sequence energy score",
+        "Metres; free-running samples",
         6,
-        True,
     ),
     MetricSpec(
         "median_absolute_lag_one_correlation_error",
-        "Median absolute lag-one error",
-        "dimensionless · free-running · log scale",
+        "4. Lag-1 correlation error",
+        "Dimensionless; free-running samples",
         6,
-        True,
-        logarithmic=True,
     ),
 )
+
+OTHER_BAR_COLOR = "#4C78A8"
+LOWEST_BAR_COLOR = "#2E8B57"
+BAR_EDGE_COLOR = "#1F2937"
 
 FOLD_METRIC_KEYS = tuple(
     field
@@ -240,11 +229,7 @@ def load_comparison(
                 f"fold identity is empty or duplicated for {model_id}"
             )
         for field in FOLD_METRIC_KEYS:
-            value = _finite_float(row, field, f"fold {model_id}/{drive_id}")
-            if field == "median_absolute_lag_one_correlation_error" and value <= 0.0:
-                raise ComparisonInputError(
-                    "lag-one errors must be positive for logarithmic plotting"
-                )
+            _finite_float(row, field, f"fold {model_id}/{drive_id}")
         fold_by_model[model_id][drive_id] = row
 
     drive_sets = {frozenset(rows) for rows in fold_by_model.values()}
@@ -277,78 +262,74 @@ def _format_value(metric: MetricSpec, value: float) -> str:
     return f"{value:.{metric.precision}f}"
 
 
-def _set_metric_limits(axis: plt.Axes, values: Sequence[float], logarithmic: bool) -> None:
+def _set_metric_limits(axis: plt.Axes, values: Sequence[float]) -> None:
+    """Use an honest zero baseline and reserve room for value labels."""
+
     minimum = min(values)
     maximum = max(values)
-    if logarithmic:
-        axis.set_xscale("log")
-        axis.set_xlim(minimum / 1.7, maximum * 2.2)
-        axis.xaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}"))
-        return
-    span = maximum - minimum
-    padding = span * 0.18 if span else max(abs(minimum) * 0.05, 0.1)
-    axis.set_xlim(minimum - padding, maximum + padding * 1.7)
+    if maximum <= 0.0:
+        axis.set_xlim(minimum * 1.24, 0.0)
+    elif minimum >= 0.0:
+        axis.set_xlim(0.0, maximum * 1.24)
+    else:
+        span = maximum - minimum
+        axis.set_xlim(minimum - 0.12 * span, maximum + 0.12 * span)
 
 
 def _draw_panel(
     axis: plt.Axes,
     metric: MetricSpec,
     macro_by_model: Mapping[str, Mapping[str, str]],
-    fold_by_model: Mapping[str, Mapping[str, Mapping[str, str]]],
-    *,
-    show_model_labels: bool,
 ) -> None:
-    positions = np.arange(len(MODELS), dtype=np.float64)
-    plotted_values: list[float] = []
-    if metric.fold_values_available:
-        drive_ids = sorted(next(iter(fold_by_model.values())))
-        offsets = np.linspace(-0.14, 0.14, len(drive_ids))
-        for position, model in zip(positions, MODELS):
-            for offset, drive_id in zip(offsets, drive_ids):
-                value = _finite_float(
-                    fold_by_model[model.model_id][drive_id],
-                    metric.key,
-                    f"plot fold {model.model_id}/{drive_id}",
-                )
-                plotted_values.append(value)
-                axis.scatter(
-                    value,
-                    position + offset,
-                    s=27,
-                    color=model.color,
-                    alpha=0.48,
-                    edgecolor="none",
-                    zorder=2,
-                )
-
     macro_values = [
         _finite_float(macro_by_model[model.model_id], metric.key, model.model_id)
         for model in MODELS
     ]
-    plotted_values.extend(macro_values)
-    for position, model, value in zip(positions, MODELS, macro_values):
-        axis.scatter(
-            value,
-            position,
-            marker="D",
-            s=66,
-            color=model.color,
-            edgecolor="#111827",
-            linewidth=0.7,
-            zorder=4,
-        )
+    lowest_index = min(range(len(MODELS)), key=macro_values.__getitem__)
+    positions = list(range(len(MODELS)))
+    colors = [
+        LOWEST_BAR_COLOR if index == lowest_index else OTHER_BAR_COLOR
+        for index in positions
+    ]
+    bars = axis.barh(
+        positions,
+        macro_values,
+        height=0.62,
+        color=colors,
+        edgecolor=BAR_EDGE_COLOR,
+        linewidth=0.65,
+        zorder=3,
+    )
+
+    _set_metric_limits(axis, macro_values)
+    for index, (bar, value) in enumerate(zip(bars, macro_values)):
+        negative = value < 0.0
+        label = _format_value(metric, value)
+        if index == lowest_index:
+            label += "  (lowest)"
+        if negative:
+            label_position = (value, bar.get_y() + bar.get_height() / 2.0)
+            label_offset = (7, 0)
+            horizontal_alignment = "left"
+            label_color = "#FFFFFF"
+        else:
+            label_position = (value, bar.get_y() + bar.get_height() / 2.0)
+            label_offset = (6, 0)
+            horizontal_alignment = "left"
+            label_color = "#14532D" if index == lowest_index else "#111827"
         axis.annotate(
-            _format_value(metric, value),
-            (value, position),
-            xytext=(7, 0),
+            label,
+            label_position,
+            xytext=label_offset,
             textcoords="offset points",
             va="center",
-            fontsize=8,
-            color="#111827",
+            ha=horizontal_alignment,
+            fontsize=8.3,
+            fontweight="bold" if index == lowest_index else "normal",
+            color=label_color,
         )
 
-    _set_metric_limits(axis, plotted_values, metric.logarithmic)
-    axis.set_title(metric.title, loc="left", fontsize=11.5, fontweight="bold", pad=13)
+    axis.set_title(metric.title, loc="left", fontsize=12, fontweight="bold", pad=15)
     axis.text(
         0.0,
         1.01,
@@ -357,15 +338,15 @@ def _draw_panel(
         fontsize=8.5,
         color="#64748B",
     )
-    axis.set_yticks(positions)
-    axis.set_yticklabels(
-        [model.label for model in MODELS] if show_model_labels else []
-    )
+    axis.set_yticks(positions, [model.label for model in MODELS])
     axis.invert_yaxis()
-    axis.grid(axis="x", color="#D9E1E8", linewidth=0.8, zorder=0)
-    axis.tick_params(axis="both", labelsize=8.5, colors="#334155")
-    for spine in axis.spines.values():
-        spine.set_visible(False)
+    axis.axvline(0.0, color="#111827", linewidth=0.8, zorder=4)
+    axis.grid(axis="x", color="#D1D5DB", linestyle="--", linewidth=0.7, zorder=0)
+    axis.tick_params(axis="both", labelsize=8.4, colors="#111827")
+    axis.spines["top"].set_visible(False)
+    axis.spines["right"].set_visible(False)
+    axis.spines["left"].set_color("#6B7280")
+    axis.spines["bottom"].set_color("#6B7280")
 
 
 def render_comparison(
@@ -398,20 +379,18 @@ def render_comparison(
         right=0.97,
         top=0.79,
         bottom=0.14,
-        wspace=0.22,
+        wspace=0.62,
         hspace=0.38,
     )
-    for index, (axis, metric) in enumerate(zip(axes.flat, METRICS)):
+    for axis, metric in zip(axes.flat, METRICS):
         _draw_panel(
             axis,
             metric,
             macro_by_model,
-            fold_by_model,
-            show_model_labels=index % 2 == 0,
         )
 
     figure.suptitle(
-        "Model comparison: observed-history fit and free-running quality disagree",
+        "Residual-model comparison",
         x=0.055,
         y=0.955,
         ha="left",
@@ -422,30 +401,29 @@ def render_comparison(
     figure.text(
         0.055,
         0.905,
-        "Diamonds: macro mean over four technical groups · circles: held-out-group values · lower is better",
+        "Bars show the stored macro values. Lower is better in every panel.",
         fontsize=11,
         color="#475569",
     )
     legend = [
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            linestyle="none",
-            markersize=8,
-            markerfacecolor=model.color,
-            markeredgecolor="none",
-            label=model.label,
-        )
-        for model in MODELS
+        Patch(
+            facecolor=LOWEST_BAR_COLOR,
+            edgecolor=BAR_EDGE_COLOR,
+            label="Lowest value in that panel",
+        ),
+        Patch(
+            facecolor=OTHER_BAR_COLOR,
+            edgecolor=BAR_EDGE_COLOR,
+            label="Other models",
+        ),
     ]
     figure.legend(
         handles=legend,
-        loc="upper center",
-        bbox_to_anchor=(0.52, 0.865),
-        ncol=5,
+        loc="upper left",
+        bbox_to_anchor=(0.55, 0.883),
+        ncol=2,
         frameon=False,
-        fontsize=8.8,
+        fontsize=9.2,
     )
     figure.text(
         0.055,

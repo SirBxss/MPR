@@ -37,10 +37,13 @@ an unexpected CSV schema, model identity, artifact version, held-out-group
 set, non-finite value, or disagreement between the stored macro mean and the
 four fold rows.
 
-The 16:9 Python figure contains only four metrics. Diamonds are stored macro
-means; circles are the four held-out-group values where the consolidated fold
-file provides them. The NLL panel is macro-only because the v0.15.3 fold file
-does not contain NLL.
+The 16:9 Python figure contains only four conventional horizontal bar charts.
+Each bar is a stored macro value, its exact value is printed beside it, and
+green marks the lowest value in that panel. Every axis includes zero and is
+linear, so bar lengths are not visually exaggerated. The renderer still reads
+and reconciles all four held-out-group rows for the available sample metrics,
+but it leaves those diagnostic points out of the main meeting figure. The
+group-level qualifications remain documented below.
 
 ## Models being compared
 
@@ -84,9 +87,10 @@ rounded reference for discussion.
 | Corrected two-state AIOHMM, v0.15.2 | -42.335 | 0.374553 | 0.286337 | 0.018340 |
 | Frozen one-state AR, cap 0.99 | -40.967 | 0.365110 | 0.276216 | 0.007590 |
 
-No value is marked as a universal winner. The table reports macro means, while
-the figure exposes the available fold values. Their directions are not always
-unanimous and the four groups are not independent outings.
+Green identifies only the lowest stored value for one metric; it does not mark
+a universal winner. The table and figure report macro means. The available
+group directions are not always unanimous, and the four groups are not
+independent outings.
 
 ## Scientific interpretation
 
@@ -137,8 +141,10 @@ results, not planner benefit or a general model ranking.
 - RLMB is a pseudo-reference, not lane ground truth.
 - The four technical groups are portions of one outing, not four independent
   journeys or 4,084 independent observations.
-- Fold points in the figure show descriptive variation; they are not
-  confidence intervals or journey-level uncertainty estimates.
+- The renderer verifies the available fold rows against each stored macro
+  value, but the simplified meeting figure does not plot them. The group-level
+  results are descriptive, not confidence intervals or journey-level
+  uncertainty estimates.
 - The strict v0.15.3 performance gate remains failed.
 - RC-GAN, diffusion, another model family, or a new current-data sweep is not
   justified until the prospective v0.17 intake locks enough eligible

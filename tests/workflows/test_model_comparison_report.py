@@ -64,7 +64,9 @@ def _write_comparison(directory: Path, *, two_state_nll: float) -> None:
         sequence_energy = 0.20 + index * 0.01
         coverage = 0.94 - index * 0.005
         coverage_error = abs(coverage - 0.95)
-        lag_one = 0.01 + index * 0.01
+        # A perfect zero error is valid and must remain plottable on the
+        # conventional linear axis.
+        lag_one = index * 0.01
         nll = two_state_nll if model_id == "corrected_two_state_aiohmm" else -30.0 + index
         macro_rows.append(
             {
@@ -153,9 +155,14 @@ class ModelComparisonReportTests(unittest.TestCase):
             self.assertNotEqual(first.read_bytes(), changed.read_bytes())
             self.assertIn("-42.345", first.read_text(encoding="utf-8"))
             self.assertIn("-52.765", changed.read_text(encoding="utf-8"))
+            self.assertIn("Residual-model comparison", first.read_text(encoding="utf-8"))
+            self.assertIn("Lower is better in every panel", first.read_text(encoding="utf-8"))
+            self.assertIn("(lowest)", first.read_text(encoding="utf-8"))
+            self.assertNotIn("Diamonds", first.read_text(encoding="utf-8"))
             script = self.script.read_text(encoding="utf-8")
             self.assertNotIn("0.359354", script)
             self.assertNotIn("-42.335", script)
+            self.assertNotIn("set_xscale", script)
 
     def test_renderer_fails_closed_on_input_or_output_contract_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
