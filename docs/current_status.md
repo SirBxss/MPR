@@ -1,6 +1,6 @@
 # Current project status
 
-Last updated: 2026-09-08. This is the first file a new agent should read after
+Last updated: 2026-09-13. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
@@ -53,6 +53,13 @@ critical path changes.
   real cohort lock.
 - The raw-data chronology and first 86-file arrival checkpoint were merged
   through PR #17 at commit `fc46ce5`.
+- The complete v0.17.1 EDP schema-compatibility implementation, tests, and
+  accepted negative batch01 hand-off were merged through PR #18 at commit
+  `00cfa1c`. Both Python 3.10 and 3.12 CI passed before merge. No successful
+  independent-outing cohort lock was created.
+- A reporting-only model-comparison view now consolidates the already accepted
+  v0.14--v0.16.2 metrics, their interpretation, and a reproducible meeting
+  figure. It adds no model fit, current-data statistic, or selection decision.
 - Claude's focused v0.17.1 contract re-review covered pushed commit `b51bee3`
   and exact tree `a846fe8`, returned `GO`, and authorized only the bounded
   compatibility implementation. Local patch-source commit `b51fb21` has the
@@ -629,8 +636,9 @@ Next actions are ordered:
 
 1. preserve the 86 raw chunks, exact manifest, v0.17.0 and v0.17.1 outputs,
    schema probes, verifier result, and all review reports unchanged;
-2. apply this documentation-only handoff to the reviewed implementation branch,
-   push the existing PR #18, and merge only after Python 3.10/3.12 CI passes;
+2. use `docs/model_comparison.md` and its reproducible figure for the meeting
+   and mid-term presentation; it reports only already accepted evidence and
+   does not reopen model selection;
 3. continue acquiring separate outcome-blind physical outings through new
    manifests and versioned outputs until at least seven new outings are
    technically eligible; where operationally possible, acquire the same
@@ -654,6 +662,8 @@ physical outings.
 ## Reading map
 
 - `docs/modeling_plan.md`: phase gates, evidence, and data-acquisition limits.
+- `docs/model_comparison.md`: concise accepted metric table, presentation-ready
+  comparison figure, model ranking by property, and planner relevance.
 - `docs/independent_outing_intake_predeclaration.md`: reviewed v0.17 prospective
   intake, deterministic split, and final-outing embargo.
 - `docs/independent_outing_data_arrival_runbook.md`: exact initial manifest,
