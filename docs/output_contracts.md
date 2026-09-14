@@ -1346,3 +1346,99 @@ version control. For identical manifest and raw bytes, code, contract, and
 supplied failed-audit directory contents, the outputs are byte-deterministic;
 changing the supplied failed-audit contents changes or invalidates the amended
 lineage rather than being ignored.
+
+## Prospective v0.18.0 sensor-topology feasibility outputs
+
+Status: predeclared only. These outputs do not exist and the command is not
+supported until focused contract review and implementation review authorize
+the respective steps. The complete binding definitions and stop rules are in
+`docs/sensor_topology_feasibility_predeclaration.md`.
+
+After exact reconciliation with the preserved v0.17.1 batch01 lineage, the
+future command writes exactly three private files to a new empty directory:
+
+```text
+sensor_topology_recordings.csv
+sensor_topology_schema_inventory.json
+sensor_topology_feasibility_summary.json
+```
+
+The recordings CSV has one deterministic basename-ordered row per MCAP and
+this exact header:
+
+```text
+relative_path_private,basename_private,file_size_bytes,file_sha256,sensor_topic_present,reference_topic_present,sensor_message_count,reference_message_count,sensor_decoded_count,reference_decoded_count,sensor_descriptor_file_sha256s,reference_descriptor_file_sha256s,sensor_source_timestamp_present_count,reference_source_timestamp_present_count,sensor_source_timestamps_strict,reference_source_timestamps_strict,explicit_ego_candidate_count,direct_path_structure_count,camera_boundary_structure_count,direct_path_h100_structural_pair_count,camera_boundary_h100_structural_pair_count,failure_codes
+```
+
+`sensor_topology_schema_inventory.json` has exactly these top-level fields:
+
+```text
+version
+contract_revision
+purpose
+descriptor_identity_rule
+topics
+```
+
+Each topic/descriptor item has exactly:
+
+```text
+topic
+message_count
+mcap_schema_names
+mcap_schema_encodings
+message_encodings
+descriptor_file_sha256
+root_message_full_name
+field_inventory
+audit_support_status
+```
+
+Every recursively inventoried field has exactly `full_name`, `number`,
+`label`, `kind`, `referenced_full_name`, and `oneof_name`. Descriptor identity
+comes only from `sha256(message.DESCRIPTOR.file.serialized_pb)`. Inventorying
+an unseen descriptor does not establish semantic compatibility.
+
+`sensor_topology_feasibility_summary.json` has exactly:
+
+```text
+version
+contract_revision
+purpose
+lineage_status
+preserved_intake_contract_revision
+preserved_intake_lock_sha256
+manifest_sha256
+raw_mcap_count
+raw_basename_sha256_map_sha256
+topics
+station_grid_m
+maximum_source_delta_ms
+maximum_anchor_distance_m
+reference_chain_limits
+sensor_descriptor_file_sha256s
+reference_descriptor_file_sha256s
+sensor_message_count
+reference_message_count
+sensor_decoded_count
+reference_decoded_count
+explicit_ego_candidate_count
+direct_path_structure_count
+camera_boundary_structure_count
+direct_path_h100_structural_pair_count
+camera_boundary_h100_structural_pair_count
+recording_failure_counts
+output_sha256
+technical_feasibility_status
+producer_provenance_status
+scientific_target_adoption_authorized
+claim_limits
+next_authorized_action
+```
+
+The audit reports direct-path and camera-boundary structures separately,
+permits no map/artificial sensor-side boundary fallback, and never uses a
+nearest-origin ego-lane fallback. `scientific_target_adoption_authorized` is
+always false in v0.18.0. No output contains an absolute path, run timestamp,
+raw numeric message payload, coordinate, boundary width, projection distance,
+residual, condition, sequence, model, planner, or figure value.

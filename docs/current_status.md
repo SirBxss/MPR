@@ -1,12 +1,12 @@
 # Current project status
 
-Last updated: 2026-09-13. This is the first file a new agent should read after
+Last updated: 2026-09-14. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
 ## Current checkpoint
 
-- Repository version: v0.17.1 EDP schema compatibility implemented,
+- Merged repository version: v0.17.1 EDP schema compatibility implemented,
   synthetically verified, independently approved, and exercised on the closed
   real batch01. Its v0.17.0 independent-outing intake base is independently
   approved and merged. Claude's earlier focused
@@ -30,6 +30,13 @@ critical path changes.
   implementation and real planner run remain complete and approved. The first
   pre-fix v0.16 planner output remains rejected; its v0.15.4 residual samples
   were valid and were reused.
+- Prospective next phase: v0.18.0 standalone sensor-topology H100 structural
+  feasibility. Leon advised the data owner to prefer
+  `/adp/lane_topology_sensor_based` over EDP for this study. A contract and
+  evidence tracker are drafted, but neither implementation nor private
+  execution is authorized until the BMW producer trace is recorded and Claude
+  returns focused contract `GO`. The candidate sensor-lane target is not
+  adopted, and the historical EDP target/models remain unchanged.
 - The v0.15.4 development freeze was merged at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -60,6 +67,9 @@ critical path changes.
 - A reporting-only model-comparison view now reads the already accepted
   v0.15.3 macro and fold outputs directly and renders a four-metric meeting
   figure. It adds no model fit, current-data statistic, or selection decision.
+- The reporting-only model comparison was merged through PR #19 at commit
+  `b82908b`; merged `main` has tree `06530a7`. The documented baseline is 404
+  passing tests with two expected skips.
 - Claude's focused v0.17.1 contract re-review covered pushed commit `b51bee3`
   and exact tree `a846fe8`, returned `GO`, and authorized only the bounded
   compatibility implementation. Local patch-source commit `b51fb21` has the
@@ -639,14 +649,18 @@ Next actions are ordered:
 2. use `docs/model_comparison.md` and its reproducible output-driven plotting
    command for the meeting and mid-term presentation; it reports only already
    accepted evidence and does not reopen model selection;
-3. continue acquiring separate outcome-blind physical outings through new
+3. complete and independently review the prospective v0.18.0 standalone
+   sensor-topology structural-feasibility contract and BMW-source trace;
+4. only after contract `GO`, implement and independently review the
+   synthetic-only audit before running it once on the closed batch01;
+5. continue acquiring separate outcome-blind physical outings through new
    manifests and versioned outputs until at least seven new outings are
    technically eligible; where operationally possible, acquire the same
    SENSOR_TOPOLOGY domain as the accepted development lineage;
-4. if the available production configuration emits only LANE_MAP, treat that
+6. if the available production configuration emits only LANE_MAP, treat that
    as a domain-change blocker requiring a new prospective scientific contract,
    not as permission to relax the current gates; and
-5. only after a successful reconciled cohort lock, predeclare and review the
+7. only after a successful reconciled cohort lock, predeclare and review the
    separate final comparison before reading any embargoed final-outing outcome.
 
 The intake implementation gates are satisfied and the first real audit is
@@ -654,10 +668,45 @@ preserved, but the required new-outing count has not. The scientific programme
 remains intentionally data-blocked: do not draft evaluator code, fit another
 model, or open any final-outing outcome before a successful prospective lock.
 The narrow schema-v2 adapter and batch01 audit are independently approved, but
-batch01 contributes zero eligible outings. No further current-batch diagnostic,
+batch01 contributes zero eligible outings. The prospective v0.18.0 document
+creates no exception by itself: no further current-batch diagnostic,
 model-family experiment, gate change, model fit, sampler run, or planner run is
-authorized. The project is data-blocked pending new prospectively declared
-physical outings.
+authorized until its applicable review gates pass. The existing final-model
+programme remains data-blocked pending new prospectively declared physical
+outings.
+
+## Prospective v0.18.0 sensor-topology feasibility
+
+The proposed phase changes only the estimate-side signal under investigation:
+`/adp/lane_topology_sensor_based` replaces EDP, while
+`/adp/road_lane_map_based` remains the unchanged pseudo-reference. Because
+this changes the modeled quantity from an EDP residual to a sensor-lane
+residual, it is a new candidate target rather than a v0.17 eligibility repair.
+No historical EDP artifact is overwritten or reclassified.
+
+The first stage is intentionally limited to the closed 86-file batch01 and to
+three privacy-safe structural outputs. It may inventory exact descriptors,
+explicit ego-lane structure, direct-path and camera-boundary reconstruction
+states, source-time synchronization, and H100 coverage counts. It may not
+export coordinates, widths, projection distances, timestamps, residuals,
+conditions, sequences, models, planner values, or figures. Sensor-side
+map/artificial boundary fallback and nearest-origin ego-lane selection are
+forbidden.
+
+Two gates precede any real run:
+
+1. preserve exact BMW-source evidence for producer, descriptor, frame,
+   timestamp, ego-lane, geometry, topology-link, horizon, and upstream
+   map/fusion semantics; and
+2. obtain focused Claude `GO` on the exact amended predeclaration commit and
+   tree before implementation, followed by implementation `GO` before private
+   execution.
+
+A positive structural H100 count would authorize only a separate reviewed
+target-adoption contract. It would not prove map independence, make batch01 a
+v0.17-eligible outing, authorize residual construction, or allow old EDP
+models to be reused. A zero count is retained as a configuration-specific
+negative audit.
 
 ## Reading map
 
@@ -674,6 +723,12 @@ physical outings.
   generation compatibility boundary and completed review gates.
 - `docs/independent_outing_batch01_v0171_result.md`: accepted amended batch01
   lineage, technical result, interpretation limits, and next acquisition gate.
+- `docs/sensor_topology_feasibility_predeclaration.md`: prospective v0.18.0
+  batch01 structural audit, exact prohibitions, outputs, tests, and review
+  order.
+- `docs/bmw_sensor_topology_source_evidence.md`: evidence classes, existing
+  MPR support, unresolved BMW semantics, and the exact read-only source-trace
+  questions.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
 - `docs/architecture.md`: package ownership and dependency boundaries.

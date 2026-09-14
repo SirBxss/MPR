@@ -4,6 +4,17 @@ MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
 
+A prospective v0.18.0 contract now defines the next safe investigation:
+whether the standalone `/adp/lane_topology_sensor_based` topic contains strict
+H100 structural geometry that can be synchronized to the unchanged
+`/adp/road_lane_map_based` pseudo-reference in the closed 86-file batch01.
+This is not implemented or independently approved yet. It exports no
+coordinates, residuals, features, sequences, models, planner values, or
+figures, and it cannot adopt the new target. See
+[`docs/sensor_topology_feasibility_predeclaration.md`](docs/sensor_topology_feasibility_predeclaration.md)
+and
+[`docs/bmw_sensor_topology_source_evidence.md`](docs/bmw_sensor_topology_source_evidence.md).
+
 For a meeting-ready, output-driven comparison of the Gaussian, autoregressive,
 and latent-state results—including the plotting command, four common metrics,
 model-by-model conclusion, and scientific limits—see

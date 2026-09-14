@@ -16,7 +16,11 @@ implementation for the thesis; LEEM is historical reference material only.
    - `docs/independent_outing_schema_v2_amendment.md` for the reviewed v0.17.1
      compatibility boundary; and
    - `docs/independent_outing_batch01_v0171_result.md` for the accepted real
-     amended audit, its exact lineage, interpretation, and remaining data gate.
+     amended audit, its exact lineage, interpretation, and remaining data gate;
+     and
+   - `docs/sensor_topology_feasibility_predeclaration.md` and
+     `docs/bmw_sensor_topology_source_evidence.md` before any work that reads
+     `/adp/lane_topology_sensor_based` as a candidate estimate source.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
@@ -46,6 +50,10 @@ agents and new chats.
 - Residual means EDP estimate minus the spatially aligned RLMB
   pseudo-reference, projected onto the pseudo-reference left unit normal.
   Positive is left with respect to increasing station.
+- The prospective v0.18 sensor-topology target is not adopted. Its first phase
+  may inventory structure and H100 readiness only after focused review; it may
+  not calculate a residual or reinterpret an EDP result. Historical EDP models
+  and sensor-lane residuals must never be pooled or relabelled as one target.
 - RLMB is a pseudo-reference, not physical ground truth.
 - BMW condition schema v1 is fixed in this exact order:
   `speed_mps`, `estimated_mean_abs_curvature_per_m`,
@@ -129,6 +137,9 @@ gates. Further evidence requires new prospectively declared physical outings.
 The reporting-only output-driven model comparison raises this to 404 passing
 tests with the same two skips. It does not authorize a model fit, a new metric,
 or final model selection.
+The prospective v0.18.0 documentation does not change the test baseline and
+does not authorize implementation or private execution until focused contract
+review returns `GO`.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
