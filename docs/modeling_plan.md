@@ -47,7 +47,7 @@ are not the thesis execution path.
 | v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
 | v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and arrival verifier are independently approved and merged; the first 86-chunk real audit is preserved with no role assignment, and no successful cohort lock exists |
 | v0.17.1 | Exact EDP schema-v2 compatibility | Complete and independently approved; the amended batch01 audit restored 5,289 H100-ready paths, but every candidate is LANE_MAP, so zero frames/outings pass the unchanged SENSOR_TOPOLOGY primary gate |
-| v0.18.0 | Standalone sensor-topology H100 structural feasibility | Prospective contract drafted; implementation and private execution remain blocked on BMW-source evidence and focused independent contract review |
+| v0.18.0 | Standalone sensor-topology 100 m structural feasibility | BMW trace incorporated into intermediate a1 contract; a narrow source supplement and focused contract review block implementation, and implementation review blocks private execution |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -204,16 +204,19 @@ must not be used as outing count. Exact evidence is in
 The prospective v0.18.0 phase follows a domain-expert recommendation to
 investigate `/adp/lane_topology_sensor_based` directly while retaining
 `/adp/road_lane_map_based` as the unchanged pseudo-reference. This is a new
-candidate target, not a repair or rerun of v0.17.1. Its first stage is limited
-to lineage-locked schema, structure, timestamp, and H100-readiness counts on
-the closed batch01. It calculates no residual or condition, constructs no
-sequence, assigns no cohort role, and fits no model. Direct-path and
-camera-boundary structures remain separate, sensor-side map/artificial
-fallback is forbidden, and a positive count cannot adopt the target without
-reviewed BMW producer/provenance evidence and a later contract. The exact
-prospective boundary is
-`docs/sensor_topology_feasibility_predeclaration.md`; current evidence and
-unresolved BMW questions are in
+candidate target, not a repair or rerun of v0.17.1. A BMW source trace found no
+LTSB direct-path writer, showed that only camera boundary geometry is written,
+and established that the topology graph consumes map/map-matching inputs. It
+did not establish a common physical frame origin with RLMB. The amended first
+stage is therefore limited to lineage-locked descriptor inventory, strict
+camera-only successor-chain reconstruction, orientation-invariant 100 m span,
+independent RLMB H100 readiness, and source-time co-availability. It performs
+no cross-topic coordinate comparison, anchor test, residual/condition,
+sequence, role assignment, model fit, planner run, or figure. A positive count
+does not constitute an H100 residual pair and can authorize only a separate
+frame-resolution and alignment-audit contract. The exact prospective boundary
+is `docs/sensor_topology_feasibility_predeclaration.md`; current evidence and
+remaining gaps are in
 `docs/bmw_sensor_topology_source_evidence.md`.
 
 A successful real v0.17 lock still does not authorize final evaluation. The

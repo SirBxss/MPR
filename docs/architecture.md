@@ -278,12 +278,14 @@ only be attempted with dedicated numerical characterization tests.
 
 The prospective v0.18.0 sensor-topology feasibility phase is documented but
 not implemented. If focused review authorizes it, its proposed ownership is
-`domain.sensor_topology_feasibility` for fixed structural/H100 states,
+`domain.sensor_topology_feasibility` for strict camera-midpoint chains,
+orientation-invariant 100 m span, independent RLMB readiness, and
+source-time-pairing states,
 `io.sensor_topology_feasibility` for descriptor inventory and strict
 serialization, `workflows.sensor_topology_feasibility` for preserved-v0.17.1
 lineage and orchestration, and `cli.sensor_topology_feasibility` for the public
 adapter. It may reuse characterized neutral road/RLMB primitives, but it may
-not import `legacy.preprocessing`, residual construction, conditions,
-sequences, modeling, sampling, planner, evaluation, or visualization. These
-module names describe a reviewed design boundary only; their absence is
-expected before implementation `GO`.
+not compare LTSB and RLMB coordinates or import `legacy.preprocessing`,
+residual construction, conditions, sequences, modeling, sampling, planner,
+evaluation, or visualization. These module names describe a reviewed design
+boundary only; their absence is expected before implementation `GO`.

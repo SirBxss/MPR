@@ -1,163 +1,170 @@
-# v0.18.0 sensor-topology H100 feasibility predeclaration
+# v0.18.0 sensor-topology 100 m structural-feasibility predeclaration
 
-Status: prospective draft dated 2026-09-14. This document was written after
-the accepted negative v0.17.1 batch01 EDP audit and before MPR decoded or
-summarized any standalone sensor-topology descriptor, geometry, H100-pair
-count, residual, condition, model, or planner result from that closed batch.
-The data owner's earlier Lichtblick topic/type observation is recorded
-separately as user-reported evidence. This contract requires focused
-independent review before implementation or private execution.
+Status: intermediate amended prospective draft dated 2026-09-14. The original a0 draft was
+written after the accepted negative v0.17.1 batch01 EDP audit and before MPR
+decoded or summarized any standalone sensor-topology message from that closed
+batch. A subsequent read-only Copilot trace of the BMW source changed the
+contract before implementation or private execution. One narrow source
+supplement listed in `docs/bmw_sensor_topology_source_evidence.md` remains
+required before this revision is sent for focused contract review.
 
 Prospective contract revision:
-`v0.18.0-prospective-2026-09-14-sensor-topology-feasibility-a0`.
+`v0.18.0-prospective-2026-09-14-sensor-topology-feasibility-a1`.
 
-This phase asks whether `/adp/lane_topology_sensor_based` can provide the
-estimate-side geometry for a future residual target. It is a privacy-safe
-technical feasibility audit, not a silent replacement of
-`/adp/estimated_drive_paths`, not a residual-dataset build, and not a model
-experiment.
+This phase asks whether `/adp/lane_topology_sensor_based` contains strict,
+camera-boundary-derived geometry with at least 100 m of observed contiguous
+span at source times that can be paired with independently ready RLMB
+pseudo-reference messages. It is a privacy-safe technical audit, not a silent
+replacement of `/adp/estimated_drive_paths`, not an H100 residual-pair build,
+and not a model experiment.
 
-## Why this is a separate phase
+## Why a1 replaces a0
+
+The BMW-source trace established four facts that invalidate material parts of
+the a0 design:
+
+1. LTSB does not write `drive_path_range`; it publishes no producer-defined
+   ego-lane centreline. A midpoint derived from paired camera boundaries is a
+   consumer diagnostic only.
+2. `ego_lane_segment_indices` contains lateral/branch alternatives, not a
+   longitudinal path. Only a single in-range entry is unambiguous.
+3. Forward geometry can require successor traversal; some map-informed
+   successor segments deliberately carry length but no boundary geometry.
+4. The sensor and RLMB physical frame origins are not documented as equal.
+   Cross-topic projection, anchor distance, motion compensation, and residual
+   sign therefore cannot be evaluated safely.
+
+The trace also showed that LTSB directly consumes HD-map, most-probable-path,
+and map-matching inputs. The accurate phrase is **camera-derived boundary
+geometry inside a map-influenced topology graph**, not "map-independent sensor
+topology".
+
+Accordingly, a1 removes the direct-path arm, adds strict camera-only successor
+traversal, and replaces the cross-frame H100 structural-pair count with a
+source-time-synchronized dual-availability count. No a0 output may be
+generated or interpreted.
+
+## Scientific separation from historical work
 
 The reviewed v0.17.1 adapter decoded all 17,163 EDP messages in the 86-file
-batch01 outing and restored 5,289 H100-ready EDP candidates. Every such
-candidate was `ROAD_TOPOLOGY_SOURCE_LANE_MAP`; none was
-`ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY`. The frozen v0.17 primary gate therefore
-retained zero eligible frames and assigned no cohort role. That result and its
-four output files remain immutable negative evidence.
+batch01 outing and restored 5,289 H100-ready EDP candidates. Every candidate
+was `ROAD_TOPOLOGY_SOURCE_LANE_MAP`; none was
+`ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY`. The frozen v0.17 gate retained zero
+eligible frames and assigned no cohort role. Those four output files remain
+immutable negative evidence.
 
-Leon subsequently advised the data owner that the standalone
-`/adp/lane_topology_sensor_based` topic is the preferable estimate source.
-This is recorded as user-reported domain guidance, not as independently
-verified producer provenance. The guidance is scientifically plausible
-because it avoids the EDP producer's per-cycle map-preferred source selection,
-but the topic name alone does not prove coordinate semantics, ego-lane
-identity, H100 coverage, or independence from map inputs.
+Leon's recommendation to investigate `/adp/lane_topology_sensor_based` is
+recorded as user-reported domain guidance. It does not convert the standalone
+topic into EDP or validate a new residual target.
 
-Changing the estimate signal changes the modeled quantity:
+Changing the estimate signal would change the modeled quantity:
 
 ```text
 historical target := EDP keep-lane path minus aligned RLMB pseudo-reference
 
-candidate target  := sensor-derived ego-lane centreline
-                     minus aligned RLMB pseudo-reference
+possible future target := consumer-derived camera-boundary midpoint
+                          minus aligned RLMB pseudo-reference
 ```
 
 The historical EDP models and metrics remain valid only for their accepted EDP
 target. They cannot be relabelled, pooled with, applied to, or compared as if
-they were fitted to the candidate sensor-lane target. A later target adoption
-and any refitting require a separate reviewed contract and sufficient
+they were fitted to the possible future target. Target adoption, residual
+construction, and refitting require a separate reviewed contract and enough
 independent outings.
 
-## Evidence classes and unresolved producer questions
+## Evidence classes
 
-The audit and its interpretation keep these evidence classes separate:
+Interpretation keeps these classes separate:
 
 1. **Accepted MPR evidence**: immutable v0.17.1 lineage and counts.
-2. **MPR-observed structural evidence**: MCAP topic/schema/descriptors,
-   message counts, field presence, reconstruction states, coverage states, and
-   timestamp-pairing states produced by the future audit.
-3. **BMW-source evidence**: exact producer and interface semantics returned by
-   a read-only investigation of the unavailable BMW repository.
-4. **User-reported domain guidance**: Leon's recommendation to prefer the
-   standalone sensor-topology topic.
-5. **Inference**: any interpretation not established by one of the first four
-   classes.
+2. **MPR-observed structural evidence**: topic/schema/descriptors, counts,
+   reconstruction states, span states, and timestamp-pairing states from the
+   future audit.
+3. **Copilot-confirmed BMW-source evidence**: read-only findings summarized in
+   the evidence document; MPR cannot reproduce the unavailable checkout.
+4. **User-reported domain guidance**: Leon's recommendation.
+5. **Inference**: any interpretation not established by the first four.
 
-Before a sensor-topology residual target can be adopted, BMW-source evidence
-must establish:
-
-- the exact Protobuf file, message, version, and producer for
-  `/adp/lane_topology_sensor_based`;
-- the coordinate frame and reference point of every geometry pool;
-- source-timestamp meaning and publication rate;
-- the exact metadata that identifies the current ego-lane segment;
-- whether `drive_path_range`, paired camera boundaries, or another binding is
-  the intended ego-lane centreline representation;
-- the meaning and indexing of predecessor/successor links and boundary ranges;
-- whether the topic can contain map-derived, fused, artificial, or fallback
-  geometry despite its name;
-- whether the producer consumes lane-map or RLMB inputs directly or
-  indirectly; and
-- any guaranteed or configured forward range.
-
-Missing BMW-source evidence does not prevent the structural audit from
-reporting what is present in the closed MCAPs. It does prevent that evidence
-from being called an independent sensor estimate or used to calculate a
-residual.
+The Copilot transcript did not record the BMW checkout SHA and did not
+establish the LTSB frame origin/axes, nominal publication rate, guaranteed
+forward extent, concrete whole-message `topology_source` assignment, or
+producer behavior across recording generations. Those gaps remain open.
 
 ## Primary question and fixed non-questions
 
 The only primary question is:
 
-> In the already closed 86-file batch01 outing, how much structurally
-> reconstructible standalone sensor-lane geometry can be synchronized with
-> the unchanged RLMB pseudo-reference and cover the canonical 0--100 m
-> horizon under strict, predeclared rules?
+> In the closed 86-file batch01 outing, how often does the standalone LTSB
+> message contain a strict camera-only, unambiguous ego-lane topology chain
+> with at least 100 m of observed contiguous midpoint span, and how often can
+> such a message be source-time-paired with an independently H100-ready RLMB
+> message?
 
-The audit may report counts and failure states needed to answer that question.
-It must not:
+The audit may report only counts and fixed failure states needed to answer that
+question. It must not:
 
-- calculate or export a signed or unsigned residual;
-- inspect residual magnitude, distribution, station profile, or plot;
-- calculate, export, or summarize any of the six model conditions;
+- call the synchronized count an H100 residual pair or usable model pair;
+- project any LTSB point onto RLMB or compare their coordinates;
+- calculate an anchor distance, transform, signed/unsigned residual, or H100
+  station value for LTSB;
+- export coordinates, widths, distances, headings, timestamps, or numeric
+  message payloads;
+- calculate or summarize model conditions;
 - construct sequences, assign an outing role, or amend the v0.17 cohort lock;
 - fit, sample, rank, or evaluate a model;
-- execute a planner;
-- inspect `/adp/lane_topology_map_based` as an alternative reference;
-- fall back to EDP, fusion, map-based, or artificial estimate geometry;
-- tune geometry, pairing, coverage, or plausibility thresholds from the real
-  result; or
-- claim independence, physical ground truth, model validity, planner benefit,
-  safety, or generalization.
+- execute a planner or produce a figure;
+- inspect `/adp/lane_topology_map_based` as an alternative;
+- fall back to EDP, map-based, artificial, or direct-path LTSB geometry;
+- use vector order or nearest-origin distance to resolve an ego-lane branch;
+- tune a threshold after seeing the private result; or
+- claim map independence, ground truth, target validity, safety, planner
+  benefit, or generalization.
 
-The exact reference remains `/adp/road_lane_map_based`. RLMB remains a
-pseudo-reference, not ground truth. Holding the reference fixed isolates the
-effect of changing only the estimate-side source.
+The reference remains `/adp/road_lane_map_based`. RLMB is a pseudo-reference,
+not ground truth. It is decoded only to audit its independent H100 readiness
+and source-time co-availability; its geometry is not combined with LTSB in
+v0.18.0.
 
-## Exact private input lineage
+## Exact private lineage
 
 The first and only authorized real execution consumes the same closed batch01
 lineage as the accepted v0.17.1 audit:
 
 - the recursive root containing the same 86 MCAP byte streams;
-- the exact prospective
-  `independent_outings_v017_batch01.private.json` manifest bytes; and
+- the exact `independent_outings_v017_batch01.private.json` manifest bytes;
+  and
 - the complete preserved v0.17.1 four-file intake directory.
 
-Before decoding either road topic, the future workflow must validate:
+Before decoding either road topic, the workflow must validate:
 
 - exactly the four expected v0.17.1 files and no extra file;
 - the reviewed v0.17.1 contract revision and negative status;
 - null roles/ranks/scores and unauthorized split assignment;
 - the accepted manifest SHA-256;
-- all four recomputed v0.17.1 output hashes and their sibling reconciliation;
+- all four recomputed output hashes and sibling reconciliation;
 - exact recursive manifest coverage of the supplied MCAP root;
 - the same unique 86-entry basename/SHA-256 map; and
 - the same content-only outing fingerprint.
 
-Any mismatch is a usage/lineage error and must occur before the new output
-directory is created. No raw MCAP, manifest, v0.17.0 output, or v0.17.1 output
-may be changed or copied.
+Any mismatch is a usage/lineage error before the new output directory is
+created. No raw MCAP, manifest, v0.17.0 output, or v0.17.1 output is changed or
+copied. The accepted 67-file legacy lineage is out of scope; auditing it could
+enable a new development target and requires a separate reviewed decision.
 
-The audit does not inspect the accepted 67-file legacy lineage. A later legacy
-sensor-topology audit is a separate decision because it could enable a new
-development dataset and therefore requires its own reviewed scope.
+## Fixed topics and descriptor handling
 
-## Fixed topics, schemas, and descriptor identity
-
-The future workflow reads exactly:
+The workflow reads exactly:
 
 ```text
 estimate topic   /adp/lane_topology_sensor_based
 reference topic  /adp/road_lane_map_based
+MCAP schema name Adp.Perception.Road
 message encoding protobuf
-expected root message name Adp.Perception.Road
 ```
 
 Topic absence, schema-name drift, non-Protobuf encoding, decoding failure, and
-multiple descriptor generations are reported explicitly and never repaired by
-another topic.
+descriptor generations are retained explicitly. No other topic repairs a
+failure.
 
 For every decoded message, descriptor identity is derived only from:
 
@@ -165,125 +172,167 @@ For every decoded message, descriptor identity is derived only from:
 sha256(message.DESCRIPTOR.file.serialized_pb)
 ```
 
-It must not be derived from an MCAP schema-record hash, caller-provided label,
-filename, or an audit-provided fingerprint. The audit may inventory previously
-unseen descriptors and their non-numeric field structure. Discovery does not
-create an allow-list or establish semantic compatibility. No descriptor may be
-hard-coded after observing batch01 without a dated amendment and focused
-review.
+It is never derived from an MCAP schema-record hash, caller label, filename,
+or audit-provided fingerprint. The root descriptor must have simple name
+`Road`, and its package compared ASCII-case-insensitively must be
+`adp.perception`. Structural support is decided by required field numbers,
+labels, and scalar/message/enum kinds, not by current generated-code identity
+or the unrelated field-18 type name.
 
-The schema inventory records field numbers, names, labels, scalar/message/enum
-types, referenced full names, oneof membership, and serialized file-descriptor
-SHA-256. It records no option value that contains a local path and no numeric
-message payload.
+At minimum, the sensor descriptor must expose the source-traced structure:
 
-## Structural geometry classes
+- Road: optional enum field 4, integral scalar field 5, repeated signed
+  integral field 6, repeated message field 7, repeated message field 9, and
+  repeated message fields 12 and 13;
+- RoadLaneSegment: repeated signed integral successor field 6, message
+  drive-path range field 11, and message left/right boundary-range fields
+  12/13;
+- BoundaryRanges: message map/camera/artificial fields 1/2/3;
+- Range: integral start field 1 and integral size field 2; and
+- RoadLaneBoundary: message geometry field 1 and enum source field 4.
 
-Every sensor-topic message and every original lane segment is retained in
-counts even when reconstruction fails. A message may contribute to multiple
-diagnostic structure counts, but each count's definition is fixed.
+The required source supplement must pin the additional nested structure needed
+to read finite x/y means from boundary vertices before contract review.
+Required-field type/label drift is unsupported even when decoding succeeds.
+Extra unrelated fields are inventoried but do not fail this structural audit.
+Multiple recorded descriptor generations may be audited only when each
+independently satisfies the same required structure; they remain separate
+inventory entries.
 
-An **explicit ego candidate** requires exactly one segment to be identified by
-an explicit message- or segment-level ego/host/current-lane binding. The future
-implementation must enumerate the exact descriptor-owned binding used. Broad
-name guessing and nearest-origin lane selection are prohibited for candidate
-readiness. Missing, false, conflicting, multiple, out-of-range, or
-structurally ambiguous metadata receives a distinct failure state.
+The recursive schema inventory records field numbers, names, labels,
+scalar/message/enum types, referenced full names, oneof membership, and the
+serialized file-descriptor SHA-256. It records no option value containing a
+local path and no message payload value. Inventory does not create a general
+allow-list or establish semantic compatibility for residual construction.
 
-Two estimate geometry classes are audited separately:
+## Strict ego binding and camera-only segment geometry
 
-1. **Direct-path structure**: the unique explicit ego segment exposes a valid
-   `drive_path_range` with at least two finite points.
-2. **Camera-boundary structure**: the unique explicit ego segment exposes
-   valid left and right `camera_based` lane-boundary ranges; every referenced
-   pool range is integral, nonnegative, in range, nonempty, and resolves to at
-   least two finite points per side.
+For one sensor message, `ego_lane_segment_indices` is valid only when:
 
-For the sensor estimate, `map_based` and `artificial` boundary ranges are never
-fallbacks. Direct-path and camera-boundary counts remain separate because the
-BMW-source meaning of the direct path is not yet established. If both are
-present, neither silently overrides the other in the report.
+- the field is explicitly present as the source-traced repeated signed index;
+- it contains exactly one value;
+- the value is a non-Boolean integer; and
+- it is in range for that message's `lane_segments` array.
 
-Camera-boundary midpoint reconstruction, when structurally possible, reuses
-one fixed diagnostic algorithm:
+Zero or multiple entries are not resolved. Index order, lane ID, lateral
+neighbours, geometry proximity, and nearest-origin selection are forbidden
+substitutes.
 
-- concatenate each side's ordered boundary polylines, orienting the next
-  polyline by the nearest endpoint and removing only a duplicate junction;
-- orient the right side to minimize paired start/end separation;
-- parameterize each side by its own geometric arc length normalized to
-  `[0, 1]`;
-- linearly interpolate both sides on
-  `max(left_point_count, right_point_count)` equally spaced normalized
-  stations; and
-- take the Cartesian midpoint of the two interpolated sides.
+Every segment admitted to the sensor chain must meet all of these rules:
 
-The midpoint is diagnostic geometry, not a validated physical centreline.
-Median reconstructed width must be finite and within `[1.0, 10.0] m`, matching
-the existing legacy parser's fixed plausibility boundary. The report records
-only pass/failure counts, never a width value or distribution.
+1. `drive_path_range` is unused when size is zero; its start value is ignored
+   in that state because decoded default handling across generations is not
+   yet established. A positive size is producer drift and is never consumed.
+2. Left and right `map_based` and `artificial` boundary ranges are empty.
+3. Left and right `camera_based` ranges are integral `(start, size)` pairs,
+   nonnegative, nonempty, in bounds for `lane_boundary_pool`, and resolve to at
+   least one boundary per side.
+4. Every referenced boundary reports CAMERA provenance, has an integral,
+   nonnegative, nonempty, in-bounds geometry `(start, size)` range, and resolves
+   to at least two finite x/y mean points in `boundary_vertex_pool`.
 
-Direct paths and reconstructed midpoints are converted separately to an
-ego-relative station axis by the existing projection/orientation primitive.
-Neither class may borrow points from an adjacent segment or follow successor
-links in v0.18.0. This intentionally distinguishes single-segment availability
-from a future, source-validated topology-chain design.
+An invalid or non-camera range invalidates that segment. Empty map-informed
+segments are counted as chain termination, not converted from `segment_length`
+and not filled from another source.
 
-## Reference, synchronization, and H100 states
+## Diagnostic midpoint and successor-chain rules
 
-RLMB handling is unchanged from the accepted current pipeline:
+For each strict segment, reconstruct left and right polylines separately:
 
-- require exactly one metadata-confirmed ego segment with direct drive-path
-  geometry;
-- follow only a unique explicit successor chain;
-- never guess at a branch, missing successor, cycle, or unavailable segment;
-- allow at most 16 segments;
-- require each junction gap to be at most `1.0 m`;
-- require each junction heading change to be at most `30 degrees`; and
-- retain every termination/failure reason.
+- take boundaries in their message-local range order;
+- orient each next boundary by the endpoint choice with the smaller Euclidean
+  gap to the accumulated polyline;
+- if the two endpoint gaps are exactly equal, fail as ambiguous;
+- remove only a junction point whose endpoint gap is at most `1e-6 m`, matching
+  the existing characterized MPR boundary concatenation tolerance;
+- reject a non-finite point, fewer than two distinct points, zero total arc
+  length, or an inter-boundary gap greater than `1.0 m`;
+- orient the complete right side to minimize paired start/end separation from
+  the left side, failing an exact tie; and
+- parameterize each side by its own arc length normalized to `[0, 1]`, linearly
+  interpolate both on `max(left_count, right_count)` equally spaced normalized
+  positions, and take their Cartesian midpoint.
 
-Sensor and reference messages are paired by embedded source timestamp only,
-using the existing deterministic mutual-nearest rule with maximum absolute
-delta `50 ms`. Log/publish time is diagnostic identity only and cannot rescue
-a missing source timestamp. Every source timestamp must be integral; duplicate
-or non-monotonic per-topic source time is reported and cannot be silently
-reordered into readiness.
+The median paired boundary separation must be finite and within `[1.0, 10.0]
+m`, the existing fixed MPR plausibility boundary. Only pass/failure counts are
+exported. The midpoint is not described as the producer centreline.
 
-Pairing is recording-local in v0.18.0. No sensor or reference geometry crosses
-an MCAP boundary, even when adjacent files belong to the same physical outing.
-This keeps every per-recording H100 count independently reconcilable and avoids
-introducing a continuity rule into a feasibility audit.
+Starting at the unique ego segment, the camera chain:
 
-For each of the two estimate geometry classes, an **H100 structural pair**
-requires all of the following:
+- visits at most 16 segments, including the initial segment;
+- follows only one explicit, non-Boolean, in-range successor index;
+- stops normally when no successor exists;
+- fails on multiple successors before reaching the 100 m span, an invalid
+  successor, a repeated segment, or the 16-segment limit;
+- requires every visited segment to pass the camera-only rules above;
+- orients a successor midpoint by the endpoint connection with the smaller
+  gap, failing an exact tie;
+- requires the chosen junction gap to be at most `1.0 m`; and
+- requires the absolute junction heading change to be at most `30 degrees`.
 
-1. the strict estimate structure for that class;
-2. an accepted RLMB ordered ego-lane path;
-3. a mutual-nearest source-time pair within `50 ms`;
-4. projection of the estimate origin footpoint onto RLMB at finite distance no
-   greater than `1.0 m`;
-5. estimate coverage of every canonical station `0, 5, ..., 100 m` without
-   extrapolation; and
-6. RLMB coverage from the aligned anchor through `+100 m` without
-   extrapolation.
+After removing only a junction duplicate within `1e-6 m`, observed chain span
+is the sum of Euclidean distances along the concatenated diagnostic midpoint. A
+message has `camera_chain_100m_span` when that span is at least `100.0 m`. This
+is orientation-invariant observed length. It is not forward H100 coverage from
+the ego origin, because the LTSB origin and axes remain unverified.
 
-No residual is needed to evaluate these Boolean states. Direct-path and
-camera-boundary H100 counts remain separate and are called **structural**, not
-usable model pairs. Producer provenance, target semantics, causal features,
-sequence integrity, outing support, and independent-outing count remain
-unevaluated.
+If 100 m is reached before a later branch or invalid segment, the message
+passes the span state without inspecting unnecessary downstream topology. No
+numeric span, gap, heading, or width is serialized.
 
-All non-H100 counts are message-level. `explicit_ego_candidate_count` counts
-sensor messages with exactly one structurally identified ego segment.
-`direct_path_structure_count` and `camera_boundary_structure_count` count
-sensor messages for which that same unique segment passes the respective
-structure rule. Each mutual-nearest sensor/reference message pair contributes
-at most one direct-path H100 pair and at most one camera-boundary H100 pair.
-The corpus summary is the integer sum of the 86 per-recording rows. A recording
-with a missing timestamp or a non-strict sensor or reference source-time stream
-has zero H100 structural pairs; no valid-looking subset is selected from it.
+## Reference readiness and source-time pairing
 
-The per-recording `failure_codes` field is a sorted unique subset of this
-closed v0.18.0 vocabulary:
+RLMB handling remains the accepted current implementation:
+
+- exactly one metadata-confirmed ego segment with direct drive-path geometry;
+- only a unique explicit successor chain;
+- no guessed branch, missing successor, cycle, or unavailable segment;
+- at most 16 segments;
+- junction gap at most `1.0 m`;
+- junction heading change at most `30 degrees`; and
+- coverage of the canonical reference stations `0, 5, ..., 100 m` without
+  extrapolation.
+
+This produces a per-reference-message Boolean `reference_h100_ready` only.
+No RLMB coordinate is compared with a sensor coordinate.
+
+Sensor and reference messages are paired by embedded source timestamp using
+the existing deterministic mutual-nearest rule with maximum absolute delta
+`50 ms`. The LTSB time is camera lane-marking validity time; RLMB time is pose
+validity time. Both use the ADP clock, so proximity is auditable even though
+their physical geometry frames are not proven equal.
+
+Log/publish time cannot repair a missing source timestamp. Source timestamps
+must be non-Boolean integers, present on every decoded message, and strictly
+increasing within topic and recording. A stream that fails has zero paired
+candidates; no subset is selected or reordered. Pairing is recording-local
+and never crosses an MCAP boundary.
+
+A `synchronized_100m_candidate` is one mutual-nearest pair for which the
+sensor message passes `camera_chain_100m_span` and the reference message passes
+`reference_h100_ready`. It means only dual structural availability at nearby
+validity times. It does not evaluate physical alignment, anchor distance,
+station correspondence, or residual readiness.
+
+## Counting and failure vocabulary
+
+All sensor/reference counts are message-level. Each message contributes at
+most one count to each named state. `camera_boundary_segment_structure_count`
+counts messages whose unique initial ego segment passes the camera-only
+segment rule. `camera_only_successor_chain_count` counts messages whose strict
+chain either reaches 100 m or terminates normally with zero successors after
+at least one valid segment. `camera_chain_100m_span_count` is its at-least-100
+m subset. `source_time_pair_count` counts every mutual-nearest pair before
+geometry filtering. Each such pair contributes at most one
+`synchronized_100m_candidate`. Corpus totals are exact sums of the 86
+per-recording rows.
+
+A recordings-row failure code is the union of codes reached by any relevant
+message, chain attempt, reference attempt, or pairing state in that recording;
+it may coexist with a positive count from another message. The detailed codes
+therefore diagnose attrition and are not mutually exclusive success statuses.
+
+The per-recording `failure_codes` field is a sorted unique subset of:
 
 ```text
 sensor_topic_missing
@@ -292,38 +341,39 @@ sensor_schema_or_encoding_mismatch
 reference_schema_or_encoding_mismatch
 sensor_descriptor_unavailable
 reference_descriptor_unavailable
+sensor_required_structure_drift
 sensor_stream_decode_failed
 reference_stream_decode_failed
 sensor_source_timestamp_missing
 reference_source_timestamp_missing
 sensor_source_timestamps_not_strict
 reference_source_timestamps_not_strict
-sensor_ego_binding_unreviewed
 sensor_ego_metadata_missing
 sensor_ego_metadata_invalid
 sensor_ego_segment_not_unique
-sensor_direct_path_range_invalid
-sensor_direct_path_geometry_invalid
+sensor_unexpected_direct_path
+sensor_non_camera_boundary_present
 sensor_camera_boundary_range_invalid
+sensor_camera_boundary_provenance_invalid
 sensor_camera_boundary_geometry_invalid
 sensor_camera_boundary_width_implausible
+sensor_camera_chain_ambiguous
+sensor_camera_chain_cycle
+sensor_camera_chain_limit_exceeded
+sensor_camera_chain_junction_invalid
+sensor_camera_chain_100m_span_unavailable
 reference_ego_drive_path_not_unique
 reference_successor_chain_invalid
 reference_h100_coverage_incomplete
 source_time_pair_unavailable
-anchor_invalid_or_exceeds_1m
-sensor_direct_path_h100_coverage_incomplete
-sensor_camera_boundary_h100_coverage_incomplete
 ```
 
-An implementation may retain a more detailed internal exception, but it must
-map it to exactly one of these stable exported codes. A new exported code is a
-contract amendment. Multiple codes may apply to one recording, so failure
-counts are explicitly non-mutually-exclusive.
+An internal detail must map to these exported codes. New exported codes require
+a reviewed contract amendment. Codes are non-mutually-exclusive.
 
-## Fixed command and outputs
+## Fixed command and exact outputs
 
-The proposed implementation has exactly this public surface:
+The proposed public surface is:
 
 ```bash
 python -m lane_residuals.cli.sensor_topology_feasibility \
@@ -334,9 +384,8 @@ python -m lane_residuals.cli.sensor_topology_feasibility \
   [--log-level INFO]
 ```
 
-All thresholds and topic names are constants, not command-line choices.
-`--log-level` accepts only `DEBUG`, `INFO`, `WARNING`, or `ERROR` and changes
-console verbosity only.
+Topic names and thresholds are constants. `--log-level` accepts only `DEBUG`,
+`INFO`, `WARNING`, or `ERROR` and affects console verbosity only.
 
 After valid lineage input, the command writes exactly three private files:
 
@@ -346,8 +395,9 @@ sensor_topology_schema_inventory.json
 sensor_topology_feasibility_summary.json
 ```
 
-`sensor_topology_recordings.csv` contains one deterministic basename-ordered
-row per MCAP with exactly these columns:
+### Recordings CSV
+
+One deterministic basename-ordered row per MCAP has exactly:
 
 ```text
 relative_path_private
@@ -367,17 +417,20 @@ reference_source_timestamp_present_count
 sensor_source_timestamps_strict
 reference_source_timestamps_strict
 explicit_ego_candidate_count
-direct_path_structure_count
-camera_boundary_structure_count
-direct_path_h100_structural_pair_count
-camera_boundary_h100_structural_pair_count
+camera_boundary_segment_structure_count
+camera_only_successor_chain_count
+camera_chain_100m_span_count
+reference_h100_ready_count
+source_time_pair_count
+synchronized_100m_candidate_count
 failure_codes
 ```
 
-Descriptor sets and failure-code sets are semicolon-delimited, sorted, and
-deduplicated. Boolean values serialize as lowercase `true`/`false`. Counts and
-byte sizes are nonnegative decimal integers. No timestamp, coordinate,
-boundary width, station value, projection distance, or residual appears.
+Sets are semicolon-delimited, sorted, and deduplicated. Booleans are lowercase
+`true`/`false`; counts and byte sizes are nonnegative decimal integers. No
+timestamp or geometry-derived numeric value appears.
+
+### Schema inventory
 
 `sensor_topology_schema_inventory.json` contains exactly:
 
@@ -389,13 +442,12 @@ descriptor_identity_rule
 topics
 ```
 
-Its fixed values are `version = "0.18.0"`, the contract revision above,
+Fixed values are `version = "0.18.0"`, the a1 revision,
 `purpose = "sensor_topology_schema_inventory"`, and
 `descriptor_identity_rule =
 "sha256(message.DESCRIPTOR.file.serialized_pb)"`.
 
-`topics` is an array sorted by topic and then descriptor SHA-256. Each item
-contains exactly:
+`topics` is sorted by topic and descriptor SHA-256. Each item contains exactly:
 
 ```text
 topic
@@ -409,18 +461,16 @@ field_inventory
 audit_support_status
 ```
 
-The schema/encoding arrays are sorted and unique. `field_inventory` is a
-recursively full-name-sorted array whose entries contain exactly `full_name`,
-`number`, `label`, `kind`, `referenced_full_name`, and `oneof_name`.
-`full_name` is the Protobuf field full name; `number` is a positive integer;
-`label` is `optional`, `required`, or `repeated`; `kind` is the canonical
-Protobuf scalar, enum, or message type name; and the two final values are
-strings or JSON null. Recursion stops on an already visited message full name
-and records that reference without expanding it again.
-`descriptor_file_sha256` is JSON null when descriptor bytes are unavailable,
-and null identities sort after hashes. `audit_support_status` is one of
-`structure_observed`, `decode_failed`, or `descriptor_unavailable`. It is not a
-semantic compatibility decision.
+The arrays are sorted and unique. `field_inventory` is a recursively
+full-name-sorted array whose entries contain exactly `full_name`, `number`,
+`label`, `kind`, `referenced_full_name`, and `oneof_name`. Recursion stops on
+an already visited message full name and records the reference without
+expanding again. `descriptor_file_sha256` is null when unavailable; null sorts
+after hashes. `audit_support_status` is one of `structure_conformant`,
+`required_structure_drift`, `decode_failed`, or `descriptor_unavailable`.
+It is not residual-target compatibility.
+
+### Feasibility summary
 
 `sensor_topology_feasibility_summary.json` contains exactly:
 
@@ -435,9 +485,9 @@ manifest_sha256
 raw_mcap_count
 raw_basename_sha256_map_sha256
 topics
-station_grid_m
+minimum_sensor_chain_span_m
 maximum_source_delta_ms
-maximum_anchor_distance_m
+sensor_chain_limits
 reference_chain_limits
 sensor_descriptor_file_sha256s
 reference_descriptor_file_sha256s
@@ -446,10 +496,12 @@ reference_message_count
 sensor_decoded_count
 reference_decoded_count
 explicit_ego_candidate_count
-direct_path_structure_count
-camera_boundary_structure_count
-direct_path_h100_structural_pair_count
-camera_boundary_h100_structural_pair_count
+camera_boundary_segment_structure_count
+camera_only_successor_chain_count
+camera_chain_100m_span_count
+reference_h100_ready_count
+source_time_pair_count
+synchronized_100m_candidate_count
 recording_failure_counts
 output_sha256
 technical_feasibility_status
@@ -459,166 +511,161 @@ claim_limits
 next_authorized_action
 ```
 
-Its fixed scalar and object values are:
+Fixed values and objects are:
 
 ```text
-version                         "0.18.0"
-contract_revision               "v0.18.0-prospective-2026-09-14-sensor-topology-feasibility-a0"
-purpose                         "sensor_topology_h100_structural_feasibility"
-lineage_status                  "passed"
-topics.estimate                 "/adp/lane_topology_sensor_based"
-topics.reference                "/adp/road_lane_map_based"
-station_grid_m                  [0.0, 5.0, ..., 100.0]
-maximum_source_delta_ms         50.0
-maximum_anchor_distance_m       1.0
+version                                  "0.18.0"
+contract_revision                        "v0.18.0-prospective-2026-09-14-sensor-topology-feasibility-a1"
+purpose                                  "sensor_topology_100m_structural_feasibility"
+lineage_status                           "passed"
+topics.estimate                          "/adp/lane_topology_sensor_based"
+topics.reference                         "/adp/road_lane_map_based"
+minimum_sensor_chain_span_m              100.0
+maximum_source_delta_ms                  50.0
+sensor_chain_limits.max_segments         16
+sensor_chain_limits.maximum_junction_gap_m       1.0
+sensor_chain_limits.maximum_junction_heading_deg 30.0
+sensor_chain_limits.minimum_median_width_m        1.0
+sensor_chain_limits.maximum_median_width_m        10.0
 reference_chain_limits.max_segments                     16
 reference_chain_limits.maximum_junction_gap_m           1.0
 reference_chain_limits.maximum_junction_heading_deg     30.0
-producer_provenance_status      "requires_reviewed_bmw_source_evidence"
-scientific_target_adoption_authorized false
+producer_provenance_status               "source_traced_frame_contract_unresolved"
+scientific_target_adoption_authorized    false
 ```
 
 `preserved_intake_lock_sha256` is the recomputed hash of the exact v0.17.1
-`independent_outing_lock.json`. `raw_basename_sha256_map_sha256` is SHA-256
-over the v0.17.1 raw map sorted by basename as UTF-8 and encoded one entry at a
-time as:
+lock. `raw_basename_sha256_map_sha256` hashes the v0.17.1 map sorted by basename
+and encoded one entry at a time as:
 
 ```text
 basename_utf8 || NUL || lowercase_file_sha256_ascii || LF
 ```
 
-Every basename and file hash is first reconciled with the manifest and raw
-bytes. `output_sha256` has exactly the keys
-`sensor_topology_recordings.csv` and
-`sensor_topology_schema_inventory.json` in that order. `recording_failure_counts`
-has every observed failure code as a key in lexical order and positive integer
-counts only; absent codes are omitted.
+Every basename/hash is first reconciled with the manifest and raw bytes.
+`output_sha256` has exactly the recordings CSV and schema-inventory JSON keys
+in that order. The summary cannot hash itself. `recording_failure_counts`
+contains only observed codes in lexical order with positive integer counts.
 
-`claim_limits` is exactly this ordered string array:
+`claim_limits` is exactly:
 
 ```text
 structural_feasibility_only
 rlmb_is_pseudo_reference_not_ground_truth
-producer_independence_not_established
-sensor_centreline_semantics_not_adopted
-no_residual_or_condition_values_computed_or_exported
-no_cohort_role_or_model_evaluation
-no_independent_outing_generalization
+ltsb_boundary_geometry_is_camera_derived_but_topology_is_map_influenced
+ltsb_centreline_is_consumer_derived_not_producer_defined
+physical_frame_equivalence_not_established
+no_cross_topic_geometry_alignment_or_h100_residual_pair
+no_residual_condition_sequence_model_planner_or_figure
+no_cohort_role_or_independent_outing_generalization
 ```
 
-When a structural H100 count is positive, `next_authorized_action` is
-`obtain_reviewed_bmw_source_evidence_and_predeclare_target_adoption`; when
-both counts are zero it is
-`retain_negative_audit_and_review_sensor_schema_or_acquisition_configuration`.
+When `synchronized_100m_candidate_count > 0`,
+`technical_feasibility_status = "synchronized_100m_candidates_observed"` and
+`next_authorized_action =
+"resolve_physical_frame_contract_and_predeclare_alignment_audit"`. Otherwise
+the status is `"no_synchronized_100m_candidates"` and the next action is
+`"retain_negative_audit_and_review_schema_or_acquisition_configuration"`.
+Neither status adopts the target.
 
-`output_sha256` contains exactly the SHA-256 values of the recordings CSV and
-schema-inventory JSON; the summary cannot hash itself. Strict JSON forbids
-duplicate keys, NaN, and infinity and uses deterministic formatting.
-`technical_feasibility_status` is `structural_h100_candidates_observed` when
-either structural H100 count is positive and `no_structural_h100_candidates`
-otherwise. `producer_provenance_status` remains
-`requires_reviewed_bmw_source_evidence`. Consequently
-`scientific_target_adoption_authorized` is always `false` in v0.18.0.
+Strict JSON forbids duplicate keys, NaN, and infinity and uses deterministic
+formatting. Lineage/schema/usage errors exit `2` before output. A complete
+zero-candidate audit exits `3`; a complete positive audit exits `0`. Both
+complete states write all three files. Existing or nonempty output directories
+are never overwritten.
 
-Lineage/schema/usage errors exit `2` before output. A complete zero-candidate
-audit exits `3`; a complete positive structural audit exits `0`. Both complete
-statuses write all three files and are retained. Existing or nonempty output
-directories are never overwritten.
+## Privacy, determinism, and ownership
 
-## Privacy, determinism, and implementation boundaries
-
-All three outputs, raw MCAPs, and the private acquisition manifest remain
-outside Git. The outputs may contain private basenames, relative paths, file
-hashes, schema identities, and aggregate technical counts. They contain no
-absolute path, run timestamp, raw payload value, geometry coordinate, residual,
-condition, sequence, model, planner, or figure value.
+All outputs, raw MCAPs, and private manifests remain outside Git. Outputs may
+contain private basenames, relative paths, file hashes, descriptor identities,
+and aggregate counts. They contain no absolute path, run timestamp, raw numeric
+payload, coordinate, timestamp value, span, width, gap, heading, projection,
+residual, condition, sequence, model, planner, or figure value.
 
 For identical code, contract, manifest bytes, raw bytes, preserved v0.17.1
-files, and relative layout, all three output byte streams must be identical.
-Changing only the root mount path changes nothing. Changing relative layout
-may change only `relative_path_private`, the recordings CSV hash, and the
-summary field that records that hash.
+files, and relative layout, all three byte streams are identical. A different
+mount root changes nothing. A different relative layout may change only the
+private relative-path column, the recordings CSV hash, and its summary hash.
 
 The planned implementation follows repository ownership:
 
-- `domain.sensor_topology_feasibility` owns structural state definitions and
-  fixed geometry readiness arithmetic;
-- `io.sensor_topology_feasibility` owns descriptor inventory and strict
-  serialization;
-- `workflows.sensor_topology_feasibility` owns v0.17.1 lineage validation,
-  decoding orchestration, aggregation, non-overwrite, and output hashes; and
-- `cli.sensor_topology_feasibility` owns arguments, logging, and exit mapping.
+- `domain.sensor_topology_feasibility`: descriptor-independent structural
+  states, strict camera midpoint/chain arithmetic, and fixed thresholds;
+- `io.sensor_topology_feasibility`: descriptor inspection, dynamic field-number
+  access, decoding adapters, and strict serialization;
+- `workflows.sensor_topology_feasibility`: v0.17.1 lineage validation,
+  recording-local orchestration, aggregation, non-overwrite, and hashes; and
+- `cli.sensor_topology_feasibility`: arguments, logging, and exit mapping.
 
-The workflow may reuse neutral current primitives only after tests prove their
-exact behavior. It must not import `legacy.preprocessing`, any residual-dataset
-builder, conditional-feature module, model, sampler, planner, evaluation, or
-visualization module. Legacy code is implementation evidence, not the new
-scientific owner.
+The workflow may reuse neutral primitives only after tests freeze their exact
+behavior. It must not import `legacy.preprocessing`, a residual builder,
+condition module, sequence builder, model, sampler, planner, evaluation, or
+visualization module. Historical code is evidence, not the new owner.
 
-## Implementation acceptance before private execution
+## Synthetic implementation acceptance
 
-After focused contract `GO`, synthetic tests must prove at least:
+Only after focused contract `GO`, synthetic tests must prove at least:
 
 - exact preserved-v0.17.1 file/schema/hash/raw-map reconciliation before
   output creation;
-- exact manifest coverage and rejection of missing, extra, duplicate, changed,
-  or path-qualified MCAP entries;
-- message-owned descriptor hashing and deterministic recursive field inventory;
-- exact topic/schema/encoding filtering with no topic fallback;
-- per-message and per-segment failure retention;
-- strict explicit ego selection and rejection of nearest-origin fallback;
-- separation of direct-path and camera-boundary structure;
-- prohibition of map/artificial sensor-boundary fallback;
-- pool-range type/bounds/cardinality failures, non-finite points, degenerate
-  boundaries, reversed side orientation, duplicate junctions, and the fixed
-  width boundary;
-- unchanged strict RLMB ego selection and successor-chain boundaries;
-- source-time-only mutual-nearest pairing, tie behavior, missing/duplicate/
-  non-monotonic times, and the exact `50 ms` boundary;
-- exact `0, 5, ..., 100 m` coverage without extrapolation and the exact
-  `1.0 m` anchor boundary;
-- independent direct-path and camera-boundary H100 counts;
-- exact three-file schemas, hashes, deterministic bytes, no overwrite, and
-  absence of prohibited payload/target/model fields;
-- complete zero/positive audit exit codes `3`/`0` and pre-output error code
-  `2`; and
-- no direct or transitive import of residual construction, conditions,
-  sequences, modeling, sampling, planner, evaluation, or visualization.
+- manifest coverage and rejection of missing, extra, duplicate, changed, or
+  path-qualified entries;
+- message-owned descriptor hashing and deterministic recursive inventory;
+- exact topic/schema/encoding filtering and required field-number/type/label
+  validation across conformant descriptor generations;
+- strict single ego index and rejection of Boolean, missing, multiple,
+  out-of-range, vector-order, or nearest-origin selection;
+- rejection of a populated direct path, non-camera ranges, non-CAMERA boundary
+  provenance, invalid `(start, size)` pairs, bad two-level pool indirection,
+  non-finite/degenerate vertices, ambiguous orientation, gaps, the `1e-6 m`
+  duplicate-junction boundary, and exact width boundaries;
+- unique successor traversal, zero-successor stop, branch/cycle/limit rules,
+  empty map-informed segment termination, exact gap/heading boundaries, and
+  orientation-invariant 100 m span;
+- unchanged RLMB H100 readiness without exposing or combining coordinates;
+- source-time-only mutual-nearest pairing, deterministic ties, missing or
+  non-strict times, exact `50 ms`, and recording-local isolation;
+- no call to a cross-topic projection, anchor, transform, odometry
+  compensation, residual, or station-sampling primitive;
+- exact three-file schemas, hashes, deterministic bytes, non-overwrite, exit
+  codes `0`/`3`/`2`, and absence of prohibited values; and
+- no direct/transitive import of residual, conditions, sequences, modeling,
+  sampling, planner, evaluation, or visualization.
 
 The complete Python 3.10 and 3.12 suite must pass. A focused implementation
-review is required before the real command is run.
+review is required before any private execution.
 
-## Review and execution order
+## Binding review and execution order
 
-The order is binding:
+1. Commit and push the original prospective documentation on the dedicated
+   branch.
+2. Preserve the private Copilot transcript and amend the repository evidence
+   and contract from a0 to a1.
+3. Obtain the narrow BMW-source supplement listed in the evidence document,
+   incorporate it without reading private MCAPs, and freeze the resulting
+   reviewed-candidate revision.
+4. Push that exact documentation commit and obtain Claude's focused contract
+   review. `AMEND` returns to step 3; only `GO` continues.
+5. Implement the audit without reading private MCAPs and verify entirely on
+   synthetic fixtures.
+6. Push the exact implementation and obtain focused implementation `GO`.
+7. Run once on the closed batch01 into a new empty versioned directory.
+8. Independently reconcile the three files and review the real result.
+9. If no synchronized candidate exists, stop and retain the negative result.
+   If candidates exist, first resolve the physical frame contract, then write
+   and review a separate alignment-audit contract. Residual construction is a
+   later decision still requiring target adoption.
 
-1. Commit and push this prospective documentation on a dedicated branch.
-2. Obtain the BMW-source trace listed above and preserve it as a private raw
-   transcript plus a concise evidence-classified repository document.
-3. Obtain Claude's focused review of the exact amended contract commit and
-   tree. `AMEND` returns to step 1; only `GO` continues.
-4. Implement the audit without touching private MCAPs and verify it entirely
-   on synthetic fixtures.
-5. Push the exact implementation and obtain focused implementation `GO`.
-6. Run once on the closed batch01 into a new empty versioned output directory.
-7. Independently reconcile the three output files and review the real result.
-8. If no structural H100 candidate exists, stop and retain the negative
-   result. If candidates exist, write and review a separate target-adoption
-   contract using the descriptor and BMW-source evidence before calculating
-   any residual.
-
-No v0.18.0 `GO` authorizes merging by itself. Merge occurs only after the
-applicable contract, implementation, and—if executed before merge—real-output
-reviews have returned `GO`, CI passes, and the user explicitly chooses to
-merge.
+No v0.18.0 `GO` alone authorizes merging. Merge requires the applicable
+contract, implementation, and real-output reviews, passing CI, and the user's
+explicit decision.
 
 ## Claim boundary
 
-v0.18.0 may state only whether the closed batch contains structural standalone
-sensor-lane H100 candidates synchronized to the unchanged RLMB
-pseudo-reference under this contract. A positive result does not prove that
-the topic is map-independent, that its midpoint is the producer-intended lane
-centre, that the future residual is physically correct, that the outing meets
-v0.17 eligibility, that old and new targets are comparable, or that any model
-will improve. A zero result does not invalidate the topic outside this
-recording/configuration.
+v0.18.0 may state only whether the closed batch contains source-time-paired
+messages with strict camera-only LTSB midpoint span of at least 100 m and an
+independently H100-ready RLMB pseudo-reference. A positive result does not
+prove frame equivalence, alignment, residual readiness, map independence,
+physical truth, v0.17 outing eligibility, comparability with EDP, or expected
+model performance. A zero result does not invalidate the topic outside this
+recording, producer build, or configuration.

@@ -50,10 +50,15 @@ agents and new chats.
 - Residual means EDP estimate minus the spatially aligned RLMB
   pseudo-reference, projected onto the pseudo-reference left unit normal.
   Positive is left with respect to increasing station.
-- The prospective v0.18 sensor-topology target is not adopted. Its first phase
-  may inventory structure and H100 readiness only after focused review; it may
-  not calculate a residual or reinterpret an EDP result. Historical EDP models
-  and sensor-lane residuals must never be pooled or relabelled as one target.
+- The prospective v0.18 sensor-topology target is not adopted. The BMW trace
+  establishes camera-derived boundary geometry inside a map-influenced
+  topology graph but does not establish physical frame equivalence with RLMB.
+  After focused review, its first phase may inventory strict camera-chain
+  structure, orientation-invariant 100 m span, independent RLMB H100 readiness,
+  and source-time co-availability only. It may not compare cross-topic
+  coordinates, calculate an anchor or residual, or reinterpret an EDP result.
+  Historical EDP models and sensor-lane residuals must never be pooled or
+  relabelled as one target.
 - RLMB is a pseudo-reference, not physical ground truth.
 - BMW condition schema v1 is fixed in this exact order:
   `speed_mps`, `estimated_mean_abs_curvature_per_m`,

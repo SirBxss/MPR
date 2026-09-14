@@ -1349,9 +1349,10 @@ lineage rather than being ignored.
 
 ## Prospective v0.18.0 sensor-topology feasibility outputs
 
-Status: predeclared only. These outputs do not exist and the command is not
-supported until focused contract review and implementation review authorize
-the respective steps. The complete binding definitions and stop rules are in
+Status: intermediate amended a1 predeclaration only. One narrow BMW-source
+supplement remains before focused contract review. These outputs do not exist
+and the command is unsupported until contract and implementation reviews
+authorize their respective steps. The binding definitions are in
 `docs/sensor_topology_feasibility_predeclaration.md`.
 
 After exact reconciliation with the preserved v0.17.1 batch01 lineage, the
@@ -1367,7 +1368,7 @@ The recordings CSV has one deterministic basename-ordered row per MCAP and
 this exact header:
 
 ```text
-relative_path_private,basename_private,file_size_bytes,file_sha256,sensor_topic_present,reference_topic_present,sensor_message_count,reference_message_count,sensor_decoded_count,reference_decoded_count,sensor_descriptor_file_sha256s,reference_descriptor_file_sha256s,sensor_source_timestamp_present_count,reference_source_timestamp_present_count,sensor_source_timestamps_strict,reference_source_timestamps_strict,explicit_ego_candidate_count,direct_path_structure_count,camera_boundary_structure_count,direct_path_h100_structural_pair_count,camera_boundary_h100_structural_pair_count,failure_codes
+relative_path_private,basename_private,file_size_bytes,file_sha256,sensor_topic_present,reference_topic_present,sensor_message_count,reference_message_count,sensor_decoded_count,reference_decoded_count,sensor_descriptor_file_sha256s,reference_descriptor_file_sha256s,sensor_source_timestamp_present_count,reference_source_timestamp_present_count,sensor_source_timestamps_strict,reference_source_timestamps_strict,explicit_ego_candidate_count,camera_boundary_segment_structure_count,camera_only_successor_chain_count,camera_chain_100m_span_count,reference_h100_ready_count,source_time_pair_count,synchronized_100m_candidate_count,failure_codes
 ```
 
 `sensor_topology_schema_inventory.json` has exactly these top-level fields:
@@ -1396,8 +1397,9 @@ audit_support_status
 
 Every recursively inventoried field has exactly `full_name`, `number`,
 `label`, `kind`, `referenced_full_name`, and `oneof_name`. Descriptor identity
-comes only from `sha256(message.DESCRIPTOR.file.serialized_pb)`. Inventorying
-an unseen descriptor does not establish semantic compatibility.
+comes only from `sha256(message.DESCRIPTOR.file.serialized_pb)`. Support is
+limited to the required source-traced field-number/type/label structure;
+inventorying a descriptor does not establish residual-target compatibility.
 
 `sensor_topology_feasibility_summary.json` has exactly:
 
@@ -1412,9 +1414,9 @@ manifest_sha256
 raw_mcap_count
 raw_basename_sha256_map_sha256
 topics
-station_grid_m
+minimum_sensor_chain_span_m
 maximum_source_delta_ms
-maximum_anchor_distance_m
+sensor_chain_limits
 reference_chain_limits
 sensor_descriptor_file_sha256s
 reference_descriptor_file_sha256s
@@ -1423,10 +1425,12 @@ reference_message_count
 sensor_decoded_count
 reference_decoded_count
 explicit_ego_candidate_count
-direct_path_structure_count
-camera_boundary_structure_count
-direct_path_h100_structural_pair_count
-camera_boundary_h100_structural_pair_count
+camera_boundary_segment_structure_count
+camera_only_successor_chain_count
+camera_chain_100m_span_count
+reference_h100_ready_count
+source_time_pair_count
+synchronized_100m_candidate_count
 recording_failure_counts
 output_sha256
 technical_feasibility_status
@@ -1436,9 +1440,13 @@ claim_limits
 next_authorized_action
 ```
 
-The audit reports direct-path and camera-boundary structures separately,
-permits no map/artificial sensor-side boundary fallback, and never uses a
-nearest-origin ego-lane fallback. `scientific_target_adoption_authorized` is
-always false in v0.18.0. No output contains an absolute path, run timestamp,
-raw numeric message payload, coordinate, boundary width, projection distance,
-residual, condition, sequence, model, planner, or figure value.
+The a1 audit accepts only paired camera boundaries with CAMERA provenance,
+uses exactly one explicit ego index, and may traverse only a unique strict
+successor chain. It reports orientation-invariant 100 m observed midpoint span
+and source-time co-availability with independently H100-ready RLMB. It does
+not compare LTSB and RLMB coordinates, test an anchor, or produce an H100
+residual-pair count because their physical frame origins are not established
+as equal. `scientific_target_adoption_authorized` is always false. No output
+contains an absolute path, run timestamp, raw numeric payload, coordinate,
+timestamp value, width, span, junction value, projection, residual, condition,
+sequence, model, planner, or figure value.
