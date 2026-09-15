@@ -5,14 +5,15 @@ consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
 
 A prospective v0.18.0 contract now defines the next safe investigation. A BMW
-source trace found that `/adp/lane_topology_sensor_based` publishes
+two-stage source trace found that `/adp/lane_topology_sensor_based` publishes
 camera-derived boundaries in a map-influenced topology graph, not a direct
 centreline, and did not establish physical frame equivalence with RLMB. The
-intermediate a1 audit therefore asks only whether strict camera-only topology
+intermediate a2 audit therefore asks only whether strict camera-only topology
 chains have at least 100 m observed span and are source-time-coavailable with an
 independently H100-ready `/adp/road_lane_map_based` message in the closed
-86-file batch01. One narrow BMW nested-interface/provenance supplement remains
-before independent contract review. The audit is not implemented or approved.
+86-file batch01. The technical decoder questions are closed; one BMW
+checkout/path provenance supplement remains before independent contract
+review. The audit is not implemented or approved.
 It performs no cross-topic coordinate comparison and exports no timestamps,
 coordinates, residuals, features, sequences, models, planner values, or
 figures. It cannot adopt the new target. See

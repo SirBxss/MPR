@@ -1,6 +1,6 @@
 # BMW standalone sensor-topology source evidence
 
-Last updated: 2026-09-14.
+Last updated: 2026-09-15.
 
 This document tracks the evidence needed to evaluate
 `/adp/lane_topology_sensor_based` as a possible estimate-side source for a new
@@ -13,20 +13,24 @@ The binding prospective scope is
 
 ## Evidence provenance
 
-The data owner requested a read-only investigation through Copilot in the BMW
-checkout. The returned transcript is private and remains outside Git. Its
-SHA-256 is:
+The data owner requested two read-only investigations through Copilot in the
+BMW checkout. The returned transcripts are private and remain outside Git.
+Their SHA-256 values, in evidence order, are:
 
 ```text
-57319e59c54ac270d1885c4039d1bac952798f9f7eb293466aec6e6e53b4e3f7
+initial trace         57319e59c54ac270d1885c4039d1bac952798f9f7eb293466aec6e6e53b4e3f7
+interface follow-up   315304f3567b5394f9fb15347c3ce63e3fde55dd4ac1960b4fd77744569468d2
 ```
 
-The trace reported source searches and source excerpts but did not record the
-BMW checkout commit SHA. MPR cannot open that checkout and therefore cannot
-independently reproduce the searches. Facts below are classified as
+Both traces reported source searches and excerpts, but neither recorded the
+BMW checkout commit SHA. The follow-up also claimed to provide complete
+repository-relative paths while listing only basenames such as `road.proto`
+and `topology_updater_utils.cpp`. MPR cannot open that checkout and therefore
+cannot independently reproduce or uniquely locate the searches. Facts below
+are classified as
 **Copilot-confirmed BMW-source evidence**, not as facts independently verified
-by MPR. Missing checkout identity and explicitly unresolved interface
-semantics remain visible rather than being inferred.
+by MPR. Missing checkout identity/path provenance and explicitly unresolved
+physical-frame semantics remain visible rather than being inferred.
 
 ## User-reported guidance and observations
 
@@ -110,6 +114,14 @@ the following relevant `Road` fields:
 | `boundary_vertex_pool_` | 12 |
 | `boundary_arc_length_pool_` | 13 |
 
+The follow-up pinned `time_stamp_` as a singular proto3 `sint64` in
+nanoseconds with `use_adp_time_point = true`; it has no presence bit and an
+unset value decodes as zero. It pinned `ego_lane_segment_indices_` as repeated
+`sint64`, `lane_segments_` as repeated `Adp.Perception.RoadLaneSegment`,
+`lane_boundary_pool_` as repeated `Adp.Perception.RoadLaneBoundary`,
+`boundary_vertex_pool_` as repeated `Adp.PolylineVertex`, and
+`boundary_arc_length_pool_` as repeated `float`.
+
 For `RoadLaneSegment` version `1.0.0`, the relevant fields are
 `successor_lane_segment_indices_ = 6`, `predecessor_lane_segment_indices_ = 7`,
 `segment_length_ = 8`, `drive_path_range_ = 11`,
@@ -121,12 +133,27 @@ vertex and arc-length pools and `RoadLaneBoundary.source_ = 4` records
 boundary provenance. The reported boundary-source enum is `INVALID = 0`,
 `CAMERA = 1`, `MAP = 2`, and `ARTIFICIAL = 3`.
 
+`Adp.PolylineVertex.x` and `.y` are singular
+`Adp.Common.NormalDistributedValueF` messages at field numbers 1 and 2. That
+wrapper contains singular `float mean = 1`, singular `float std_dev = 2`, and
+singular `uint32 invalid_flags = 3`. The traced safe mean predicate is
+`(invalid_flags & 0x01) == 0 && mean < FLT_MAX`; `0x01` marks an invalid mean
+and `0xFF` means signal unfilled. A zero flag alone is insufficient proof that
+the producer populated a default-constructed wrapper. The structural audit
+must therefore combine the predicate with finite, nondegenerate geometry
+checks and must not export wrapper values.
+
 Successor, predecessor, and lateral-neighbour values are message-local indices
 into `Road.lane_segments_`; segment boundary ranges index
 `Road.lane_boundary_pool_`; and each boundary's geometry range then indexes
 the boundary vertex pool. An unset `Range` uses an int64-max start sentinel and
-size zero. The exact serialized invalid lane-segment index and ordering of
-multiple predecessor/successor indices were not established.
+size zero. The official range predicate also permits `(start = 0, size = 0)`
+as a valid null object against an empty pool, so `size == 0` alone cannot
+establish that a range is unwritten. `range.proto` and
+`road_lane_segment.proto` were reported stable since 2025-06-13, before both
+relevant recording generations. The exact serialized invalid lane-segment
+index and ordering of multiple predecessor/successor indices were not
+established.
 
 ### Ego-lane binding
 
@@ -166,6 +193,21 @@ vehicle-parameter files distinguish CATIA and vehicle coordinate systems with
 a non-zero translation. Copilot correctly treated rear-axle centring as
 unproven.
 
+The follow-up traced the sole LTSB boundary-pool constructor to
+`TopologyUpdaterUtils::AddLaneBoundary` and reported that every emitted
+boundary is assigned `LaneBoundarySource::kCamera`. It also located LTSB writes
+of `Road.topology_source_ = RoadTopologySource::kSensorTopology` (numeric value
+4). These findings justify fail-closed CAMERA boundary provenance and
+whole-message SENSOR_TOPOLOGY checks in the prospective structural audit.
+
+Camera boundary ranges are contiguous and append-ordered. Boundary vertices
+are copied verbatim from the camera input without sorting, reversal, or frame
+conversion; corresponding arc lengths are generated in the same order,
+starting at zero and nondecreasing across consecutive vertices. Direction
+relative to vehicle travel remains unproven. The audit may validate stored
+order and arc-length consistency and may use orientation-invariant geometric
+span, but it may not infer forward direction or frame equivalence.
+
 ### Topology is map-influenced
 
 The activity directly subscribes to camera lane markings and semantic lane
@@ -180,8 +222,9 @@ geometry, and it has distance-based holding/caching parameters. The only
 robust per-segment evidence that usable geometry is camera-derived is the
 camera boundary range together with each referenced boundary's source enum.
 There is no traced scalar that proves an otherwise empty or held segment is
-purely sensor-derived. The concrete whole-message `topology_source_` value
-written by LTSB was not located.
+purely sensor-derived. The follow-up did locate the concrete whole-message
+assignment `topology_source_ = kSensorTopology`; this identifies the producer
+output but does not remove the map influence in its topology construction.
 
 The defensible description is therefore: **camera-derived boundary geometry
 inside a map-influenced topology graph**. The topic name must not be used to
@@ -197,10 +240,12 @@ Road.time_stamp_ := LaneMarkingsSensorBasedOutput.timestamp
 ```
 
 The value is the camera lane-marking measurement/validity time in nanoseconds,
-not an LTSB processing or publication time. No nominal LTSB publication rate
-or guaranteed forward range was found. Full forward geometry may require
-following successor indices, while empty map-informed successor segments can
-terminate camera geometry.
+not an LTSB processing or publication time. Because the proto3 scalar has no
+presence bit, the audit can test only that the decoded timestamp is a positive
+non-Boolean integer, not that it was explicitly serialized. No nominal LTSB
+publication rate or guaranteed forward range was found. Full forward geometry
+may require following successor indices, while empty map-informed successor
+segments can terminate camera geometry.
 
 RLMB uses a pose-estimate validity timestamp and documents its ego reference
 as the rear-axle centre. Both timestamps use the ADP clock and describe content
@@ -228,15 +273,15 @@ generation or whether producer behavior changed.
 
 | Question | Disposition after source trace | Contract consequence |
 |---|---|---|
-| producer and configuration | substantially answered; checkout SHA missing | record as source evidence, not independently reproduced fact |
-| root proto and field topology | substantially answered for current checkout | validate recorded descriptors by message-owned structure |
+| producer and configuration | technical symbols substantially answered; checkout SHA and complete paths missing | retain as intermediate source evidence, not independently reproduced fact |
+| root proto and field topology | nested decoder structure answered for the unidentified checkout | validate recorded descriptors by message-owned structure |
 | coordinate frame/origin/axes | unresolved except units | prohibit cross-topic geometry alignment and residual math |
 | ego binding | answered | require exactly one in-range ego index; reject zero or multiple |
 | centreline representation | answered negatively | direct path is drift; camera midpoint is diagnostic only |
 | ranges and graph indices | substantially answered | use `(start, size)` and message-local indices; never guess branches |
-| fallback geometry | camera boundary writers only; empty/map-informed topology exists | require camera ranges and CAMERA sources; reject non-camera ranges |
+| fallback geometry | camera boundary writers only; every emitted boundary is assigned CAMERA; empty/map-informed topology exists | require sensor whole-message source, camera ranges, and CAMERA boundaries; reject drift |
 | map/RLMB dependence | direct map/map-matching inputs; no direct RLMB topic | state map-influenced topology; do not claim independence |
-| timestamp and rate | timestamp answered; rate unresolved | source-time proximity only; no cadence claim |
+| timestamp and rate | timestamp scalar/units/producer answered; no presence bit; rate unresolved | require positive decoded source time; source-time proximity only; no cadence claim |
 | forward guarantee | unresolved; successor traversal may be required | audit explicit unique camera-only chains and observed span only |
 | RLMB frame/epoch equivalence | time semantics compatible; physical origin unresolved | no anchor test or H100 residual-pair claim |
 | generation differences | interface history partial; producer history unresolved | inventory exact recorded descriptors; no cross-generation assumption |
@@ -256,28 +301,30 @@ calculated, BMW evidence or a separately reviewed empirical frame-calibration
 contract must establish the coordinate transform, timestamp handling, and the
 scientific acceptability of map-influenced topology selection.
 
-## Narrow source supplement required before contract review
+## Final provenance supplement required before contract review
 
-The first trace is sufficient to reject a0, but not yet sufficient to approve
-an executable a1 decoder. One more read-only BMW-source response must record:
+Together, the two traces are sufficient to reject a0 and specify the nested
+dynamic-decoder and fail-closed producer checks for an intermediate a2
+contract. They are not sufficient to freeze a review candidate because the
+second response omitted the requested checkout identity and supplied
+basenames rather than complete repository-relative paths. One final, strictly
+provenance-only BMW-source response must record:
 
-1. the BMW checkout `git rev-parse HEAD` and full repository-relative paths for
-   every producer, activity, topic-definition, parameter, and proto file cited;
-2. exact full Protobuf message/enum names, field names, numbers, labels, and
-   scalar/message kinds for `Road.time_stamp_`, `PolylineVertex.x/y`, their
-   `NormalDistributedValueF` wrapper (including mean and invalid-status
-   fields), `RoadLaneBoundary.source_`, and every nested range used;
-3. the exact LTSB write site for `RoadLaneBoundary.source_`, or explicit
-   confirmation that LTSB leaves it unset/INVALID, so the audit does not impose
-   a provenance test the producer cannot satisfy;
-4. whether entries in a `camera_based` boundary range and vertices in each
-   boundary geometry range have a producer-guaranteed order; if so, the exact
-   direction/continuity contract and source symbol;
-5. whether `drive_path_range_.size == 0` is the only reliable decoded unset
-   test across the relevant proto generations; and
-6. any stronger source trace from the LTSB boundary-input conversion to a
-   documented physical coordinate frame/origin. An explicit negative finding
-   is acceptable and preserves the no-cross-frame-math rule.
+1. the literal output of `git rev-parse HEAD`,
+   `git rev-parse --show-toplevel`, and `git status --short` from the checkout
+   used for source verification; the status must be empty, and the technical
+   findings must be rechecked at that exact clean HEAD; and
+2. the complete tracked repository-relative path for every cited producer,
+   activity, topic-definition, parameter, proto, header, and design file,
+   derived from that same checkout rather than inferred from basename search.
+
+The technical questions about nested declarations, mean validity, CAMERA
+source assignment, whole-message sensor-topology assignment, stored ordering,
+unset-range semantics, timestamp type, and the negative frame finding are
+closed for the intermediate contract. Vertex direction, physical frame/origin,
+publication cadence, and guaranteed forward extent remain unresolved by
+design; they do not block the structural/co-availability audit because it
+claims none of those semantics.
 
 This supplement is technical interface evidence only. It must not inspect an
 MCAP, report payload values, or change BMW code.

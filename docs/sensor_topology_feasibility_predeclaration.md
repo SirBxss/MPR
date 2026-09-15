@@ -1,15 +1,17 @@
 # v0.18.0 sensor-topology 100 m structural-feasibility predeclaration
 
-Status: intermediate amended prospective draft dated 2026-09-14. The original a0 draft was
-written after the accepted negative v0.17.1 batch01 EDP audit and before MPR
-decoded or summarized any standalone sensor-topology message from that closed
-batch. A subsequent read-only Copilot trace of the BMW source changed the
-contract before implementation or private execution. One narrow source
-supplement listed in `docs/bmw_sensor_topology_source_evidence.md` remains
-required before this revision is sent for focused contract review.
+Status: intermediate amended prospective draft dated 2026-09-15. The original
+a0 draft was written after the accepted negative v0.17.1 batch01 EDP audit and
+before MPR decoded or summarized any standalone sensor-topology message from
+that closed batch. Two subsequent read-only Copilot traces of the BMW source
+changed the contract before implementation or private execution. The second
+trace closed the technical decoder questions but omitted the requested
+checkout identity and complete repository-relative paths. That final
+provenance-only supplement remains required before a review candidate is
+frozen.
 
 Prospective contract revision:
-`v0.18.0-prospective-2026-09-14-sensor-topology-feasibility-a1`.
+`v0.18.0-prospective-2026-09-15-sensor-topology-feasibility-a2`.
 
 This phase asks whether `/adp/lane_topology_sensor_based` contains strict,
 camera-boundary-derived geometry with at least 100 m of observed contiguous
@@ -18,10 +20,10 @@ pseudo-reference messages. It is a privacy-safe technical audit, not a silent
 replacement of `/adp/estimated_drive_paths`, not an H100 residual-pair build,
 and not a model experiment.
 
-## Why a1 replaces a0
+## Why a2 supersedes a1
 
-The BMW-source trace established four facts that invalidate material parts of
-the a0 design:
+The initial BMW-source trace established four facts that invalidated material
+parts of the a0 design:
 
 1. LTSB does not write `drive_path_range`; it publishes no producer-defined
    ego-lane centreline. A midpoint derived from paired camera boundaries is a
@@ -39,10 +41,19 @@ and map-matching inputs. The accurate phrase is **camera-derived boundary
 geometry inside a map-influenced topology graph**, not "map-independent sensor
 topology".
 
-Accordingly, a1 removes the direct-path arm, adds strict camera-only successor
-traversal, and replaces the cross-frame H100 structural-pair count with a
+Accordingly, a1 removed the direct-path arm, added strict camera-only successor
+traversal, and replaced the cross-frame H100 structural-pair count with a
 source-time-synchronized dual-availability count. No a0 output may be
 generated or interpreted.
+
+The second trace then pinned the nested numeric wrapper, mean-validity rule,
+CAMERA boundary and SENSOR_TOPOLOGY write sites, stored boundary/vertex order,
+arc-length construction, timestamp scalar semantics, and the exact unwritten
+range sentinel. It corrected two unsafe a1 assumptions: `size == 0` alone does
+not prove `drive_path_range` is unwritten, and a clear mean-invalid bit alone
+does not reject the `FLT_MAX` sentinel. This a2 draft incorporates those
+corrections. It remains intermediate solely because the source checkout SHA
+and complete tracked paths are not recorded.
 
 ## Scientific separation from historical work
 
@@ -85,10 +96,12 @@ Interpretation keeps these classes separate:
 4. **User-reported domain guidance**: Leon's recommendation.
 5. **Inference**: any interpretation not established by the first four.
 
-The Copilot transcript did not record the BMW checkout SHA and did not
-establish the LTSB frame origin/axes, nominal publication rate, guaranteed
-forward extent, concrete whole-message `topology_source` assignment, or
-producer behavior across recording generations. Those gaps remain open.
+Neither Copilot transcript recorded the BMW checkout SHA or complete tracked
+repository-relative paths. The traces also did not establish the LTSB frame
+origin/axes, nominal publication rate, guaranteed forward extent, vertex
+direction relative to travel, or producer behavior across recording
+generations. Those gaps remain visible. The whole-message
+`topology_source = SENSOR_TOPOLOGY` assignment is now source-traced.
 
 ## Primary question and fixed non-questions
 
@@ -181,23 +194,31 @@ or the unrelated field-18 type name.
 
 At minimum, the sensor descriptor must expose the source-traced structure:
 
-- Road: optional enum field 4, integral scalar field 5, repeated signed
-  integral field 6, repeated message field 7, repeated message field 9, and
-  repeated message fields 12 and 13;
-- RoadLaneSegment: repeated signed integral successor field 6, message
-  drive-path range field 11, and message left/right boundary-range fields
-  12/13;
-- BoundaryRanges: message map/camera/artificial fields 1/2/3;
-- Range: integral start field 1 and integral size field 2; and
-- RoadLaneBoundary: message geometry field 1 and enum source field 4.
+- `Road`: singular enum field 4; singular `sint64` field 5; repeated `sint64`
+  field 6; repeated `RoadLaneSegment` field 7; repeated `RoadLaneBoundary`
+  field 9; repeated `Adp.PolylineVertex` field 12; and repeated `float` field
+  13;
+- `RoadLaneSegment`: repeated `int64` successor field 6; singular `Range`
+  drive-path field 11; and singular `BoundaryRanges` left/right fields 12/13;
+- `BoundaryRanges`: singular `Range` map/camera/artificial fields 1/2/3;
+- `Range`: singular `int64` start field 1 and size field 2;
+- `RoadLaneBoundary`: singular `Range` geometry field 1 and singular enum
+  source field 4;
+- `Adp.PolylineVertex`: singular `Adp.Common.NormalDistributedValueF` x/y
+  fields 1/2; and
+- `Adp.Common.NormalDistributedValueF`: singular `float` mean field 1,
+  singular `float` standard-deviation field 2, and singular `uint32`
+  invalid-flags field 3.
 
-The required source supplement must pin the additional nested structure needed
-to read finite x/y means from boundary vertices before contract review.
-Required-field type/label drift is unsupported even when decoding succeeds.
-Extra unrelated fields are inventoried but do not fail this structural audit.
-Multiple recorded descriptor generations may be audited only when each
-independently satisfies the same required structure; they remain separate
-inventory entries.
+Required-field type, number, label, referenced-type, or enum-value drift is
+unsupported even when decoding succeeds. Extra unrelated fields are
+inventoried but do not fail this structural audit. Multiple recorded descriptor
+generations may be audited only when each independently satisfies the same
+required structure; they remain separate inventory entries.
+
+The decoded whole-message topology source must be the source-traced
+`SENSOR_TOPOLOGY` numeric enum value 4. Any other, missing-as-default, Boolean,
+or non-integral value fails closed; topic name alone is not provenance.
 
 The recursive schema inventory records field numbers, names, labels,
 scalar/message/enum types, referenced full names, oneof membership, and the
@@ -220,16 +241,26 @@ substitutes.
 
 Every segment admitted to the sensor chain must meet all of these rules:
 
-1. `drive_path_range` is unused when size is zero; its start value is ignored
-   in that state because decoded default handling across generations is not
-   yet established. A positive size is producer drift and is never consumed.
-2. Left and right `map_based` and `artificial` boundary ranges are empty.
+1. `drive_path_range` is unwritten only when its decoded values are exactly
+   `(start = 9223372036854775807, size = 0)`. `size == 0` alone is insufficient:
+   `(start = 0, size = 0)` can be a valid null range. Any other value is
+   producer drift and is never consumed.
+2. Left and right `map_based` and `artificial` boundary ranges have the exact
+   unwritten sentinel `(start = 9223372036854775807, size = 0)`; `size == 0`
+   alone is not accepted.
 3. Left and right `camera_based` ranges are integral `(start, size)` pairs,
    nonnegative, nonempty, in bounds for `lane_boundary_pool`, and resolve to at
    least one boundary per side.
 4. Every referenced boundary reports CAMERA provenance, has an integral,
-   nonnegative, nonempty, in-bounds geometry `(start, size)` range, and resolves
-   to at least two finite x/y mean points in `boundary_vertex_pool`.
+   nonnegative, nonempty geometry `(start, size)` range that is in bounds for
+   both `boundary_vertex_pool` and `boundary_arc_length_pool`, and resolves to
+   at least two valid x/y mean points and the same number of arc-length values.
+5. Each x/y wrapper has a non-Boolean integral `invalid_flags` value in
+   `[0, 255]`, has bit `0x01` clear, and has a finite mean strictly less than
+   `3.4028234663852886e38` (`FLT_MAX`). A clear invalid bit or zero flags alone
+   is not sufficient.
+6. The corresponding arc-length slice is finite, starts at exactly `0.0`, is
+   nondecreasing in stored vertex order, and ends above `0.0`.
 
 An invalid or non-camera range invalidates that segment. Empty map-informed
 segments are counted as chain termination, not converted from `segment_length`
@@ -239,7 +270,8 @@ and not filled from another source.
 
 For each strict segment, reconstruct left and right polylines separately:
 
-- take boundaries in their message-local range order;
+- take boundaries and vertices in their source-traced message-local stored
+  order; do not interpret that order as forward travel direction;
 - orient each next boundary by the endpoint choice with the smaller Euclidean
   gap to the accumulated polyline;
 - if the two endpoint gaps are exactly equal, fail as ambiguous;
@@ -302,11 +334,13 @@ the existing deterministic mutual-nearest rule with maximum absolute delta
 validity time. Both use the ADP clock, so proximity is auditable even though
 their physical geometry frames are not proven equal.
 
-Log/publish time cannot repair a missing source timestamp. Source timestamps
-must be non-Boolean integers, present on every decoded message, and strictly
-increasing within topic and recording. A stream that fails has zero paired
-candidates; no subset is selected or reordered. Pairing is recording-local
-and never crosses an MCAP boundary.
+Log/publish time cannot repair an invalid source timestamp. The singular
+proto3 timestamp scalar has no presence bit, so "present" is not observable.
+Its decoded value must instead be a positive non-Boolean integer on every
+decoded message and values must be strictly increasing within topic and
+recording. Zero is invalid because it is also the decoded default. A stream
+that fails has zero paired candidates; no subset is selected or reordered.
+Pairing is recording-local and never crosses an MCAP boundary.
 
 A `synchronized_100m_candidate` is one mutual-nearest pair for which the
 sensor message passes `camera_chain_100m_span` and the reference message passes
@@ -342,10 +376,11 @@ reference_schema_or_encoding_mismatch
 sensor_descriptor_unavailable
 reference_descriptor_unavailable
 sensor_required_structure_drift
+sensor_topology_source_invalid
 sensor_stream_decode_failed
 reference_stream_decode_failed
-sensor_source_timestamp_missing
-reference_source_timestamp_missing
+sensor_source_timestamp_invalid
+reference_source_timestamp_invalid
 sensor_source_timestamps_not_strict
 reference_source_timestamps_not_strict
 sensor_ego_metadata_missing
@@ -369,7 +404,10 @@ source_time_pair_unavailable
 ```
 
 An internal detail must map to these exported codes. New exported codes require
-a reviewed contract amendment. Codes are non-mutually-exclusive.
+a reviewed contract amendment. Invalid mean wrappers or arc-length slices map
+to `sensor_camera_boundary_geometry_invalid`; a non-sensor whole-message enum
+maps to `sensor_topology_source_invalid`. Codes are
+non-mutually-exclusive.
 
 ## Fixed command and exact outputs
 
@@ -412,8 +450,8 @@ sensor_decoded_count
 reference_decoded_count
 sensor_descriptor_file_sha256s
 reference_descriptor_file_sha256s
-sensor_source_timestamp_present_count
-reference_source_timestamp_present_count
+sensor_source_timestamp_valid_count
+reference_source_timestamp_valid_count
 sensor_source_timestamps_strict
 reference_source_timestamps_strict
 explicit_ego_candidate_count
@@ -429,6 +467,8 @@ failure_codes
 Sets are semicolon-delimited, sorted, and deduplicated. Booleans are lowercase
 `true`/`false`; counts and byte sizes are nonnegative decimal integers. No
 timestamp or geometry-derived numeric value appears.
+`*_source_timestamp_valid_count` counts decoded positive non-Boolean source
+timestamp values; it does not claim proto3 field presence.
 
 ### Schema inventory
 
@@ -442,7 +482,7 @@ descriptor_identity_rule
 topics
 ```
 
-Fixed values are `version = "0.18.0"`, the a1 revision,
+Fixed values are `version = "0.18.0"`, the a2 revision,
 `purpose = "sensor_topology_schema_inventory"`, and
 `descriptor_identity_rule =
 "sha256(message.DESCRIPTOR.file.serialized_pb)"`.
@@ -515,7 +555,7 @@ Fixed values and objects are:
 
 ```text
 version                                  "0.18.0"
-contract_revision                        "v0.18.0-prospective-2026-09-14-sensor-topology-feasibility-a1"
+contract_revision                        "v0.18.0-prospective-2026-09-15-sensor-topology-feasibility-a2"
 purpose                                  "sensor_topology_100m_structural_feasibility"
 lineage_status                           "passed"
 topics.estimate                          "/adp/lane_topology_sensor_based"
@@ -639,19 +679,22 @@ review is required before any private execution.
 
 1. Commit and push the original prospective documentation on the dedicated
    branch.
-2. Preserve the private Copilot transcript and amend the repository evidence
-   and contract from a0 to a1.
-3. Obtain the narrow BMW-source supplement listed in the evidence document,
-   incorporate it without reading private MCAPs, and freeze the resulting
+2. Preserve the first private Copilot transcript and amend the repository
+   evidence and contract from a0 to a1.
+3. Preserve the interface follow-up, incorporate its technical corrections as
+   intermediate a2 without reading private MCAPs, and keep review blocked
+   because the response omitted checkout identity and complete paths.
+4. Obtain the final provenance-only supplement listed in the evidence
+   document, verify it against the two transcript claims, and freeze a new
    reviewed-candidate revision.
-4. Push that exact documentation commit and obtain Claude's focused contract
-   review. `AMEND` returns to step 3; only `GO` continues.
-5. Implement the audit without reading private MCAPs and verify entirely on
+5. Push that exact documentation commit and obtain Claude's focused contract
+   review. `AMEND` returns to step 4; only `GO` continues.
+6. Implement the audit without reading private MCAPs and verify entirely on
    synthetic fixtures.
-6. Push the exact implementation and obtain focused implementation `GO`.
-7. Run once on the closed batch01 into a new empty versioned directory.
-8. Independently reconcile the three files and review the real result.
-9. If no synchronized candidate exists, stop and retain the negative result.
+7. Push the exact implementation and obtain focused implementation `GO`.
+8. Run once on the closed batch01 into a new empty versioned directory.
+9. Independently reconcile the three files and review the real result.
+10. If no synchronized candidate exists, stop and retain the negative result.
    If candidates exist, first resolve the physical frame contract, then write
    and review a separate alignment-audit contract. Residual construction is a
    later decision still requiring target adoption.

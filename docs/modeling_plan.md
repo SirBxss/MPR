@@ -47,7 +47,7 @@ are not the thesis execution path.
 | v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
 | v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and arrival verifier are independently approved and merged; the first 86-chunk real audit is preserved with no role assignment, and no successful cohort lock exists |
 | v0.17.1 | Exact EDP schema-v2 compatibility | Complete and independently approved; the amended batch01 audit restored 5,289 H100-ready paths, but every candidate is LANE_MAP, so zero frames/outings pass the unchanged SENSOR_TOPOLOGY primary gate |
-| v0.18.0 | Standalone sensor-topology 100 m structural feasibility | BMW trace incorporated into intermediate a1 contract; a narrow source supplement and focused contract review block implementation, and implementation review blocks private execution |
+| v0.18.0 | Standalone sensor-topology 100 m structural feasibility | Two BMW traces incorporated into intermediate a2; only checkout/path provenance and focused contract review block implementation, and implementation review blocks private execution |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -204,10 +204,14 @@ must not be used as outing count. Exact evidence is in
 The prospective v0.18.0 phase follows a domain-expert recommendation to
 investigate `/adp/lane_topology_sensor_based` directly while retaining
 `/adp/road_lane_map_based` as the unchanged pseudo-reference. This is a new
-candidate target, not a repair or rerun of v0.17.1. A BMW source trace found no
+candidate target, not a repair or rerun of v0.17.1. Two BMW source traces found no
 LTSB direct-path writer, showed that only camera boundary geometry is written,
 and established that the topology graph consumes map/map-matching inputs. It
-did not establish a common physical frame origin with RLMB. The amended first
+did not establish a common physical frame origin with RLMB. They did establish
+the nested decoder structure, CAMERA boundary source, SENSOR_TOPOLOGY message
+source, stored-order geometry, validity predicate, timestamp scalar, and exact
+unwritten-range sentinel. Their checkout SHA and complete tracked paths remain
+missing. The amended first
 stage is therefore limited to lineage-locked descriptor inventory, strict
 camera-only successor-chain reconstruction, orientation-invariant 100 m span,
 independent RLMB H100 readiness, and source-time co-availability. It performs
