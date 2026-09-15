@@ -36,18 +36,21 @@ critical path changes.
   trace is now recorded and changed the original a0 proposal: LTSB publishes
   camera-derived boundaries rather than a centreline, its topology is
   map-influenced, and its physical frame origin is not established as equal to
-  RLMB. The amended a2 contract therefore permits only strict camera-chain
-  span and source-time co-availability counts. No cross-topic projection,
+  RLMB. The frozen a3 review candidate therefore permits only strict
+  camera-chain span and source-time co-availability counts. No cross-topic projection,
   H100 residual-pair claim, implementation, or private execution is authorized
-  until one provenance-only source supplement records the BMW checkout SHA and
-  complete tracked paths and Claude returns focused review-candidate contract
-  `GO`. The candidate
+  until Claude returns focused contract `GO`. Three private source traces now
+  record the technical evidence and all 23 complete tracked paths; the third
+  rechecked the claims against immutable `HEAD` blobs but did not capture the
+  BMW commit SHA. That is retained as a source-trace reproducibility limit and
+  does not require another BMW query. The candidate
   target is not adopted, and the historical EDP target/models remain
   unchanged.
 - Working branch: `protocol/v0.18.0-sensor-topology-feasibility`. The user
   pushed the a1 source-trace checkpoint through commit
-  `b6a59b039ca5d7f286bc5bf37c52684a61daed21`; the a2 amendment is an
-  incremental documentation-only checkpoint based on that exact commit.
+  `b6a59b039ca5d7f286bc5bf37c52684a61daed21`. The a2 amendment has tree
+  `55a041f538bd57f1fb3028c4ed50386e0037573d`; the a3 review candidate is an
+  incremental documentation-only checkpoint based on that exact tree.
 - The v0.15.4 development freeze was merged at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -660,9 +663,9 @@ Next actions are ordered:
 2. use `docs/model_comparison.md` and its reproducible output-driven plotting
    command for the meeting and mid-term presentation; it reports only already
    accepted evidence and does not reopen model selection;
-3. complete the final BMW checkout/path provenance supplement, freeze the
-   prospective v0.18.0 standalone sensor-topology review candidate, and obtain
-   focused independent contract review;
+3. push the frozen v0.18.0 standalone sensor-topology a3 review candidate and
+   obtain focused independent contract review; no further BMW-source answer is
+   required for this audit;
 4. only after contract `GO`, implement and independently review the
    synthetic-only 100 m/co-availability audit before running it once on the
    closed batch01;
@@ -697,19 +700,22 @@ this changes the modeled quantity from an EDP residual to a sensor-lane
 residual, it is a new candidate target rather than a v0.17 eligibility repair.
 No historical EDP artifact is overwritten or reclassified.
 
-The two Copilot traces are preserved outside Git with SHA-256 values
-`57319e59c54ac270d1885c4039d1bac952798f9f7eb293466aec6e6e53b4e3f7` and
-`315304f3567b5394f9fb15347c3ce63e3fde55dd4ac1960b4fd77744569468d2` and
+The three Copilot traces are preserved outside Git with SHA-256 values
+`57319e59c54ac270d1885c4039d1bac952798f9f7eb293466aec6e6e53b4e3f7`,
+`315304f3567b5394f9fb15347c3ce63e3fde55dd4ac1960b4fd77744569468d2`, and
+`f5fa27166e824f9276f267ce1b0d449189a5fb5e3e9c3fe3c9a5d3bebc285fb7` and
 summarized in the evidence document. They found that `drive_path_range` is not
 written by LTSB, `ego_lane_segment_indices` represents branch alternatives,
 full geometry may require successor traversal, and the producer directly
 consumes map/map-matching inputs. They confirmed compatible validity-time
 semantics, CAMERA boundary provenance, SENSOR_TOPOLOGY whole-message
-assignment, nested coordinate validity, and stored-order geometry. They did
-not establish a common physical origin or axes with RLMB. The second trace did
-not provide its requested checkout SHA or complete repository-relative paths.
+assignment, nested coordinate validity, and stored-order geometry. The third
+trace resolved all 23 complete paths and rechecked the claims from immutable
+`HEAD` blobs. It did not capture the literal BMW commit SHA, which limits exact
+source-trace reproduction but does not block the descriptor-driven MPR audit.
+The traces did not establish a common physical origin or axes with RLMB.
 
-The amended a2 first stage remains limited to the closed 86-file batch01 and
+The frozen a3 first stage remains limited to the closed 86-file batch01 and
 three privacy-safe outputs. It may inventory descriptors; enforce exactly one
 ego index; reconstruct only paired CAMERA-provenance boundaries; follow only a
 unique camera-only successor chain; count orientation-invariant 100 m observed
@@ -718,14 +724,10 @@ source-time co-availability within 50 ms. It may not compare coordinates,
 calculate an anchor/transform/residual, export numeric payload values, build a
 sequence, fit a model, run a planner, or produce a figure.
 
-The next action is the provenance-only BMW-source supplement enumerated in the
-evidence document: literal clean checkout HEAD/root/status and complete
-tracked paths for every cited source file, with the technical findings
-rechecked at that HEAD. The technical decoder questions are already closed.
-After provenance is incorporated into a new frozen review-candidate revision,
-the next gate is focused Claude review of the exact documentation commit and
-tree. Only contract
-`GO` permits synthetic implementation. Implementation `GO` is then required
+The next gate is focused Claude review of the exact a3 documentation commit and
+tree. The technical decoder and path questions are closed for this structural
+audit, and no further BMW-source answer is required. Only contract `GO` permits
+synthetic implementation. Implementation `GO` is then required
 before the one private run. A positive synchronized count would authorize only
 resolution of the physical frame contract and a separate alignment-audit
 predeclaration; it is not an H100 residual pair and does not prove map
@@ -751,7 +753,7 @@ independence or permit old EDP model reuse.
   order.
 - `docs/bmw_sensor_topology_source_evidence.md`: classified Copilot BMW-source
   findings, exact private transcript hashes, remaining frame/producer gaps, and
-  the consequences for the amended a2 contract.
+  the consequences for the frozen a3 contract.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
 - `docs/architecture.md`: package ownership and dependency boundaries.

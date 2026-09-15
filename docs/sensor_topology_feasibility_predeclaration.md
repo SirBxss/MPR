@@ -1,17 +1,19 @@
 # v0.18.0 sensor-topology 100 m structural-feasibility predeclaration
 
-Status: intermediate amended prospective draft dated 2026-09-15. The original
-a0 draft was written after the accepted negative v0.17.1 batch01 EDP audit and
+Status: frozen prospective review candidate dated 2026-09-15. The original a0
+draft was written after the accepted negative v0.17.1 batch01 EDP audit and
 before MPR decoded or summarized any standalone sensor-topology message from
-that closed batch. Two subsequent read-only Copilot traces of the BMW source
-changed the contract before implementation or private execution. The second
-trace closed the technical decoder questions but omitted the requested
-checkout identity and complete repository-relative paths. That final
-provenance-only supplement remains required before a review candidate is
-frozen.
+that closed batch. Three subsequent read-only Copilot traces of the BMW source
+changed and then bounded the contract before implementation or private
+execution. The third trace resolved all cited tracked paths and rechecked the
+technical claims from immutable `HEAD:<path>` blobs. It did not capture the
+literal BMW HEAD SHA; that named-revision reproducibility limit is recorded in
+the evidence document but no longer blocks focused contract review. No
+implementation or private execution is authorized before the applicable
+review gate.
 
 Prospective contract revision:
-`v0.18.0-prospective-2026-09-15-sensor-topology-feasibility-a2`.
+`v0.18.0-review-candidate-2026-09-15-sensor-topology-feasibility-a3`.
 
 This phase asks whether `/adp/lane_topology_sensor_based` contains strict,
 camera-boundary-derived geometry with at least 100 m of observed contiguous
@@ -20,7 +22,7 @@ pseudo-reference messages. It is a privacy-safe technical audit, not a silent
 replacement of `/adp/estimated_drive_paths`, not an H100 residual-pair build,
 and not a model experiment.
 
-## Why a2 supersedes a1
+## Why a3 freezes the amended design
 
 The initial BMW-source trace established four facts that invalidated material
 parts of the a0 design:
@@ -51,9 +53,19 @@ CAMERA boundary and SENSOR_TOPOLOGY write sites, stored boundary/vertex order,
 arc-length construction, timestamp scalar semantics, and the exact unwritten
 range sentinel. It corrected two unsafe a1 assumptions: `size == 0` alone does
 not prove `drive_path_range` is unwritten, and a clear mean-invalid bit alone
-does not reject the `FLT_MAX` sentinel. This a2 draft incorporates those
-corrections. It remains intermediate solely because the source checkout SHA
-and complete tracked paths are not recorded.
+does not reject the `FLT_MAX` sentinel. The intermediate a2 draft incorporated
+those corrections.
+
+The third trace then resolved all 23 cited source files to complete tracked
+paths, verified their existence at one `HEAD`, and rechecked each positive
+claim from that `HEAD`'s immutable blobs. It corrected one wording detail:
+`AddLaneBoundary` has two calls but remains the sole boundary-pool constructor,
+and it scoped the no-transform finding specifically to the published boundary
+path. The trace did not name the commit behind `HEAD`. Because the MPR audit
+uses message-owned descriptors, validates the exact required structure, and
+fails closed on drift, that omission limits reproduction of the private
+source trace but does not require another BMW query. This a3 revision freezes
+the design for focused independent contract review.
 
 ## Scientific separation from historical work
 
@@ -92,16 +104,20 @@ Interpretation keeps these classes separate:
    reconstruction states, span states, and timestamp-pairing states from the
    future audit.
 3. **Copilot-confirmed BMW-source evidence**: read-only findings summarized in
-   the evidence document; MPR cannot reproduce the unavailable checkout.
+   the evidence document; MPR cannot reproduce the unidentified private
+   checkout at one named commit.
 4. **User-reported domain guidance**: Leon's recommendation.
 5. **Inference**: any interpretation not established by the first four.
 
-Neither Copilot transcript recorded the BMW checkout SHA or complete tracked
-repository-relative paths. The traces also did not establish the LTSB frame
+The third Copilot transcript recorded complete tracked repository-relative
+paths and rechecked the claims against immutable `HEAD` blobs, but it did not
+record the BMW commit SHA. The traces also did not establish the LTSB frame
 origin/axes, nominal publication rate, guaranteed forward extent, vertex
 direction relative to travel, or producer behavior across recording
 generations. Those gaps remain visible. The whole-message
-`topology_source = SENSOR_TOPOLOGY` assignment is now source-traced.
+`topology_source = SENSOR_TOPOLOGY` assignment is source-traced. The missing
+commit name is an evidence reproducibility limit; the unresolved physical
+semantics remain binding scientific limits.
 
 ## Primary question and fixed non-questions
 
@@ -482,7 +498,7 @@ descriptor_identity_rule
 topics
 ```
 
-Fixed values are `version = "0.18.0"`, the a2 revision,
+Fixed values are `version = "0.18.0"`, the a3 revision,
 `purpose = "sensor_topology_schema_inventory"`, and
 `descriptor_identity_rule =
 "sha256(message.DESCRIPTOR.file.serialized_pb)"`.
@@ -555,7 +571,7 @@ Fixed values and objects are:
 
 ```text
 version                                  "0.18.0"
-contract_revision                        "v0.18.0-prospective-2026-09-15-sensor-topology-feasibility-a2"
+contract_revision                        "v0.18.0-review-candidate-2026-09-15-sensor-topology-feasibility-a3"
 purpose                                  "sensor_topology_100m_structural_feasibility"
 lineage_status                           "passed"
 topics.estimate                          "/adp/lane_topology_sensor_based"
@@ -681,14 +697,13 @@ review is required before any private execution.
    branch.
 2. Preserve the first private Copilot transcript and amend the repository
    evidence and contract from a0 to a1.
-3. Preserve the interface follow-up, incorporate its technical corrections as
-   intermediate a2 without reading private MCAPs, and keep review blocked
-   because the response omitted checkout identity and complete paths.
-4. Obtain the final provenance-only supplement listed in the evidence
-   document, verify it against the two transcript claims, and freeze a new
-   reviewed-candidate revision.
-5. Push that exact documentation commit and obtain Claude's focused contract
-   review. `AMEND` returns to step 4; only `GO` continues.
+3. Preserve the interface follow-up and incorporate its technical corrections
+   as intermediate a2 without reading private MCAPs.
+4. Preserve the path/HEAD-blob audit, record its complete paths, corrections,
+   and unidentified-commit limitation, and freeze this a3 review candidate.
+   No further BMW-source response is required for this audit.
+5. Push this exact documentation commit and obtain Claude's focused contract
+   review. `AMEND` returns to the contract; only `GO` continues.
 6. Implement the audit without reading private MCAPs and verify entirely on
    synthetic fixtures.
 7. Push the exact implementation and obtain focused implementation `GO`.

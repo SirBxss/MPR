@@ -1349,12 +1349,13 @@ lineage rather than being ignored.
 
 ## Prospective v0.18.0 sensor-topology feasibility outputs
 
-Status: intermediate amended a2 predeclaration only. The nested decoder and
-producer checks are source-traced, but the BMW checkout SHA and complete
-tracked paths remain missing. These outputs do not exist and the command is
-unsupported until a final provenance supplement and contract and
-implementation reviews authorize their respective steps. The binding
-definitions are in `docs/sensor_topology_feasibility_predeclaration.md`.
+Status: frozen a3 review candidate only. The nested decoder and producer checks
+are source-traced and all 23 complete tracked paths were verified from
+immutable `HEAD` blobs. The BMW commit SHA remains unidentified as a documented
+reproducibility limitation. These outputs do not exist and the command is
+unsupported until contract and implementation reviews authorize their
+respective steps. The binding definitions are in
+`docs/sensor_topology_feasibility_predeclaration.md`.
 
 After exact reconciliation with the preserved v0.17.1 batch01 lineage, the
 future command writes exactly three private files to a new empty directory:
@@ -1441,7 +1442,7 @@ claim_limits
 next_authorized_action
 ```
 
-The a2 audit requires the whole-message SENSOR_TOPOLOGY value, the exact
+The a3 audit requires the whole-message SENSOR_TOPOLOGY value, the exact
 unwritten direct-path sentinel, valid nested mean wrappers, and stored-order
 arc-length consistency. It accepts only paired camera boundaries with CAMERA
 provenance, uses exactly one explicit ego index, and may traverse only a unique

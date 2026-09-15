@@ -57,11 +57,13 @@ agents and new chats.
   structure, orientation-invariant 100 m span, independent RLMB H100 readiness,
   and source-time co-availability only. It may not compare cross-topic
   coordinates, calculate an anchor or residual, or reinterpret an EDP result.
-  The intermediate a2 contract is not review-ready until a clean BMW checkout
-  HEAD/root/status and complete tracked paths cited by the two private source
-  traces are recorded and the findings are rechecked at that HEAD. Do not
-  implement or inspect private MCAPs before the resulting frozen contract
-  receives focused `GO`.
+  The frozen a3 review candidate is supported by three private source traces.
+  The third resolves every cited tracked path and rechecks the findings from
+  immutable `HEAD` blobs; its failure to record the literal BMW commit SHA is
+  a source-trace reproducibility limit, not a blocker for the fail-closed MPR
+  structural audit. No further BMW-source answer is required for this phase.
+  Do not implement or inspect private MCAPs before the frozen contract receives
+  focused `GO`.
   Historical EDP models and sensor-lane residuals must never be pooled or
   relabelled as one target.
 - RLMB is a pseudo-reference, not physical ground truth.

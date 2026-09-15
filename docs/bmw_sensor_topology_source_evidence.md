@@ -13,24 +13,64 @@ The binding prospective scope is
 
 ## Evidence provenance
 
-The data owner requested two read-only investigations through Copilot in the
+The data owner requested three read-only investigations through Copilot in the
 BMW checkout. The returned transcripts are private and remain outside Git.
 Their SHA-256 values, in evidence order, are:
 
 ```text
 initial trace         57319e59c54ac270d1885c4039d1bac952798f9f7eb293466aec6e6e53b4e3f7
 interface follow-up   315304f3567b5394f9fb15347c3ce63e3fde55dd4ac1960b4fd77744569468d2
+path/HEAD-blob audit  f5fa27166e824f9276f267ce1b0d449189a5fb5e3e9c3fe3c9a5d3bebc285fb7
 ```
 
-Both traces reported source searches and excerpts, but neither recorded the
-BMW checkout commit SHA. The follow-up also claimed to provide complete
-repository-relative paths while listing only basenames such as `road.proto`
-and `topology_updater_utils.cpp`. MPR cannot open that checkout and therefore
-cannot independently reproduce or uniquely locate the searches. Facts below
-are classified as
-**Copilot-confirmed BMW-source evidence**, not as facts independently verified
-by MPR. Missing checkout identity/path provenance and explicitly unresolved
-physical-frame semantics remain visible rather than being inferred.
+The third trace resolved all 23 cited files to complete tracked
+repository-relative paths and verified their existence at `HEAD`. It then
+rechecked every positive technical claim using immutable `HEAD:<path>` blobs
+through `git show`, `git cat-file`, or `git grep ... HEAD --`; working-tree
+contents therefore could not affect those reads. The checkout-identity command
+was skipped, so the literal BMW commit SHA, top-level path, and clean-status
+result were not captured.
+
+The unidentified commit prevents a third party from reproducing the private
+source search at one named BMW revision. It does not make the MPR audit depend
+on guessed generated code: the proposed decoder inventories and validates the
+descriptors stored in each MCAP and fails closed on structural drift. The
+source evidence is therefore sufficient to freeze a focused MPR contract
+review candidate, with the missing BMW commit recorded as a reproducibility
+limitation rather than an implementation blocker. Facts below remain
+classified as **Copilot-confirmed BMW-source evidence**, not as facts
+independently verified by MPR. No further BMW-source answer is required for the
+structural/co-availability audit. Explicitly unresolved physical-frame
+semantics remain visible and continue to prohibit cross-topic geometry and
+residual calculations.
+
+### Canonical tracked source paths
+
+The third trace verified these complete paths at its unidentified `HEAD`:
+
+1. `interfaces/topics/topic_definitions.bzl`
+2. `activities/road_sensor_based/lane_topology_sensor_based/lane_topology_sensor_based_activity.cpp`
+3. `activities/road_sensor_based/lane_topology_sensor_based/lane_topology_sensor_based_activity.json`
+4. `domains/perception/road_sensor_based/lane_topology_sensor_based/lane_topology_sensor_based.cpp`
+5. `domains/perception/road_sensor_based/lane_topology_sensor_based/topology_updater/topology_updater.cpp`
+6. `domains/perception/road_sensor_based/lane_topology_sensor_based/topology_updater/utils/topology_updater_utils.cpp`
+7. `domains/perception/road_sensor_based/lane_topology_sensor_based/topology_updater/lane_marking_assigner.cpp`
+8. `domains/perception/road_sensor_based/lane_topology_sensor_based/parameters/lane_topology_sensor_based_parameters.json`
+9. `interfaces/perception/road/road.proto`
+10. `interfaces/perception/road/road_lane_segment.proto`
+11. `interfaces/perception/road/range.proto`
+12. `interfaces/perception/road/range.h`
+13. `interfaces/perception/road/road_lane_boundary.proto`
+14. `interfaces/perception/road/boundary_properties.proto`
+15. `interfaces/perception/shared/polyline_vertex.proto`
+16. `interfaces/perception/shared/normal_distributed_value_float.proto`
+17. `interfaces/perception/shared/normal_value.h`
+18. `interfaces/perception/front_camera_lane_boundaries_and_road_edges/lane_boundary_common.proto`
+19. `domains/perception/road_sensor_based/lane_topology_sensor_based/data_types/sw_design_data_types.md`
+20. `interfaces/parameters/vehicle_geometry_parameters.json`
+21. `generic_platform/verification/nautilus/configuration/configs/config.bzl`
+22. `activities/road/lane_topology_map_based/README.md`
+23. `interfaces/perception/lane_markings_sensor_based/lane_markings_sensor_based_output.proto`
 
 ## User-reported guidance and observations
 
@@ -193,20 +233,29 @@ vehicle-parameter files distinguish CATIA and vehicle coordinate systems with
 a non-zero translation. Copilot correctly treated rear-axle centring as
 unproven.
 
-The follow-up traced the sole LTSB boundary-pool constructor to
-`TopologyUpdaterUtils::AddLaneBoundary` and reported that every emitted
-boundary is assigned `LaneBoundarySource::kCamera`. It also located LTSB writes
+The traces located two calls to `TopologyUpdaterUtils::AddLaneBoundary` in
+`lane_marking_assigner.cpp` (lines 559 and 650 at the audited `HEAD`).
+`AddLaneBoundary` remains the sole function that appends entries to the LTSB
+boundary pool, and every emitted boundary is assigned
+`LaneBoundarySource::kCamera`. They also located LTSB writes
 of `Road.topology_source_ = RoadTopologySource::kSensorTopology` (numeric value
 4). These findings justify fail-closed CAMERA boundary provenance and
 whole-message SENSOR_TOPOLOGY checks in the prospective structural audit.
 
-Camera boundary ranges are contiguous and append-ordered. Boundary vertices
-are copied verbatim from the camera input without sorting, reversal, or frame
-conversion; corresponding arc lengths are generated in the same order,
+Camera boundary ranges are contiguous and append-ordered. On the boundary path
+`AppendLaneBoundaryWithGeometry` to `FillBoundaryGeometry`, vertices are copied
+verbatim from the camera input without sorting, reversal, or frame conversion;
+corresponding arc lengths are generated in the same order,
 starting at zero and nondecreasing across consecutive vertices. Direction
 relative to vehicle travel remains unproven. The audit may validate stored
 order and arc-length consistency and may use orientation-invariant geometric
 span, but it may not infer forward direction or frame equivalence.
+
+One frame-transform token exists elsewhere in the LTSB tree, in
+`domains/perception/road_sensor_based/lane_topology_sensor_based/preprocessors/split_preprocessors/bifurcation_detection/bifurcation_state_classifier.cpp`,
+for an odometry-pose delta used by internal bifurcation-state tracking. It is
+not on the boundary-geometry path and does not establish or modify the
+published boundary frame.
 
 ### Topology is map-influenced
 
@@ -273,7 +322,7 @@ generation or whether producer behavior changed.
 
 | Question | Disposition after source trace | Contract consequence |
 |---|---|---|
-| producer and configuration | technical symbols substantially answered; checkout SHA and complete paths missing | retain as intermediate source evidence, not independently reproduced fact |
+| producer and configuration | technical symbols and all 23 complete paths verified from internally consistent HEAD blobs; commit SHA not captured | accept for MPR contract review while recording the named-revision reproducibility limit |
 | root proto and field topology | nested decoder structure answered for the unidentified checkout | validate recorded descriptors by message-owned structure |
 | coordinate frame/origin/axes | unresolved except units | prohibit cross-topic geometry alignment and residual math |
 | ego binding | answered | require exactly one in-range ego index; reject zero or multiple |
@@ -301,30 +350,22 @@ calculated, BMW evidence or a separately reviewed empirical frame-calibration
 contract must establish the coordinate transform, timestamp handling, and the
 scientific acceptability of map-influenced topology selection.
 
-## Final provenance supplement required before contract review
+## Evidence sufficiency and remaining limitation
 
-Together, the two traces are sufficient to reject a0 and specify the nested
-dynamic-decoder and fail-closed producer checks for an intermediate a2
-contract. They are not sufficient to freeze a review candidate because the
-second response omitted the requested checkout identity and supplied
-basenames rather than complete repository-relative paths. One final, strictly
-provenance-only BMW-source response must record:
-
-1. the literal output of `git rev-parse HEAD`,
-   `git rev-parse --show-toplevel`, and `git status --short` from the checkout
-   used for source verification; the status must be empty, and the technical
-   findings must be rechecked at that exact clean HEAD; and
-2. the complete tracked repository-relative path for every cited producer,
-   activity, topic-definition, parameter, proto, header, and design file,
-   derived from that same checkout rather than inferred from basename search.
+Together, the three traces are sufficient to reject a0, define the nested
+dynamic decoder and fail-closed producer checks, and freeze the a3 MPR contract
+for focused independent review. The third trace supplied all complete paths
+and rechecked the technical findings against one internally consistent set of
+`HEAD` blobs. Its failure to name that HEAD is retained as an evidence
+reproducibility limitation; it is not a reason to request further BMW work or
+to block an MPR implementation after contract `GO`.
 
 The technical questions about nested declarations, mean validity, CAMERA
 source assignment, whole-message sensor-topology assignment, stored ordering,
-unset-range semantics, timestamp type, and the negative frame finding are
-closed for the intermediate contract. Vertex direction, physical frame/origin,
-publication cadence, and guaranteed forward extent remain unresolved by
-design; they do not block the structural/co-availability audit because it
-claims none of those semantics.
-
-This supplement is technical interface evidence only. It must not inspect an
-MCAP, report payload values, or change BMW code.
+unset-range semantics, timestamp type, and the boundary-path transform
+negative are closed for this structural audit. Vertex direction, physical
+frame/origin, publication cadence, and guaranteed forward extent remain
+unresolved by design. Those semantic limits do not block the
+structural/co-availability audit because it claims none of them, but they do
+block any cross-topic alignment, H100 residual, target adoption, or reuse of
+the historical EDP models.
