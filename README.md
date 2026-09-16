@@ -1,10 +1,10 @@
-# Minimal Path-Residual Model (MPR) v0.17.1
+# Minimal Path-Residual Model (MPR) v0.18.0 implementation candidate
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
 
-A prospective v0.18.0 contract now defines the next safe investigation. A BMW
+A prospective v0.18.0 contract defines the next safe investigation. A BMW
 three-stage source trace found that `/adp/lane_topology_sensor_based` publishes
 camera-derived boundaries in a map-influenced topology graph, not a direct
 centreline, and did not establish physical frame equivalence with RLMB. The
@@ -14,14 +14,20 @@ with an independently H100-ready `/adp/road_lane_map_based` message in the close
 86-file batch01. The technical decoder questions and complete tracked paths
 are closed. The BMW commit SHA was not captured and remains a documented
 source-trace reproducibility limit, but no further BMW-source answer is needed.
-Focused independent contract review is the next gate. The audit is not
-implemented or approved.
+Focused independent contract review returned `GO`. The bounded audit is now
+implemented and verified entirely with synthetic fixtures: the full local
+suite runs 432 tests, with 430 passing and two expected skips. Focused
+implementation review is the current gate; private MCAP execution remains
+unauthorized.
 It performs no cross-topic coordinate comparison and exports no timestamps,
 coordinates, residuals, features, sequences, models, planner values, or
 figures. It cannot adopt the new target. See
 [`docs/sensor_topology_feasibility_predeclaration.md`](docs/sensor_topology_feasibility_predeclaration.md)
 and
 [`docs/bmw_sensor_topology_source_evidence.md`](docs/bmw_sensor_topology_source_evidence.md).
+The synthetic implementation boundary, verification record, and next-agent
+checklist are in
+[`docs/sensor_topology_feasibility_implementation_notes.md`](docs/sensor_topology_feasibility_implementation_notes.md).
 
 For a meeting-ready, output-driven comparison of the Gaussian, autoregressive,
 and latent-state results—including the plotting command, four common metrics,

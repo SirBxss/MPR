@@ -1,6 +1,9 @@
 # v0.18.0 sensor-topology 100 m structural-feasibility predeclaration
 
-Status: frozen prospective review candidate dated 2026-09-15. The original a0
+Status: frozen prospective contract dated 2026-09-15. Focused independent
+contract review returned `GO`; the bounded audit is now implemented and
+synthetic-verified, with focused implementation review still required before
+private execution. The original a0
 draft was written after the accepted negative v0.17.1 batch01 EDP audit and
 before MPR decoded or summarized any standalone sensor-topology message from
 that closed batch. Three subsequent read-only Copilot traces of the BMW source
@@ -9,8 +12,7 @@ execution. The third trace resolved all cited tracked paths and rechecked the
 technical claims from immutable `HEAD:<path>` blobs. It did not capture the
 literal BMW HEAD SHA; that named-revision reproducibility limit is recorded in
 the evidence document but no longer blocks focused contract review. No
-implementation or private execution is authorized before the applicable
-review gate.
+private execution is authorized before focused implementation `GO`.
 
 Prospective contract revision:
 `v0.18.0-review-candidate-2026-09-15-sensor-topology-feasibility-a3`.
@@ -167,7 +169,8 @@ lineage as the accepted v0.17.1 audit:
 Before decoding either road topic, the workflow must validate:
 
 - exactly the four expected v0.17.1 files and no extra file;
-- the reviewed v0.17.1 contract revision and negative status;
+- the exact reviewed v0.17.1 contract revision
+  `v0.17.1-reviewed-2026-09-07-schema-v2-a1` and negative status;
 - null roles/ranks/scores and unauthorized split assignment;
 - the accepted manifest SHA-256;
 - all four recomputed output hashes and sibling reconciliation;
@@ -345,10 +348,13 @@ This produces a per-reference-message Boolean `reference_h100_ready` only.
 No RLMB coordinate is compared with a sensor coordinate.
 
 Sensor and reference messages are paired by embedded source timestamp using
-the existing deterministic mutual-nearest rule with maximum absolute delta
-`50 ms`. The LTSB time is camera lane-marking validity time; RLMB time is pose
-validity time. Both use the ADP clock, so proximity is auditable even though
-their physical geometry frames are not proven equal.
+the existing deterministic mutual-nearest algorithm with maximum absolute
+delta `50 ms`. The algorithm is inherited; the `50 ms` gate is a new,
+prospectively fixed v0.18.0 structural-audit constant. The v0.17 intake did not
+apply an estimate/reference delta gate, and historical comparison commands
+used a different `20 ms` default. The LTSB time is camera lane-marking validity
+time; RLMB time is pose validity time. Both use the ADP clock, so proximity is
+auditable even though their physical geometry frames are not proven equal.
 
 Log/publish time cannot repair an invalid source timestamp. The singular
 proto3 timestamp scalar has no presence bit, so "present" is not observable.
@@ -372,8 +378,9 @@ counts messages whose unique initial ego segment passes the camera-only
 segment rule. `camera_only_successor_chain_count` counts messages whose strict
 chain either reaches 100 m or terminates normally with zero successors after
 at least one valid segment. `camera_chain_100m_span_count` is its at-least-100
-m subset. `source_time_pair_count` counts every mutual-nearest pair before
-geometry filtering. Each such pair contributes at most one
+m subset. `source_time_pair_count` counts every unique mutual-nearest pair that
+passes the inclusive `50 ms` gate, before geometry filtering. Each such pair
+contributes at most one
 `synchronized_100m_candidate`. Corpus totals are exact sums of the 86
 per-recording rows.
 
@@ -427,7 +434,7 @@ non-mutually-exclusive.
 
 ## Fixed command and exact outputs
 
-The proposed public surface is:
+The implemented public surface is:
 
 ```bash
 python -m lane_residuals.cli.sensor_topology_feasibility \
@@ -643,7 +650,7 @@ files, and relative layout, all three byte streams are identical. A different
 mount root changes nothing. A different relative layout may change only the
 private relative-path column, the recordings CSV hash, and its summary hash.
 
-The planned implementation follows repository ownership:
+The implementation follows repository ownership:
 
 - `domain.sensor_topology_feasibility`: descriptor-independent structural
   states, strict camera midpoint/chain arithmetic, and fixed thresholds;
@@ -660,7 +667,7 @@ visualization module. Historical code is evidence, not the new owner.
 
 ## Synthetic implementation acceptance
 
-Only after focused contract `GO`, synthetic tests must prove at least:
+The synthetic implementation tests must prove at least:
 
 - exact preserved-v0.17.1 file/schema/hash/raw-map reconciliation before
   output creation;

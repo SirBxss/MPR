@@ -276,16 +276,18 @@ the legacy polyline-projection primitive to preserve byte-for-byte scientific
 behavior. Moving that arithmetic into a neutral domain geometry utility should
 only be attempted with dedicated numerical characterization tests.
 
-The prospective v0.18.0 sensor-topology feasibility phase is documented but
-not implemented. If focused review authorizes it, its proposed ownership is
+The prospective v0.18.0 sensor-topology feasibility contract received focused
+review `GO` and its synthetic-only implementation follows this ownership:
 `domain.sensor_topology_feasibility` for strict camera-midpoint chains,
-orientation-invariant 100 m span, independent RLMB readiness, and
-source-time-pairing states,
-`io.sensor_topology_feasibility` for descriptor inventory and strict
-serialization, `workflows.sensor_topology_feasibility` for preserved-v0.17.1
+orientation-invariant 100 m span, and source-time-pairing states;
+`io.sensor_topology_feasibility` for descriptor inventory, strict message
+decoding, and independent RLMB readiness; `workflows.sensor_topology_feasibility` for preserved-v0.17.1
 lineage and orchestration, and `cli.sensor_topology_feasibility` for the public
 adapter. It may reuse characterized neutral road/RLMB primitives, but it may
 not compare LTSB and RLMB coordinates or import `legacy.preprocessing`,
 residual construction, conditions, sequences, modeling, sampling, planner,
-evaluation, or visualization. These module names describe a reviewed design
-boundary only; their absence is expected before implementation `GO`.
+evaluation, or visualization. The package root and historical CLI facade now
+resolve compatibility exports lazily so importing the v0.18 adapter does not
+transitively load those prohibited layers. The exact import graph is frozen by
+a subprocess test. Focused implementation review still blocks private
+execution.

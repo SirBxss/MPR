@@ -1,6 +1,6 @@
 # Current project status
 
-Last updated: 2026-09-15. This is the first file a new agent should read after
+Last updated: 2026-09-16. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
@@ -36,21 +36,32 @@ critical path changes.
   trace is now recorded and changed the original a0 proposal: LTSB publishes
   camera-derived boundaries rather than a centreline, its topology is
   map-influenced, and its physical frame origin is not established as equal to
-  RLMB. The frozen a3 review candidate therefore permits only strict
-  camera-chain span and source-time co-availability counts. No cross-topic projection,
-  H100 residual-pair claim, implementation, or private execution is authorized
-  until Claude returns focused contract `GO`. Three private source traces now
+  RLMB. The frozen a3 contract therefore permits only strict camera-chain span
+  and source-time co-availability counts. Claude independently reviewed the
+  exact pushed a3 tree and returned `GO`, authorizing synthetic implementation
+  only. That bounded implementation now exists and passes the complete local
+  suite. No cross-topic projection, H100 residual-pair claim, private
+  execution, merge, or target adoption is authorized until the exact pushed
+  implementation receives focused implementation `GO`. Three private source traces now
   record the technical evidence and all 23 complete tracked paths; the third
   rechecked the claims against immutable `HEAD` blobs but did not capture the
   BMW commit SHA. That is retained as a source-trace reproducibility limit and
   does not require another BMW query. The candidate
   target is not adopted, and the historical EDP target/models remain
   unchanged.
-- Working branch: `protocol/v0.18.0-sensor-topology-feasibility`. The user
-  pushed the a1 source-trace checkpoint through commit
-  `b6a59b039ca5d7f286bc5bf37c52684a61daed21`. The a2 amendment has tree
-  `55a041f538bd57f1fb3028c4ed50386e0037573d`; the a3 review candidate is an
-  incremental documentation-only checkpoint based on that exact tree.
+- Working branch: `protocol/v0.18.0-sensor-topology-feasibility`. The exact
+  pushed a3 contract-review identity is commit
+  `75a1f9ff38885636dacafbd17144736420a7e17f`, tree
+  `ad6d9a664ac7ec38cea4c06f2197d02ae4942f4c`. The local patch-source base
+  `857ada05b968e9fd5ebda555118b3b75738d258b` has that same reviewed tree.
+  The implementation candidate is delivered as a patch on that exact tree;
+  record its exact pushed HEAD and tree before requesting review.
+- Claude's focused v0.18.0 contract review returned `GO`. The report SHA-256
+  is `09b0351f448cd60025bd6e662bb5e7c392d38ab2af5332d3765f7b0a30b75c67`.
+  Its optional hardening is reflected where applicable: the new 50 ms value is
+  labelled prospectively fixed, source-time-pair counting is explicit, and
+  implementation tests freeze lineage, descriptor generations, privacy, and
+  the transitive import boundary.
 - The v0.15.4 development freeze was merged at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -131,6 +142,15 @@ critical path changes.
   structural/index failures for both generations, equal downstream geometry
   and eligibility, exact additive JSON lineage, pre-write failed-audit
   reconciliation, deterministic output, and independent verifier coupling.
+- v0.18.0 implementation-candidate verification: 432 tests run, 430 pass, and
+  two expected optional-dependency tests skip. The 28 focused synthetic tests
+  cover strict camera-boundary reconstruction, exact geometric boundaries,
+  successor branches/cycles/limits, orientation-invariant span, message-owned
+  descriptor identity, conformant generations, structural drift, fixed
+  schema/encoding behavior, RLMB readiness, the 50 ms mutual-nearest rule,
+  exact preserved-lineage validation, deterministic three-file output,
+  non-overwrite, exit codes, and the transitive prohibited-import boundary.
+  Compilation and `git diff --check` also pass. No private MCAP was read.
 - First real v0.17.0 batch audit: all 86 MCAPs are raw-usable, summed usable
   duration is `1707.738856448 s`, the availability status is
   `insufficient_independent_outings`, no role is assigned, and the standalone
@@ -663,12 +683,12 @@ Next actions are ordered:
 2. use `docs/model_comparison.md` and its reproducible output-driven plotting
    command for the meeting and mid-term presentation; it reports only already
    accepted evidence and does not reopen model selection;
-3. push the frozen v0.18.0 standalone sensor-topology a3 review candidate and
-   obtain focused independent contract review; no further BMW-source answer is
-   required for this audit;
-4. only after contract `GO`, implement and independently review the
-   synthetic-only 100 m/co-availability audit before running it once on the
-   closed batch01;
+3. preserve the v0.18.0 contract-review `GO`, then commit and push the exact
+   synthetic-only implementation candidate and record its HEAD and tree; no
+   further BMW-source answer is required for this audit;
+4. obtain focused independent implementation review of that exact pushed tree;
+   only implementation `GO` permits one closed-batch01 private run into a new
+   empty directory;
 5. continue acquiring separate outcome-blind physical outings through new
    manifests and versioned outputs until at least seven new outings are
    technically eligible; where operationally possible, acquire the same
@@ -724,11 +744,12 @@ source-time co-availability within 50 ms. It may not compare coordinates,
 calculate an anchor/transform/residual, export numeric payload values, build a
 sequence, fit a model, run a planner, or produce a figure.
 
-The next gate is focused Claude review of the exact a3 documentation commit and
-tree. The technical decoder and path questions are closed for this structural
-audit, and no further BMW-source answer is required. Only contract `GO` permits
-synthetic implementation. Implementation `GO` is then required
-before the one private run. A positive synchronized count would authorize only
+Claude reviewed the exact pushed a3 documentation commit and tree and returned
+contract `GO`. The technical decoder and path questions are closed for this
+structural audit, and no further BMW-source answer is required. The audit is
+now implemented and verified only on synthetic fixtures. The next gate is
+focused implementation review of the exact pushed implementation HEAD and
+tree; implementation `GO` is required before the one private run. A positive synchronized count would authorize only
 resolution of the physical frame contract and a separate alignment-audit
 predeclaration; it is not an H100 residual pair and does not prove map
 independence or permit old EDP model reuse.
@@ -754,6 +775,12 @@ independence or permit old EDP model reuse.
 - `docs/bmw_sensor_topology_source_evidence.md`: classified Copilot BMW-source
   findings, exact private transcript hashes, remaining frame/producer gaps, and
   the consequences for the frozen a3 contract.
+- `docs/sensor_topology_feasibility_implementation_notes.md`: exact reviewed
+  starting identity, implemented module boundary, synthetic verification, and
+  next-agent checklist for the v0.18.0 implementation candidate.
+- `docs/sensor_topology_feasibility_implementation_review_prompt.md`: bounded
+  independent-review request to use after recording the exact pushed
+  implementation HEAD and tree.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
 - `docs/architecture.md`: package ownership and dependency boundaries.

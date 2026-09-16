@@ -47,7 +47,7 @@ are not the thesis execution path.
 | v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
 | v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and arrival verifier are independently approved and merged; the first 86-chunk real audit is preserved with no role assignment, and no successful cohort lock exists |
 | v0.17.1 | Exact EDP schema-v2 compatibility | Complete and independently approved; the amended batch01 audit restored 5,289 H100-ready paths, but every candidate is LANE_MAP, so zero frames/outings pass the unchanged SENSOR_TOPOLOGY primary gate |
-| v0.18.0 | Standalone sensor-topology 100 m structural feasibility | Frozen a3 review candidate supported by three BMW traces; focused contract review blocks synthetic implementation, and implementation review blocks private execution |
+| v0.18.0 | Standalone sensor-topology 100 m structural feasibility | Frozen a3 contract received focused `GO`; the synthetic-only implementation passes the full suite, and focused implementation review blocks private execution |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -223,6 +223,13 @@ frame-resolution and alignment-audit contract. The exact prospective boundary
 is `docs/sensor_topology_feasibility_predeclaration.md`; current evidence and
 remaining gaps are in
 `docs/bmw_sensor_topology_source_evidence.md`.
+
+The implementation is deliberately not a new residual pipeline. It writes
+only descriptor inventory, per-recording structural counts, and a strict
+summary after reconciling the preserved v0.17.1 lineage. Its import graph
+excludes residual, condition, sequence, modeling, sampling, planner,
+evaluation, visualization, and `legacy.preprocessing` layers. Until focused
+implementation review returns `GO`, the closed batch must not be executed.
 
 A successful real v0.17 lock still does not authorize final evaluation. The
 exact training corpus, frozen competitors, fitting rules, final-outing failure

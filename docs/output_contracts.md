@@ -1349,16 +1349,16 @@ lineage rather than being ignored.
 
 ## Prospective v0.18.0 sensor-topology feasibility outputs
 
-Status: frozen a3 review candidate only. The nested decoder and producer checks
-are source-traced and all 23 complete tracked paths were verified from
-immutable `HEAD` blobs. The BMW commit SHA remains unidentified as a documented
-reproducibility limitation. These outputs do not exist and the command is
-unsupported until contract and implementation reviews authorize their
-respective steps. The binding definitions are in
+Status: the frozen a3 contract received focused review `GO`, and the exact
+three-file producer is implemented and synthetic-verified. The nested decoder
+and producer checks are source-traced and all 23 complete tracked paths were
+verified from immutable `HEAD` blobs. The BMW commit SHA remains unidentified
+as a documented reproducibility limitation. Private execution remains
+unsupported until focused implementation review returns `GO`. The binding definitions are in
 `docs/sensor_topology_feasibility_predeclaration.md`.
 
 After exact reconciliation with the preserved v0.17.1 batch01 lineage, the
-future command writes exactly three private files to a new empty directory:
+command writes exactly three private files to a new empty directory:
 
 ```text
 sensor_topology_recordings.csv
@@ -1454,3 +1454,9 @@ established as equal. `scientific_target_adoption_authorized` is always false. N
 contains an absolute path, run timestamp, raw numeric payload, coordinate,
 timestamp value, width, span, junction value, projection, residual, condition,
 sequence, model, planner, or figure value.
+
+`source_time_pair_count` is the number of unique recording-local
+mutual-nearest source-time pairs that pass the inclusive 50 ms gate before any
+geometry filtering. The 50 ms value is a prospectively fixed v0.18.0 audit
+constant, not an inherited v0.17 estimate/reference gate. Each accepted pair
+can contribute at most one `synchronized_100m_candidate`.

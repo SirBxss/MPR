@@ -62,8 +62,9 @@ agents and new chats.
   immutable `HEAD` blobs; its failure to record the literal BMW commit SHA is
   a source-trace reproducibility limit, not a blocker for the fail-closed MPR
   structural audit. No further BMW-source answer is required for this phase.
-  Do not implement or inspect private MCAPs before the frozen contract receives
-  focused `GO`.
+  The frozen contract received focused `GO`, and the synthetic-only structural
+  audit is implemented. Do not inspect private MCAPs before the exact pushed
+  implementation receives focused implementation `GO`.
   Historical EDP models and sensor-lane residuals must never be pooled or
   relabelled as one target.
 - RLMB is a pseudo-reference, not physical ground truth.
@@ -149,9 +150,11 @@ gates. Further evidence requires new prospectively declared physical outings.
 The reporting-only output-driven model comparison raises this to 404 passing
 tests with the same two skips. It does not authorize a model fit, a new metric,
 or final model selection.
-The prospective v0.18.0 documentation does not change the test baseline and
-does not authorize implementation or private execution until focused contract
-review returns `GO`.
+The v0.18.0 synthetic-only structural-feasibility implementation raises the
+suite to 432 tests run: 430 pass and two expected optional-dependency tests
+skip. Contract review returned `GO`; implementation review still blocks every
+private execution. It does not authorize target adoption, residual creation,
+model reuse, a model fit, a planner run, or a figure.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
