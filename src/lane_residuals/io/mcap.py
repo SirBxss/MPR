@@ -16,9 +16,9 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator, Literal, Mapping, Sequence
 
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
-from ..domain.residuals import FloatArray
+FloatArray = NDArray[np.float64]
 
 MetadataValue = bool | int | float | str
 GeometrySource = Literal["drive_path", "paired_boundaries"]
