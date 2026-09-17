@@ -4,7 +4,67 @@ Last updated: 2026-09-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Takeover verification on 2026-09-17
+## Corrective review accepted on 2026-09-17; private rerun pending
+
+The user pushed the correction after local tests passed. GitHub PR #20 now
+points to `bc50ee656351beca14ab1f0ae57613fc3b86e81c`, tree
+`3c78a31fbbce0161abd049abf7768289b90aa0d8`. Fetching that branch confirmed
+both identities and that reviewed v0.18.0 commit `6a71782` is its ancestor.
+PR #20 remains open and unmerged; `main` remains `b82908b`.
+
+Claude's supplied `MPR_v0.18.1_reference_uint64_corrective_review.md` reviews
+that exact HEAD/tree and returns **GO with zero blockers**. Preserve the
+report outside Git; its SHA-256 is
+`9b11742f9ff890a2cad3daef8cc20bf0714b2501c0ba432b7a2bec7653ac381c`.
+The reviewer reproduced 30 focused tests and the 434-test full suite, with
+432 passes and two opt-in skips, and mutation-tested both corrective changes.
+
+GitHub Actions run
+[35198056451](https://github.com/SirBxss/MPR/actions/runs/35198056451)
+completed successfully for this pushed change. Both `unit-tests (3.10)` and
+`unit-tests (3.12)` passed installation of the package and MCAP readers,
+compilation, and unit tests. This resolves review item H3. This is CI evidence,
+not a private-data execution.
+
+Next: run the documented v0.18.1 audit exactly once at the reviewed code
+identity above, using the unchanged closed batch01 bytes, manifest and
+preserved v0.17.1 intake, and a new nonexistent output directory. No further
+implementation or review is required before this bounded run. The private
+MCAPs are not available in this workspace. The rerun has not been performed
+here and no v0.18.1 real-output counts are known.
+
+Before accepting the new output, reconcile both three-file bundles:
+
+- verify their own output hashes and identical manifest, raw-hash map and
+  preserved-intake identity;
+- require the sensor count ladder to remain `16737 / 4078 / 4039 / 0`, compare
+  every corresponding per-recording sensor count, and require unchanged
+  sensor-side failure-count entries (H1);
+- expect the same reference descriptor to be `structure_conformant`, with
+  the previous false decode-failure code absent; investigate any remaining
+  descriptor/decode failure instead of interpreting it as missing geometry
+  (H4);
+- read the actual reference-ready and source-time-pair counts from the new
+  output without predicting their values; and
+- retain the expected zero synchronized count under unchanged sensor evidence
+  and obtain focused real-output review before closing this phase or merging.
+
+Three nonblocking review statements need precise qualification. The count
+invariant is in `RecordingInspection.__post_init__`, not a
+`FeasibilitySummary` class. The two skipped tests are opt-in wheel contents
+and private historical alignment parity, not skips caused by missing MCAP
+packages; the author's local environment also did not contain MCAP extras.
+Finally, a zero count at 100 m does not establish that every chain was far
+from the boundary: numeric spans were not exported. Preserve the report as
+received rather than modifying it. H2 (recording the already documented
+floating-point slack in a dated contract clarification before thesis use)
+remains optional and does not delay this rerun or change any threshold.
+
+This GO authorizes no merge, new target, cross-topic alignment, residual,
+model, planner run or figure. The documentation-only review record can be
+applied after the run so the execution remains at the exact reviewed tree.
+
+## Historical takeover verification, before the corrective push
 
 The GitHub branch was fetched and PR #20 inspected. Remote `main` remains
 `b82908bb4ed3770e338f8279dfc6dcdbb055b851`; the open PR remains at reviewed
@@ -41,7 +101,7 @@ proof that every possible use of the topic lacks geometry. The saved outputs
 contain no numeric span distribution or raw geometry from which to infer a
 different horizon or physical cause.
 
-The next action is to apply the verified patch batch and push the existing
+At that checkpoint, the next action was to apply the verified patch batch and push the existing
 PR #20 branch, obtain focused corrective `GO` on its exact HEAD/tree, then
 rerun once into a new v0.18.1 directory. No new PR is needed. Residual
 construction remains blocked by the structural result and unresolved physical
@@ -89,8 +149,9 @@ frame contract; independent ground truth has not been established.
   `RoadLaneSegment.id_` is `uint64`, while the validator required `int64`.
   Independently, zero sensor chains reached 100 m. Preserve that v0.18.0 output
   unchanged. v0.18.1 corrects only the descriptor type and failure
-  classification. No rerun is authorized until the exact corrective HEAD and
-  tree receive focused `GO`. No cross-topic projection, H100 residual-pair
+  classification. The exact corrective HEAD and tree now have focused `GO`
+  and passing Python 3.10/3.12 CI, as recorded above. One new-directory rerun
+  is the next action. No cross-topic projection, H100 residual-pair
   claim, merge, threshold change, or target adoption is authorized. Three private source traces now
   record the technical evidence and all 23 complete tracked paths; the third
   rechecked the claims against immutable `HEAD` blobs but did not capture the
@@ -105,8 +166,9 @@ frame contract; independent ground truth has not been established.
   `857ada05b968e9fd5ebda555118b3b75738d258b` has that same reviewed tree.
   The reviewed v0.18.0 implementation identity is commit
   `6a717827363529773a24f8fba2094cf5e75565b0`, tree
-  `530b73ff51243b8bfd27c3ffa47ef29e17649235`. Record the new corrective HEAD
-  and tree after applying, testing, and pushing the v0.18.1 patch.
+  `530b73ff51243b8bfd27c3ffa47ef29e17649235`. The accepted corrective HEAD is
+  `bc50ee656351beca14ab1f0ae57613fc3b86e81c`, tree
+  `3c78a31fbbce0161abd049abf7768289b90aa0d8`.
 - Claude's focused v0.18.0 contract review returned `GO`. The report SHA-256
   is `09b0351f448cd60025bd6e662bb5e7c392d38ab2af5332d3765f7b0a30b75c67`.
   Its optional hardening is reflected where applicable: the new 50 ms value is
@@ -771,11 +833,13 @@ Next actions are ordered:
 3. preserve the v0.18.0 contract and implementation review `GO` reports and
    original three-file private output unchanged; no further BMW-source answer
    is required for this correction;
-4. apply, test, commit, and push the narrow v0.18.1 descriptor correction, then
-   record its exact HEAD and tree;
-5. obtain focused independent corrective review of that exact pushed tree;
-   only corrective `GO` permits one rerun against the identical raw bytes,
-   manifest, and preserved intake into a new v0.18.1 directory;
+4. preserve the accepted v0.18.1 corrective review and passing CI identities
+   recorded above, then execute its one approved private rerun against the
+   identical raw bytes, manifest, and preserved intake into a new v0.18.1
+   directory;
+5. reconcile both three-file outputs, including unchanged sensor counts and
+   corrected reference descriptor support, and obtain focused real-output
+   review before merging or making a scientific conclusion;
 6. continue acquiring separate outcome-blind physical outings through new
    manifests and versioned outputs until at least seven new outings are
    technically eligible; where operationally possible, acquire the same
@@ -838,8 +902,10 @@ then showed a narrower MPR defect: RLMB segment ID field 1 is `uint64`, not the
 synthetic fixture's assumed `int64`. It also observed zero strict sensor chains
 reaching 100 m. The v0.18.1 correction changes only that descriptor binding,
 the associated structural-drift failure label, output version/revision, and the
-runtime import-graph test. Focused corrective review of the exact pushed HEAD
-and tree is the next gate. Even a positive synchronized count after correction
+runtime import-graph test. Focused corrective review returned `GO` for the
+exact pushed HEAD and tree recorded above; both CI versions pass. The approved
+private rerun and its output reconciliation/review are the next gate.
+Even a positive synchronized count after correction
 would authorize only resolution of the physical frame contract and a separate
 alignment-audit predeclaration; it is not an H100 residual pair and does not
 prove map independence or permit old EDP model reuse. With zero sensor chains
