@@ -1,8 +1,9 @@
 # v0.18.1 batch01 sensor-topology audit result
 
-Date: 2026-09-17. Status: real output received and artifact reconciliation
-passed; focused independent real-output review is pending. Do not rerun the
-closed batch, modify either output, or merge PR #20 on this record alone.
+Date: 2026-09-17. Status: artifact reconciliation and focused independent
+real-output review passed (`GO`, zero blockers). Batch01 is closed negative
+under the frozen 100 m structural rules. Preserve both outputs; no further
+run is authorized. PR #20 remains open for the user's merge decision.
 
 ## Scope and implementation identity
 
@@ -26,8 +27,8 @@ candidate target has not been adopted. This is not a residual export.
 
 ## Reconciled before/after counts
 
-All entries below are message counts except the first row. The two streams
-are audited independently before the source-time pairing filter.
+The table distinguishes recording, message and one-to-one pair counts. The
+two streams are audited independently before the source-time pairing filter.
 
 | Quantity | Preserved v0.18.0 | Corrected v0.18.1 |
 |---|---:|---:|
@@ -60,7 +61,7 @@ implementation, checked:
 
 - the exact three-file set, duplicate-free finite JSON, exact JSON keys and
   CSV header, 86 unique basename-ordered rows, and sibling file hashes;
-- equality of manifest bytes/hash, preserved v0.17.1 lock hash, the complete
+- equality of the recorded manifest hash, preserved v0.17.1 lock hash, the complete
   86-entry recorded raw-basename/hash map, and per-file byte sizes;
 - equality of the raw-map aggregate digest and all fixed topics, thresholds,
   chain limits, claim limits and authorization fields;
@@ -77,6 +78,18 @@ and `output_sha256`. The inventory changes only version, revision and the
 reference support status. These satisfy corrective-review follow-ups H1 and
 H4. No additional statistic, horizon sweep or geometry diagnostic was run.
 
+The implementer's workspace also held the separately supplied private
+manifest file: hashing its bytes reproduced the recorded manifest digest.
+The independent reviewer did not have that file and checked only its recorded
+hash across artifacts. This distinction resolves review item O1 without
+attributing the implementer's byte-level check to the reviewer.
+
+The intake and audit use different input roots: their private relative paths
+are respectively `candidate_session_2025-08-21/<basename>` and `<basename>`.
+That path column is root-relative, not a cross-workflow identity invariant.
+Lineage is reconciled through the complete basename/SHA-256 map and all 86
+recorded file sizes, not through equality of those relative paths (O3).
+
 The raw MCAPs are unavailable in this workspace. Their recorded hashes were
 reconciled with the preserved intake; their bytes were not independently
 rehashed, and messages were not re-decoded. The supplied audit reports its
@@ -87,6 +100,9 @@ and report consistency, not independent reproduction of raw geometry.
 
 These counts are numbers of recordings with at least one occurrence. They
 are nonexclusive and must not be interpreted as message attrition counts.
+The two reference readiness codes are newly visible after the descriptor
+gate was corrected; v0.18.0 never reached those checks. Their appearance does
+not establish newly occurring reference defects (O2).
 
 | Recording failure code | Recordings |
 |---|---:|
@@ -137,6 +153,41 @@ The original v0.18.0 ZIP remains unchanged at
 `c7f9aad2a38b6b370e827ebd5ef5cf36b26aab54cfdd16179f02a7e570018b7a`.
 Raw files, manifests, audit outputs and review reports remain outside Git.
 
+## Independent acceptance and review qualifications
+
+`MPR_v0.18.1_batch01_real_output_review.md` returned **GO with zero blockers**
+on documentation HEAD `77b1d8e34dca2e8a7e10d3457ce3b50ea7fd2e88`, tree
+`7f535d84f7e76ce8eaf9de24a6a776f279d648b9`. Its SHA-256 is
+`1caa9e1c520a6ba836041f12d679027fdb13a0da4529b5ad60a9f466856d01f8`.
+The review independently reconciles the supplied outputs and accepts the
+bounded interpretation; it does not reproduce raw geometry. GitHub Actions
+run [35215993924](https://github.com/SirBxss/MPR/actions/runs/35215993924)
+passes both Python 3.10 and 3.12 jobs, including MCAP-extra installation,
+compilation and unit tests. The reviewed documentation tree has identical
+`src/`, `tests/` and `pyproject.toml` objects to approved implementation
+`bc50ee6`.
+
+Preserve the review unchanged, with these interpretation qualifications:
+
+- Positive sensor-chain, reference-ready and time-pair counts within one
+  recording do not by themselves prove that the qualifying messages were
+  paired. The review's recording-level cross-tabulation cannot establish its
+  stronger claim that every other precondition is satisfied jointly. Zero
+  sensor 100 m spans is sufficient to force zero synchronized candidates;
+  it does not prove that span is the only failing gate for each pair.
+- Identical repository trees establish unchanged committed code, not which
+  checkout or uncommitted state produced the private output. The review's
+  code-identity discussion must retain its own artifact-only execution limit.
+- Zero spans do not locate chains relative to the numerical boundary. The
+  review's illustrative `99.999999999 m` span is within the implemented
+  `1e-9 m` comparison slack, so it is not an example of a necessarily rejected
+  span. The absence of exported lengths still prevents any near-boundary claim.
+
+These qualifications do not change any count or the accepted negative result.
+Optional H2 is addressed by the dated retrospective numerical clarification
+in `docs/sensor_topology_feasibility_predeclaration.md`; no executable rule
+or output revision changes. O4 is addressed in the current status and README.
+
 ## Interpretation and next gate
 
 The binding defect is corrected: reference readiness and timing are now
@@ -153,11 +204,14 @@ physical reason for the sensor result. Frame equivalence remains unverified;
 LTSB topology is map-influenced and RLMB is not physical ground truth. The
 86 files are one physical outing, not 86 independent validation units.
 
-Next: focused independent review of both three-file outputs, their preserved
-intake lineage and this result record. Do not rerun, change thresholds, adopt
+Next: deliver the documentation closure on the existing PR #20, then let the
+user decide whether to merge after CI. No further corrective or real-output
+review is pending. Do not rerun, change thresholds, adopt
 a shorter horizon, construct residuals, refit models or execute a planner to
 turn this result positive. Any subsequent acquisition change or alternative
 target/horizon requires its own prospective decision and applicable review.
 This result does not alter the historical EDP models or establish planner
-benefit. Keep PR #20 unmerged until real-output review and the user's merge
-decision.
+benefit. The next research step is a prospective acquisition/configuration or
+target decision using producer evidence; these artifacts cannot choose a
+shorter horizon. New scientific execution requires its applicable contract
+and review. Merging the accepted audit does not authorize that execution.

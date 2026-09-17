@@ -1,7 +1,9 @@
 # v0.18.1 sensor-topology reference-schema correction
 
-Status: narrow corrective review candidate dated 2026-09-17. It must receive
-focused independent review before the private audit is rerun.
+Status (2026-09-17): narrow correction accepted by focused corrective `GO`.
+Its one authorized private rerun is reconciled and has real-output `GO` with
+zero blockers. Batch01 is closed negative under unchanged structural rules;
+see `docs/sensor_topology_batch01_v0181_result.md`. No further run is authorized.
 
 Contract revision:
 `v0.18.1-review-candidate-2026-09-17-reference-uint64-a1`.
@@ -65,6 +67,9 @@ positive synchronized count would authorize only a separately predeclared
 physical-frame and alignment audit.
 
 ## Review and rerun order
+
+The following sequence is complete; it records the authorization history and
+is not a fresh run instruction.
 
 1. Verify the exact pushed corrective HEAD and tree.
 2. Reproduce the focused and complete synthetic test suites.

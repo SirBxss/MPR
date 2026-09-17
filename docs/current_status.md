@@ -4,7 +4,7 @@ Last updated: 2026-09-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## v0.18.1 real output reconciled on 2026-09-17; result review pending
+## v0.18.1 real-output GO on 2026-09-17; closed-batch negative accepted
 
 The user supplied the corrected batch01 audit and reported applying the
 documentation-only review handoff. Artifact reconciliation passed against the
@@ -22,19 +22,53 @@ here; recorded hashes and reports were reconciled, not raw geometry re-decoded.
 No numeric span distribution or alternative horizon was inspected. The
 corrective-review H1/H4 reconciliation checks pass.
 
-Next: push the documentation-only handoff and result record to the existing
-PR #20 branch and obtain focused independent real-output review. No new code
-or private rerun is needed. Keep both output directories unchanged and the PR
-unmerged. At this check GitHub still points to reviewed implementation
-`bc50ee6`; the user's applied documentation patch is not yet visible remotely.
+Claude's `MPR_v0.18.1_batch01_real_output_review.md` returns **GO with zero
+blockers** on pushed documentation HEAD
+`77b1d8e34dca2e8a7e10d3457ce3b50ea7fd2e88`, tree
+`7f535d84f7e76ce8eaf9de24a6a776f279d648b9`. The received review SHA-256 is
+`1caa9e1c520a6ba836041f12d679027fdb13a0da4529b5ad60a9f466856d01f8`.
+Git fetch and the GitHub API confirm that HEAD/tree, with PR #20 open and
+unmerged and `main` at `b82908b`. Both documentation patches are therefore
+visible remotely. This is the observed review checkpoint, not a claim that
+later handoff commits are already pushed.
+
+GitHub Actions run
+[35215993924](https://github.com/SirBxss/MPR/actions/runs/35215993924)
+passes both Python 3.10 and 3.12 jobs, including MCAP-extra installation,
+compilation and unit tests. The `src/`, `tests/` and `pyproject.toml` objects
+are identical to approved corrective implementation `bc50ee6`.
+
+The closure clarifies optional O1--O4: distinguish the implementer's actual
+manifest-byte hash from the reviewer's recorded-hash comparison; identify
+reference failures as newly visible; explain root-relative private paths;
+and supersede the old pending-review/unpushed status. H2 is now documented
+as a dated retrospective account of existing numerical slack in the frozen
+predeclaration, with units and exact comparisons. No rule changes.
+
+The result document also qualifies three review statements: recording-level
+marginal counts do not establish message-level joint eligibility; committed
+tree identity does not prove the executed checkout; and the review's near-
+boundary numerical example lies within the implementation's comparison
+slack. These do not affect the accepted counts or verdict. Preserve the
+received review and all prior artifacts unchanged outside Git.
+
+Next: apply and push the documentation-only closure to existing PR #20,
+then the user may decide to merge after CI. Contract, implementation,
+corrective and real-output reviews are complete; no further review cycle or
+private rerun is needed for this closure. No new PR is needed. The next
+research step is a prospective acquisition/configuration or target decision
+using producer evidence. The batch cannot justify selecting a shorter
+horizon; residual construction also remains blocked by the unresolved frame
+contract. Do not relax this batch's rules or start a new diagnostic/model run.
 
 ## Corrective implementation review and CI record
 
-The user pushed the correction after local tests passed. GitHub PR #20 now
-points to `bc50ee656351beca14ab1f0ae57613fc3b86e81c`, tree
+At the corrective-review checkpoint, the user had pushed the correction after
+local tests passed. GitHub PR #20 then pointed to
+`bc50ee656351beca14ab1f0ae57613fc3b86e81c`, tree
 `3c78a31fbbce0161abd049abf7768289b90aa0d8`. Fetching that branch confirmed
 both identities and that reviewed v0.18.0 commit `6a71782` is its ancestor.
-PR #20 remains open and unmerged; `main` remains `b82908b`.
+PR #20 was open and unmerged; `main` was `b82908b`.
 
 Claude's supplied `MPR_v0.18.1_reference_uint64_corrective_review.md` reviews
 that exact HEAD/tree and returns **GO with zero blockers**. Preserve the
@@ -78,9 +112,9 @@ and private historical alignment parity, not skips caused by missing MCAP
 packages; the author's local environment also did not contain MCAP extras.
 Finally, a zero count at 100 m does not establish that every chain was far
 from the boundary: numeric spans were not exported. Preserve the report as
-received rather than modifying it. H2 (recording the already documented
-floating-point slack in a dated contract clarification before thesis use)
-remains optional and changes no threshold or interpretation of this run.
+received rather than modifying it. H2 was optional at that checkpoint; the
+closure above now records the existing floating-point slack in a dated
+contract clarification, with no threshold or result change.
 
 This GO authorizes no merge, new target, cross-topic alignment, residual,
 model, planner run or figure. The user has reported applying the
@@ -173,7 +207,9 @@ frame contract; independent ground truth has not been established.
   unchanged. v0.18.1 corrects only the descriptor type and failure
   classification. The exact corrective HEAD and tree now have focused `GO`
   and passing Python 3.10/3.12 CI, as recorded above. The corrected real run is
-  received and reconciled; focused real-output review is the next action.
+  received, reconciled and accepted by focused real-output `GO` with zero
+  blockers. This phase is closed negative for batch01; the documentation
+  closure and user's merge decision are the remaining delivery steps.
   No cross-topic projection, H100 residual-pair
   claim, merge, threshold change, or target adoption is authorized. Three private source traces now
   record the technical evidence and all 23 complete tracked paths; the third
@@ -192,6 +228,9 @@ frame contract; independent ground truth has not been established.
   `530b73ff51243b8bfd27c3ffa47ef29e17649235`. The accepted corrective HEAD is
   `bc50ee656351beca14ab1f0ae57613fc3b86e81c`, tree
   `3c78a31fbbce0161abd049abf7768289b90aa0d8`.
+  The real-output review covers documentation HEAD
+  `77b1d8e34dca2e8a7e10d3457ce3b50ea7fd2e88`, tree
+  `7f535d84f7e76ce8eaf9de24a6a776f279d648b9`, with unchanged implementation.
 - Claude's focused v0.18.0 contract review returned `GO`. The report SHA-256
   is `09b0351f448cd60025bd6e662bb5e7c392d38ab2af5332d3765f7b0a30b75c67`.
   Its optional hardening is reflected where applicable: the new 50 ms value is

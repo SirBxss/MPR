@@ -2,8 +2,10 @@
 
 Status: v0.18.0 received focused implementation `GO` and its one authorized
 private run is preserved. That run exposed one reference descriptor binding
-defect. The narrow v0.18.1 correction is synthetic-verified and requires
-focused corrective review before a private rerun.
+defect. The narrow v0.18.1 correction has corrective `GO`, passing Python
+3.10/3.12 CI, and an accepted real-output `GO` on the corrected private run.
+Batch01 is closed negative; no further run is authorized. The exact result
+and review identities are in `docs/sensor_topology_batch01_v0181_result.md`.
 
 ## Reviewed starting point
 
@@ -76,8 +78,10 @@ v0.18 graph are both frozen by subprocess tests.
   an RLMB coordinate.
 - Inclusive floating-point comparisons use fixed implementation slack only for
   numerical stability: `1e-9 m` at the 100 m accumulated-span boundary and
-  `1e-12` at the 1 m gap and 30 degree heading boundaries. These values are
-  not data-tuned tolerances.
+  `1e-12 m` at the 1 m successor gap and `1e-12 radians` at the 30 degree
+  successor heading boundary. These values are not data-tuned tolerances.
+  The predeclaration's dated retrospective H2 addendum records the exact
+  comparisons and distinguishes the date of that documentation from a3.
 - Multiple successors map to `sensor_camera_chain_junction_invalid`;
   `sensor_camera_chain_ambiguous` is reserved for exact orientation ties.
 
@@ -139,10 +143,29 @@ measurements or a private rerun:
 
 Thus the correction fixes premature reference rejection without changing
 sensor availability. The original warning alone cannot distinguish these
-cases. A real v0.18.1 reference-ready or timestamp-pair count remains unknown
-until the reviewed rerun; it must not be inferred from these fixtures.
+cases. At synthetic verification time, the real reference-ready and
+timestamp-pair counts were unknown and could not be inferred from these
+fixtures. The later accepted real counts are 9,235 and 17,087 respectively,
+with zero sensor spans and zero synchronized candidates; see the result
+document for their artifact-only verification scope.
 
 ## Next-agent checklist
+
+1. Read the accepted result and `docs/current_status.md`; implementation,
+   corrective and real-output reviews are complete.
+2. Apply/push the documentation closure to the existing PR #20, observe CI,
+   and leave the merge decision to the user. No new PR or review is required
+   for this documentation-only closure.
+3. Preserve both outputs and review reports unchanged outside Git. Do not
+   rerun the closed batch or change a threshold to convert the negative.
+4. Resume scientific work only under a prospective acquisition/configuration
+   or target decision with its applicable contract and review. These outputs
+   do not identify an alternative horizon or establish frame equivalence.
+
+## Historical corrective checklist (completed)
+
+This was the sequence before the accepted corrected real run; it does not
+authorize another execution.
 
 1. Confirm a clean worktree after applying the delivered patches.
 2. Run the compile and full-suite commands in `AGENTS.md` on Python 3.10 and

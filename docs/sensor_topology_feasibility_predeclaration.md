@@ -4,8 +4,10 @@ Status: frozen prospective contract dated 2026-09-15. Focused independent
 contract and implementation reviews returned `GO`, and the one authorized
 private v0.18.0 run is preserved. That run exposed an exact RLMB descriptor
 binding defect. The narrow v0.18.1 correction in
-`docs/sensor_topology_reference_schema_amendment.md` must receive focused
-corrective review before a rerun. This predeclaration otherwise remains the
+`docs/sensor_topology_reference_schema_amendment.md` subsequently received
+corrective `GO`; its one authorized rerun and real-output review are complete
+with a negative batch01 result. See `docs/sensor_topology_batch01_v0181_result.md`.
+No further run is authorized. This predeclaration otherwise remains the
 unchanged a3 scientific boundary. The original a0
 draft was written after the accepted negative v0.17.1 batch01 EDP audit and
 before MPR decoded or summarized any standalone sensor-topology message from
@@ -14,8 +16,7 @@ changed and then bounded the contract before implementation or private
 execution. The third trace resolved all cited tracked paths and rechecked the
 technical claims from immutable `HEAD:<path>` blobs. It did not capture the
 literal BMW HEAD SHA; that named-revision reproducibility limit is recorded in
-the evidence document but no longer blocks focused contract review. No second
-private execution is authorized before focused v0.18.1 corrective `GO`.
+the evidence document but no longer blocks the completed contract review.
 
 Prospective contract revision:
 `v0.18.0-review-candidate-2026-09-15-sensor-topology-feasibility-a3`.
@@ -744,3 +745,27 @@ prove frame equivalence, alignment, residual readiness, map independence,
 physical truth, v0.17 outing eligibility, comparability with EDP, or expected
 model performance. A zero result does not invalidate the topic outside this
 recording, producer build, or configuration.
+
+## Retrospective numerical clarification, 2026-09-17 (H2)
+
+This dated addendum records comparisons already present in the reviewed
+v0.18.0 implementation and unchanged by v0.18.1. It was added after the real
+output review, not prospectively declared with a3. It changes no code,
+scientific threshold, contract-revision identifier or preserved output.
+
+For the sensor successor-chain audit in
+`src/lane_residuals/domain/sensor_topology_feasibility.py`:
+
+| Check | Existing floating-point comparison | Slack units |
+|---|---|---|
+| Accumulated observed span | `span + 1e-9 >= 100.0` | metres |
+| Successor junction gap | reject if `gap > 1.0 + 1e-12` | metres |
+| Successor heading change | reject if `heading_delta > math.radians(30.0) + 1e-12` | radians |
+
+These are fixed implementation slacks for inclusive comparisons, not
+data-tuned tolerances or measurement uncertainty. The heading slack is in
+radians, not degrees. They do not change the separately specified boundary
+reconstruction or junction-duplicate rules. Numeric sensor spans are absent
+from the artifacts, so neither their proximity to these boundaries nor the
+effect of removing the slack can be inferred from the zero count. No rerun
+or sensitivity calculation is authorized by documenting these comparisons.

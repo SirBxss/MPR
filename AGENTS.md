@@ -165,6 +165,17 @@ include the observed `uint64` reference descriptor, fail-closed `int64` drift,
 and a short sensor chain that remains ineligible despite valid reference
 geometry and timestamp pairing.
 
+The v0.18.1 corrective implementation and corrected real batch01 output have
+now both received focused `GO` with zero blockers; Python 3.10/3.12 CI passes.
+The accepted result remains zero sensor 100 m spans and zero synchronized
+candidates, despite 9,235 reference-ready messages and 17,087 time pairs.
+Read `docs/sensor_topology_batch01_v0181_result.md` and the first section of
+`docs/current_status.md` for exact identities, verification limits and the
+documentation closure. The earlier review-before-rerun instructions above
+record gates already completed, not permission for a further run. The closed
+batch stays negative; no horizon/rule change, residual construction or new
+scientific execution is authorized. The user decides whether to merge PR #20.
+
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location

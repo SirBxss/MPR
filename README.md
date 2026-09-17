@@ -1,10 +1,11 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-Current checkpoint (2026-09-17): corrective implementation review and CI pass;
-the corrected private batch01 output has been received and reconciled.
+Current checkpoint (2026-09-17): corrective implementation and real-output
+reviews returned `GO` with zero blockers; Python 3.10/3.12 CI passes.
 Reference H100 readiness is 9,235 and source-time pairing is 17,087, while
-the unchanged sensor audit has zero chains reaching 100 m. Focused real-output
-review is pending. See
+the unchanged sensor audit has zero chains reaching 100 m. This is an accepted
+negative structural-feasibility result for this one closed batch. PR #20
+remains open for the user's merge decision. See
 [`docs/sensor_topology_batch01_v0181_result.md`](docs/sensor_topology_batch01_v0181_result.md)
 and [`docs/current_status.md`](docs/current_status.md) for exact evidence and
 the next step. No further run or residual construction is authorized.
@@ -30,8 +31,8 @@ streams, but exposed one exact reference-descriptor binding defect:
 validator required `int64`. The narrow v0.18.1 correction changes only that
 binding, gives readable reference structural drift its own failure code, and
 extends the import-graph test through the runtime MCAP decoder. It received
-focused corrective `GO`; the corrected real output is now reconciled and
-awaits its own focused review. The original
+focused corrective `GO`; the corrected real output is reconciled and has
+independent real-output `GO`. The original
 v0.18.0 output remains immutable evidence. No threshold or sensor rule changes;
 the first run observed zero strict sensor chains reaching 100 m.
 It performs no cross-topic coordinate comparison and exports no timestamps,
