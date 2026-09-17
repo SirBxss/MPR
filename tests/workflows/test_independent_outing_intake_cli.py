@@ -40,24 +40,20 @@ from scripts.inspection.verify_v017_intake_bundle import (
 )
 
 
-# Importing any lane_residuals submodule first executes the legacy root package
-# initializer. Its eager compatibility re-exports include gaussian/modeling and
-# plotting definitions. The v0.17 modules do not directly depend on those
-# layers; this exact transitive graph makes the pre-existing footprint explicit
-# and forces review before it can change silently.
+# The public root now resolves compatibility exports lazily.  This allow-list
+# freezes only the dependencies genuinely required by the historical v0.17
+# intake, while the separate v0.18 test enforces its narrower structural-only
+# graph.
 FROZEN_INTAKE_MODULE_ALLOWLIST = frozenset(
     {
         "lane_residuals",
-        "lane_residuals.batch_pairing_audit",
         "lane_residuals.cli",
         "lane_residuals.cli.independent_outing_intake",
         "lane_residuals.domain",
         "lane_residuals.domain.alignment",
         "lane_residuals.domain.alignment_contract",
-        "lane_residuals.domain.batch_pairing",
         "lane_residuals.domain.conditional_features",
         "lane_residuals.domain.corpus_inventory",
-        "lane_residuals.domain.edp_transitions",
         "lane_residuals.domain.expanded_sequence_dataset",
         "lane_residuals.domain.expanded_sequence_dataset_v0131",
         "lane_residuals.domain.geometry_validation",
@@ -65,13 +61,9 @@ FROZEN_INTAKE_MODULE_ALLOWLIST = frozenset(
         "lane_residuals.domain.motion",
         "lane_residuals.domain.pairing",
         "lane_residuals.domain.path_source_probe",
-        "lane_residuals.domain.reference",
         "lane_residuals.domain.residual_dataset",
         "lane_residuals.domain.residuals",
         "lane_residuals.domain.sequence_dataset",
-        "lane_residuals.edp_transition_audit",
-        "lane_residuals.gaussian",
-        "lane_residuals.geometry_validation",
         "lane_residuals.io",
         "lane_residuals.io.corpus_inventory",
         "lane_residuals.io.expanded_sequence_dataset",
@@ -81,20 +73,7 @@ FROZEN_INTAKE_MODULE_ALLOWLIST = frozenset(
         "lane_residuals.io.odometry",
         "lane_residuals.io.reports",
         "lane_residuals.legacy",
-        "lane_residuals.legacy.association_cli",
-        "lane_residuals.legacy.plotting",
         "lane_residuals.legacy.preprocessing",
-        "lane_residuals.legacy.provisional_residuals",
-        "lane_residuals.mcap_io",
-        "lane_residuals.modeling",
-        "lane_residuals.modeling.gaussian",
-        "lane_residuals.pairing_audit",
-        "lane_residuals.path_source_probe",
-        "lane_residuals.plotting",
-        "lane_residuals.preprocessing",
-        "lane_residuals.reference_audit",
-        "lane_residuals.residual_extraction",
-        "lane_residuals.residuals",
         "lane_residuals.workflows",
         "lane_residuals.workflows.independent_outing_intake",
     }
@@ -1111,6 +1090,28 @@ class IndependentOutingWorkflowTests(unittest.TestCase):
         )
         loaded = frozenset(json.loads(completed.stdout))
         self.assertEqual(loaded, FROZEN_INTAKE_MODULE_ALLOWLIST)
+
+        compatibility_code = (
+            "import json, lane_residuals\n"
+            "missing = []\n"
+            "for name in lane_residuals.__all__:\n"
+            "    try:\n"
+            "        getattr(lane_residuals, name)\n"
+            "    except (AttributeError, ImportError) as error:\n"
+            "        missing.append([name, type(error).__name__])\n"
+            "print(json.dumps([len(lane_residuals.__all__), "
+            "len(set(lane_residuals.__all__)), missing]))\n"
+        )
+        compatibility = subprocess.run(
+            [sys.executable, "-c", compatibility_code],
+            cwd=repository,
+            env={**os.environ, "PYTHONPATH": str(repository / "src")},
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=30,
+        )
+        self.assertEqual(json.loads(compatibility.stdout), [165, 165, []])
 
     def test_read_only_verifier_reconciles_initial_bundle_without_writes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

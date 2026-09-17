@@ -1,194 +1,41 @@
-"""Minimal tools for extracting and modelling lane-estimation residuals."""
+"""Public compatibility facade with lazy imports.
 
-from .domain.residual_dataset import (
-    CANONICAL_MODEL_STATIONS_M,
-    RESIDUAL_VECTOR_FIELDS,
-    CanonicalResidualDataset,
-    ResidualDatasetContractError,
-    ResidualObservation,
-    build_canonical_residual_dataset,
-    residual_column_name,
+Historically this module eagerly imported every project layer.  That made a
+structural-audit CLI import modeling, plotting, and residual construction
+before its own module was reached.  Lazy resolution preserves the public names
+while allowing narrow workflows to maintain auditable dependency boundaries.
+"""
+
+from __future__ import annotations
+
+import importlib
+from typing import Any
+
+
+_PUBLIC_MODULES = (
+    ".domain.residual_dataset",
+    ".domain.alignment",
+    ".domain.motion",
+    ".batch_pairing_audit",
+    ".edp_transition_audit",
+    ".gaussian",
+    ".geometry_validation",
+    ".mcap_io",
+    ".path_source_probe",
+    ".pairing_audit",
+    ".plotting",
+    ".preprocessing",
+    ".residuals",
+    ".reference_audit",
+    ".residual_extraction",
 )
 
-from .domain.alignment import (
-    PathPointProjection,
-    SpatialAlignmentResult,
-    compare_spatially_aligned_paths,
-    project_point_to_path,
-)
-from .domain.motion import (
-    EgoFrameTransform,
-    OdometrySample,
-    Pose2D,
-    PoseInterpolation,
-    ego_frame_transform,
-    interpolate_odometry_pose,
-    latest_odometry_at_or_before_log_time,
-    transform_path_to_target_ego_frame,
-)
-from .batch_pairing_audit import (
-    CANONICAL_STATIONS_M,
-    HORIZON_60_M,
-    HORIZON_100_M,
-    BatchAggregationError,
-    RecordingAuditData,
-    aggregate_fixed_cohorts,
-    aggregate_rlmb_chains,
-    detect_drive_overlaps,
-    fixed_horizon_vectors,
-    temporal_diagnostic_rows,
-)
-from .edp_transition_audit import (
-    DEFAULT_EDP_TRANSITION_STATIONS_M,
-    EDP_SPLINE_HYPOTHESES,
-    CandidateGeometry as EdpCandidateGeometry,
-    CandidateSnapshot,
-    SelectedTransition,
-    compare_selected_candidates,
-    rank_transition_centers,
-    sample_candidate_curve,
-    selected_candidate_transitions,
-)
-from .gaussian import GaussianResidualModel, fit_gaussian_residual_model
-from .geometry_validation import (
-    DEFAULT_COMPARATOR_SCHEMA,
-    DEFAULT_COMPARATOR_TOPIC,
-    EXPECTED_TOPOLOGY_SOURCE,
-    ComparatorFrameAudit,
-    ComparatorGeometry,
-    DecodedRecording,
-    EstimatedFrameAudit,
-    GeometryValidationError,
-    HypothesisMetrics,
-    SplineCurve,
-    SplineParameters,
-    SynchronizationAudit,
-    SynchronizationPair,
-    audit_counts,
-    comparator_frame_from_message,
-    compare_curve_to_comparator,
-    contiguous_state_runs,
-    decode_recording_messages,
-    estimated_frame_from_message,
-    generate_spline_curve,
-    generate_spline_hypotheses,
-    state_transition_counts,
-    synchronize_estimate_and_comparator,
-)
-from .mcap_io import (
-    DEFAULT_DIRECT_PATH_TOPICS,
-    McapDependencyError,
-    RoadFrame,
-    RoadFrameLoadResult,
-    RoadMessageError,
-    RoadSegment,
-    RoadTopicLoadReport,
-    SegmentExtraction,
-    TopicProbeRecord,
-    inspect_mcap_topics,
-    iter_decoded_mcap_messages,
-    load_road_frame_result,
-    load_road_frames,
-    road_frame_from_message,
-    road_frame_load_result_from_decoded_messages,
-    source_time_ns_from_message,
-    topic_probe_from_summary,
-)
-from .path_source_probe import (
-    DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA,
-    DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC,
-    ProtobufFieldProbe,
-    ProtobufJointPathSemanticAudit,
-    ProtobufMessageSemanticAudit,
-    ProtobufPathSemanticTuple,
-    ProtobufPathSourceProbe,
-    inspect_protobuf_path_source,
-    probe_decoded_protobuf_messages,
-    save_protobuf_path_source_probe,
-)
-from .pairing_audit import (
-    DEFAULT_PAIRING_STATIONS_M,
-    DiagnosticPathDisagreement,
-    EgoRelativePath,
-    MutualNearestTimestampAudit,
-    OrderedEgoLane,
-    TimestampPair,
-    compare_ego_relative_paths,
-    ego_relative_path_from_points,
-    ego_relative_path_from_road_frame,
-    ego_relative_path_from_spline,
-    evenly_spaced_indices,
-    mutual_nearest_timestamp_pairs,
-    nearest_monotone_pairs_unbounded,
-    ordered_ego_lane_from_road_frame,
-    origin_alignment_metrics,
-    sample_ego_relative_path,
-    select_unique_ego_drive_path,
-)
-from .plotting import (
-    plot_gaussian_residual_model,
-    plot_lane_association_audit,
-    plot_mcap_dataset_diagnostics,
-    plot_path_pair_and_residual,
-)
-from .preprocessing import (
-    DEFAULT_AUDIT_HORIZONS,
-    DEFAULT_ESTIMATE_TOPIC,
-    DEFAULT_REFERENCE_TOPIC,
-    DEFAULT_STATIONS,
-    CandidateSegmentRecord,
-    ExtractionReport,
-    FrameRejection,
-    LaneAssociationExample,
-    PairAuditRecord,
-    ResidualDataset,
-    build_residual_dataset,
-    build_residual_dataset_from_mcap,
-    candidate_segment_records,
-    estimate_path_on_reference,
-    project_points_to_polyline,
-    reference_path_from_segment,
-    save_residual_dataset,
-    select_ego_segment,
-    synchronize_road_frames,
-)
-from .residuals import Path2D, residual_matrix, residual_vector
-from .reference_audit import (
-    DEFAULT_REFERENCE_STATIONS_M,
-    THESIS_TARGET_QUESTION,
-    THESIS_TARGET_VARIABLE,
-    CandidateDiscrepancy,
-    CandidateGeometry,
-    CenterlineWorldSample,
-    LateralLaneSample,
-    PoseSample,
-    TimedMessage,
-    audit_pose_continuity,
-    build_hindsight_candidate,
-    candidate_from_polyline,
-    compare_estimate_to_candidate,
-    compare_reference_candidates,
-    flatten_scalar_fields,
-    reconstruct_centerline_samples,
-    reference_decision,
-    sample_candidate,
-    summarize_field_catalog,
-)
-from .residual_extraction import (
-    DEFAULT_DEBUG_SCHEMA,
-    DEFAULT_DEBUG_TOPIC,
-    DEFAULT_RESIDUAL_STATIONS_M,
-    DebugFrameAudit,
-    DebugSemanticAudit,
-    DebugSplineParameters,
-    DecodedResidualRecording,
-    ResidualFrame,
-    compare_production_to_debug,
-    compute_provisional_gt_residual,
-    debug_frame_from_message,
-    decode_residual_recording_messages,
-    production_error_matches_debug,
-)
+_PUBLIC_OVERRIDES = {
+    # ``edp_transition_audit`` also defines an internal CandidateGeometry;
+    # the historical root export is the reference-audit class.
+    "CandidateGeometry": ".reference_audit",
+    "EdpCandidateGeometry": ".edp_transition_audit",
+}
 
 __all__ = [
     "BatchAggregationError",
@@ -357,3 +204,27 @@ __all__ = [
     "topic_probe_from_summary",
     "transform_path_to_target_ego_frame",
 ]
+
+
+def __getattr__(name: str) -> Any:
+    """Resolve a historical public export only when a caller requests it."""
+
+    if name not in __all__:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    if name in _PUBLIC_OVERRIDES:
+        module = importlib.import_module(_PUBLIC_OVERRIDES[name], __name__)
+        attribute = "CandidateGeometry" if name == "EdpCandidateGeometry" else name
+        value = getattr(module, attribute)
+        globals()[name] = value
+        return value
+    for relative_module in _PUBLIC_MODULES:
+        module = importlib.import_module(relative_module, __name__)
+        if hasattr(module, name):
+            value = getattr(module, name)
+            globals()[name] = value
+            return value
+    raise AttributeError(f"public export {name!r} has no implementation")
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()).union(__all__))

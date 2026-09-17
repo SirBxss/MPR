@@ -1,12 +1,171 @@
 # Current project status
 
-Last updated: 2026-09-13. This is the first file a new agent should read after
+Last updated: 2026-09-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
+## v0.18.1 real-output GO on 2026-09-17; closed-batch negative accepted
+
+The user supplied the corrected batch01 audit and reported applying the
+documentation-only review handoff. Artifact reconciliation passed against the
+preserved v0.18.0 output, exact manifest and v0.17.1 intake. The reference
+descriptor is now `structure_conformant`; 9,235 reference messages are
+H100-ready and 17,087 source-time pairs pass the 50 ms gate. All sensor counts
+and sensor failure-code sets are unchanged in every one of the 86 recordings:
+16,737 ego candidates, 4,078 camera structures, 4,039 valid camera-only chains,
+and zero chains reaching 100 m. Synchronized 100 m candidates remain zero.
+
+The exact hashes, before/after comparison, failure counts, verification scope
+and interpretation limits are in
+`docs/sensor_topology_batch01_v0181_result.md`. Raw MCAP bytes were unavailable
+here; recorded hashes and reports were reconciled, not raw geometry re-decoded.
+No numeric span distribution or alternative horizon was inspected. The
+corrective-review H1/H4 reconciliation checks pass.
+
+Claude's `MPR_v0.18.1_batch01_real_output_review.md` returns **GO with zero
+blockers** on pushed documentation HEAD
+`77b1d8e34dca2e8a7e10d3457ce3b50ea7fd2e88`, tree
+`7f535d84f7e76ce8eaf9de24a6a776f279d648b9`. The received review SHA-256 is
+`1caa9e1c520a6ba836041f12d679027fdb13a0da4529b5ad60a9f466856d01f8`.
+Git fetch and the GitHub API confirm that HEAD/tree, with PR #20 open and
+unmerged and `main` at `b82908b`. Both documentation patches are therefore
+visible remotely. This is the observed review checkpoint, not a claim that
+later handoff commits are already pushed.
+
+GitHub Actions run
+[35215993924](https://github.com/SirBxss/MPR/actions/runs/35215993924)
+passes both Python 3.10 and 3.12 jobs, including MCAP-extra installation,
+compilation and unit tests. The `src/`, `tests/` and `pyproject.toml` objects
+are identical to approved corrective implementation `bc50ee6`.
+
+The closure clarifies optional O1--O4: distinguish the implementer's actual
+manifest-byte hash from the reviewer's recorded-hash comparison; identify
+reference failures as newly visible; explain root-relative private paths;
+and supersede the old pending-review/unpushed status. H2 is now documented
+as a dated retrospective account of existing numerical slack in the frozen
+predeclaration, with units and exact comparisons. No rule changes.
+
+The result document also qualifies three review statements: recording-level
+marginal counts do not establish message-level joint eligibility; committed
+tree identity does not prove the executed checkout; and the review's near-
+boundary numerical example lies within the implementation's comparison
+slack. These do not affect the accepted counts or verdict. Preserve the
+received review and all prior artifacts unchanged outside Git.
+
+Next: apply and push the documentation-only closure to existing PR #20,
+then the user may decide to merge after CI. Contract, implementation,
+corrective and real-output reviews are complete; no further review cycle or
+private rerun is needed for this closure. No new PR is needed. The next
+research step is a prospective acquisition/configuration or target decision
+using producer evidence. The batch cannot justify selecting a shorter
+horizon; residual construction also remains blocked by the unresolved frame
+contract. Do not relax this batch's rules or start a new diagnostic/model run.
+
+## Corrective implementation review and CI record
+
+At the corrective-review checkpoint, the user had pushed the correction after
+local tests passed. GitHub PR #20 then pointed to
+`bc50ee656351beca14ab1f0ae57613fc3b86e81c`, tree
+`3c78a31fbbce0161abd049abf7768289b90aa0d8`. Fetching that branch confirmed
+both identities and that reviewed v0.18.0 commit `6a71782` is its ancestor.
+PR #20 was open and unmerged; `main` was `b82908b`.
+
+Claude's supplied `MPR_v0.18.1_reference_uint64_corrective_review.md` reviews
+that exact HEAD/tree and returns **GO with zero blockers**. Preserve the
+report outside Git; its SHA-256 is
+`9b11742f9ff890a2cad3daef8cc20bf0714b2501c0ba432b7a2bec7653ac381c`.
+The reviewer reproduced 30 focused tests and the 434-test full suite, with
+432 passes and two opt-in skips, and mutation-tested both corrective changes.
+
+GitHub Actions run
+[35198056451](https://github.com/SirBxss/MPR/actions/runs/35198056451)
+completed successfully for this pushed change. Both `unit-tests (3.10)` and
+`unit-tests (3.12)` passed installation of the package and MCAP readers,
+compilation, and unit tests. This resolves review item H3. This is CI evidence,
+not a private-data execution.
+
+That GO authorized one private v0.18.1 run against unchanged closed batch01
+bytes, manifest and preserved v0.17.1 intake into a new directory. The user
+has now supplied that run's output. Its reconciliation is recorded above;
+the authorization is not permission for another run.
+
+The required reconciliation checklist was:
+
+- verify their own output hashes and identical manifest, raw-hash map and
+  preserved-intake identity;
+- require the sensor count ladder to remain `16737 / 4078 / 4039 / 0`, compare
+  every corresponding per-recording sensor count, and require unchanged
+  sensor-side failure-count entries (H1);
+- expect the same reference descriptor to be `structure_conformant`, with
+  the previous false decode-failure code absent; investigate any remaining
+  descriptor/decode failure instead of interpreting it as missing geometry
+  (H4);
+- read the actual reference-ready and source-time-pair counts from the new
+  output without predicting their values; and
+- retain the expected zero synchronized count under unchanged sensor evidence
+  and obtain focused real-output review before closing this phase or merging.
+
+Three nonblocking review statements need precise qualification. The count
+invariant is in `RecordingInspection.__post_init__`, not a
+`FeasibilitySummary` class. The two skipped tests are opt-in wheel contents
+and private historical alignment parity, not skips caused by missing MCAP
+packages; the author's local environment also did not contain MCAP extras.
+Finally, a zero count at 100 m does not establish that every chain was far
+from the boundary: numeric spans were not exported. Preserve the report as
+received rather than modifying it. H2 was optional at that checkpoint; the
+closure above now records the existing floating-point slack in a dated
+contract clarification, with no threshold or result change.
+
+This GO authorizes no merge, new target, cross-topic alignment, residual,
+model, planner run or figure. The user has reported applying the
+documentation-only review record; it changes no executable code.
+
+## Historical takeover verification, before the corrective push
+
+The GitHub branch was fetched and PR #20 inspected. Remote `main` remains
+`b82908bb4ed3770e338f8279dfc6dcdbb055b851`; the open PR remains at reviewed
+v0.18.0 implementation `6a717827363529773a24f8fba2094cf5e75565b0`, tree
+`530b73ff51243b8bfd27c3ffa47ef29e17649235`. No corrective review is recorded
+there. The previous session had already completed the two local v0.18.1
+correction commits, ending at `52a881a`, tree
+`38ac50cf2720c925b1c9bee50617c3eccff804fb`. Applying those same patches to the
+actual remote PR head reproduces that tree exactly. Do not reimplement the
+correction or mistake merged `main` for the latest development state.
+
+The takeover adds one synthetic regression: an 80 m strict camera chain and
+an H100-ready `uint64` RLMB message at the same source time produce one time
+pair but zero synchronized 100 m candidates. It changes no production code
+or scientific threshold. The focused suite now has 30 tests; the full suite
+ran 434 tests, with 432 passing and two expected opt-in skips,
+under Python 3.12.14, NumPy 2.3.5, and Protobuf 6.33.6. Python 3.10 and the
+complete MCAP dependency environment remain CI checks for the pushed tree.
+
+The preserved v0.18.0 archive was reconciled read-only against its three file
+hashes, all 86 recording rows, summary totals/failure counts, strict-time
+flags, descriptor counts, exact manifest bytes, and preserved v0.17.1 lock and
+raw-hash map. No raw MCAP bytes were available here; this is artifact
+reconciliation, not raw re-decoding or a v0.18.1 private run. The ZIP hash
+below corrects a transcription that omitted its final hexadecimal character;
+no archive or output bytes were changed.
+
+The source and saved artifacts are authoritative over the older conversation
+description: the active reference is `/adp/road_lane_map_based`, not
+`/em/road/ego_lane_path` or `/adp/lane_topology_map_based`. The retained sensor
+counts mean 4,039 valid camera-only chains, **zero** reaching 100 m, not 4,039
+H100 candidates. That is a result under the frozen reconstruction rules, not
+proof that every possible use of the topic lacks geometry. The saved outputs
+contain no numeric span distribution or raw geometry from which to infer a
+different horizon or physical cause.
+
+At that checkpoint, the next action was to apply the verified patch batch and push the existing
+PR #20 branch, obtain focused corrective `GO` on its exact HEAD/tree, then
+rerun once into a new v0.18.1 directory. No new PR is needed. Residual
+construction remains blocked by the structural result and unresolved physical
+frame contract; independent ground truth has not been established.
+
 ## Current checkpoint
 
-- Repository version: v0.17.1 EDP schema compatibility implemented,
+- Merged repository version: v0.17.1 EDP schema compatibility implemented,
   synthetically verified, independently approved, and exercised on the closed
   real batch01. Its v0.17.0 independent-outing intake base is independently
   approved and merged. Claude's earlier focused
@@ -30,6 +189,59 @@ critical path changes.
   implementation and real planner run remain complete and approved. The first
   pre-fix v0.16 planner output remains rejected; its v0.15.4 residual samples
   were valid and were reused.
+- Current corrective phase: v0.18.1 standalone sensor-topology 100 m structural
+  feasibility. Leon advised the data owner to prefer
+  `/adp/lane_topology_sensor_based` over EDP for this study. The BMW source
+  trace is now recorded and changed the original a0 proposal: LTSB publishes
+  camera-derived boundaries rather than a centreline, its topology is
+  map-influenced, and its physical frame origin is not established as equal to
+  RLMB. The frozen a3 contract therefore permits only strict camera-chain span
+  and source-time co-availability counts. Claude independently reviewed the
+  exact pushed a3 tree and returned contract `GO`. Claude then reviewed exact
+  v0.18.0 implementation HEAD `6a717827363529773a24f8fba2094cf5e75565b0`,
+  tree `530b73ff51243b8bfd27c3ffa47ef29e17649235`, and returned implementation
+  `GO`, authorizing one private run. That run reconciled the closed lineage and
+  decoded both streams, but exposed one exact RLMB binding defect:
+  `RoadLaneSegment.id_` is `uint64`, while the validator required `int64`.
+  Independently, zero sensor chains reached 100 m. Preserve that v0.18.0 output
+  unchanged. v0.18.1 corrects only the descriptor type and failure
+  classification. The exact corrective HEAD and tree now have focused `GO`
+  and passing Python 3.10/3.12 CI, as recorded above. The corrected real run is
+  received, reconciled and accepted by focused real-output `GO` with zero
+  blockers. This phase is closed negative for batch01; the documentation
+  closure and user's merge decision are the remaining delivery steps.
+  No cross-topic projection, H100 residual-pair
+  claim, merge, threshold change, or target adoption is authorized. Three private source traces now
+  record the technical evidence and all 23 complete tracked paths; the third
+  rechecked the claims against immutable `HEAD` blobs but did not capture the
+  BMW commit SHA. That is retained as a source-trace reproducibility limit and
+  does not require another BMW query. The candidate
+  target is not adopted, and the historical EDP target/models remain
+  unchanged.
+- Working branch and PR #20: `protocol/v0.18.0-sensor-topology-feasibility`.
+  The exact pushed a3 contract-review identity is commit
+  `75a1f9ff38885636dacafbd17144736420a7e17f`, tree
+  `ad6d9a664ac7ec38cea4c06f2197d02ae4942f4c`. The local patch-source base
+  `857ada05b968e9fd5ebda555118b3b75738d258b` has that same reviewed tree.
+  The reviewed v0.18.0 implementation identity is commit
+  `6a717827363529773a24f8fba2094cf5e75565b0`, tree
+  `530b73ff51243b8bfd27c3ffa47ef29e17649235`. The accepted corrective HEAD is
+  `bc50ee656351beca14ab1f0ae57613fc3b86e81c`, tree
+  `3c78a31fbbce0161abd049abf7768289b90aa0d8`.
+  The real-output review covers documentation HEAD
+  `77b1d8e34dca2e8a7e10d3457ce3b50ea7fd2e88`, tree
+  `7f535d84f7e76ce8eaf9de24a6a776f279d648b9`, with unchanged implementation.
+- Claude's focused v0.18.0 contract review returned `GO`. The report SHA-256
+  is `09b0351f448cd60025bd6e662bb5e7c392d38ab2af5332d3765f7b0a30b75c67`.
+  Its optional hardening is reflected where applicable: the new 50 ms value is
+  labelled prospectively fixed, source-time-pair counting is explicit, and
+  implementation tests freeze lineage, descriptor generations, privacy, and
+  the transitive import boundary.
+- Claude's focused v0.18.0 implementation review returned `GO`; its report
+  SHA-256 is
+  `f530f7910f6090a845246ea6ac626d9ace92fc960688a3b8edeb139d66385088`.
+  Its runtime-import hardening is included in v0.18.1. Reviewer prompts are
+  external request artifacts and are not stored under `docs/`.
 - The v0.15.4 development freeze was merged at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -60,6 +272,9 @@ critical path changes.
 - A reporting-only model-comparison view now reads the already accepted
   v0.15.3 macro and fold outputs directly and renders a four-metric meeting
   figure. It adds no model fit, current-data statistic, or selection decision.
+- The reporting-only model comparison was merged through PR #19 at commit
+  `b82908b`; merged `main` has tree `06530a7`. The documented baseline is 404
+  passing tests with two expected skips.
 - Claude's focused v0.17.1 contract re-review covered pushed commit `b51bee3`
   and exact tree `a846fe8`, returned `GO`, and authorized only the bounded
   compatibility implementation. Local patch-source commit `b51fb21` has the
@@ -99,7 +314,8 @@ critical path changes.
   first lock without writes, fail on manifest/raw/output drift, and freeze the
   runbook's initial-lock command, thresholds, outputs, and package-independence
   boundary.
-- Merged-main baseline verification: 384 tests pass with two expected skips.
+- Historical v0.17.0 merged baseline verification: 384 tests pass with two
+  expected skips.
 - v0.17.1 implementation verification: 402 tests pass with two expected skips.
   The added tests cover exact message-owned descriptor identity, unrestricted
   structural legacy admission with explicit-true Boolean field 8, exact pinned
@@ -107,6 +323,43 @@ critical path changes.
   structural/index failures for both generations, equal downstream geometry
   and eligibility, exact additive JSON lineage, pre-write failed-audit
   reconciliation, deterministic output, and independent verifier coupling.
+- v0.18.0 implementation verification: 432 tests run, 430 pass, and
+  two expected optional-dependency tests skip. The 28 focused synthetic tests
+  cover strict camera-boundary reconstruction, exact geometric boundaries,
+  successor branches/cycles/limits, orientation-invariant span, message-owned
+  descriptor identity, conformant generations, structural drift, fixed
+  schema/encoding behavior, RLMB readiness, the 50 ms mutual-nearest rule,
+  exact preserved-lineage validation, deterministic three-file output,
+  non-overwrite, exit codes, and the transitive prohibited-import boundary.
+  Compilation and `git diff --check` also passed before review. No private MCAP
+  was read during implementation or review.
+- v0.18.1 corrective verification, including the takeover regression: 434 tests
+  run, 432 pass, and the same two expected opt-in checks skip (wheel contents
+  and private historical alignment parity).
+  All 30 focused tests pass, including
+  acceptance of the observed singular `uint64` reference segment ID,
+  fail-closed retention of an `int64` drifted descriptor, correct failure-code
+  separation, preserved sensor-span rejection after successful reference/time
+  pairing, and the runtime MCAP-decoder import graph. Compilation and
+  `git diff --check` pass. The correction used only the privacy-safe three-file
+  audit; no private MCAP or raw numeric payload was read.
+- Real v0.18.0 batch01 structural audit: the unchanged manifest, 86 raw MCAPs,
+  and preserved v0.17.1 intake reconciled. Both fixed topics had 17,163 decoded
+  messages with valid strict source times. The sensor stream produced 16,737
+  explicit-ego candidates, 4,078 camera-boundary structures, 4,039 valid
+  camera-only chains, and zero chains reaching 100 m. Reference readiness was
+  incorrectly zero because the reviewed validator required Protobuf `int64`
+  for `RoadLaneSegment.id_`, while the retained message-owned descriptor shows
+  singular `uint64`. The output therefore remains immutable defect evidence,
+  not a complete two-sided feasibility result. v0.18.1 corrects only that exact
+  binding and the misleading drift failure code. The sensor-side zero cannot
+  be changed by this correction and must not trigger threshold tuning.
+  The preserved v0.18.0 ZIP SHA-256 is
+  `c7f9aad2a38b6b370e827ebd5ef5cf36b26aab54cfdd16179f02a7e570018b7a`;
+  its recordings, schema-inventory, and summary file SHA-256 values are
+  `b2b70f1e4222e9de2efd00ee49e71317aae2b486a3ae3af8d95ece63b5af0d06`,
+  `cbe2ffb04dc5ad87fba472b194ab2a072f4eaa3fc2fd078fd60ed17929162793`,
+  and `c59e27a4a77d21211fb77940c47c902d86ee868a75ab227271d39f0d47c183df`.
 - First real v0.17.0 batch audit: all 86 MCAPs are raw-usable, summed usable
   duration is `1707.738856448 s`, the availability status is
   `insufficient_independent_outings`, no role is assigned, and the standalone
@@ -639,14 +892,22 @@ Next actions are ordered:
 2. use `docs/model_comparison.md` and its reproducible output-driven plotting
    command for the meeting and mid-term presentation; it reports only already
    accepted evidence and does not reopen model selection;
-3. continue acquiring separate outcome-blind physical outings through new
+3. preserve the v0.18.0 contract and implementation review `GO` reports and
+   original three-file private output unchanged; no further BMW-source answer
+   is required for this correction;
+4. preserve the accepted v0.18.1 corrective review, passing CI identities and
+   the now-reconciled corrected three-file output unchanged; do not rerun;
+5. obtain focused real-output review of both three-file bundles and
+   `docs/sensor_topology_batch01_v0181_result.md` before merging or promoting
+   the bounded result into a scientific conclusion;
+6. continue acquiring separate outcome-blind physical outings through new
    manifests and versioned outputs until at least seven new outings are
    technically eligible; where operationally possible, acquire the same
    SENSOR_TOPOLOGY domain as the accepted development lineage;
-4. if the available production configuration emits only LANE_MAP, treat that
+7. if the available production configuration emits only LANE_MAP, treat that
    as a domain-change blocker requiring a new prospective scientific contract,
    not as permission to relax the current gates; and
-5. only after a successful reconciled cohort lock, predeclare and review the
+8. only after a successful reconciled cohort lock, predeclare and review the
    separate final comparison before reading any embargoed final-outing outcome.
 
 The intake implementation gates are satisfied and the first real audit is
@@ -654,13 +915,69 @@ preserved, but the required new-outing count has not. The scientific programme
 remains intentionally data-blocked: do not draft evaluator code, fit another
 model, or open any final-outing outcome before a successful prospective lock.
 The narrow schema-v2 adapter and batch01 audit are independently approved, but
-batch01 contributes zero eligible outings. No further current-batch diagnostic,
+batch01 contributes zero eligible outings. The v0.18 correction creates no
+exception by itself: no further current-batch diagnostic,
 model-family experiment, gate change, model fit, sampler run, or planner run is
-authorized. The project is data-blocked pending new prospectively declared
-physical outings.
+authorized until its applicable review gates pass. The existing final-model
+programme remains data-blocked pending new prospectively declared physical
+outings.
+
+## v0.18.0/v0.18.1 sensor-topology feasibility
+
+The proposed phase changes only the estimate-side signal under investigation:
+`/adp/lane_topology_sensor_based` replaces EDP, while
+`/adp/road_lane_map_based` remains the unchanged pseudo-reference. Because
+this changes the modeled quantity from an EDP residual to a sensor-lane
+residual, it is a new candidate target rather than a v0.17 eligibility repair.
+No historical EDP artifact is overwritten or reclassified.
+
+The three Copilot traces are preserved outside Git with SHA-256 values
+`57319e59c54ac270d1885c4039d1bac952798f9f7eb293466aec6e6e53b4e3f7`,
+`315304f3567b5394f9fb15347c3ce63e3fde55dd4ac1960b4fd77744569468d2`, and
+`f5fa27166e824f9276f267ce1b0d449189a5fb5e3e9c3fe3c9a5d3bebc285fb7` and
+summarized in the evidence document. They found that `drive_path_range` is not
+written by LTSB, `ego_lane_segment_indices` represents branch alternatives,
+full geometry may require successor traversal, and the producer directly
+consumes map/map-matching inputs. They confirmed compatible validity-time
+semantics, CAMERA boundary provenance, SENSOR_TOPOLOGY whole-message
+assignment, nested coordinate validity, and stored-order geometry. The third
+trace resolved all 23 complete paths and rechecked the claims from immutable
+`HEAD` blobs. It did not capture the literal BMW commit SHA, which limits exact
+source-trace reproduction but does not block the descriptor-driven MPR audit.
+The traces did not establish a common physical origin or axes with RLMB.
+
+The frozen a3 first stage remains limited to the closed 86-file batch01 and
+three privacy-safe outputs. It may inventory descriptors; enforce exactly one
+ego index; reconstruct only paired CAMERA-provenance boundaries; follow only a
+unique camera-only successor chain; count orientation-invariant 100 m observed
+span; audit RLMB H100 readiness independently; and count mutual-nearest
+source-time co-availability within 50 ms. It may not compare coordinates,
+calculate an anchor/transform/residual, export numeric payload values, build a
+sequence, fit a model, run a planner, or produce a figure.
+
+Claude reviewed the exact pushed a3 documentation and v0.18.0 implementation
+identities and returned `GO` for both. The technical decoder and path questions
+are closed; no further BMW-source answer is required. The one authorized run
+then showed a narrower MPR defect: RLMB segment ID field 1 is `uint64`, not the
+synthetic fixture's assumed `int64`. It also observed zero strict sensor chains
+reaching 100 m. The v0.18.1 correction changes only that descriptor binding,
+the associated structural-drift failure label, output version/revision, and the
+runtime import-graph test. Focused corrective review returned `GO` for the
+exact pushed HEAD and tree recorded above; both CI versions pass. The approved
+private rerun is now received and reconciled: reference readiness is 9,235,
+source-time pairing is 17,087, and synchronized candidates remain zero with
+the sensor ladder unchanged. Focused real-output review is the next gate.
+Even a positive synchronized count after correction
+would authorize only resolution of the physical frame contract and a separate
+alignment-audit predeclaration; it is not an H100 residual pair and does not
+prove map independence or permit old EDP model reuse. With zero sensor chains
+at 100 m, this closed batch cannot form synchronized H100 structural candidates
+unless the predeclared scientific threshold is changed—which is not authorized.
 
 ## Reading map
 
+- `docs/sensor_topology_batch01_v0181_result.md`: corrected real batch01
+  output, exact lineage, before/after reconciliation and pending result review.
 - `docs/modeling_plan.md`: phase gates, evidence, and data-acquisition limits.
 - `docs/model_comparison.md`: concise accepted metric table, output-driven
   presentation figure, model comparison by property, and planner relevance.
@@ -674,6 +991,18 @@ physical outings.
   generation compatibility boundary and completed review gates.
 - `docs/independent_outing_batch01_v0171_result.md`: accepted amended batch01
   lineage, technical result, interpretation limits, and next acquisition gate.
+- `docs/sensor_topology_feasibility_predeclaration.md`: prospective v0.18.0
+  batch01 structural audit, exact prohibitions, outputs, tests, and review
+  order.
+- `docs/sensor_topology_reference_schema_amendment.md`: exact v0.18.1 RLMB
+  `uint64` descriptor correction, unchanged rules, and corrective review gate.
+- `docs/bmw_sensor_topology_source_evidence.md`: classified Copilot BMW-source
+  findings, exact private transcript hashes, remaining frame/producer gaps, and
+  the consequences for the frozen a3 contract.
+- `docs/sensor_topology_feasibility_implementation_notes.md`: exact reviewed
+  starting identity, implemented module boundary, synthetic verification, and
+  next-agent checklist for the v0.18.1 correction. Reviewer prompts are sent
+  separately and are not project documentation.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
 - `docs/architecture.md`: package ownership and dependency boundaries.

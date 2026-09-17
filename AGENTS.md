@@ -16,7 +16,11 @@ implementation for the thesis; LEEM is historical reference material only.
    - `docs/independent_outing_schema_v2_amendment.md` for the reviewed v0.17.1
      compatibility boundary; and
    - `docs/independent_outing_batch01_v0171_result.md` for the accepted real
-     amended audit, its exact lineage, interpretation, and remaining data gate.
+     amended audit, its exact lineage, interpretation, and remaining data gate;
+     and
+   - `docs/sensor_topology_feasibility_predeclaration.md` and
+     `docs/bmw_sensor_topology_source_evidence.md` before any work that reads
+     `/adp/lane_topology_sensor_based` as a candidate estimate source.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
@@ -46,6 +50,23 @@ agents and new chats.
 - Residual means EDP estimate minus the spatially aligned RLMB
   pseudo-reference, projected onto the pseudo-reference left unit normal.
   Positive is left with respect to increasing station.
+- The prospective v0.18 sensor-topology target is not adopted. The BMW trace
+  establishes camera-derived boundary geometry inside a map-influenced
+  topology graph but does not establish physical frame equivalence with RLMB.
+  After focused review, its first phase may inventory strict camera-chain
+  structure, orientation-invariant 100 m span, independent RLMB H100 readiness,
+  and source-time co-availability only. It may not compare cross-topic
+  coordinates, calculate an anchor or residual, or reinterpret an EDP result.
+  The frozen a3 review candidate is supported by three private source traces.
+  The third resolves every cited tracked path and rechecks the findings from
+  immutable `HEAD` blobs; its failure to record the literal BMW commit SHA is
+  a source-trace reproducibility limit, not a blocker for the fail-closed MPR
+  structural audit. No further BMW-source answer is required for this phase.
+  The frozen contract received focused `GO`, and the synthetic-only structural
+  audit is implemented. Do not inspect private MCAPs before the exact pushed
+  implementation receives focused implementation `GO`.
+  Historical EDP models and sensor-lane residuals must never be pooled or
+  relabelled as one target.
 - RLMB is a pseudo-reference, not physical ground truth.
 - BMW condition schema v1 is fixed in this exact order:
   `speed_mps`, `estimated_mean_abs_curvature_per_m`,
@@ -129,6 +150,31 @@ gates. Further evidence requires new prospectively declared physical outings.
 The reporting-only output-driven model comparison raises this to 404 passing
 tests with the same two skips. It does not authorize a model fit, a new metric,
 or final model selection.
+The v0.18.0 structural-feasibility implementation raises the suite to 432 tests
+run: 430 pass and two expected optional-dependency tests skip. Contract and
+implementation review returned `GO`, authorizing one private batch01 run. That
+run exposed an exact RLMB descriptor binding defect (`RoadLaneSegment.id_` is
+`uint64`, not `int64`) while independently observing zero sensor chains reaching
+100 m. Preserve the v0.18.0 output unchanged. The narrow v0.18.1 correction must
+receive focused corrective review before a rerun into a new directory. It does
+not authorize threshold changes, target adoption, residual creation, model
+reuse, a model fit, a planner run, or a figure.
+The narrow v0.18.1 correction and takeover regression raise the suite to 434
+tests run: 432 pass and the same two expected skips. Its 30 focused tests
+include the observed `uint64` reference descriptor, fail-closed `int64` drift,
+and a short sensor chain that remains ineligible despite valid reference
+geometry and timestamp pairing.
+
+The v0.18.1 corrective implementation and corrected real batch01 output have
+now both received focused `GO` with zero blockers; Python 3.10/3.12 CI passes.
+The accepted result remains zero sensor 100 m spans and zero synchronized
+candidates, despite 9,235 reference-ready messages and 17,087 time pairs.
+Read `docs/sensor_topology_batch01_v0181_result.md` and the first section of
+`docs/current_status.md` for exact identities, verification limits and the
+documentation closure. The earlier review-before-rerun instructions above
+record gates already completed, not permission for a further run. The closed
+batch stays negative; no horizon/rule change, residual construction or new
+scientific execution is authorized. The user decides whether to merge PR #20.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

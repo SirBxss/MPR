@@ -42,9 +42,10 @@ counting, and transactional four-file serialization; the CLI only maps
 arguments, logging, and exit codes. These modules do not directly import
 modeling, sampling, planner, evaluation, or visualization code and never
 serialize the numeric six-feature values computed transiently for availability
-checks. The legacy root package initializer does eagerly load some unrelated
-definitions before every submodule import; the intake test suite freezes that
-transitive module graph and verifies that no intake operation calls it.
+checks. The original v0.17 root package initializer eagerly loaded unrelated
+definitions; v0.18 replaces it with the verified lazy compatibility facade
+described below. The intake test suite freezes the current transitive module
+graph and verifies the preserved public API.
 
 Topology auditing follows that categorization: domain code reconciles raw
 protobuf values with descriptor enum names, IO verifies and packages immutable
@@ -275,3 +276,22 @@ One deliberate follow-up remains: `domain.geometry_validation` currently uses
 the legacy polyline-projection primitive to preserve byte-for-byte scientific
 behavior. Moving that arithmetic into a neutral domain geometry utility should
 only be attempted with dedicated numerical characterization tests.
+
+The v0.18 sensor-topology feasibility contract received focused review `GO`
+and its implementation follows this ownership:
+`domain.sensor_topology_feasibility` for strict camera-midpoint chains,
+orientation-invariant 100 m span, and source-time-pairing states;
+`io.sensor_topology_feasibility` for descriptor inventory, strict message
+decoding, and independent RLMB readiness; `workflows.sensor_topology_feasibility` for preserved-v0.17.1
+lineage and orchestration, and `cli.sensor_topology_feasibility` for the public
+adapter. It may reuse characterized neutral road/RLMB primitives, but it may
+not compare LTSB and RLMB coordinates or import `legacy.preprocessing`,
+residual construction, conditions, sequences, modeling, sampling, planner,
+evaluation, or visualization. The package root and historical CLI facade now
+resolve compatibility exports lazily so importing the v0.18 adapter does not
+transitively load those prohibited layers. The exact import graph is frozen by
+a subprocess test that includes the runtime MCAP decoder. v0.18.0 implementation
+review returned `GO`; its one private run exposed only an exact RLMB segment-ID
+descriptor mismatch. v0.18.1 corrects `int64` to the observed `uint64` and must
+receive focused corrective review before a new-directory rerun. No ownership,
+geometry, timing, privacy, or scientific-authorization boundary changes.

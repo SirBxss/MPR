@@ -47,6 +47,8 @@ are not the thesis execution path.
 | v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
 | v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and arrival verifier are independently approved and merged; the first 86-chunk real audit is preserved with no role assignment, and no successful cohort lock exists |
 | v0.17.1 | Exact EDP schema-v2 compatibility | Complete and independently approved; the amended batch01 audit restored 5,289 H100-ready paths, but every candidate is LANE_MAP, so zero frames/outings pass the unchanged SENSOR_TOPOLOGY primary gate |
+| v0.18.0 | Standalone sensor-topology 100 m structural feasibility | Contract and implementation received focused `GO`; the one authorized run decoded both streams but exposed a reference descriptor binding defect and observed zero sensor chains reaching 100 m |
+| v0.18.1 | Exact RLMB `uint64` schema correction | Narrow corrective candidate; preserves every scientific rule and requires focused review before a new-directory rerun |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -199,6 +201,41 @@ new outings. Neither topology nor upstream H100/map-pairing, coverage, anchor,
 or causal-input gates may be relaxed after this result. File or chunk count
 must not be used as outing count. Exact evidence is in
 `docs/independent_outing_batch01_v0171_result.md`.
+
+The prospective v0.18.0 phase follows a domain-expert recommendation to
+investigate `/adp/lane_topology_sensor_based` directly while retaining
+`/adp/road_lane_map_based` as the unchanged pseudo-reference. This is a new
+candidate target, not a repair or rerun of v0.17.1. Three BMW source traces found no
+LTSB direct-path writer, showed that only camera boundary geometry is written,
+and established that the topology graph consumes map/map-matching inputs. It
+did not establish a common physical frame origin with RLMB. They did establish
+the nested decoder structure, CAMERA boundary source, SENSOR_TOPOLOGY message
+source, stored-order geometry, validity predicate, timestamp scalar, and exact
+unwritten-range sentinel. The third trace resolved all 23 complete tracked
+paths and rechecked the claims from immutable `HEAD` blobs; the unnamed BMW
+commit remains a reproducibility limitation, not an audit blocker. The frozen
+a3 first stage is therefore limited to lineage-locked descriptor inventory,
+strict camera-only successor-chain reconstruction, orientation-invariant 100 m span,
+independent RLMB H100 readiness, and source-time co-availability. It performs
+no cross-topic coordinate comparison, anchor test, residual/condition,
+sequence, role assignment, model fit, planner run, or figure. A positive count
+does not constitute an H100 residual pair and can authorize only a separate
+frame-resolution and alignment-audit contract. The exact prospective boundary
+is `docs/sensor_topology_feasibility_predeclaration.md`; current evidence and
+remaining gaps are in
+`docs/bmw_sensor_topology_source_evidence.md`.
+
+The implementation is deliberately not a new residual pipeline. It writes
+only descriptor inventory, per-recording structural counts, and a strict
+summary after reconciling the preserved v0.17.1 lineage. Its import graph
+excludes residual, condition, sequence, modeling, sampling, planner,
+evaluation, visualization, and `legacy.preprocessing` layers. Focused v0.18.0
+implementation review returned `GO` and one private run was performed. That run
+showed that the reference segment identifier is `uint64`, not the synthetic
+fixture's assumed `int64`; it also observed zero strict sensor chains reaching
+100 m. The v0.18.0 output is preserved. v0.18.1 corrects only the descriptor
+binding and failure classification, and must receive focused corrective `GO`
+before one rerun into a new directory. No threshold may be relaxed.
 
 A successful real v0.17 lock still does not authorize final evaluation. The
 exact training corpus, frozen competitors, fitting rules, final-outing failure

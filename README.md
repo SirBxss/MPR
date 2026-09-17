@@ -1,8 +1,51 @@
-# Minimal Path-Residual Model (MPR) v0.17.1
+# Minimal Path-Residual Model (MPR) v0.18.1
+
+Current checkpoint (2026-09-17): corrective implementation and real-output
+reviews returned `GO` with zero blockers; Python 3.10/3.12 CI passes.
+Reference H100 readiness is 9,235 and source-time pairing is 17,087, while
+the unchanged sensor audit has zero chains reaching 100 m. This is an accepted
+negative structural-feasibility result for this one closed batch. PR #20
+remains open for the user's merge decision. See
+[`docs/sensor_topology_batch01_v0181_result.md`](docs/sensor_topology_batch01_v0181_result.md)
+and [`docs/current_status.md`](docs/current_status.md) for exact evidence and
+the next step. No further run or residual construction is authorized.
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
+
+A prospective v0.18.0 contract defines the next safe investigation. A BMW
+three-stage source trace found that `/adp/lane_topology_sensor_based` publishes
+camera-derived boundaries in a map-influenced topology graph, not a direct
+centreline, and did not establish physical frame equivalence with RLMB. The
+frozen a3 review candidate therefore asks only whether strict camera-only
+topology chains have at least 100 m observed span and are source-time-coavailable
+with an independently H100-ready `/adp/road_lane_map_based` message in the closed
+86-file batch01. The technical decoder questions and complete tracked paths
+are closed. The BMW commit SHA was not captured and remains a documented
+source-trace reproducibility limit, but no further BMW-source answer is needed.
+Focused independent contract and v0.18.0 implementation reviews returned
+`GO`. The one authorized private run preserved lineage and decoded both
+streams, but exposed one exact reference-descriptor binding defect:
+`RoadLaneSegment.id_` is `uint64`, while the reviewed synthetic fixture and
+validator required `int64`. The narrow v0.18.1 correction changes only that
+binding, gives readable reference structural drift its own failure code, and
+extends the import-graph test through the runtime MCAP decoder. It received
+focused corrective `GO`; the corrected real output is reconciled and has
+independent real-output `GO`. The original
+v0.18.0 output remains immutable evidence. No threshold or sensor rule changes;
+the first run observed zero strict sensor chains reaching 100 m.
+It performs no cross-topic coordinate comparison and exports no timestamps,
+coordinates, residuals, features, sequences, models, planner values, or
+figures. It cannot adopt the new target. See
+[`docs/sensor_topology_feasibility_predeclaration.md`](docs/sensor_topology_feasibility_predeclaration.md)
+and
+[`docs/sensor_topology_reference_schema_amendment.md`](docs/sensor_topology_reference_schema_amendment.md),
+plus
+[`docs/bmw_sensor_topology_source_evidence.md`](docs/bmw_sensor_topology_source_evidence.md).
+The synthetic implementation boundary, verification record, and next-agent
+checklist are in
+[`docs/sensor_topology_feasibility_implementation_notes.md`](docs/sensor_topology_feasibility_implementation_notes.md).
 
 For a meeting-ready, output-driven comparison of the Gaussian, autoregressive,
 and latent-state results—including the plotting command, four common metrics,

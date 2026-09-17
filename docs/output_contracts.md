@@ -1346,3 +1346,121 @@ version control. For identical manifest and raw bytes, code, contract, and
 supplied failed-audit directory contents, the outputs are byte-deterministic;
 changing the supplied failed-audit contents changes or invalidates the amended
 lineage rather than being ignored.
+
+## v0.18.0/v0.18.1 sensor-topology feasibility outputs
+
+Status: the frozen a3 contract and v0.18.0 implementation received focused
+review `GO`. The one authorized v0.18.0 run is preserved but exposed a precise
+RLMB descriptor binding defect: `RoadLaneSegment.id_` is singular `uint64`, not
+`int64`. v0.18.1 corrects only that binding, adds
+`reference_required_structure_drift`, and identifies the corrected output with
+version `0.18.1` and revision
+`v0.18.1-review-candidate-2026-09-17-reference-uint64-a1`. The three filenames
+and schemas below are otherwise unchanged. A private rerun remains unsupported
+until focused corrective review returns `GO`. Binding definitions are in
+`docs/sensor_topology_feasibility_predeclaration.md` and
+`docs/sensor_topology_reference_schema_amendment.md`.
+
+After exact reconciliation with the preserved v0.17.1 batch01 lineage, the
+command writes exactly three private files to a new empty directory:
+
+```text
+sensor_topology_recordings.csv
+sensor_topology_schema_inventory.json
+sensor_topology_feasibility_summary.json
+```
+
+The recordings CSV has one deterministic basename-ordered row per MCAP and
+this exact header:
+
+```text
+relative_path_private,basename_private,file_size_bytes,file_sha256,sensor_topic_present,reference_topic_present,sensor_message_count,reference_message_count,sensor_decoded_count,reference_decoded_count,sensor_descriptor_file_sha256s,reference_descriptor_file_sha256s,sensor_source_timestamp_valid_count,reference_source_timestamp_valid_count,sensor_source_timestamps_strict,reference_source_timestamps_strict,explicit_ego_candidate_count,camera_boundary_segment_structure_count,camera_only_successor_chain_count,camera_chain_100m_span_count,reference_h100_ready_count,source_time_pair_count,synchronized_100m_candidate_count,failure_codes
+```
+
+`sensor_topology_schema_inventory.json` has exactly these top-level fields:
+
+```text
+version
+contract_revision
+purpose
+descriptor_identity_rule
+topics
+```
+
+Each topic/descriptor item has exactly:
+
+```text
+topic
+message_count
+mcap_schema_names
+mcap_schema_encodings
+message_encodings
+descriptor_file_sha256
+root_message_full_name
+field_inventory
+audit_support_status
+```
+
+Every recursively inventoried field has exactly `full_name`, `number`,
+`label`, `kind`, `referenced_full_name`, and `oneof_name`. Descriptor identity
+comes only from `sha256(message.DESCRIPTOR.file.serialized_pb)`. Support is
+limited to the required source-traced field-number/type/label structure;
+inventorying a descriptor does not establish residual-target compatibility.
+
+`sensor_topology_feasibility_summary.json` has exactly:
+
+```text
+version
+contract_revision
+purpose
+lineage_status
+preserved_intake_contract_revision
+preserved_intake_lock_sha256
+manifest_sha256
+raw_mcap_count
+raw_basename_sha256_map_sha256
+topics
+minimum_sensor_chain_span_m
+maximum_source_delta_ms
+sensor_chain_limits
+reference_chain_limits
+sensor_descriptor_file_sha256s
+reference_descriptor_file_sha256s
+sensor_message_count
+reference_message_count
+sensor_decoded_count
+reference_decoded_count
+explicit_ego_candidate_count
+camera_boundary_segment_structure_count
+camera_only_successor_chain_count
+camera_chain_100m_span_count
+reference_h100_ready_count
+source_time_pair_count
+synchronized_100m_candidate_count
+recording_failure_counts
+output_sha256
+technical_feasibility_status
+producer_provenance_status
+scientific_target_adoption_authorized
+claim_limits
+next_authorized_action
+```
+
+The a3 audit requires the whole-message SENSOR_TOPOLOGY value, the exact
+unwritten direct-path sentinel, valid nested mean wrappers, and stored-order
+arc-length consistency. It accepts only paired camera boundaries with CAMERA
+provenance, uses exactly one explicit ego index, and may traverse only a unique
+strict successor chain. It reports orientation-invariant 100 m observed
+midpoint span and source-time co-availability with independently H100-ready
+RLMB. It does not compare LTSB and RLMB coordinates, test an anchor, or produce
+an H100 residual-pair count because their physical frame origins are not
+established as equal. `scientific_target_adoption_authorized` is always false. No output
+contains an absolute path, run timestamp, raw numeric payload, coordinate,
+timestamp value, width, span, junction value, projection, residual, condition,
+sequence, model, planner, or figure value.
+
+`source_time_pair_count` is the number of unique recording-local
+mutual-nearest source-time pairs that pass the inclusive 50 ms gate before any
+geometry filtering. The 50 ms value is a prospectively fixed v0.18 audit
+constant, not an inherited v0.17 estimate/reference gate. Each accepted pair
+can contribute at most one `synchronized_100m_candidate`.
