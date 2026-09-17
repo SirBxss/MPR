@@ -1,6 +1,6 @@
 # Current project status
 
-Last updated: 2026-09-16. This is the first file a new agent should read after
+Last updated: 2026-09-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
@@ -30,7 +30,7 @@ critical path changes.
   implementation and real planner run remain complete and approved. The first
   pre-fix v0.16 planner output remains rejected; its v0.15.4 residual samples
   were valid and were reused.
-- Prospective next phase: v0.18.0 standalone sensor-topology 100 m structural
+- Current corrective phase: v0.18.1 standalone sensor-topology 100 m structural
   feasibility. Leon advised the data owner to prefer
   `/adp/lane_topology_sensor_based` over EDP for this study. The BMW source
   trace is now recorded and changed the original a0 proposal: LTSB publishes
@@ -38,30 +38,43 @@ critical path changes.
   map-influenced, and its physical frame origin is not established as equal to
   RLMB. The frozen a3 contract therefore permits only strict camera-chain span
   and source-time co-availability counts. Claude independently reviewed the
-  exact pushed a3 tree and returned `GO`, authorizing synthetic implementation
-  only. That bounded implementation now exists and passes the complete local
-  suite. No cross-topic projection, H100 residual-pair claim, private
-  execution, merge, or target adoption is authorized until the exact pushed
-  implementation receives focused implementation `GO`. Three private source traces now
+  exact pushed a3 tree and returned contract `GO`. Claude then reviewed exact
+  v0.18.0 implementation HEAD `6a717827363529773a24f8fba2094cf5e75565b0`,
+  tree `530b73ff51243b8bfd27c3ffa47ef29e17649235`, and returned implementation
+  `GO`, authorizing one private run. That run reconciled the closed lineage and
+  decoded both streams, but exposed one exact RLMB binding defect:
+  `RoadLaneSegment.id_` is `uint64`, while the validator required `int64`.
+  Independently, zero sensor chains reached 100 m. Preserve that v0.18.0 output
+  unchanged. v0.18.1 corrects only the descriptor type and failure
+  classification. No rerun is authorized until the exact corrective HEAD and
+  tree receive focused `GO`. No cross-topic projection, H100 residual-pair
+  claim, merge, threshold change, or target adoption is authorized. Three private source traces now
   record the technical evidence and all 23 complete tracked paths; the third
   rechecked the claims against immutable `HEAD` blobs but did not capture the
   BMW commit SHA. That is retained as a source-trace reproducibility limit and
   does not require another BMW query. The candidate
   target is not adopted, and the historical EDP target/models remain
   unchanged.
-- Working branch: `protocol/v0.18.0-sensor-topology-feasibility`. The exact
-  pushed a3 contract-review identity is commit
+- Working branch and PR #20: `protocol/v0.18.0-sensor-topology-feasibility`.
+  The exact pushed a3 contract-review identity is commit
   `75a1f9ff38885636dacafbd17144736420a7e17f`, tree
   `ad6d9a664ac7ec38cea4c06f2197d02ae4942f4c`. The local patch-source base
   `857ada05b968e9fd5ebda555118b3b75738d258b` has that same reviewed tree.
-  The implementation candidate is delivered as a patch on that exact tree;
-  record its exact pushed HEAD and tree before requesting review.
+  The reviewed v0.18.0 implementation identity is commit
+  `6a717827363529773a24f8fba2094cf5e75565b0`, tree
+  `530b73ff51243b8bfd27c3ffa47ef29e17649235`. Record the new corrective HEAD
+  and tree after applying, testing, and pushing the v0.18.1 patch.
 - Claude's focused v0.18.0 contract review returned `GO`. The report SHA-256
   is `09b0351f448cd60025bd6e662bb5e7c392d38ab2af5332d3765f7b0a30b75c67`.
   Its optional hardening is reflected where applicable: the new 50 ms value is
   labelled prospectively fixed, source-time-pair counting is explicit, and
   implementation tests freeze lineage, descriptor generations, privacy, and
   the transitive import boundary.
+- Claude's focused v0.18.0 implementation review returned `GO`; its report
+  SHA-256 is
+  `f530f7910f6090a845246ea6ac626d9ace92fc960688a3b8edeb139d66385088`.
+  Its runtime-import hardening is included in v0.18.1. Reviewer prompts are
+  external request artifacts and are not stored under `docs/`.
 - The v0.15.4 development freeze was merged at commit `38ddac5` through PR #6,
   `MPR v0.15.4: freeze development residual model`.
 - The post-merge hand-off was merged through PR #7 at commit `22a2334`.
@@ -142,7 +155,7 @@ critical path changes.
   structural/index failures for both generations, equal downstream geometry
   and eligibility, exact additive JSON lineage, pre-write failed-audit
   reconciliation, deterministic output, and independent verifier coupling.
-- v0.18.0 implementation-candidate verification: 432 tests run, 430 pass, and
+- v0.18.0 implementation verification: 432 tests run, 430 pass, and
   two expected optional-dependency tests skip. The 28 focused synthetic tests
   cover strict camera-boundary reconstruction, exact geometric boundaries,
   successor branches/cycles/limits, orientation-invariant span, message-owned
@@ -150,7 +163,32 @@ critical path changes.
   schema/encoding behavior, RLMB readiness, the 50 ms mutual-nearest rule,
   exact preserved-lineage validation, deterministic three-file output,
   non-overwrite, exit codes, and the transitive prohibited-import boundary.
-  Compilation and `git diff --check` also pass. No private MCAP was read.
+  Compilation and `git diff --check` also passed before review. No private MCAP
+  was read during implementation or review.
+- v0.18.1 corrective verification: 433 tests run, 431 pass, and the same two
+  expected optional-dependency tests skip. All 29 focused tests pass, including
+  acceptance of the observed singular `uint64` reference segment ID,
+  fail-closed retention of an `int64` drifted descriptor, correct failure-code
+  separation, and the runtime MCAP-decoder import graph. Compilation and
+  `git diff --check` pass. The correction used only the privacy-safe three-file
+  audit; no private MCAP or raw numeric payload was read.
+- Real v0.18.0 batch01 structural audit: the unchanged manifest, 86 raw MCAPs,
+  and preserved v0.17.1 intake reconciled. Both fixed topics had 17,163 decoded
+  messages with valid strict source times. The sensor stream produced 16,737
+  explicit-ego candidates, 4,078 camera-boundary structures, 4,039 valid
+  camera-only chains, and zero chains reaching 100 m. Reference readiness was
+  incorrectly zero because the reviewed validator required Protobuf `int64`
+  for `RoadLaneSegment.id_`, while the retained message-owned descriptor shows
+  singular `uint64`. The output therefore remains immutable defect evidence,
+  not a complete two-sided feasibility result. v0.18.1 corrects only that exact
+  binding and the misleading drift failure code. The sensor-side zero cannot
+  be changed by this correction and must not trigger threshold tuning.
+  The preserved v0.18.0 ZIP SHA-256 is
+  `c7f9aad2a38b6b370e827ebd5ef5cf36b26aab54cfdd16179f02a7e570018b7`;
+  its recordings, schema-inventory, and summary file SHA-256 values are
+  `b2b70f1e4222e9de2efd00ee49e71317aae2b486a3ae3af8d95ece63b5af0d06`,
+  `cbe2ffb04dc5ad87fba472b194ab2a072f4eaa3fc2fd078fd60ed17929162793`,
+  and `c59e27a4a77d21211fb77940c47c902d86ee868a75ab227271d39f0d47c183df`.
 - First real v0.17.0 batch audit: all 86 MCAPs are raw-usable, summed usable
   duration is `1707.738856448 s`, the availability status is
   `insufficient_independent_outings`, no role is assigned, and the standalone
@@ -683,20 +721,22 @@ Next actions are ordered:
 2. use `docs/model_comparison.md` and its reproducible output-driven plotting
    command for the meeting and mid-term presentation; it reports only already
    accepted evidence and does not reopen model selection;
-3. preserve the v0.18.0 contract-review `GO`, then commit and push the exact
-   synthetic-only implementation candidate and record its HEAD and tree; no
-   further BMW-source answer is required for this audit;
-4. obtain focused independent implementation review of that exact pushed tree;
-   only implementation `GO` permits one closed-batch01 private run into a new
-   empty directory;
-5. continue acquiring separate outcome-blind physical outings through new
+3. preserve the v0.18.0 contract and implementation review `GO` reports and
+   original three-file private output unchanged; no further BMW-source answer
+   is required for this correction;
+4. apply, test, commit, and push the narrow v0.18.1 descriptor correction, then
+   record its exact HEAD and tree;
+5. obtain focused independent corrective review of that exact pushed tree;
+   only corrective `GO` permits one rerun against the identical raw bytes,
+   manifest, and preserved intake into a new v0.18.1 directory;
+6. continue acquiring separate outcome-blind physical outings through new
    manifests and versioned outputs until at least seven new outings are
    technically eligible; where operationally possible, acquire the same
    SENSOR_TOPOLOGY domain as the accepted development lineage;
-6. if the available production configuration emits only LANE_MAP, treat that
+7. if the available production configuration emits only LANE_MAP, treat that
    as a domain-change blocker requiring a new prospective scientific contract,
    not as permission to relax the current gates; and
-7. only after a successful reconciled cohort lock, predeclare and review the
+8. only after a successful reconciled cohort lock, predeclare and review the
    separate final comparison before reading any embargoed final-outing outcome.
 
 The intake implementation gates are satisfied and the first real audit is
@@ -704,14 +744,14 @@ preserved, but the required new-outing count has not. The scientific programme
 remains intentionally data-blocked: do not draft evaluator code, fit another
 model, or open any final-outing outcome before a successful prospective lock.
 The narrow schema-v2 adapter and batch01 audit are independently approved, but
-batch01 contributes zero eligible outings. The prospective v0.18.0 document
-creates no exception by itself: no further current-batch diagnostic,
+batch01 contributes zero eligible outings. The v0.18 correction creates no
+exception by itself: no further current-batch diagnostic,
 model-family experiment, gate change, model fit, sampler run, or planner run is
 authorized until its applicable review gates pass. The existing final-model
 programme remains data-blocked pending new prospectively declared physical
 outings.
 
-## Prospective v0.18.0 sensor-topology feasibility
+## v0.18.0/v0.18.1 sensor-topology feasibility
 
 The proposed phase changes only the estimate-side signal under investigation:
 `/adp/lane_topology_sensor_based` replaces EDP, while
@@ -744,15 +784,20 @@ source-time co-availability within 50 ms. It may not compare coordinates,
 calculate an anchor/transform/residual, export numeric payload values, build a
 sequence, fit a model, run a planner, or produce a figure.
 
-Claude reviewed the exact pushed a3 documentation commit and tree and returned
-contract `GO`. The technical decoder and path questions are closed for this
-structural audit, and no further BMW-source answer is required. The audit is
-now implemented and verified only on synthetic fixtures. The next gate is
-focused implementation review of the exact pushed implementation HEAD and
-tree; implementation `GO` is required before the one private run. A positive synchronized count would authorize only
-resolution of the physical frame contract and a separate alignment-audit
-predeclaration; it is not an H100 residual pair and does not prove map
-independence or permit old EDP model reuse.
+Claude reviewed the exact pushed a3 documentation and v0.18.0 implementation
+identities and returned `GO` for both. The technical decoder and path questions
+are closed; no further BMW-source answer is required. The one authorized run
+then showed a narrower MPR defect: RLMB segment ID field 1 is `uint64`, not the
+synthetic fixture's assumed `int64`. It also observed zero strict sensor chains
+reaching 100 m. The v0.18.1 correction changes only that descriptor binding,
+the associated structural-drift failure label, output version/revision, and the
+runtime import-graph test. Focused corrective review of the exact pushed HEAD
+and tree is the next gate. Even a positive synchronized count after correction
+would authorize only resolution of the physical frame contract and a separate
+alignment-audit predeclaration; it is not an H100 residual pair and does not
+prove map independence or permit old EDP model reuse. With zero sensor chains
+at 100 m, this closed batch cannot form synchronized H100 structural candidates
+unless the predeclared scientific threshold is changed—which is not authorized.
 
 ## Reading map
 
@@ -772,15 +817,15 @@ independence or permit old EDP model reuse.
 - `docs/sensor_topology_feasibility_predeclaration.md`: prospective v0.18.0
   batch01 structural audit, exact prohibitions, outputs, tests, and review
   order.
+- `docs/sensor_topology_reference_schema_amendment.md`: exact v0.18.1 RLMB
+  `uint64` descriptor correction, unchanged rules, and corrective review gate.
 - `docs/bmw_sensor_topology_source_evidence.md`: classified Copilot BMW-source
   findings, exact private transcript hashes, remaining frame/producer gaps, and
   the consequences for the frozen a3 contract.
 - `docs/sensor_topology_feasibility_implementation_notes.md`: exact reviewed
   starting identity, implemented module boundary, synthetic verification, and
-  next-agent checklist for the v0.18.0 implementation candidate.
-- `docs/sensor_topology_feasibility_implementation_review_prompt.md`: bounded
-  independent-review request to use after recording the exact pushed
-  implementation HEAD and tree.
+  next-agent checklist for the v0.18.1 correction. Reviewer prompts are sent
+  separately and are not project documentation.
 - `docs/output_contracts.md`: exact output files and schemas.
 - `docs/aiohmm.md`: model equations, evaluation, and limitations.
 - `docs/architecture.md`: package ownership and dependency boundaries.

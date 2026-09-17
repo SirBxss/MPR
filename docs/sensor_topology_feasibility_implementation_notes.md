@@ -1,7 +1,9 @@
-# v0.18.0 sensor-topology implementation handoff
+# v0.18.0/v0.18.1 sensor-topology implementation handoff
 
-Status: synthetic-only implementation candidate. Focused implementation review
-is required before any private MCAP execution.
+Status: v0.18.0 received focused implementation `GO` and its one authorized
+private run is preserved. That run exposed one reference descriptor binding
+defect. The narrow v0.18.1 correction is synthetic-verified and requires
+focused corrective review before a private rerun.
 
 ## Reviewed starting point
 
@@ -57,10 +59,13 @@ v0.18 graph are both frozen by subprocess tests.
 - The 50 ms gate is explicitly a new, prospectively fixed v0.18 audit value;
   the mutual-nearest algorithm is inherited, but the value is not attributed
   to the v0.17 estimate/reference intake.
-- `source_time_pair_count` is defined before geometry filtering.
-- The exported failure vocabulary is a fixed set of 32 codes. Dataclass and
-  workflow boundaries reject unknown codes, malformed hashes, invalid count
-  ordering, and inconsistent synchronized counts.
+- `source_time_pair_count` is defined after the inclusive 50 ms source-time
+  gate and before either geometry filter.
+- The corrected exported failure vocabulary is a fixed set of 33 codes. The
+  added code is only `reference_required_structure_drift`; it distinguishes a
+  readable-but-drifted descriptor from an actual reference decode failure.
+  Dataclass and workflow boundaries reject unknown codes, malformed hashes,
+  invalid count ordering, and inconsistent synchronized counts.
 - Structural drift cannot form a timestamp pair, even when Protobuf decoding
   itself succeeds. Required referenced types and the reviewed enum symbols and
   numeric values are checked exactly rather than by a substring heuristic.
@@ -69,6 +74,23 @@ v0.18 graph are both frozen by subprocess tests.
   without exposing or combining coordinates.
 - No sensor coordinate is projected onto, compared with, or transformed into
   an RLMB coordinate.
+- Inclusive floating-point comparisons use fixed implementation slack only for
+  numerical stability: `1e-9 m` at the 100 m accumulated-span boundary and
+  `1e-12` at the 1 m gap and 30 degree heading boundaries. These values are
+  not data-tuned tolerances.
+- Multiple successors map to `sensor_camera_chain_junction_invalid`;
+  `sensor_camera_chain_ambiguous` is reserved for exact orientation ties.
+
+## v0.18.1 corrective delta
+
+The real v0.18.0 schema inventory showed that `RoadLaneSegment.id_` field 1 is
+singular `uint64`. The synthetic fixture and reference validator had assumed
+`int64`, so decoded RLMB messages were rejected before readiness evaluation.
+v0.18.1 corrects that exact type, separates reference descriptor drift from a
+true decode failure, and extends the import-graph test through the runtime MCAP
+decoder. No sensor rule, threshold, topic, output filename, or scientific
+authorization changes. The full boundary is recorded in
+`docs/sensor_topology_reference_schema_amendment.md`.
 
 ## Synthetic verification
 
@@ -85,14 +107,14 @@ Focused tests cover:
 - rejection of nested lineage tampering and unreviewed failure codes; and
 - absence of every prohibited direct or transitive import.
 
-Verification on 2026-09-16:
+Correction verification on 2026-09-17:
 
 ```text
 python -m compileall -q src tests                         passed
 git diff --check                                          passed
-focused v0.18.0 tests                                     28 passed
-full unittest suite                                       432 run
-                                                            430 passed
+focused v0.18.1 tests                                     29 passed
+full unittest suite                                       433 run
+                                                            431 passed
                                                             2 expected skips
 ```
 
@@ -103,12 +125,13 @@ full unittest suite                                       432 run
    Python 3.12 CI.
 3. Push the implementation branch and record both `git rev-parse HEAD` and
    `git rev-parse HEAD^{tree}`.
-4. Request focused independent implementation review using
-   `docs/sensor_topology_feasibility_implementation_review_prompt.md`.
+4. Request focused independent corrective review using a prompt supplied
+   outside the repository; reviewer prompts are not committed project docs.
 5. If the verdict is `AMEND`, change only the identified implementation or
    contract defect and repeat review.
-6. Only an implementation `GO` authorizes one private closed-batch01 run using
-   the documented command template and a new output directory.
+6. Only a corrective `GO` authorizes one private closed-batch01 rerun using
+   the documented command template and a new v0.18.1 output directory. Preserve
+   the original v0.18.0 output unchanged.
 7. A positive synchronized count authorizes only physical-frame resolution and
    a separate alignment-audit predeclaration. It does not authorize a residual,
    target adoption, historical EDP model reuse, fitting, planning, or figures.

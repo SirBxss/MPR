@@ -47,7 +47,8 @@ are not the thesis execution path.
 | v0.16.2 | A2/A3 cross-station structure audit | Complete, independently reproduced, approved, and merged; it describes spatial-structure differences without assigning planner causality or authorizing another current-outing diagnostic |
 | v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and arrival verifier are independently approved and merged; the first 86-chunk real audit is preserved with no role assignment, and no successful cohort lock exists |
 | v0.17.1 | Exact EDP schema-v2 compatibility | Complete and independently approved; the amended batch01 audit restored 5,289 H100-ready paths, but every candidate is LANE_MAP, so zero frames/outings pass the unchanged SENSOR_TOPOLOGY primary gate |
-| v0.18.0 | Standalone sensor-topology 100 m structural feasibility | Frozen a3 contract received focused `GO`; the synthetic-only implementation passes the full suite, and focused implementation review blocks private execution |
+| v0.18.0 | Standalone sensor-topology 100 m structural feasibility | Contract and implementation received focused `GO`; the one authorized run decoded both streams but exposed a reference descriptor binding defect and observed zero sensor chains reaching 100 m |
+| v0.18.1 | Exact RLMB `uint64` schema correction | Narrow corrective candidate; preserves every scientific rule and requires focused review before a new-directory rerun |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -228,8 +229,13 @@ The implementation is deliberately not a new residual pipeline. It writes
 only descriptor inventory, per-recording structural counts, and a strict
 summary after reconciling the preserved v0.17.1 lineage. Its import graph
 excludes residual, condition, sequence, modeling, sampling, planner,
-evaluation, visualization, and `legacy.preprocessing` layers. Until focused
-implementation review returns `GO`, the closed batch must not be executed.
+evaluation, visualization, and `legacy.preprocessing` layers. Focused v0.18.0
+implementation review returned `GO` and one private run was performed. That run
+showed that the reference segment identifier is `uint64`, not the synthetic
+fixture's assumed `int64`; it also observed zero strict sensor chains reaching
+100 m. The v0.18.0 output is preserved. v0.18.1 corrects only the descriptor
+binding and failure classification, and must receive focused corrective `GO`
+before one rerun into a new directory. No threshold may be relaxed.
 
 A successful real v0.17 lock still does not authorize final evaluation. The
 exact training corpus, frozen competitors, fitting rules, final-outing failure

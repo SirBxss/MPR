@@ -150,11 +150,18 @@ gates. Further evidence requires new prospectively declared physical outings.
 The reporting-only output-driven model comparison raises this to 404 passing
 tests with the same two skips. It does not authorize a model fit, a new metric,
 or final model selection.
-The v0.18.0 synthetic-only structural-feasibility implementation raises the
-suite to 432 tests run: 430 pass and two expected optional-dependency tests
-skip. Contract review returned `GO`; implementation review still blocks every
-private execution. It does not authorize target adoption, residual creation,
-model reuse, a model fit, a planner run, or a figure.
+The v0.18.0 structural-feasibility implementation raises the suite to 432 tests
+run: 430 pass and two expected optional-dependency tests skip. Contract and
+implementation review returned `GO`, authorizing one private batch01 run. That
+run exposed an exact RLMB descriptor binding defect (`RoadLaneSegment.id_` is
+`uint64`, not `int64`) while independently observing zero sensor chains reaching
+100 m. Preserve the v0.18.0 output unchanged. The narrow v0.18.1 correction must
+receive focused corrective review before a rerun into a new directory. It does
+not authorize threshold changes, target adoption, residual creation, model
+reuse, a model fit, a planner run, or a figure.
+The narrow v0.18.1 correction raises the suite to 433 tests run: 431 pass and
+the same two expected skips. Its 29 focused tests include the observed
+`uint64` reference descriptor and fail-closed `int64` drift regression.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

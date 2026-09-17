@@ -1,4 +1,4 @@
-# Minimal Path-Residual Model (MPR) v0.18.0 implementation candidate
+# Minimal Path-Residual Model (MPR) v0.18.1 corrective review candidate
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -14,16 +14,23 @@ with an independently H100-ready `/adp/road_lane_map_based` message in the close
 86-file batch01. The technical decoder questions and complete tracked paths
 are closed. The BMW commit SHA was not captured and remains a documented
 source-trace reproducibility limit, but no further BMW-source answer is needed.
-Focused independent contract review returned `GO`. The bounded audit is now
-implemented and verified entirely with synthetic fixtures: the full local
-suite runs 432 tests, with 430 passing and two expected skips. Focused
-implementation review is the current gate; private MCAP execution remains
-unauthorized.
+Focused independent contract and v0.18.0 implementation reviews returned
+`GO`. The one authorized private run preserved lineage and decoded both
+streams, but exposed one exact reference-descriptor binding defect:
+`RoadLaneSegment.id_` is `uint64`, while the reviewed synthetic fixture and
+validator required `int64`. The narrow v0.18.1 correction changes only that
+binding, gives readable reference structural drift its own failure code, and
+extends the import-graph test through the runtime MCAP decoder. It must receive
+focused corrective review before the private audit is rerun. The original
+v0.18.0 output remains immutable evidence. No threshold or sensor rule changes;
+the first run observed zero strict sensor chains reaching 100 m.
 It performs no cross-topic coordinate comparison and exports no timestamps,
 coordinates, residuals, features, sequences, models, planner values, or
 figures. It cannot adopt the new target. See
 [`docs/sensor_topology_feasibility_predeclaration.md`](docs/sensor_topology_feasibility_predeclaration.md)
 and
+[`docs/sensor_topology_reference_schema_amendment.md`](docs/sensor_topology_reference_schema_amendment.md),
+plus
 [`docs/bmw_sensor_topology_source_evidence.md`](docs/bmw_sensor_topology_source_evidence.md).
 The synthetic implementation boundary, verification record, and next-agent
 checklist are in

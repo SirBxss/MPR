@@ -1347,15 +1347,19 @@ supplied failed-audit directory contents, the outputs are byte-deterministic;
 changing the supplied failed-audit contents changes or invalidates the amended
 lineage rather than being ignored.
 
-## Prospective v0.18.0 sensor-topology feasibility outputs
+## v0.18.0/v0.18.1 sensor-topology feasibility outputs
 
-Status: the frozen a3 contract received focused review `GO`, and the exact
-three-file producer is implemented and synthetic-verified. The nested decoder
-and producer checks are source-traced and all 23 complete tracked paths were
-verified from immutable `HEAD` blobs. The BMW commit SHA remains unidentified
-as a documented reproducibility limitation. Private execution remains
-unsupported until focused implementation review returns `GO`. The binding definitions are in
-`docs/sensor_topology_feasibility_predeclaration.md`.
+Status: the frozen a3 contract and v0.18.0 implementation received focused
+review `GO`. The one authorized v0.18.0 run is preserved but exposed a precise
+RLMB descriptor binding defect: `RoadLaneSegment.id_` is singular `uint64`, not
+`int64`. v0.18.1 corrects only that binding, adds
+`reference_required_structure_drift`, and identifies the corrected output with
+version `0.18.1` and revision
+`v0.18.1-review-candidate-2026-09-17-reference-uint64-a1`. The three filenames
+and schemas below are otherwise unchanged. A private rerun remains unsupported
+until focused corrective review returns `GO`. Binding definitions are in
+`docs/sensor_topology_feasibility_predeclaration.md` and
+`docs/sensor_topology_reference_schema_amendment.md`.
 
 After exact reconciliation with the preserved v0.17.1 batch01 lineage, the
 command writes exactly three private files to a new empty directory:
@@ -1457,6 +1461,6 @@ sequence, model, planner, or figure value.
 
 `source_time_pair_count` is the number of unique recording-local
 mutual-nearest source-time pairs that pass the inclusive 50 ms gate before any
-geometry filtering. The 50 ms value is a prospectively fixed v0.18.0 audit
+geometry filtering. The 50 ms value is a prospectively fixed v0.18 audit
 constant, not an inherited v0.17 estimate/reference gate. Each accepted pair
 can contribute at most one `synchronized_100m_candidate`.

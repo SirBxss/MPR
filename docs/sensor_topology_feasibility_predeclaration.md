@@ -1,9 +1,12 @@
 # v0.18.0 sensor-topology 100 m structural-feasibility predeclaration
 
 Status: frozen prospective contract dated 2026-09-15. Focused independent
-contract review returned `GO`; the bounded audit is now implemented and
-synthetic-verified, with focused implementation review still required before
-private execution. The original a0
+contract and implementation reviews returned `GO`, and the one authorized
+private v0.18.0 run is preserved. That run exposed an exact RLMB descriptor
+binding defect. The narrow v0.18.1 correction in
+`docs/sensor_topology_reference_schema_amendment.md` must receive focused
+corrective review before a rerun. This predeclaration otherwise remains the
+unchanged a3 scientific boundary. The original a0
 draft was written after the accepted negative v0.17.1 batch01 EDP audit and
 before MPR decoded or summarized any standalone sensor-topology message from
 that closed batch. Three subsequent read-only Copilot traces of the BMW source
@@ -11,8 +14,8 @@ changed and then bounded the contract before implementation or private
 execution. The third trace resolved all cited tracked paths and rechecked the
 technical claims from immutable `HEAD:<path>` blobs. It did not capture the
 literal BMW HEAD SHA; that named-revision reproducibility limit is recorded in
-the evidence document but no longer blocks focused contract review. No
-private execution is authorized before focused implementation `GO`.
+the evidence document but no longer blocks focused contract review. No second
+private execution is authorized before focused v0.18.1 corrective `GO`.
 
 Prospective contract revision:
 `v0.18.0-review-candidate-2026-09-15-sensor-topology-feasibility-a3`.
@@ -432,6 +435,12 @@ to `sensor_camera_boundary_geometry_invalid`; a non-sensor whole-message enum
 maps to `sensor_topology_source_invalid`. Codes are
 non-mutually-exclusive.
 
+The v0.18.1 corrective amendment adds exactly one exported code,
+`reference_required_structure_drift`, so a readable-but-drifted RLMB descriptor
+is not mislabeled as `reference_stream_decode_failed`. That addition is not
+active for a private rerun until the corrective amendment receives focused
+review `GO`.
+
 ## Fixed command and exact outputs
 
 The implemented public surface is:
@@ -695,8 +704,9 @@ The synthetic implementation tests must prove at least:
 - no direct/transitive import of residual, conditions, sequences, modeling,
   sampling, planner, evaluation, or visualization.
 
-The complete Python 3.10 and 3.12 suite must pass. A focused implementation
-review is required before any private execution.
+The complete Python 3.10 and 3.12 suite must pass. The focused v0.18.0
+implementation-review requirement was satisfied before its one private run;
+the corrective amendment requires a fresh focused review before any rerun.
 
 ## Binding review and execution order
 

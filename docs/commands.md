@@ -20,9 +20,10 @@ cohort lock without exporting residual, condition, model, or planner values;
 v0.17.1 preserves that contract while adding one exact EDP schema-v2
 compatibility amendment and machine-checkable failed-audit lineage; the
 first-arrival runbook adds a standalone verifier that imports no project
-package and writes no files; v0.18.0 adds the synthetic-verified standalone
-sensor-topology structural-feasibility adapter, whose private execution remains
-blocked pending focused implementation review;
+package and writes no files; v0.18.0 adds the independently reviewed standalone
+sensor-topology structural-feasibility adapter; v0.18.1 corrects only the
+observed RLMB segment-ID descriptor type and remains blocked from private rerun
+pending focused corrective review;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -71,7 +72,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-train-sequence-aiohmm` | `python -m lane_residuals.cli.sequence_aiohmm` | v0.11.0 fixed-state AIOHMM; development-only and no held-out state-count/hyperparameter selection | Complete unchanged v0.9.0 sequential dataset directory | Common fold/frame/station metrics, state/restart diagnostics, fold and descriptive models, plot, and strict JSON summary |
 | `mpr-audit-corpus-inventory` | `python -m lane_residuals.cli.corpus_inventory` | v0.12.1 read-only, fail-closed expanded-corpus continuity/session audit | Recursive MCAP root and exact private basename-to-drive map | File/topic/edge CSVs, proposed groups, strict summary, and diagnostic plot |
 | `mpr-lock-independent-outings` | `python -m lane_residuals.cli.independent_outing_intake` | v0.17.0 prospective intake plus the exact v0.17.1 EDP schema-v2 amendment; no model, sampler, planner, or final evaluation | Recursive new-MCAP root, strict private acquisition manifest, an exact prior successful lock only for a declared supersession, and optionally a preserved failed v0.17.0 audit for amended lineage | Recording and outing CSV audits, immutable cohort lock, and strict intake summary |
-| `mpr-audit-sensor-topology-feasibility` | `python -m lane_residuals.cli.sensor_topology_feasibility` | v0.18.0 structural/co-availability audit; implemented and synthetic-verified, but private execution is blocked pending implementation `GO` | Exact closed batch01 MCAP root, unchanged private manifest, and complete preserved v0.17.1 intake directory | Recording counts, schema inventory, and feasibility summary only; no coordinates, residuals, model, planner, or figure |
+| `mpr-audit-sensor-topology-feasibility` | `python -m lane_residuals.cli.sensor_topology_feasibility` | v0.18.1 correction to the reviewed structural/co-availability audit; private rerun is blocked pending corrective `GO` | Exact closed batch01 MCAP root, unchanged private manifest, and complete preserved v0.17.1 intake directory | Recording counts, schema inventory, and feasibility summary only; no coordinates, residuals, model, planner, or figure |
 
 Run the expanded-corpus audit with a new empty output directory:
 
@@ -452,11 +453,11 @@ revision and amendment ID, and `files_written: 0`. The non-null failed-audit
 lineage reconciles all four v0.17.0 files. The exact accepted result and its
 review boundary are in `docs/independent_outing_batch01_v0171_result.md`.
 
-The v0.18.0 command is implemented, but the following is a reviewed command
-template only. Do not execute it on private data until focused implementation
-review returns `GO`. It must use the same closed batch01 root, unchanged
-manifest bytes, complete preserved v0.17.1 directory, and a new nonexistent
-output directory:
+The v0.18.0 command was independently reviewed and run once. Preserve its
+output unchanged. The following v0.18.1 command is a template only: do not run
+it until focused corrective review returns `GO`. It must use the same closed
+batch01 root, unchanged manifest bytes, complete preserved v0.17.1 directory,
+and a new nonexistent output directory:
 
 ```bash
 PYTHONPATH=src python -m lane_residuals.cli.sensor_topology_feasibility \
@@ -466,7 +467,7 @@ PYTHONPATH=src python -m lane_residuals.cli.sensor_topology_feasibility \
   --preserved-intake-directory \
   "outputs/locks/independent_outing_intake_v0171_batch01" \
   --output-directory \
-  "outputs/diagnostics/data/sensor_topology_feasibility_v0180_batch01"
+  "outputs/diagnostics/data/sensor_topology_feasibility_v0181_batch01"
 ```
 
 Exit `0` means at least one source-time-paired dual structural candidate was

@@ -276,8 +276,8 @@ the legacy polyline-projection primitive to preserve byte-for-byte scientific
 behavior. Moving that arithmetic into a neutral domain geometry utility should
 only be attempted with dedicated numerical characterization tests.
 
-The prospective v0.18.0 sensor-topology feasibility contract received focused
-review `GO` and its synthetic-only implementation follows this ownership:
+The v0.18 sensor-topology feasibility contract received focused review `GO`
+and its implementation follows this ownership:
 `domain.sensor_topology_feasibility` for strict camera-midpoint chains,
 orientation-invariant 100 m span, and source-time-pairing states;
 `io.sensor_topology_feasibility` for descriptor inventory, strict message
@@ -289,5 +289,8 @@ residual construction, conditions, sequences, modeling, sampling, planner,
 evaluation, or visualization. The package root and historical CLI facade now
 resolve compatibility exports lazily so importing the v0.18 adapter does not
 transitively load those prohibited layers. The exact import graph is frozen by
-a subprocess test. Focused implementation review still blocks private
-execution.
+a subprocess test that includes the runtime MCAP decoder. v0.18.0 implementation
+review returned `GO`; its one private run exposed only an exact RLMB segment-ID
+descriptor mismatch. v0.18.1 corrects `int64` to the observed `uint64` and must
+receive focused corrective review before a new-directory rerun. No ownership,
+geometry, timing, privacy, or scientific-authorization boundary changes.
