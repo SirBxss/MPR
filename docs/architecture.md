@@ -42,9 +42,10 @@ counting, and transactional four-file serialization; the CLI only maps
 arguments, logging, and exit codes. These modules do not directly import
 modeling, sampling, planner, evaluation, or visualization code and never
 serialize the numeric six-feature values computed transiently for availability
-checks. The legacy root package initializer does eagerly load some unrelated
-definitions before every submodule import; the intake test suite freezes that
-transitive module graph and verifies that no intake operation calls it.
+checks. The original v0.17 root package initializer eagerly loaded unrelated
+definitions; v0.18 replaces it with the verified lazy compatibility facade
+described below. The intake test suite freezes the current transitive module
+graph and verifies the preserved public API.
 
 Topology auditing follows that categorization: domain code reconciles raw
 protobuf values with descriptor enum names, IO verifies and packages immutable

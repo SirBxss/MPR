@@ -476,6 +476,27 @@ class SensorTopologyIOTests(unittest.TestCase):
         self.assertIsNotNone(inventory[0].descriptor_file_sha256)
         self.assertTrue(inventory[0].field_inventory)
 
+    def test_reference_schema_correction_preserves_sensor_span_gate(self) -> None:
+        sensor = sensor_message()
+        for index in (1, 3):
+            sensor.boundary_vertex_pool[index].x.mean = 80.0
+            sensor.boundary_arc_length_pool[index] = 80.0
+        result = inspect_decoded_recording(
+            (
+                _tuple(SENSOR_TOPIC, sensor),
+                _tuple(REFERENCE_TOPIC, reference_message()),
+            )
+        )
+        self.assertEqual(result.camera_only_successor_chain_count, 1)
+        self.assertEqual(result.camera_chain_100m_span_count, 0)
+        self.assertEqual(result.reference_h100_ready_count, 1)
+        self.assertEqual(result.source_time_pair_count, 1)
+        self.assertEqual(result.synchronized_100m_candidate_count, 0)
+        self.assertEqual(
+            result.failure_codes,
+            ("sensor_camera_chain_100m_span_unavailable",),
+        )
+
     def test_schema_mismatch_is_retained_and_does_not_use_another_topic(self) -> None:
         result = inspect_decoded_recording(
             (_tuple(SENSOR_TOPIC, sensor_message(), schema="Wrong.Road"),)

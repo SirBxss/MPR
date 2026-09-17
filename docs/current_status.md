@@ -4,6 +4,49 @@ Last updated: 2026-09-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
+## Takeover verification on 2026-09-17
+
+The GitHub branch was fetched and PR #20 inspected. Remote `main` remains
+`b82908bb4ed3770e338f8279dfc6dcdbb055b851`; the open PR remains at reviewed
+v0.18.0 implementation `6a717827363529773a24f8fba2094cf5e75565b0`, tree
+`530b73ff51243b8bfd27c3ffa47ef29e17649235`. No corrective review is recorded
+there. The previous session had already completed the two local v0.18.1
+correction commits, ending at `52a881a`, tree
+`38ac50cf2720c925b1c9bee50617c3eccff804fb`. Applying those same patches to the
+actual remote PR head reproduces that tree exactly. Do not reimplement the
+correction or mistake merged `main` for the latest development state.
+
+The takeover adds one synthetic regression: an 80 m strict camera chain and
+an H100-ready `uint64` RLMB message at the same source time produce one time
+pair but zero synchronized 100 m candidates. It changes no production code
+or scientific threshold. The focused suite now has 30 tests; the full suite
+ran 434 tests, with 432 passing and two expected opt-in skips,
+under Python 3.12.14, NumPy 2.3.5, and Protobuf 6.33.6. Python 3.10 and the
+complete MCAP dependency environment remain CI checks for the pushed tree.
+
+The preserved v0.18.0 archive was reconciled read-only against its three file
+hashes, all 86 recording rows, summary totals/failure counts, strict-time
+flags, descriptor counts, exact manifest bytes, and preserved v0.17.1 lock and
+raw-hash map. No raw MCAP bytes were available here; this is artifact
+reconciliation, not raw re-decoding or a v0.18.1 private run. The ZIP hash
+below corrects a transcription that omitted its final hexadecimal character;
+no archive or output bytes were changed.
+
+The source and saved artifacts are authoritative over the older conversation
+description: the active reference is `/adp/road_lane_map_based`, not
+`/em/road/ego_lane_path` or `/adp/lane_topology_map_based`. The retained sensor
+counts mean 4,039 valid camera-only chains, **zero** reaching 100 m, not 4,039
+H100 candidates. That is a result under the frozen reconstruction rules, not
+proof that every possible use of the topic lacks geometry. The saved outputs
+contain no numeric span distribution or raw geometry from which to infer a
+different horizon or physical cause.
+
+The next action is to apply the verified patch batch and push the existing
+PR #20 branch, obtain focused corrective `GO` on its exact HEAD/tree, then
+rerun once into a new v0.18.1 directory. No new PR is needed. Residual
+construction remains blocked by the structural result and unresolved physical
+frame contract; independent ground truth has not been established.
+
 ## Current checkpoint
 
 - Merged repository version: v0.17.1 EDP schema compatibility implemented,
@@ -147,7 +190,8 @@ critical path changes.
   first lock without writes, fail on manifest/raw/output drift, and freeze the
   runbook's initial-lock command, thresholds, outputs, and package-independence
   boundary.
-- Merged-main baseline verification: 384 tests pass with two expected skips.
+- Historical v0.17.0 merged baseline verification: 384 tests pass with two
+  expected skips.
 - v0.17.1 implementation verification: 402 tests pass with two expected skips.
   The added tests cover exact message-owned descriptor identity, unrestricted
   structural legacy admission with explicit-true Boolean field 8, exact pinned
@@ -165,11 +209,14 @@ critical path changes.
   non-overwrite, exit codes, and the transitive prohibited-import boundary.
   Compilation and `git diff --check` also passed before review. No private MCAP
   was read during implementation or review.
-- v0.18.1 corrective verification: 433 tests run, 431 pass, and the same two
-  expected optional-dependency tests skip. All 29 focused tests pass, including
+- v0.18.1 corrective verification, including the takeover regression: 434 tests
+  run, 432 pass, and the same two expected opt-in checks skip (wheel contents
+  and private historical alignment parity).
+  All 30 focused tests pass, including
   acceptance of the observed singular `uint64` reference segment ID,
   fail-closed retention of an `int64` drifted descriptor, correct failure-code
-  separation, and the runtime MCAP-decoder import graph. Compilation and
+  separation, preserved sensor-span rejection after successful reference/time
+  pairing, and the runtime MCAP-decoder import graph. Compilation and
   `git diff --check` pass. The correction used only the privacy-safe three-file
   audit; no private MCAP or raw numeric payload was read.
 - Real v0.18.0 batch01 structural audit: the unchanged manifest, 86 raw MCAPs,
@@ -184,7 +231,7 @@ critical path changes.
   binding and the misleading drift failure code. The sensor-side zero cannot
   be changed by this correction and must not trigger threshold tuning.
   The preserved v0.18.0 ZIP SHA-256 is
-  `c7f9aad2a38b6b370e827ebd5ef5cf36b26aab54cfdd16179f02a7e570018b7`;
+  `c7f9aad2a38b6b370e827ebd5ef5cf36b26aab54cfdd16179f02a7e570018b7a`;
   its recordings, schema-inventory, and summary file SHA-256 values are
   `b2b70f1e4222e9de2efd00ee49e71317aae2b486a3ae3af8d95ece63b5af0d06`,
   `cbe2ffb04dc5ad87fba472b194ab2a072f4eaa3fc2fd078fd60ed17929162793`,

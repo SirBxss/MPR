@@ -159,9 +159,11 @@ run exposed an exact RLMB descriptor binding defect (`RoadLaneSegment.id_` is
 receive focused corrective review before a rerun into a new directory. It does
 not authorize threshold changes, target adoption, residual creation, model
 reuse, a model fit, a planner run, or a figure.
-The narrow v0.18.1 correction raises the suite to 433 tests run: 431 pass and
-the same two expected skips. Its 29 focused tests include the observed
-`uint64` reference descriptor and fail-closed `int64` drift regression.
+The narrow v0.18.1 correction and takeover regression raise the suite to 434
+tests run: 432 pass and the same two expected skips. Its 30 focused tests
+include the observed `uint64` reference descriptor, fail-closed `int64` drift,
+and a short sensor chain that remains ineligible despite valid reference
+geometry and timestamp pairing.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

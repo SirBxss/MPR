@@ -112,11 +112,35 @@ Correction verification on 2026-09-17:
 ```text
 python -m compileall -q src tests                         passed
 git diff --check                                          passed
-focused v0.18.1 tests                                     29 passed
-full unittest suite                                       433 run
-                                                            431 passed
+focused v0.18.1 tests                                     30 passed
+full unittest suite                                       434 run
+                                                            432 passed
                                                             2 expected skips
 ```
+
+The takeover verification used Python 3.12.14, NumPy 2.3.5, and Protobuf
+6.33.6. The extra test preserves the 100 m sensor-span gate after the corrected
+reference descriptor permits readiness and timing checks. The two skips are
+the opt-in wheel-content check (`MPR_WHEEL_PATH`) and private historical
+alignment parity (`MPR_RUN_PRIVATE_ALIGNMENT_PARITY`). This local result does
+not replace Python 3.10/3.12 CI with the MCAP extras installed.
+
+The original v0.18.0 source at `6a71782` and corrected source were also run on
+identical synthetic `uint64` messages. The reference is a straight 120 m path
+and the two timestamps are identical. These are constructed fixtures, not BMW
+measurements or a private rerun:
+
+| Synthetic sensor span | Version | Sensor 100 m count | Reference ready | Time pairs | Synchronized candidates |
+|---|---|---:|---:|---:|---:|
+| 80 m | v0.18.0 | 0 | 0 | 0 | 0 |
+| 80 m | v0.18.1 | 0 | 1 | 1 | 0 |
+| 120 m | v0.18.0 | 1 | 0 | 0 | 0 |
+| 120 m | v0.18.1 | 1 | 1 | 1 | 1 |
+
+Thus the correction fixes premature reference rejection without changing
+sensor availability. The original warning alone cannot distinguish these
+cases. A real v0.18.1 reference-ready or timestamp-pair count remains unknown
+until the reviewed rerun; it must not be inferred from these fixtures.
 
 ## Next-agent checklist
 
