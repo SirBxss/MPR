@@ -1,6 +1,7 @@
 # BMW standalone sensor-topology source evidence
 
-Last updated: 2026-09-15.
+Last updated: 2026-09-17. The three BMW source traces below remain the
+2026-09-15 evidence; no new source answer has been received.
 
 This document tracks the evidence needed to evaluate
 `/adp/lane_topology_sensor_based` as a possible estimate-side source for a new
@@ -8,8 +9,12 @@ MPR residual target. It separates user-reported guidance, accepted MPR
 evidence, BMW-source evidence, and inference. It is not permission to decode a
 private target, calculate a residual, or reuse an old model.
 
-The binding prospective scope is
-`docs/sensor_topology_feasibility_predeclaration.md`.
+The completed structural audit followed
+`docs/sensor_topology_feasibility_predeclaration.md`. Its corrected negative
+result is accepted and merged through PR #20. The next inquiry is scoped in
+`docs/sensor_topology_source_acquisition_decision.md`; it addresses previously
+unresolved extent, frame/epoch and provenance, without reopening the closed
+decoder questions or permitting a new private run.
 
 ## Evidence provenance
 
@@ -103,8 +108,13 @@ topic. It established:
 The earlier complete EDP message audit observed 787 SENSOR_TOPOLOGY EDP
 messages, but none became an H100-ready EDP candidate. This does not determine
 how many standalone sensor-topology messages or structural candidates exist.
-No standalone-topic descriptor hash, message count, ego-lane count,
-boundary-reconstruction count, or 100 m span count has been accepted.
+At the time of these source traces, no standalone-topic descriptor hash,
+message count, ego-lane count, boundary-reconstruction count or 100 m span
+count had been accepted. The later v0.18.1 result establishes 4,039 strict
+camera-only chains and zero reaching 100 m, with 9,235 reference-ready
+messages and 17,087 source-time pairs. Its exact evidence and limitations
+are in `docs/sensor_topology_batch01_v0181_result.md`; none of those counts
+establishes a physical sensor-range limit.
 
 ## MPR implementation evidence
 
@@ -121,8 +131,9 @@ MPR already contains historical support for Road-like topology messages:
 - Current RLMB handling requires a metadata-confirmed direct ego path and
   follows only an unambiguous, continuity-checked successor chain to H100.
 
-These are reusable implementation ideas, not producer evidence and not a
-canonical v0.18 implementation.
+These are historical reusable implementation ideas, not producer evidence.
+The now-merged canonical structural audit is implemented separately in the
+`domain`, `io`, `workflows` and `cli` `sensor_topology_feasibility` modules.
 
 ## Copilot-confirmed BMW-source evidence
 

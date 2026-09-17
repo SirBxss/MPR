@@ -4,7 +4,35 @@ Last updated: 2026-09-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## v0.18.1 real-output GO on 2026-09-17; closed-batch negative accepted
+## PR #20 merged; source/acquisition decision is the next step
+
+On 2026-09-17 GitHub and a local fetch confirm PR #20 merged at
+`1403927b8b0a0155cea19c6daba841160254c8c1`. Merged `main` and final branch
+HEAD `5b2034e6d704c5d23410b46e9cfd6e095859f5e2` both have tree
+`440f3bfc1a19fd9e74ef563c43c410da073cb7e3`, exactly the delivered closure.
+Pre-merge [CI run 35222402624](https://github.com/SirBxss/MPR/actions/runs/35222402624)
+passes Python 3.10 and 3.12, including MCAP-extra installation, compilation
+and unit tests. A separate post-merge main-push run was not verified by the
+available PR-event-filtered workflow query; the successful branch tree and
+merged tree are identical. The implementation baseline remains 434 tests:
+432 passes and two opt-in skips.
+
+The user requested continuation. The next bounded action is documented in
+`docs/sensor_topology_source_acquisition_decision.md`: a focused read-only
+BMW producer/configuration inquiry into extent, frame/epoch/correspondence
+and shared dependencies. A separate Copilot prompt is delivered outside Git.
+No new BMW answer is available yet. The previous interface trace remains
+sufficient for the completed v0.18 audit; these are the unresolved semantic
+questions needed to choose future work, not a request to repeat that trace.
+
+Working branch: `docs/v0.19-source-acquisition-decision`, based on merged
+`main`. v0.19 is only a planning label; no version bump, new CLI, changed
+horizon, target adoption, geometry diagnostic or private run is implemented
+or authorized by this record. Preserve the closed batch. Return the source
+report first, then choose and review the smallest supported implementation.
+The missing BMW source/configuration evidence is the current blocker.
+
+## Historical v0.18.1 real-output GO and accepted closed-batch negative
 
 The user supplied the corrected batch01 audit and reported applying the
 documentation-only review handoff. Artifact reconciliation passed against the
@@ -52,9 +80,9 @@ boundary numerical example lies within the implementation's comparison
 slack. These do not affect the accepted counts or verdict. Preserve the
 received review and all prior artifacts unchanged outside Git.
 
-Next: apply and push the documentation-only closure to existing PR #20,
-then the user may decide to merge after CI. Contract, implementation,
-corrective and real-output reviews are complete; no further review cycle or
+At that checkpoint, the next action was the documentation closure and the
+user's merge decision; both are now complete as recorded above. Contract,
+implementation, corrective and real-output reviews are complete; no further review cycle or
 private rerun is needed for this closure. No new PR is needed. The next
 research step is a prospective acquisition/configuration or target decision
 using producer evidence. The batch cannot justify selecting a shorter
@@ -165,7 +193,10 @@ frame contract; independent ground truth has not been established.
 
 ## Current checkpoint
 
-- Merged repository version: v0.17.1 EDP schema compatibility implemented,
+- Merged repository version: v0.18.1 structural feasibility and accepted
+  negative batch01 closure, through PR #20 at `1403927`. The current step is
+  the source/acquisition evidence inquiry above. Earlier v0.17.1 EDP schema
+  compatibility remains implemented,
   synthetically verified, independently approved, and exercised on the closed
   real batch01. Its v0.17.0 independent-outing intake base is independently
   approved and merged. Claude's earlier focused
@@ -189,7 +220,7 @@ frame contract; independent ground truth has not been established.
   implementation and real planner run remain complete and approved. The first
   pre-fix v0.16 planner output remains rejected; its v0.15.4 residual samples
   were valid and were reused.
-- Current corrective phase: v0.18.1 standalone sensor-topology 100 m structural
+- Completed corrective phase: v0.18.1 standalone sensor-topology 100 m structural
   feasibility. Leon advised the data owner to prefer
   `/adp/lane_topology_sensor_based` over EDP for this study. The BMW source
   trace is now recorded and changed the original a0 proposal: LTSB publishes
@@ -209,16 +240,16 @@ frame contract; independent ground truth has not been established.
   and passing Python 3.10/3.12 CI, as recorded above. The corrected real run is
   received, reconciled and accepted by focused real-output `GO` with zero
   blockers. This phase is closed negative for batch01; the documentation
-  closure and user's merge decision are the remaining delivery steps.
-  No cross-topic projection, H100 residual-pair
-  claim, merge, threshold change, or target adoption is authorized. Three private source traces now
+  closure was applied and PR #20 is merged.
+  No cross-topic projection, H100 residual-pair claim, threshold change or
+  target adoption follows from the merge. Three private source traces now
   record the technical evidence and all 23 complete tracked paths; the third
   rechecked the claims against immutable `HEAD` blobs but did not capture the
   BMW commit SHA. That is retained as a source-trace reproducibility limit and
   does not require another BMW query. The candidate
   target is not adopted, and the historical EDP target/models remain
   unchanged.
-- Working branch and PR #20: `protocol/v0.18.0-sensor-topology-feasibility`.
+- Merged branch and PR #20: `protocol/v0.18.0-sensor-topology-feasibility`.
   The exact pushed a3 contract-review identity is commit
   `75a1f9ff38885636dacafbd17144736420a7e17f`, tree
   `ad6d9a664ac7ec38cea4c06f2197d02ae4942f4c`. The local patch-source base
@@ -897,9 +928,10 @@ Next actions are ordered:
    is required for this correction;
 4. preserve the accepted v0.18.1 corrective review, passing CI identities and
    the now-reconciled corrected three-file output unchanged; do not rerun;
-5. obtain focused real-output review of both three-file bundles and
-   `docs/sensor_topology_batch01_v0181_result.md` before merging or promoting
-   the bounded result into a scientific conclusion;
+5. retain the accepted real-output `GO` and merged PR #20 closure; complete
+   the source/acquisition inquiry in
+   `docs/sensor_topology_source_acquisition_decision.md` before selecting
+   further sensor-target implementation or acquisition changes;
 6. continue acquiring separate outcome-blind physical outings through new
    manifests and versioned outputs until at least seven new outings are
    technically eligible; where operationally possible, acquire the same
@@ -966,7 +998,8 @@ runtime import-graph test. Focused corrective review returned `GO` for the
 exact pushed HEAD and tree recorded above; both CI versions pass. The approved
 private rerun is now received and reconciled: reference readiness is 9,235,
 source-time pairing is 17,087, and synchronized candidates remain zero with
-the sensor ladder unchanged. Focused real-output review is the next gate.
+the sensor ladder unchanged. Focused real-output review returned `GO`, and
+PR #20 is merged.
 Even a positive synchronized count after correction
 would authorize only resolution of the physical frame contract and a separate
 alignment-audit predeclaration; it is not an H100 residual pair and does not
@@ -976,8 +1009,10 @@ unless the predeclared scientific threshold is changed—which is not authorized
 
 ## Reading map
 
+- `docs/sensor_topology_source_acquisition_decision.md`: current source-only
+  inquiry, evidence gaps, decision branches and next implementation gate.
 - `docs/sensor_topology_batch01_v0181_result.md`: corrected real batch01
-  output, exact lineage, before/after reconciliation and pending result review.
+  output, exact lineage, before/after reconciliation and accepted review.
 - `docs/modeling_plan.md`: phase gates, evidence, and data-acquisition limits.
 - `docs/model_comparison.md`: concise accepted metric table, output-driven
   presentation figure, model comparison by property, and planner relevance.

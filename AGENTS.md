@@ -174,7 +174,12 @@ Read `docs/sensor_topology_batch01_v0181_result.md` and the first section of
 documentation closure. The earlier review-before-rerun instructions above
 record gates already completed, not permission for a further run. The closed
 batch stays negative; no horizon/rule change, residual construction or new
-scientific execution is authorized. The user decides whether to merge PR #20.
+scientific execution is authorized. PR #20 is now merged. The next step is the read-only source/configuration
+inquiry in `docs/sensor_topology_source_acquisition_decision.md`. It addresses
+previously unresolved producer extent, frame/epoch and provenance; it does not
+reopen the closed decoder questions or authorize a new private diagnostic.
+Prepare exact BMW source questions rather than inventing unavailable details.
+Select the next implementation only after the evidence identifies it.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

@@ -22,8 +22,8 @@ compatibility amendment and machine-checkable failed-audit lineage; the
 first-arrival runbook adds a standalone verifier that imports no project
 package and writes no files; v0.18.0 adds the independently reviewed standalone
 sensor-topology structural-feasibility adapter; v0.18.1 corrects only the
-observed RLMB segment-ID descriptor type and remains blocked from private rerun
-pending focused corrective review;
+observed RLMB segment-ID descriptor type, and its corrected real audit is
+accepted and merged with no further closed-batch run authorized;
 v0.12.2 adds a read-only complete-corpus topology/quality audit;
 v0.5.1 remains categorized motion-alignment sensitivity validation. v0.6.0 adds
 the canonical residual/Gaussian workflow, v0.6.1 adds held-out Gaussian
@@ -72,7 +72,7 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-train-sequence-aiohmm` | `python -m lane_residuals.cli.sequence_aiohmm` | v0.11.0 fixed-state AIOHMM; development-only and no held-out state-count/hyperparameter selection | Complete unchanged v0.9.0 sequential dataset directory | Common fold/frame/station metrics, state/restart diagnostics, fold and descriptive models, plot, and strict JSON summary |
 | `mpr-audit-corpus-inventory` | `python -m lane_residuals.cli.corpus_inventory` | v0.12.1 read-only, fail-closed expanded-corpus continuity/session audit | Recursive MCAP root and exact private basename-to-drive map | File/topic/edge CSVs, proposed groups, strict summary, and diagnostic plot |
 | `mpr-lock-independent-outings` | `python -m lane_residuals.cli.independent_outing_intake` | v0.17.0 prospective intake plus the exact v0.17.1 EDP schema-v2 amendment; no model, sampler, planner, or final evaluation | Recursive new-MCAP root, strict private acquisition manifest, an exact prior successful lock only for a declared supersession, and optionally a preserved failed v0.17.0 audit for amended lineage | Recording and outing CSV audits, immutable cohort lock, and strict intake summary |
-| `mpr-audit-sensor-topology-feasibility` | `python -m lane_residuals.cli.sensor_topology_feasibility` | v0.18.1 correction to the reviewed structural/co-availability audit; private rerun is blocked pending corrective `GO` | Exact closed batch01 MCAP root, unchanged private manifest, and complete preserved v0.17.1 intake directory | Recording counts, schema inventory, and feasibility summary only; no coordinates, residuals, model, planner, or figure |
+| `mpr-audit-sensor-topology-feasibility` | `python -m lane_residuals.cli.sensor_topology_feasibility` | v0.18.1 correction to the reviewed structural/co-availability audit; the authorized corrected run is complete and accepted; no further batch01 run | Exact closed batch01 MCAP root, unchanged private manifest, and complete preserved v0.17.1 intake directory | Recording counts, schema inventory, and feasibility summary only; no coordinates, residuals, model, planner, or figure |
 
 Run the expanded-corpus audit with a new empty output directory:
 
@@ -453,15 +453,16 @@ revision and amendment ID, and `files_written: 0`. The non-null failed-audit
 lineage reconciles all four v0.17.0 files. The exact accepted result and its
 review boundary are in `docs/independent_outing_batch01_v0171_result.md`.
 
-The v0.18.0 command was independently reviewed and run once. Preserve its
-output unchanged. The following v0.18.1 command is a template only: do not run
-it until focused corrective review returns `GO`. It must use the same closed
-batch01 root, unchanged manifest bytes, complete preserved v0.17.1 directory,
-and a new nonexistent output directory:
+The v0.18.0 and corrected v0.18.1 executions are complete. Both output
+sets are preserved, the v0.18.1 negative result has independent `GO`, and
+PR #20 is merged. The command below records the completed corrected run;
+it is not a fresh run instruction. Do not rerun the closed batch. The next
+source/configuration inquiry has no CLI; see
+`docs/sensor_topology_source_acquisition_decision.md`.
 
 ```bash
 PYTHONPATH=src python -m lane_residuals.cli.sensor_topology_feasibility \
-  "data/raw/new_independent_outings" \
+  "data/raw/new_independent_outings/candidate_session_2025-08-21" \
   --acquisition-manifest \
   "config/private/independent_outings_v017_batch01.private.json" \
   --preserved-intake-directory \

@@ -292,6 +292,8 @@ resolve compatibility exports lazily so importing the v0.18 adapter does not
 transitively load those prohibited layers. The exact import graph is frozen by
 a subprocess test that includes the runtime MCAP decoder. v0.18.0 implementation
 review returned `GO`; its one private run exposed only an exact RLMB segment-ID
-descriptor mismatch. v0.18.1 corrects `int64` to the observed `uint64` and must
-receive focused corrective review before a new-directory rerun. No ownership,
-geometry, timing, privacy, or scientific-authorization boundary changes.
+descriptor mismatch. v0.18.1 corrects `int64` to the observed `uint64`; both
+corrective and real-output reviews are complete, and PR #20 is merged.
+The accepted closed-batch result remains negative. No ownership, geometry,
+timing or privacy boundary changes. The next source/acquisition inquiry is
+a documentation step and introduces no additional module or adapter.
