@@ -1,4 +1,4 @@
-"""Command adapter for the v0.18.0 structural feasibility audit."""
+"""Command adapter for the v0.18.1 structural feasibility audit."""
 
 from __future__ import annotations
 

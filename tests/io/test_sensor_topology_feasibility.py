@@ -44,6 +44,7 @@ def _road_class(
     boundary_message_name="RoadLaneBoundary",
     topology_sensor_symbol="ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY",
     boundary_camera_symbol="LANE_BOUNDARY_SOURCE_CAMERA",
+    segment_id_type=None,
 ):
     common = descriptor_pb2.FileDescriptorProto(
         name="synthetic_common.proto",
@@ -92,7 +93,16 @@ def _road_class(
     _field(boundary, "geometry", 1, descriptor_pb2.FieldDescriptorProto.TYPE_MESSAGE, type_name=".Adp.Perception.Range")
     _field(boundary, "source", 4, descriptor_pb2.FieldDescriptorProto.TYPE_ENUM, type_name=".Adp.LaneBoundarySource")
     segment = file.message_type.add(name="RoadLaneSegment")
-    _field(segment, "id", 1, descriptor_pb2.FieldDescriptorProto.TYPE_INT64)
+    _field(
+        segment,
+        "id",
+        1,
+        (
+            descriptor_pb2.FieldDescriptorProto.TYPE_UINT64
+            if segment_id_type is None
+            else segment_id_type
+        ),
+    )
     _field(segment, "successor_lane_segment_indices", 6, descriptor_pb2.FieldDescriptorProto.TYPE_INT64, label=descriptor_pb2.FieldDescriptorProto.LABEL_REPEATED)
     _field(segment, "drive_path_range", 11, descriptor_pb2.FieldDescriptorProto.TYPE_MESSAGE, type_name=".Adp.Perception.Range")
     _field(segment, "left_lane_boundary_ranges", 12, descriptor_pb2.FieldDescriptorProto.TYPE_MESSAGE, type_name=".Adp.Perception.BoundaryRanges")
@@ -173,6 +183,11 @@ ROAD_BOUNDARY_ENUM_DRIFT = (
     if descriptor_pb2 is None
     else _road_class(boundary_camera_symbol="NOT_CAMERA")
 )
+ROAD_REFERENCE_ID_DRIFT = (
+    None
+    if descriptor_pb2 is None
+    else _road_class(segment_id_type=descriptor_pb2.FieldDescriptorProto.TYPE_INT64)
+)
 
 
 def _set_range(value, start, size):
@@ -211,8 +226,8 @@ def sensor_message(timestamp=1_000_000_000, *, road_class=None):
     return road
 
 
-def reference_message(timestamp=1_000_000_000):
-    road = ROAD(time_stamp=timestamp)
+def reference_message(timestamp=1_000_000_000, *, road_class=None):
+    road = (ROAD if road_class is None else road_class)(time_stamp=timestamp)
     road.ego_lane_segment_indices.append(0)
     segment = road.lane_segments.add()
     segment.id = 10
@@ -426,6 +441,40 @@ class SensorTopologyIOTests(unittest.TestCase):
             reference_h100_ready(cycle),
             (False, "reference_successor_chain_invalid"),
         )
+
+    def test_reference_descriptor_requires_observed_uint64_segment_id(self) -> None:
+        supported = inspect_decoded_recording(
+            (
+                _tuple(SENSOR_TOPIC, sensor_message()),
+                _tuple(REFERENCE_TOPIC, reference_message()),
+            )
+        )
+        self.assertEqual(supported.reference_h100_ready_count, 1)
+        self.assertNotIn("reference_required_structure_drift", supported.failure_codes)
+
+        drifted = inspect_decoded_recording(
+            (
+                _tuple(SENSOR_TOPIC, sensor_message()),
+                _tuple(
+                    REFERENCE_TOPIC,
+                    reference_message(road_class=ROAD_REFERENCE_ID_DRIFT),
+                ),
+            )
+        )
+        self.assertEqual(drifted.reference_decoded_count, 1)
+        self.assertEqual(drifted.reference_h100_ready_count, 0)
+        self.assertEqual(drifted.source_time_pair_count, 0)
+        self.assertIn("reference_required_structure_drift", drifted.failure_codes)
+        self.assertNotIn("reference_stream_decode_failed", drifted.failure_codes)
+        inventory = [
+            item
+            for item in drifted.schema_inventory
+            if item.topic == REFERENCE_TOPIC
+        ]
+        self.assertEqual(len(inventory), 1)
+        self.assertEqual(inventory[0].audit_support_status, "required_structure_drift")
+        self.assertIsNotNone(inventory[0].descriptor_file_sha256)
+        self.assertTrue(inventory[0].field_inventory)
 
     def test_schema_mismatch_is_retained_and_does_not_use_another_topic(self) -> None:
         result = inspect_decoded_recording(

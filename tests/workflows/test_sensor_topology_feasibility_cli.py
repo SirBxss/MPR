@@ -458,6 +458,7 @@ class SensorTopologyWorkflowTests(unittest.TestCase):
         code = (
             "import json, sys\n"
             "import lane_residuals.cli.sensor_topology_feasibility\n"
+            "import lane_residuals.io.mcap\n"
             "print(json.dumps(sorted(name for name in sys.modules "
             "if name.startswith('lane_residuals'))))\n"
         )
@@ -491,6 +492,7 @@ class SensorTopologyWorkflowTests(unittest.TestCase):
                 "lane_residuals.domain.independent_outing_intake",
                 "lane_residuals.domain.sensor_topology_feasibility",
                 "lane_residuals.io",
+                "lane_residuals.io.mcap",
                 "lane_residuals.io.sensor_topology_feasibility",
                 "lane_residuals.workflows",
                 "lane_residuals.workflows.sensor_topology_feasibility",

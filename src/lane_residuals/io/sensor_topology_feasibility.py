@@ -1,4 +1,4 @@
-"""Strict Protobuf inspection for the v0.18.0 structural feasibility audit."""
+"""Strict Protobuf inspection for the v0.18.1 structural feasibility audit."""
 
 from __future__ import annotations
 
@@ -37,6 +37,7 @@ FLT_MAX = 3.4028234663852886e38
 
 TYPE_FLOAT = 2
 TYPE_INT64 = 3
+TYPE_UINT64 = 4
 TYPE_MESSAGE = 11
 TYPE_UINT32 = 13
 TYPE_ENUM = 14
@@ -53,6 +54,7 @@ FAILURE_CODES = frozenset(
         "sensor_descriptor_unavailable",
         "reference_descriptor_unavailable",
         "sensor_required_structure_drift",
+        "reference_required_structure_drift",
         "sensor_topology_source_invalid",
         "sensor_stream_decode_failed",
         "reference_stream_decode_failed",
@@ -441,7 +443,7 @@ def _reference_descriptor_supported(message: Any) -> None:
     vertex = _require(road, 10, TYPE_MESSAGE, LABEL_REPEATED, referenced_suffix="Adp.PolylineVertex").message_type
     _require(road, 11, TYPE_FLOAT, LABEL_REPEATED)
     range_descriptor = _require(segment, 11, TYPE_MESSAGE, LABEL_OPTIONAL, referenced_suffix="Range").message_type
-    _require(segment, 1, TYPE_INT64, LABEL_OPTIONAL)
+    _require(segment, 1, TYPE_UINT64, LABEL_OPTIONAL)
     _require(segment, 6, TYPE_INT64, LABEL_REPEATED)
     _require(range_descriptor, 1, TYPE_INT64, LABEL_OPTIONAL)
     _require(range_descriptor, 2, TYPE_INT64, LABEL_OPTIONAL)
@@ -956,7 +958,7 @@ def inspect_decoded_recording(
                     failures.add(
                         "sensor_required_structure_drift"
                         if topic == SENSOR_TOPIC
-                        else "reference_stream_decode_failed"
+                        else "reference_required_structure_drift"
                     )
                 else:
                     status = "structure_conformant"

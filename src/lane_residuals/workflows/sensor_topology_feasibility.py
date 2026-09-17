@@ -1,4 +1,4 @@
-"""Lineage-locked orchestration for the v0.18.0 structural feasibility audit."""
+"""Lineage-locked orchestration for the v0.18.1 structural feasibility audit."""
 
 from __future__ import annotations
 
@@ -34,8 +34,8 @@ from ..io.sensor_topology_feasibility import (
     SchemaInventoryItem,
 )
 
-VERSION = "0.18.0"
-CONTRACT_REVISION = "v0.18.0-review-candidate-2026-09-15-sensor-topology-feasibility-a3"
+VERSION = "0.18.1"
+CONTRACT_REVISION = "v0.18.1-review-candidate-2026-09-17-reference-uint64-a1"
 PRESERVED_CONTRACT_REVISION = "v0.17.1-reviewed-2026-09-07-schema-v2-a1"
 PRESERVED_FAILED_CONTRACT_REVISION = "v0.17.0-reviewed-2026-09-03-layout-c1"
 PURPOSE = "sensor_topology_100m_structural_feasibility"

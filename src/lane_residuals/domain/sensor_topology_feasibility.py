@@ -1,4 +1,4 @@
-"""Pure structural geometry rules for the v0.18.0 feasibility audit.
+"""Pure structural geometry rules for the v0.18.1 feasibility audit.
 
 This module never aligns the two topics and never constructs a residual.  It
 accepts already decoded, message-local geometry, returns Boolean audit states,
