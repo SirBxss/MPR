@@ -1,4 +1,13 @@
-# Minimal Path-Residual Model (MPR) v0.18.1 corrective review candidate
+# Minimal Path-Residual Model (MPR) v0.18.1
+
+Current checkpoint (2026-09-17): corrective implementation review and CI pass;
+the corrected private batch01 output has been received and reconciled.
+Reference H100 readiness is 9,235 and source-time pairing is 17,087, while
+the unchanged sensor audit has zero chains reaching 100 m. Focused real-output
+review is pending. See
+[`docs/sensor_topology_batch01_v0181_result.md`](docs/sensor_topology_batch01_v0181_result.md)
+and [`docs/current_status.md`](docs/current_status.md) for exact evidence and
+the next step. No further run or residual construction is authorized.
 
 MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
@@ -20,8 +29,9 @@ streams, but exposed one exact reference-descriptor binding defect:
 `RoadLaneSegment.id_` is `uint64`, while the reviewed synthetic fixture and
 validator required `int64`. The narrow v0.18.1 correction changes only that
 binding, gives readable reference structural drift its own failure code, and
-extends the import-graph test through the runtime MCAP decoder. It must receive
-focused corrective review before the private audit is rerun. The original
+extends the import-graph test through the runtime MCAP decoder. It received
+focused corrective `GO`; the corrected real output is now reconciled and
+awaits its own focused review. The original
 v0.18.0 output remains immutable evidence. No threshold or sensor rule changes;
 the first run observed zero strict sensor chains reaching 100 m.
 It performs no cross-topic coordinate comparison and exports no timestamps,

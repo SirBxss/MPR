@@ -4,7 +4,31 @@ Last updated: 2026-09-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Corrective review accepted on 2026-09-17; private rerun pending
+## v0.18.1 real output reconciled on 2026-09-17; result review pending
+
+The user supplied the corrected batch01 audit and reported applying the
+documentation-only review handoff. Artifact reconciliation passed against the
+preserved v0.18.0 output, exact manifest and v0.17.1 intake. The reference
+descriptor is now `structure_conformant`; 9,235 reference messages are
+H100-ready and 17,087 source-time pairs pass the 50 ms gate. All sensor counts
+and sensor failure-code sets are unchanged in every one of the 86 recordings:
+16,737 ego candidates, 4,078 camera structures, 4,039 valid camera-only chains,
+and zero chains reaching 100 m. Synchronized 100 m candidates remain zero.
+
+The exact hashes, before/after comparison, failure counts, verification scope
+and interpretation limits are in
+`docs/sensor_topology_batch01_v0181_result.md`. Raw MCAP bytes were unavailable
+here; recorded hashes and reports were reconciled, not raw geometry re-decoded.
+No numeric span distribution or alternative horizon was inspected. The
+corrective-review H1/H4 reconciliation checks pass.
+
+Next: push the documentation-only handoff and result record to the existing
+PR #20 branch and obtain focused independent real-output review. No new code
+or private rerun is needed. Keep both output directories unchanged and the PR
+unmerged. At this check GitHub still points to reviewed implementation
+`bc50ee6`; the user's applied documentation patch is not yet visible remotely.
+
+## Corrective implementation review and CI record
 
 The user pushed the correction after local tests passed. GitHub PR #20 now
 points to `bc50ee656351beca14ab1f0ae57613fc3b86e81c`, tree
@@ -26,14 +50,12 @@ completed successfully for this pushed change. Both `unit-tests (3.10)` and
 compilation, and unit tests. This resolves review item H3. This is CI evidence,
 not a private-data execution.
 
-Next: run the documented v0.18.1 audit exactly once at the reviewed code
-identity above, using the unchanged closed batch01 bytes, manifest and
-preserved v0.17.1 intake, and a new nonexistent output directory. No further
-implementation or review is required before this bounded run. The private
-MCAPs are not available in this workspace. The rerun has not been performed
-here and no v0.18.1 real-output counts are known.
+That GO authorized one private v0.18.1 run against unchanged closed batch01
+bytes, manifest and preserved v0.17.1 intake into a new directory. The user
+has now supplied that run's output. Its reconciliation is recorded above;
+the authorization is not permission for another run.
 
-Before accepting the new output, reconcile both three-file bundles:
+The required reconciliation checklist was:
 
 - verify their own output hashes and identical manifest, raw-hash map and
   preserved-intake identity;
@@ -58,11 +80,11 @@ Finally, a zero count at 100 m does not establish that every chain was far
 from the boundary: numeric spans were not exported. Preserve the report as
 received rather than modifying it. H2 (recording the already documented
 floating-point slack in a dated contract clarification before thesis use)
-remains optional and does not delay this rerun or change any threshold.
+remains optional and changes no threshold or interpretation of this run.
 
 This GO authorizes no merge, new target, cross-topic alignment, residual,
-model, planner run or figure. The documentation-only review record can be
-applied after the run so the execution remains at the exact reviewed tree.
+model, planner run or figure. The user has reported applying the
+documentation-only review record; it changes no executable code.
 
 ## Historical takeover verification, before the corrective push
 
@@ -150,8 +172,9 @@ frame contract; independent ground truth has not been established.
   Independently, zero sensor chains reached 100 m. Preserve that v0.18.0 output
   unchanged. v0.18.1 corrects only the descriptor type and failure
   classification. The exact corrective HEAD and tree now have focused `GO`
-  and passing Python 3.10/3.12 CI, as recorded above. One new-directory rerun
-  is the next action. No cross-topic projection, H100 residual-pair
+  and passing Python 3.10/3.12 CI, as recorded above. The corrected real run is
+  received and reconciled; focused real-output review is the next action.
+  No cross-topic projection, H100 residual-pair
   claim, merge, threshold change, or target adoption is authorized. Three private source traces now
   record the technical evidence and all 23 complete tracked paths; the third
   rechecked the claims against immutable `HEAD` blobs but did not capture the
@@ -833,13 +856,11 @@ Next actions are ordered:
 3. preserve the v0.18.0 contract and implementation review `GO` reports and
    original three-file private output unchanged; no further BMW-source answer
    is required for this correction;
-4. preserve the accepted v0.18.1 corrective review and passing CI identities
-   recorded above, then execute its one approved private rerun against the
-   identical raw bytes, manifest, and preserved intake into a new v0.18.1
-   directory;
-5. reconcile both three-file outputs, including unchanged sensor counts and
-   corrected reference descriptor support, and obtain focused real-output
-   review before merging or making a scientific conclusion;
+4. preserve the accepted v0.18.1 corrective review, passing CI identities and
+   the now-reconciled corrected three-file output unchanged; do not rerun;
+5. obtain focused real-output review of both three-file bundles and
+   `docs/sensor_topology_batch01_v0181_result.md` before merging or promoting
+   the bounded result into a scientific conclusion;
 6. continue acquiring separate outcome-blind physical outings through new
    manifests and versioned outputs until at least seven new outings are
    technically eligible; where operationally possible, acquire the same
@@ -904,7 +925,9 @@ reaching 100 m. The v0.18.1 correction changes only that descriptor binding,
 the associated structural-drift failure label, output version/revision, and the
 runtime import-graph test. Focused corrective review returned `GO` for the
 exact pushed HEAD and tree recorded above; both CI versions pass. The approved
-private rerun and its output reconciliation/review are the next gate.
+private rerun is now received and reconciled: reference readiness is 9,235,
+source-time pairing is 17,087, and synchronized candidates remain zero with
+the sensor ladder unchanged. Focused real-output review is the next gate.
 Even a positive synchronized count after correction
 would authorize only resolution of the physical frame contract and a separate
 alignment-audit predeclaration; it is not an H100 residual pair and does not
@@ -914,6 +937,8 @@ unless the predeclared scientific threshold is changed—which is not authorized
 
 ## Reading map
 
+- `docs/sensor_topology_batch01_v0181_result.md`: corrected real batch01
+  output, exact lineage, before/after reconciliation and pending result review.
 - `docs/modeling_plan.md`: phase gates, evidence, and data-acquisition limits.
 - `docs/model_comparison.md`: concise accepted metric table, output-driven
   presentation figure, model comparison by property, and planner relevance.
