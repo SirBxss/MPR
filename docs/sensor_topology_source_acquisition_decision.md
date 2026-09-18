@@ -1,9 +1,18 @@
 # Post-v0.18.1 source and acquisition decision
 
-Date: 2026-09-17. Status: evidence collection prepared; no new scientific
-target, acquisition configuration, diagnostic or implementation is selected.
+Started: 2026-09-17. Updated: 2026-09-18. Status: the source inquiry has
+returned; a timestamp/provenance interpretation correction is prepared for
+focused review. No new scientific target, acquisition configuration,
+diagnostic or executable implementation is selected.
 This is the planning step toward a possible v0.19 phase, not a v0.19 release
 or an executable audit predeclaration. MPR remains version 0.18.1.
+
+Current disposition: `docs/bmw_sensor_topology_epoch_evidence.md` preserves
+the received transcript identity and assesses the new findings. The next
+evidence request concerns the recording's actual build/configuration and
+an applicable physical-frame/epoch specification. Do not repeat the broad
+inquiry below. The reported cutoff is a current-source hypothesis for
+batch01; it is neither an observed span nor a chosen new horizon.
 
 ## Starting point
 
@@ -32,9 +41,9 @@ construction, and which implementation, if any, follows from it?**
 | 100 m span | No strict chain passes in this batch under the reviewed recipe | A maximum physical sensor range, typical lengths, distance from the threshold or a viable shorter horizon |
 | Chain termination | MPR stops on normal termination or an empty map-influenced successor and rejects ambiguous/invalid chains | Which producer/configuration mechanism explains this batch's short chains; the outputs do not separate those terminal causes |
 | Midpoint | MPR orients each side and pairs equal fractions of its own arc length in `midpoint_from_boundaries` | That unequal boundary extents share a longitudinal origin or that equal fractions represent common physical cross-sections |
-| Source time | Near-time source messages exist; LTSB's timestamp is traced to lane-marking validity time | That every held/cached boundary has the header epoch without propagation, or that small time offset makes geometry aligned |
+| Source time | Numeric header proximity is observed; the fourth trace reports tracking/odometry-epoch and pipethrough/header-time branches plus possible timestamp rewriting | The recorded mode/epoch, equal measurement age or aligned geometry |
 | Frame | LTSB units are known; RLMB documents rear-axle reference; no common LTSB origin/axes were established | A physical transform, axis convention, vehicle reference point or valid motion-compensation recipe |
-| Producer/configuration | Three earlier source traces resolved paths and interface details at an unnamed BMW HEAD | The deployed batch01 build/configuration or an acquisition mode capable of the intended geometry |
+| Producer/configuration | Three earlier traces and a fourth at reported BMW HEAD `465073b`; the latter reports concrete cutoff and processing parameters | The deployed batch01 build/configuration or an acquisition mode capable of the intended geometry |
 
 Possible clipping, unequal boundary support, held geometry and reconstruction
 conservatism are **hypotheses**, not findings from the output counts. There is
@@ -42,12 +51,12 @@ no newly established implementation defect. The normalized-midpoint recipe
 remains valid as the definition of the completed structural diagnostic; its
 suitability for a future physical residual needs separate justification.
 
-## Next bounded action: a read-only BMW source/configuration inquiry
+## Completed inquiry scope (preserved for context)
 
 The BMW checkout is unavailable to the MPR implementation agent. Follow
 `AGENTS.md`: provide a focused Copilot request for exact private symbols and
 evidence, then use the returned source trace to choose the implementation.
-The request is a separate handoff file outside Git. It asks three questions:
+The request was a separate handoff file outside Git. It asked three questions:
 
 1. **Extent and acquisition:** trace the camera-boundary input through
    clipping/filtering, segment partitioning and holding to the existing LTSB
@@ -90,6 +99,7 @@ unresolved consequence for each answer. Unresolved answers are acceptable.
 
 | Supported finding | Next bounded action | What stays blocked |
 |---|---|---|
+| Source evidence contradicts an interpretation without establishing an executable defect (current disposition) | Correct and review the epoch/provenance claims; recover recording/frame evidence without changing the accepted counts | Inferring a causal diagnosis, hard-coding current defaults or rerunning the audit |
 | A concrete decoder or reconstruction mismatch with applicable producer semantics | Demonstrate it with a minimal synthetic fixture; propose a narrow versioned corrective contract and review before changing an accepted rule or rerunning private data | Silent changes to v0.18.1 or treating a changed recipe as the same result |
 | A documented acquisition mode can supply the desired camera support | Plan a prospective pilot with recorded build/configuration and separate physical-session identity; define technical acceptance before seeing its output | Assuming 100 m observed span guarantees forward H100 from an ego anchor or a final-data cohort |
 | Confirmed producer limits make the intended H100 target unsuitable | Present an explicit target/source decision, with scientific rationale independent of selecting a passing horizon on batch01 | Automatically choosing 50/60/80 m, extending with map geometry, extrapolating or reusing EDP models |

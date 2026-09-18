@@ -20,7 +20,9 @@ implementation for the thesis; LEEM is historical reference material only.
      and
    - `docs/sensor_topology_feasibility_predeclaration.md` and
      `docs/bmw_sensor_topology_source_evidence.md` before any work that reads
-     `/adp/lane_topology_sensor_based` as a candidate estimate source.
+     `/adp/lane_topology_sensor_based` as a candidate estimate source; and
+   - `docs/bmw_sensor_topology_epoch_evidence.md` for the later correction to
+     unconditional camera-time/raw-geometry interpretations.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
@@ -174,12 +176,14 @@ Read `docs/sensor_topology_batch01_v0181_result.md` and the first section of
 documentation closure. The earlier review-before-rerun instructions above
 record gates already completed, not permission for a further run. The closed
 batch stays negative; no horizon/rule change, residual construction or new
-scientific execution is authorized. PR #20 is now merged. The next step is the read-only source/configuration
-inquiry in `docs/sensor_topology_source_acquisition_decision.md`. It addresses
-previously unresolved producer extent, frame/epoch and provenance; it does not
-reopen the closed decoder questions or authorize a new private diagnostic.
-Prepare exact BMW source questions rather than inventing unavailable details.
-Select the next implementation only after the evidence identifies it.
+scientific execution is authorized. PR #20 is now merged. The source inquiry
+in `docs/sensor_topology_source_acquisition_decision.md` has returned. The
+next step is focused review of the epoch interpretation correction and the
+recording/frame evidence request in `docs/bmw_sensor_topology_epoch_evidence.md`.
+Do not treat current-source defaults as recording settings, x cutoff as
+geometric span, or source-time pairing as equal physical measurement age.
+This does not reopen closed decoder questions or authorize a private run.
+Select the next executable change only after applicable evidence identifies it.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

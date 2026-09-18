@@ -1,14 +1,15 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-Current checkpoint (2026-09-17): PR #20 is merged at `1403927`; its final
-branch tree passed Python 3.10/3.12 CI. Corrective and real-output reviews
-returned `GO` with zero blockers. Batch01 remains closed negative: 9,235
-reference-ready messages and 17,087 time pairs, but zero 100 m sensor chains
-and zero synchronized candidates. The next step is a focused read-only BMW
-source/configuration inquiry, prepared in
-[`docs/sensor_topology_source_acquisition_decision.md`](docs/sensor_topology_source_acquisition_decision.md).
-It investigates extent, frame/epoch and provenance before selecting
-another implementation. See
+Current checkpoint (2026-09-18): PR #20 is merged at `1403927`. The new BMW
+source inquiry reports configuration-dependent upstream tracking and
+timestamp semantics. A documentation correction is prepared for focused
+review; see
+[`docs/bmw_sensor_topology_epoch_evidence.md`](docs/bmw_sensor_topology_epoch_evidence.md).
+Batch01 remains closed negative: 9,235 reference-ready messages and 17,087
+numeric header-time pairs, but zero 100 m sensor chains and zero synchronized
+candidates. The recording's actual build/configuration and physical-frame
+specification are still missing. No new extraction code or horizon is chosen.
+See
 [`docs/sensor_topology_batch01_v0181_result.md`](docs/sensor_topology_batch01_v0181_result.md)
 and [`docs/current_status.md`](docs/current_status.md) for exact evidence and
 the next step. No further run or residual construction is authorized.

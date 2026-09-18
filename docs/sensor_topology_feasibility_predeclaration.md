@@ -356,9 +356,11 @@ the existing deterministic mutual-nearest algorithm with maximum absolute
 delta `50 ms`. The algorithm is inherited; the `50 ms` gate is a new,
 prospectively fixed v0.18.0 structural-audit constant. The v0.17 intake did not
 apply an estimate/reference delta gate, and historical comparison commands
-used a different `20 ms` default. The LTSB time is camera lane-marking validity
-time; RLMB time is pose validity time. Both use the ADP clock, so proximity is
-auditable even though their physical geometry frames are not proven equal.
+used a different `20 ms` default. The original a3 rationale described LTSB
+time as camera lane-marking validity time and RLMB time as pose validity
+time on the ADP clock. The dated 2026-09-18 addendum below withdraws the
+unconditional LTSB epoch interpretation; the numerical pairing rule stays
+unchanged. Neither physical synchronization nor equal measurement age follows.
 
 Log/publish time cannot repair an invalid source timestamp. The singular
 proto3 timestamp scalar has no presence bit, so "present" is not observable.
@@ -370,8 +372,9 @@ Pairing is recording-local and never crosses an MCAP boundary.
 
 A `synchronized_100m_candidate` is one mutual-nearest pair for which the
 sensor message passes `camera_chain_100m_span` and the reference message passes
-`reference_h100_ready`. It means only dual structural availability at nearby
-validity times. It does not evaluate physical alignment, anchor distance,
+`reference_h100_ready`. Under the dated interpretation correction below, it
+means only dual structural availability at nearby numeric header timestamps.
+It does not evaluate physical synchronization, alignment, anchor distance,
 station correspondence, or residual readiness.
 
 ## Counting and failure vocabulary
@@ -769,3 +772,24 @@ reconstruction or junction-duplicate rules. Numeric sensor spans are absent
 from the artifacts, so neither their proximity to these boundaries nor the
 effect of removing the slack can be inferred from the zero count. No rerun
 or sensitivity calculation is authorized by documenting these comparisons.
+
+## Retrospective epoch clarification, 2026-09-18
+
+This is an interpretation correction proposed after the completed audit;
+focused independent review is pending. It is not a new prospective rule.
+`docs/bmw_sensor_topology_epoch_evidence.md` records the supplied transcript,
+its SHA-256, reported BMW HEAD and evidence limits. The new source report
+describes configuration-dependent LMSB processing: a tracking/odometry-epoch
+branch, a camera-header pipethrough branch and possible timestamp rewriting.
+It does not establish which branch/settings generated batch01.
+
+Withdraw the original unconditional camera-measurement-time assumption.
+Keep the same positive/strict scalar checks, recording-local mutual-nearest
+algorithm, 50 ms comparison and all geometric rules. The 17,087 accepted
+time pairs mean numeric header proximity only; no common physical epoch,
+equal age or valid compensation follows. The independent zero sensor-span
+gate still forces zero synchronized structural candidates.
+
+No output, machine field, contract-revision identifier, threshold or code is
+changed, and no rerun is authorized. Existing GOs and frozen outputs remain
+historical evidence; they do not pre-approve this later clarification.

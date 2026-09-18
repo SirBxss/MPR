@@ -1,10 +1,56 @@
 # Current project status
 
-Last updated: 2026-09-17. This is the first file a new agent should read after
+Last updated: 2026-09-18. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## PR #20 merged; source/acquisition decision is the next step
+## Source inquiry received; epoch interpretation correction prepared
+
+The user pushed `docs/v0.19-source-acquisition-decision` at
+`3f894efce9af19f781003b30ea742ad9c0bb6226`, tree
+`9457ad603ffc898bdcb1c985e1b1cdc69ef5bbe5`; Git fetch confirms the delivered
+tree. `main` remains the PR #20 merge `1403927`. No open PR was found at this
+checkpoint, and the PR-event workflow query returns no run for the new branch
+head. This is not a failed test: the configured workflow runs on PRs and
+pushes to `main`. The unchanged executable baseline has 434 tests run,
+432 passes and two opt-in skips.
+
+Received `copilot_session_22.txt`, SHA-256
+`f9f16bec168197ee489ced8f4f4d7f29e48f202834e5acbc9e21aed716f11565`.
+Copilot reports BMW HEAD `465073bc593195eee0e4eada0a1389943e006a2b`, a clean
+initial worktree and no link to the August 2025 recording build. The report
+is preserved unchanged outside Git. The assessment and pending focused
+interpretation review are in `docs/bmw_sensor_topology_epoch_evidence.md`.
+
+The important correction is configuration-dependent upstream processing:
+LMSB can track/propagate camera-derived geometry to an odometry timestamp;
+pipethrough and timestamp-override behavior are separate possibilities.
+Withdraw the unconditional camera-measurement-time interpretation. Retain
+the 17,087 pairs only as numeric header-time proximity, with all audit
+counts and preserved outputs unchanged. No new MPR decoder or arithmetic
+defect is established. The code performs no 80 ms correction or inference
+of the producer mode, and no such change is justified now.
+
+The reported `max(61 m, speed * 2.5 s)` x-cutoff is a plausible mechanism,
+not a batch01 diagnosis or a bound on accumulated sensor-chain length.
+Checked-in parameters do not establish deployed values. Equal fractional
+boundary stations can mismatch physical sections, but this is not proof of
+observed statistical bias. Frame equivalence and error independence remain
+unestablished. The new evidence note qualifies other source-report overreach
+and the incomplete immutable-read evidence without demanding a repeat of
+the entire source inquiry.
+
+Next: apply/push the documentation correction to the same user branch,
+open a focused PR and obtain review of the material epoch interpretation.
+The supplied private review prompt names the exact expected tree. In
+parallel, use the narrower recording/frame evidence request supplied outside
+Git. Existing sidecars/build/configuration records and an applicable frame
+specification are the required inputs; no new MCAP scan or payload run is
+authorized. If historical provenance cannot be recovered, record unknown
+and make any future pilot self-contained under its own prospective scope.
+Do not block all future work indefinitely on finding batch01's build.
+
+## Historical merge and source-inquiry preparation, 2026-09-17
 
 On 2026-09-17 GitHub and a local fetch confirm PR #20 merged at
 `1403927b8b0a0155cea19c6daba841160254c8c1`. Merged `main` and final branch
@@ -970,13 +1016,15 @@ The three Copilot traces are preserved outside Git with SHA-256 values
 summarized in the evidence document. They found that `drive_path_range` is not
 written by LTSB, `ego_lane_segment_indices` represents branch alternatives,
 full geometry may require successor traversal, and the producer directly
-consumes map/map-matching inputs. They confirmed compatible validity-time
-semantics, CAMERA boundary provenance, SENSOR_TOPOLOGY whole-message
+consumes map/map-matching inputs. They established the timestamp scalar and
+LTSB copy assignment, CAMERA boundary provenance, SENSOR_TOPOLOGY whole-message
 assignment, nested coordinate validity, and stored-order geometry. The third
 trace resolved all 23 complete paths and rechecked the claims from immutable
 `HEAD` blobs. It did not capture the literal BMW commit SHA, which limits exact
 source-trace reproduction but does not block the descriptor-driven MPR audit.
 The traces did not establish a common physical origin or axes with RLMB.
+The fourth trace now qualifies the upstream epoch and processing mode; see
+the current evidence note before interpreting source-time pairs physically.
 
 The frozen a3 first stage remains limited to the closed 86-file batch01 and
 three privacy-safe outputs. It may inventory descriptors; enforce exactly one
@@ -1009,6 +1057,8 @@ unless the predeclared scientific threshold is changed—which is not authorized
 
 ## Reading map
 
+- `docs/bmw_sensor_topology_epoch_evidence.md`: fourth source trace, material
+  timestamp correction, evidence limits and recording/frame request.
 - `docs/sensor_topology_source_acquisition_decision.md`: current source-only
   inquiry, evidence gaps, decision branches and next implementation gate.
 - `docs/sensor_topology_batch01_v0181_result.md`: corrected real batch01

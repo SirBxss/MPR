@@ -191,6 +191,13 @@ or output revision changes. O4 is addressed in the current status and README.
 
 ## Interpretation and next gate
 
+Update on 2026-09-18: the later BMW source transcript requires an epoch
+interpretation correction, recorded in
+`docs/bmw_sensor_topology_epoch_evidence.md` and pending its own focused
+review. Treat the 17,087 time pairs as numeric embedded-header proximity;
+the recorded producer mode, geometry epoch and measurement-age relationship
+remain unknown. No count, hash, original review or output is changed.
+
 The binding defect is corrected: reference readiness and timing are now
 evaluated. Under the unchanged strict camera-only reconstruction, this one
 closed batch still supplies no synchronized 100 m structural candidates
@@ -206,9 +213,10 @@ LTSB topology is map-influenced and RLMB is not physical ground truth. The
 86 files are one physical outing, not 86 independent validation units.
 
 The documentation closure and user's merge are complete. The next step is
-the source/configuration inquiry in
-`docs/sensor_topology_source_acquisition_decision.md`. No further corrective
-or real-output review is pending. Do not rerun, change thresholds, adopt
+the interpretation review and recording/frame evidence request in
+`docs/bmw_sensor_topology_epoch_evidence.md`. The original implementation
+and real-output reviews are complete; the later epoch clarification is a
+separate review scope. Do not rerun, change thresholds, adopt
 a shorter horizon, construct residuals, refit models or execute a planner to
 turn this result positive. Any subsequent acquisition change or alternative
 target/horizon requires its own prospective decision and applicable review.

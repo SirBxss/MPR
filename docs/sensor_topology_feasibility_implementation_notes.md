@@ -158,10 +158,12 @@ document for their artifact-only verification scope.
    do not apply another patch to the completed PR.
 3. Preserve both outputs and review reports unchanged outside Git. Do not
    rerun the closed batch or change a threshold to convert the negative.
-4. Complete the source/configuration inquiry in
-   `docs/sensor_topology_source_acquisition_decision.md`, then select the next
-   supported implementation and its applicable contract/review. These outputs
-   do not identify an alternative horizon or establish frame equivalence.
+4. The source/configuration inquiry has returned. Read
+   `docs/bmw_sensor_topology_epoch_evidence.md` for the epoch interpretation
+   correction and remaining recording/frame request before selecting any
+   executable change. The original numerical pairing does not require a code
+   fix; its physical interpretation needs qualification. These outputs do
+   not identify an alternative horizon or establish frame equivalence.
 
 ## Historical corrective checklist (completed)
 

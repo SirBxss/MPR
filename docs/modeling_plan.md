@@ -49,7 +49,7 @@ are not the thesis execution path.
 | v0.17.1 | Exact EDP schema-v2 compatibility | Complete and independently approved; the amended batch01 audit restored 5,289 H100-ready paths, but every candidate is LANE_MAP, so zero frames/outings pass the unchanged SENSOR_TOPOLOGY primary gate |
 | v0.18.0 | Standalone sensor-topology 100 m structural feasibility | Contract and implementation received focused `GO`; the one authorized run decoded both streams but exposed a reference descriptor binding defect and observed zero sensor chains reaching 100 m |
 | v0.18.1 | Exact RLMB `uint64` schema correction | Complete, independently reviewed and merged; the corrected batch01 audit restores reference readiness/time pairing but remains negative under unchanged sensor rules |
-| next decision | Producer/configuration and target evidence | Read-only BMW source inquiry prepared; implementation remains contingent on extent, frame/epoch/correspondence and provenance evidence |
+| next decision | Producer/configuration and target evidence | Source inquiry received; configuration-dependent epoch interpretation correction awaits focused review, while recording/frame evidence still gates any new extraction implementation |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -238,9 +238,14 @@ fixture's assumed `int64`; it also observed zero strict sensor chains reaching
 binding and failure classification. Its corrective review and corrected
 real-output review returned `GO`; PR #20 is merged. The sensor 100 m count
 remains zero, so the closed batch is negative. No threshold may be relaxed.
-The next step is the source/configuration inquiry and explicit decision in
-`docs/sensor_topology_source_acquisition_decision.md`. It creates no new
-statistic, model, residual target or executable audit.
+The source/configuration inquiry has returned. Its material correction is
+that upstream tracking and timestamp overrides prevent an unconditional
+camera-measurement-time interpretation. See
+`docs/bmw_sensor_topology_epoch_evidence.md` for the pending interpretation
+review and recording/frame evidence request, and
+`docs/sensor_topology_source_acquisition_decision.md` for the decision scope.
+The numeric timestamp-pair counts remain unchanged; no new statistic, model,
+residual target or executable audit is introduced.
 
 A successful real v0.17 lock still does not authorize final evaluation. The
 exact training corpus, frozen competitors, fitting rules, final-outing failure
