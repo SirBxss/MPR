@@ -4,7 +4,61 @@ Last updated: 2026-09-19. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Four large-file arrivals take priority; registration comes first
+## Batch02 registration reconciled; narrow matcher maintenance ready for review
+
+The user returned `mpr_batch02_registration_review.zip`, SHA-256
+`5e6b4e284281f63b7dfe3daa27f76980f2eb5baebfcddd1488c7b8da27124783`.
+Its two files reconcile internally: four distinct reported raw hashes,
+exact manifest/report basename coverage and 43,742,434,459 total bytes.
+Each summary advertises EDP, RLMB, LTSB, map-based topology, LMSB and odometry.
+The five path/marking topics each total 57,256 messages; odometry totals
+173,518. EM ego-lane path is not advertised. These are summary counts,
+not payload/geometry compatibility or H100 eligibility results. Raw hashes
+were not independently recomputed here.
+
+The private manifest exactly matches the unfilled draft: dates are null,
+independence descriptions remain placeholders and attestations remain false.
+Do not interpret these defaults as negative data findings or set them true
+on the user's behalf. A formal intake needs truthful owner-completed session
+declarations. The received ZIP contains no machine RAM or build/frame record.
+The original ZIP/registration remain immutable; the user should complete a
+new versioned private manifest copy and send `free -h`.
+
+The registration reports commit
+`ddaceee60b2b9c4a63ed656a1d982ed858f3da9c` and no tracked modifications.
+GitHub still exposes only the source-acquisition branch at `ca6b154`, with
+main at `1403927` and no open PR. The reported local execution commit/tree
+cannot yet be verified remotely. The expected arrival tree is
+`1145540895cd910748036293cda4c3d77d4833a1`.
+
+The 34,081-message largest path stream justifies a narrowly scoped maintenance
+change: `domain/pairing.py::_unique_nearest_positions` now uses sorted integer
+timestamps and binary search instead of all-to-all distances. Original indices,
+duplicate/tie ambiguity, both-direction mutuality, missing/unmatched states,
+signed deltas, gate timing and output ordering are preserved. No scientific
+threshold, schema, output or package version changes. The separate v0.18
+sensor matcher and its closed-batch authorization remain untouched.
+
+Compilation passes; the 58 focused tests pass; the full suite runs 440 tests,
+438 pass and the same two opt-in tests skip. Six new tests establish complete
+audit parity against an exhaustive oracle and guard against quadratic
+distance work. A synthetic 34,081-message pair completes in approximately
+0.213 seconds locally. This is not a whole-MCAP or geometry memory benchmark.
+Exact evidence, timings, limits and handoff are in
+`docs/independent_outing_batch02_registration_result.md`.
+
+Next: apply the new patch on the user's existing local batch02 branch, push
+and open one combined PR to main. Obtain focused review of the pending epoch
+interpretation and this matcher maintenance, with normal CI. Keep the older
+source branch until that PR is accepted and merged; no separate old-branch
+PR is needed. No push/PR/merge/branch deletion has been performed here.
+In parallel collect the missing manifest/RAM evidence. Whole-file geometry
+retention still needs resource assessment before a full intake; this patch
+alone is not permission for a private payload run. Do not rerun registration
+or batch01, infer seven eligible outings from four files, or adopt a new
+sensor residual target from topic names/counts.
+
+## Historical four-file arrival preparation, 2026-09-19
 
 The user reports four new drives, one large MCAP per drive. The screenshot
 shows rounded sizes totaling approximately 43.7 GB, with a 25.9 GB largest

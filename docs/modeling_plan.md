@@ -49,7 +49,7 @@ are not the thesis execution path.
 | v0.17.1 | Exact EDP schema-v2 compatibility | Complete and independently approved; the amended batch01 audit restored 5,289 H100-ready paths, but every candidate is LANE_MAP, so zero frames/outings pass the unchanged SENSOR_TOPOLOGY primary gate |
 | v0.18.0 | Standalone sensor-topology 100 m structural feasibility | Contract and implementation received focused `GO`; the one authorized run decoded both streams but exposed a reference descriptor binding defect and observed zero sensor chains reaching 100 m |
 | v0.18.1 | Exact RLMB `uint64` schema correction | Complete, independently reviewed and merged; the corrected batch01 audit restores reference readiness/time pairing but remains negative under unchanged sensor rules |
-| next decision | Four-file batch02 arrival and producer/target evidence | Register the four large new files and inspect existing summary metadata; assess per-file memory and timestamp-pairing scale before payload processing. The pushed epoch correction awaits review; frame/epoch evidence still gates sensor residual extraction |
+| next decision | Batch02 registration and canonical pairing maintenance | Summary counts reconciled; session declarations/RAM evidence missing. Semantics-preserving timestamp-pairing optimization prepared for review; whole-file geometry memory still needs assessment. Pending epoch review and physical correspondence/frame evidence remain separate gates |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs

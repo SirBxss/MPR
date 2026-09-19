@@ -194,6 +194,18 @@ run; do not use the batch01-pinned v0.18 command for new files. Four files do
 not prove four outings and four eligible outings cannot meet the seven-outing
 gate. Keep old outputs immutable and use the batch02 root, not its parent.
 
+The batch02 summary registration has now been returned and internally
+reconciled; read `docs/independent_outing_batch02_registration_result.md`.
+It advertises 57,256 messages per path/marking topic across four files, but
+the manifest remains the exact unfilled draft and the executed local commit
+has not been pushed. A narrow canonical timestamp-pairing optimization is
+prepared for review: six parity/work-bound tests raise the suite to 440 tests
+run, 438 passing and the same two skips. It changes no scientific pairing
+rule and does not touch the separate v0.18 sensor matcher. Whole-file geometry
+memory remains unassessed. Next obtain the combined PR review plus truthful
+manifest/RAM evidence; do not rerun registration, infer eligibility from
+summary counts, or execute private geometry from this maintenance alone.
+
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location

@@ -1,5 +1,11 @@
 # Batch02: four large-file arrivals
 
+Completion checkpoint: the user has returned the registration ZIP. See
+`docs/independent_outing_batch02_registration_result.md` for the reconciled
+counts, incomplete owner declarations and next engineering step. Preserve
+the report and do not repeat this command. The procedure below is retained
+as the executed administrative recipe, not a new payload-run authorization.
+
 Date: 2026-09-19. Status: administrative registration and container-topic
 inventory only; no batch02 payload, geometry, eligibility or model result has
 been inspected here. The user reports four new drives, each in one MCAP.
