@@ -1,5 +1,13 @@
 # Post-v0.18.1 source and acquisition decision
 
+2026-09-19 priority update: four new large MCAPs have arrived according to the
+user. Follow `docs/independent_outing_batch02_arrival.md` for administrative
+registration and existing summary-only inspection first. The epoch correction
+is already on the remote branch at `ca6b154` and still awaits focused review.
+Recover available metadata for these new sessions; missing historical batch01
+build records do not block their registration. The scientific decision table
+below remains applicable before any new geometry/residual construction.
+
 Started: 2026-09-17. Updated: 2026-09-18. Status: the source inquiry has
 returned; a timestamp/provenance interpretation correction is prepared for
 focused review. No new scientific target, acquisition configuration,

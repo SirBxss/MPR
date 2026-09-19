@@ -184,6 +184,15 @@ Do not treat current-source defaults as recording settings, x cutoff as
 geometric span, or source-time pairing as equal physical measurement age.
 This does not reopen closed decoder questions or authorize a private run.
 Select the next executable change only after applicable evidence identifies it.
+The 2026-09-19 arrival of four large MCAPs changes the immediate priority:
+follow `docs/independent_outing_batch02_arrival.md` for isolated file registration,
+truthful private session declarations and the existing summary-only reader.
+The epoch correction is already pushed at `ca6b154`; do not apply it twice.
+This administrative inventory does not decode payloads or assign roles.
+Assess whole-file geometry retention and O(N*M) pairing before a full-drive
+run; do not use the batch01-pinned v0.18 command for new files. Four files do
+not prove four outings and four eligible outings cannot meet the seven-outing
+gate. Keep old outputs immutable and use the batch02 root, not its parent.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

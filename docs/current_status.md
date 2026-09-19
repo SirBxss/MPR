@@ -1,10 +1,60 @@
 # Current project status
 
-Last updated: 2026-09-18. This is the first file a new agent should read after
+Last updated: 2026-09-19. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Source inquiry received; epoch interpretation correction prepared
+## Four large-file arrivals take priority; registration comes first
+
+The user reports four new drives, one large MCAP per drive. The screenshot
+shows rounded sizes totaling approximately 43.7 GB, with a 25.9 GB largest
+file. No raw bytes, topic counts, acquisition dates or physical-session
+attestations for these files have been supplied here. They are four candidate
+files, not yet four verified independent/eligible outings.
+
+Git fetch on 2026-09-19 confirms the existing user branch
+`docs/v0.19-source-acquisition-decision` at
+`ca6b154320c7cff7e77adb42cf7c3586e6dc88eb`, tree
+`927cd0e4ff5f76b9bde2104e205fe247f6127424`: the prior epoch correction is
+already present despite the user's report that the last patch was not
+applied. Do not deliver/apply that correction twice. `main` remains
+`1403927`; no open PR was found. Focused interpretation review remains
+pending; presence on the branch is not review acceptance.
+
+Next: follow `docs/independent_outing_batch02_arrival.md`. Register the
+original files under the dedicated `data/raw/new_independent_outings/batch02`
+root, record truthful session provenance privately, and use the existing
+summary-only topic reader plus streaming hashes. The accompanying private
+draft does not pre-attest dates, independence or outcome blindness. Registration
+can proceed with explicit provenance gaps; a valid intake manifest cannot.
+No payload/geometry extraction or cohort assignment is part of this step.
+The old batch's unavailable historical metadata does not block registration.
+
+Source inspection identifies a concrete execution concern: the v0.17 intake
+retains per-file decoded/reconstructed geometry and its mutual-nearest matcher
+does O(N*M) timestamp work. The v0.18 matcher also does O(N*M) work. Counts
+from the new summaries will inform the need for a narrow semantics-preserving
+performance correction before full-drive execution. No memory/runtime failure
+has been observed on these files. Do not split/repack them or reuse the
+batch01-pinned v0.18 command. Old commands using the common parent root would
+now include additional files and violate their exact-coverage requirement.
+
+The unchanged final-cohort gate needs seven eligible new physical outings;
+four alone cannot pass it. Keep the new candidates outcome-blind while
+assessing technical availability. All batch01 negative results and pending
+frame/epoch/correspondence questions remain visible. This handoff changes
+priority and administrative instructions only; no runtime, tests, scientific
+threshold, schema binding or model changes.
+
+Handoff verification: compilation and all 434 tests completed (432 passes,
+two expected opt-in skips) with MCAP extras installed. The documented command
+also ran against four synthetic MCAPs with message/decoded-message iteration
+disabled; known counts, missing statistics, missing summary, file hashes and
+existing-output refusal behaved as documented. These are command checks,
+not a benchmark or a real batch02 diagnostic. No new test cases were added
+to the unchanged runtime suite.
+
+## Historical source inquiry and epoch-correction preparation, 2026-09-18
 
 The user pushed `docs/v0.19-source-acquisition-decision` at
 `3f894efce9af19f781003b30ea742ad9c0bb6226`, tree

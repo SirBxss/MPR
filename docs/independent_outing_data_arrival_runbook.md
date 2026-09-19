@@ -1,5 +1,11 @@
 # v0.17 initial data-arrival runbook
 
+For the four large-file arrivals reported on 2026-09-19, start with
+`docs/independent_outing_batch02_arrival.md`. The new administrative procedure
+isolates batch02 from the closed batch01 and checks summary metadata before
+whole-drive execution. Do not paste the historical common-parent commands
+below after adding batch02 beneath that parent; their exact file set changes.
+
 Use this runbook only for the first prospectively declared v0.17 acquisition
 batch. It operationalizes the reviewed intake contract; it does not authorize
 residual inspection, model fitting, sampling, planner execution, or final

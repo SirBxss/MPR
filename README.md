@@ -1,6 +1,16 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-Current checkpoint (2026-09-18): PR #20 is merged at `1403927`. The new BMW
+**2026-09-19 arrival update:** four new drives are reported, each in one large
+MCAP. Start with
+[`docs/independent_outing_batch02_arrival.md`](docs/independent_outing_batch02_arrival.md)
+for the dedicated batch02 directory, private session declarations and existing
+summary-only topic inventory. The earlier timestamp correction is already
+pushed at `ca6b154`; do not apply it twice. Topic counts will inform the
+whole-file memory/pairing assessment before a payload run. Four files are not
+yet four eligible outings and cannot by themselves meet the seven-outing lock.
+The historical status below remains evidence, not a command to rerun batch01.
+
+Historical checkpoint (2026-09-18): PR #20 is merged at `1403927`. The new BMW
 source inquiry reports configuration-dependent upstream tracking and
 timestamp semantics. A documentation correction is prepared for focused
 review; see
