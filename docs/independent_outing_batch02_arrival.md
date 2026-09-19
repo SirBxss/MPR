@@ -5,6 +5,9 @@ Completion checkpoint: the user has returned the registration ZIP. See
 counts, incomplete owner declarations and next engineering step. Preserve
 the report and do not repeat this command. The procedure below is retained
 as the executed administrative recipe, not a new payload-run authorization.
+PR #21 has since received `GO` and passing CI. Follow
+`docs/independent_outing_batch02_session_context.md` for the new summary-time
+and RAM follow-up, not this old registration command.
 
 Date: 2026-09-19. Status: administrative registration and container-topic
 inventory only; no batch02 payload, geometry, eligibility or model result has

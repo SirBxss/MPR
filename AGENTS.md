@@ -194,17 +194,26 @@ run; do not use the batch01-pinned v0.18 command for new files. Four files do
 not prove four outings and four eligible outings cannot meet the seven-outing
 gate. Keep old outputs immutable and use the batch02 root, not its parent.
 
-The batch02 summary registration has now been returned and internally
-reconciled; read `docs/independent_outing_batch02_registration_result.md`.
-It advertises 57,256 messages per path/marking topic across four files, but
-the manifest remains the exact unfilled draft and the executed local commit
-has not been pushed. A narrow canonical timestamp-pairing optimization is
-prepared for review: six parity/work-bound tests raise the suite to 440 tests
-run, 438 passing and the same two skips. It changes no scientific pairing
-rule and does not touch the separate v0.18 sensor matcher. Whole-file geometry
-memory remains unassessed. Next obtain the combined PR review plus truthful
-manifest/RAM evidence; do not rerun registration, infer eligibility from
-summary counts, or execute private geometry from this maintenance alone.
+The batch02 registration, epoch interpretation and canonical pairing
+maintenance received focused `GO`, zero blockers, at PR #21 head `ed981793`,
+tree `19d57ee15cbde04314341fc551303de8832e92bd`; Python 3.10/3.12 CI passes.
+The PR is merge-ready, still unmerged at the 2026-09-19 check. The reported
+registration commit is now pushed with the expected tree. Read
+`docs/independent_outing_batch02_registration_result.md` for exact identities
+and evidence limits. The suite remains 440 run, 438 passing and two skips.
+This changes no scientific pairing rule or separate v0.18 sensor matcher.
+
+Both returned manifests, including `v002`, remain the same unfilled draft.
+Follow `docs/independent_outing_batch02_session_context.md` for one summary-only
+container time-range/RAM follow-up and truthful provider/session declarations.
+No raw-file rehash, payload inspection or manifest auto-completion is part of
+that command. MCAP log time need not use the Unix epoch; any UTC display is
+conditional, and no file count proves separate physical sessions. Missing
+declarations do not block merging the accepted maintenance PR or synthetic
+engineering work. Whole-file geometry retention still needs resource
+assessment before intake; the separate sensor matcher remains quadratic.
+Do not rerun registration, infer eligibility from summary counts, or execute
+private geometry from this maintenance alone. Closed batch01 stays closed.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

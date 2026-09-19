@@ -1,10 +1,10 @@
 # BMW standalone sensor-topology source evidence
 
-Last updated: 2026-09-18. The three original BMW traces below remain the
+Last updated: 2026-09-19. The three original BMW traces below remain the
 2026-09-15 evidence. A fourth received trace materially qualifies upstream
 processing and timestamp semantics; see
 `docs/bmw_sensor_topology_epoch_evidence.md` for its hash, named BMW HEAD,
-evidence limits and pending focused interpretation review.
+evidence limits and completed focused interpretation review (`GO`, PR #21).
 
 This document tracks the evidence needed to evaluate
 `/adp/lane_topology_sensor_based` as a possible estimate-side source for a new

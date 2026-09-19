@@ -1,7 +1,9 @@
 # LTSB upstream processing and timestamp evidence update
 
-Date: 2026-09-18. Status: implementer assessment of the received source trace;
-focused independent review of this interpretation correction is pending.
+Date: 2026-09-18; review checkpoint added 2026-09-19. This interpretation
+correction received focused `GO` with zero blockers as part of PR #21 at
+`ed981793`, tree `19d57ee15cbde04314341fc551303de8832e92bd`. Exact review/CI
+identities are in `independent_outing_batch02_registration_result.md`.
 No executable change, private rerun or new target is proposed.
 
 ## Identity and evidence strength
@@ -23,7 +25,9 @@ that all reads used immutable HEAD blobs is stronger than its visible
 commands. Many reads use editor searches, `sed`, ordinary `git grep` or
 Python file reads from the worktree. The initial clean-state report helps,
 but no final clean-state check or full raw source output is supplied. The
-report abbreviates several new paths and supplies shortened blob IDs for
+transcript has 21 visible `Read` entries whose path arguments are absent,
+so those entries alone cannot be attributed to a file or immutable blob. The
+report also abbreviates several new paths and supplies shortened blob IDs for
 the original entry points, not a complete immutable evidence package for
 the newly traced LMSB files. Do not upgrade this into independent source
 reproduction. This limitation does not require repeating the broad inquiry
@@ -122,6 +126,14 @@ independent observations or motion-aligned geometry. The old blanket
 interpretations are withdrawn pending recording-applicable evidence.
 The original prospective assumption and this later correction must remain
 distinguishable; see the dated addendum in the predeclaration.
+
+The earlier shared-ADP-clock description remains a producer-source premise;
+compatible clock units/scales/origins have not been independently established
+for the recorded pair. Retain 50 ms as the frozen numeric criterion, with
+physical co-availability conditional on that premise. Clock commensurability
+and equal measurement age are different questions; neither a mode default
+nor numeric proximity resolves the latter. No clock calibration or timestamp
+shift is introduced by this clarification.
 
 The 4,039 valid chains, zero 100 m spans, 9,235 reference-ready messages and
 zero synchronized structural candidates are unchanged. The sensor-side

@@ -4,7 +4,50 @@ Last updated: 2026-09-19. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Batch02 registration reconciled; narrow matcher maintenance ready for review
+## PR #21 accepted; next collect session context and assess retained geometry
+
+On 2026-09-19 the user supplied the focused Claude review
+`MPR_batch02_registration_pairing_review.md`, SHA-256
+`6108be4a8ff4c8da9e82c221b409eac6f0f134b8e117878ccc745eb9dec9b03a`:
+**GO, zero blockers** for the epoch interpretation, administrative registration,
+canonical pairing maintenance and handoff. GitHub PR #21 is open and unmerged
+at the checked head `ed981793fbcf458a032db4fc0bfb038c39f55585`, tree
+`19d57ee15cbde04314341fc551303de8832e92bd`, against main `1403927`.
+CI run `35467755430` passed on both Python 3.10 and 3.12. This is merge-ready
+code/documentation; missing session declarations do not block its merge.
+No external push, merge or branch deletion has been performed here.
+
+The earlier reported registration commit `ddaceee60b2b9c4a63ed656a1d982ed858f3da9c`
+is now pushed and its tree matches `1145540895cd910748036293cda4c3d77d4833a1`.
+This verifies the available source tree, not the file's self-reported execution
+or the raw MCAP hashes. The independent reviewer reproduced 440 tests run,
+438 passing and two expected skips. The five optional review items are
+documented in `docs/independent_outing_batch02_registration_result.md`; no
+further runtime correction or repeated review is needed for those items.
+
+Both newly returned private manifests, including the `v002` copy, still have
+the unfilled draft SHA-256 `c5f1f524864d28f9c88bd725f307eb3303a287823ee40f9cff23b4b5cdb711e1`.
+No acquisition time, separate-session evidence or execution-machine RAM has
+been supplied. These are missing facts, not negative scientific findings.
+Follow `docs/independent_outing_batch02_session_context.md`: one additional
+summary-only read collects raw container log-time ranges and machine RAM,
+without rehashing all files, decoding payloads or editing the manifests.
+MCAP timestamps have a user-defined epoch; any Unix-to-UTC display is only
+conditional. Ask the provider for original session IDs, starts/timezones,
+capture/export relationships and log-time clock convention. Preserve the
+original registration and create a new manifest version when facts are known.
+
+Next substantive implementation: assess per-file decoded/reconstructed
+geometry memory in the canonical EDP/RLMB intake, then make only a necessary
+semantics-preserving resource correction with synthetic checks. The optimized
+canonical matcher does not make the separate quadratic, batch01-pinned v0.18
+sensor audit ready for batch02. No batch02 payload, H100 eligibility, residual
+or model result is known. Session declarations and resource assessment still
+precede a formal intake; no seven-outing lock or LTSB target adoption follows
+from this GO. Unknown old batch01 build metadata need not block new-session
+administrative work. Keep the closed batch01 outputs unchanged.
+
+## Historical registration reconciliation and maintenance preparation
 
 The user returned `mpr_batch02_registration_review.zip`, SHA-256
 `5e6b4e284281f63b7dfe3daa27f76980f2eb5baebfcddd1488c7b8da27124783`.

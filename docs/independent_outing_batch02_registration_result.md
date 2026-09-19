@@ -1,10 +1,65 @@
 # Batch02 registration reconciliation and pairing maintenance
 
-Date: 2026-09-19. Status: implementer reconciliation of the summary-only
-registration; synthetic timestamp-pairing maintenance prepared for review.
+Date: 2026-09-19. Status: summary registration, canonical timestamp-pairing
+maintenance and epoch interpretation received focused `GO`, zero blockers.
 No batch02 payload, geometry, eligibility, residual or model result is known.
 
-## Received evidence and verification limits
+## Accepted review and PR checkpoint
+
+The user supplied `MPR_batch02_registration_pairing_review.md`, SHA-256
+`6108be4a8ff4c8da9e82c221b409eac6f0f134b8e117878ccc745eb9dec9b03a`.
+It reviews pushed head `ed981793fbcf458a032db4fc0bfb038c39f55585`, tree
+`19d57ee15cbde04314341fc551303de8832e92bd`, against base
+`1403927b8b0a0155cea19c6daba841160254c8c1`. These identities were independently
+checked here by Git fetch. [PR #21](https://github.com/SirBxss/MPR/pull/21)
+is open, unmerged and mergeable at this checkpoint.
+[CI run 35467755430](https://github.com/SirBxss/MPR/actions/runs/35467755430)
+completed successfully: Python 3.10 job `105963099376` and Python 3.12 job
+`105963099475`, including MCAP extras, compilation and the tests. GitHub's
+proposed/test merge SHA is not evidence that the user has merged the PR.
+
+The reviewer independently reproduced 440 tests run (438 passes, two opt-in
+skips) and reports approximately 47,800 differential pairing cases with no
+differences. This review accepts the implementation and bounded interpretation,
+not session independence, whole-drive memory safety, new payload execution,
+sensor residual adoption or automatic merge. The PR is ready for the user's
+merge; missing owner declarations are a later data-intake gate.
+
+The formerly local `ddaceee60b2b9c4a63ed656a1d982ed858f3da9c` is now available
+on the remote with the expected tree `1145540895cd910748036293cda4c3d77d4833a1`.
+The original registration's claims of execution and a clean worktree remain
+self-reported. No raw-file content hash has been independently checked here.
+
+Both returned manifest files, including the `v002` filename, equal the draft
+hash below. `docs/independent_outing_batch02_session_context.md` now gives the
+focused provider questions and one summary-time/RAM collection command.
+It replaces no prior result and does not repeat the full registration pass.
+
+### Nonblocking review items and qualifications
+
+- O1: the exact 58-test module command is given in Synthetic verification.
+- O2: the historical common-ADP-clock statement is a producer-source premise,
+  not recording-verified clock commensurability. The unchanged 50 ms numeric
+  comparison establishes physical proximity only conditional on compatible
+  clock scales/origins. This is now explicit in the epoch evidence and dated
+  predeclaration addendum; no offsets are inferred or applied.
+- O3: the existing manifest parser accepts any nonempty independence prose,
+  including a placeholder. The new owner instructions explicitly require
+  real evidence, not just parser acceptance. The frozen parser is unchanged;
+  a lexical placeholder guard would not verify the truth of a declaration.
+- O4: the separate v0.18 sensor matcher is still quadratic and batch01-pinned.
+  A future whole-drive sensor audit requires its own scoped preparation.
+- O5: 21 visible `Read` entries in the source transcript omit the path
+  entirely; the epoch evidence now states this attribution limit directly.
+
+Two review explanations must not be promoted into stronger project claims.
+The optimized public matcher is also called by pairing, projection-alignment
+and alignment workflows, not solely by v0.17 intake; the separate v0.18
+matcher is unchanged. Also, MPR recomputing geometric span does not prove
+that an unverified private producer defect could never affect any upstream
+input. No such defect or causal explanation has been established here.
+
+## Historical received evidence and verification limits
 
 The user supplied `mpr_batch02_registration_review.zip` and explicitly reports
 not opening a PR or doing further work beyond the supplied arrival procedure.
@@ -143,12 +198,22 @@ bytes of traced allocation, with timestamp inputs already allocated. This is
 neither total process RSS nor decoder/geometry memory, and timings are not a
 CI acceptance threshold. The quadratic 34,081-message baseline was not run.
 
-The focused pairing/intake suite has 58 passing tests. The complete suite
+The focused pairing/intake suite has 58 passing tests, using exactly:
+
+```bash
+PYTHONPATH=src python -m unittest \
+  tests.domain.test_timestamp_pairing_scalability \
+  tests.domain.test_pairing_audit \
+  tests.io.test_independent_outing_intake \
+  tests.workflows.test_independent_outing_intake_cli
+```
+
+The complete suite
 and compilation are recorded in `docs/current_status.md`. No real MCAP
 diagnostic was rerun or new geometry output compared; the before/after
 comparison above concerns synthetic pairing results only.
 
-## Handoff and branch handling
+## Historical pre-review handoff and branch handling
 
 Continue the user's local `docs/v0.19-batch02-arrival` branch. Apply the new
 patch there, run the checks and push it. Open one PR to `main`; its ancestry

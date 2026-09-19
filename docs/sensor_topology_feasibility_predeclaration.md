@@ -793,3 +793,13 @@ gate still forces zero synchronized structural candidates.
 No output, machine field, contract-revision identifier, threshold or code is
 changed, and no rerun is authorized. Existing GOs and frozen outputs remain
 historical evidence; they do not pre-approve this later clarification.
+
+Review checkpoint, 2026-09-19: the later epoch clarification received focused
+`GO`, zero blockers, at PR #21 head `ed981793`, tree
+`19d57ee15cbde04314341fc551303de8832e92bd`. This completes the pending review
+above without changing the frozen a3 contract or outputs. The historical
+common-ADP-clock statement is a source-report premise, not independently
+verified clock commensurability in these recordings. The 50 ms comparison
+remains a numeric criterion; a physical co-availability interpretation is
+conditional on compatible clock units/scales/origins and still does not
+establish equal measurement age. No offset, rerun or new target is authorized.

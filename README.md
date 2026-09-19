@@ -1,15 +1,20 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-**Latest checkpoint:** the four-file batch02 registration is reconciled.
+**Latest checkpoint:** PR #21 received focused **GO with zero blockers**;
+Python 3.10/3.12 CI passes. It is ready for the user's merge and was still
+unmerged at the 2026-09-19 check. The four-file batch02 registration is reconciled.
 The summaries advertise 57,256 messages each for EDP, RLMB, sensor/map
 topology and sensor lane markings, plus odometry. The session manifest is
 still an unfilled draft, so outing identity and eligibility remain unknown.
-A narrow canonical timestamp-pairing optimization is ready for review;
+A narrow canonical timestamp-pairing optimization is accepted;
 438 tests pass with two expected skips. Whole-file geometry memory still
 needs assessment before a private intake. See
 [`docs/independent_outing_batch02_registration_result.md`](docs/independent_outing_batch02_registration_result.md)
 and [`docs/current_status.md`](docs/current_status.md) for the evidence and
-single-PR handoff. Do not repeat the completed registration command below.
+single-PR handoff. For the next summary-time/RAM command and how to obtain
+truthful acquisition/session declarations, see
+[`docs/independent_outing_batch02_session_context.md`](docs/independent_outing_batch02_session_context.md).
+Do not repeat the completed registration command below.
 
 **Historical 2026-09-19 arrival preparation:** four new drives are reported, each in one large
 MCAP. Start with
