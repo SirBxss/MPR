@@ -215,6 +215,25 @@ assessment before intake; the separate sensor matcher remains quadratic.
 Do not rerun registration, infer eligibility from summary counts, or execute
 private geometry from this maintenance alone. Closed batch01 stays closed.
 
+The 2026-09-20 checkpoint supersedes the owner-evidence requests above:
+PR #21 is merged at `7834def`, final-head Python 3.10/3.12 CI passed, and the
+time/RAM JSON is reconciled. The owner cannot recover the session/acquisition/
+export evidence. Keep it unavailable and stop requesting a completed batch02
+v0.17 manifest. This blocks its independent-outing admission, not all technical
+work. No session identity or training/final role may be inferred from dates.
+
+The new recording-level EDP/RLMB pilot and shared streaming converter are
+prepared for review; read `docs/recording_pair_feasibility_predeclaration.md`
+and `docs/independent_outing_batch02_context_result.md`. After focused GO and
+normal CI, its separate CLI may inspect only the exact registered batch02
+files, with disk-backed geometry, complete timestamp streams, fresh RAM/disk
+checks and the documented process limit. No v0.17 lock, causal-feature check,
+residual, new sensor target or model follows. Resource/stream failures are
+inconclusive with null counts, not negative geometry. Do not run the old
+full-file intake with fabricated declarations or reopen closed batch01.
+The fifteen new tests raise the suite to 455 run: 453 pass and the same two
+opt-in tests skip. The 52-test focused selection is documented explicitly.
+
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location

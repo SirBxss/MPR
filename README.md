@@ -1,6 +1,17 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-**Latest checkpoint:** PR #21 received focused **GO with zero blockers**;
+**Latest checkpoint (2026-09-20):** PR #21 is merged at `7834def`; final-head
+Python 3.10/3.12 CI passed. The batch02 time/RAM report is reconciled. Original
+session provenance is unavailable, so independent-outing admission remains
+unresolved. A separate recording-level EDP/RLMB geometry diagnostic with
+temporary disk storage is prepared for focused review. It assigns no roles
+and computes no residuals. See
+[`docs/independent_outing_batch02_context_result.md`](docs/independent_outing_batch02_context_result.md)
+and [`docs/recording_pair_feasibility_predeclaration.md`](docs/recording_pair_feasibility_predeclaration.md).
+The metadata requests below are historical; do not keep trying to fill unknown
+session facts or run the new private payload pilot before its review GO.
+
+**Historical checkpoint:** PR #21 received focused **GO with zero blockers**;
 Python 3.10/3.12 CI passes. It is ready for the user's merge and was still
 unmerged at the 2026-09-19 check. The four-file batch02 registration is reconciled.
 The summaries advertise 57,256 messages each for EDP, RLMB, sensor/map

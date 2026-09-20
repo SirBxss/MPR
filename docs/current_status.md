@@ -1,10 +1,56 @@
 # Current project status
 
-Last updated: 2026-09-19. This is the first file a new agent should read after
+Last updated: 2026-09-20. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## PR #21 accepted; next collect session context and assess retained geometry
+## PR #21 merged; session provenance unavailable; recording-level pilot prepared
+
+PR #21 is merged at `7834defaf3e3e10b3af908f2b869c96dfa8fae12`, tree
+`537c5930034132967fe5c05d198ed63c71af778e`. GitHub and Git fetch agree, and
+CI run `35503298582` passed Python 3.10/3.12 at the final PR head `d8f368c`.
+The user returned `batch02_container_context.json`, SHA-256
+`b59f89d646349921b7078f05bdb705be7c477bfc20076c9c68fdb3f933729bad`.
+Its four identities, sizes, time differences and conditional UTC conversions
+reconcile with the preserved registration. All summaries report statistics;
+the intervals are approximately 18, 3, 18 and 57 minutes on disjoint numerical
+log-time ranges. These are not verified acquisition dates, independent
+sessions or eligible-sequence durations. Raw bytes remain unavailable here.
+
+The owner says the requested session/acquisition/export history cannot be
+obtained. **Stop asking for those facts or a completed batch02 v0.17 manifest.**
+Keep the drafts and unknown provenance unchanged. The original independent-
+outing lock remains blocked; do not infer either four independent outings or
+one shared outing. No training/final role is assigned. Unknown identity does
+not prevent a separately scoped technical recording diagnostic.
+
+The host report had 2.3 GiB available of 31 GiB RAM and fully used 2 GiB swap.
+The proposed `recording_pair_feasibility` CLI stores reconstructed geometry
+temporarily on disk, keeps complete capped timestamp streams and reuses the
+canonical EDP/RLMB converter and H100/anchor arithmetic. The shared conversion
+loop is extracted without changing the old intake's list wrapper or gates.
+The new output exposes counts/failure states only; no causal features,
+residuals, model, sensor-target adoption, sequence stitching or cohort lock.
+Resource/decode interruptions yield inconclusive results with null counts,
+never a negative conclusion from a partial prefix. The canonical intake has
+no timestamp-distance gate; this consumer preserves and labels that fact.
+The separate v0.18 sensor matcher's 50 ms rule is not substituted.
+
+Read `docs/independent_outing_batch02_context_result.md` and
+`docs/recording_pair_feasibility_predeclaration.md` for identities, scope,
+synthetic verification, memory limits and interpretation. The new code/scope
+is prepared for focused independent review on a new branch from merged main.
+After GO and Python 3.10/3.12 CI, free enough host memory, then run the one
+fixed batch02 pilot under the documented process limit. No private geometry
+run is yet authorized by its preparation, and no new outcome has been seen.
+The old provider questions and fill-v003 instructions below are historical.
+
+Compilation passes; 455 tests run, 453 pass and the same two opt-in tests
+skip. Fifteen new tests exercise storage, completeness, pairing preservation,
+lineage and resource boundaries. The 52 focused tests pass; their exact module
+set and the synthetic memory comparison are in the context-result document.
+
+## Historical PR #21 acceptance and session-context request
 
 On 2026-09-19 the user supplied the focused Claude review
 `MPR_batch02_registration_pairing_review.md`, SHA-256
