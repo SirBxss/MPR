@@ -48,7 +48,8 @@ are not the thesis execution path.
 | v0.17 | Prospective independent-outing intake and cohort lock | v0.17.0 implementation and arrival verifier are independently approved and merged; the first 86-chunk real audit is preserved with no role assignment, and no successful cohort lock exists |
 | v0.17.1 | Exact EDP schema-v2 compatibility | Complete and independently approved; the amended batch01 audit restored 5,289 H100-ready paths, but every candidate is LANE_MAP, so zero frames/outings pass the unchanged SENSOR_TOPOLOGY primary gate |
 | v0.18.0 | Standalone sensor-topology 100 m structural feasibility | Contract and implementation received focused `GO`; the one authorized run decoded both streams but exposed a reference descriptor binding defect and observed zero sensor chains reaching 100 m |
-| v0.18.1 | Exact RLMB `uint64` schema correction | Narrow corrective candidate; preserves every scientific rule and requires focused review before a new-directory rerun |
+| v0.18.1 | Exact RLMB `uint64` schema correction | Complete, independently reviewed and merged; the corrected batch01 audit restores reference readiness/time pairing but remains negative under unchanged sensor rules |
+| next decision | Batch02 session context and geometry memory | Registration, epoch interpretation and canonical pairing maintenance accepted with GO; PR #21 CI passes, merge pending. Obtain truthful session declarations and summary-time/RAM context; assess whole-file geometry retention before intake. Physical correspondence/frame evidence for a new sensor target remains unresolved |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs
@@ -234,8 +235,17 @@ implementation review returned `GO` and one private run was performed. That run
 showed that the reference segment identifier is `uint64`, not the synthetic
 fixture's assumed `int64`; it also observed zero strict sensor chains reaching
 100 m. The v0.18.0 output is preserved. v0.18.1 corrects only the descriptor
-binding and failure classification, and must receive focused corrective `GO`
-before one rerun into a new directory. No threshold may be relaxed.
+binding and failure classification. Its corrective review and corrected
+real-output review returned `GO`; PR #20 is merged. The sensor 100 m count
+remains zero, so the closed batch is negative. No threshold may be relaxed.
+The source/configuration inquiry has returned. Its material correction is
+that upstream tracking and timestamp overrides prevent an unconditional
+camera-measurement-time interpretation. See
+`docs/bmw_sensor_topology_epoch_evidence.md` for the accepted interpretation
+correction and outstanding recording/frame evidence request, and
+`docs/sensor_topology_source_acquisition_decision.md` for the decision scope.
+The numeric timestamp-pair counts remain unchanged; no new statistic, model,
+residual target or executable audit is introduced.
 
 A successful real v0.17 lock still does not authorize final evaluation. The
 exact training corpus, frozen competitors, fitting rules, final-outing failure

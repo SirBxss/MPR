@@ -1,11 +1,41 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-Current checkpoint (2026-09-17): corrective implementation and real-output
-reviews returned `GO` with zero blockers; Python 3.10/3.12 CI passes.
-Reference H100 readiness is 9,235 and source-time pairing is 17,087, while
-the unchanged sensor audit has zero chains reaching 100 m. This is an accepted
-negative structural-feasibility result for this one closed batch. PR #20
-remains open for the user's merge decision. See
+**Latest checkpoint:** PR #21 received focused **GO with zero blockers**;
+Python 3.10/3.12 CI passes. It is ready for the user's merge and was still
+unmerged at the 2026-09-19 check. The four-file batch02 registration is reconciled.
+The summaries advertise 57,256 messages each for EDP, RLMB, sensor/map
+topology and sensor lane markings, plus odometry. The session manifest is
+still an unfilled draft, so outing identity and eligibility remain unknown.
+A narrow canonical timestamp-pairing optimization is accepted;
+438 tests pass with two expected skips. Whole-file geometry memory still
+needs assessment before a private intake. See
+[`docs/independent_outing_batch02_registration_result.md`](docs/independent_outing_batch02_registration_result.md)
+and [`docs/current_status.md`](docs/current_status.md) for the evidence and
+single-PR handoff. For the next summary-time/RAM command and how to obtain
+truthful acquisition/session declarations, see
+[`docs/independent_outing_batch02_session_context.md`](docs/independent_outing_batch02_session_context.md).
+Do not repeat the completed registration command below.
+
+**Historical 2026-09-19 arrival preparation:** four new drives are reported, each in one large
+MCAP. Start with
+[`docs/independent_outing_batch02_arrival.md`](docs/independent_outing_batch02_arrival.md)
+for the dedicated batch02 directory, private session declarations and existing
+summary-only topic inventory. The earlier timestamp correction is already
+pushed at `ca6b154`; do not apply it twice. Topic counts will inform the
+whole-file memory/pairing assessment before a payload run. Four files are not
+yet four eligible outings and cannot by themselves meet the seven-outing lock.
+The historical status below remains evidence, not a command to rerun batch01.
+
+Historical checkpoint (2026-09-18): PR #20 is merged at `1403927`. The new BMW
+source inquiry reports configuration-dependent upstream tracking and
+timestamp semantics. A documentation correction is prepared for focused
+review; see
+[`docs/bmw_sensor_topology_epoch_evidence.md`](docs/bmw_sensor_topology_epoch_evidence.md).
+Batch01 remains closed negative: 9,235 reference-ready messages and 17,087
+numeric header-time pairs, but zero 100 m sensor chains and zero synchronized
+candidates. The recording's actual build/configuration and physical-frame
+specification are still missing. No new extraction code or horizon is chosen.
+See
 [`docs/sensor_topology_batch01_v0181_result.md`](docs/sensor_topology_batch01_v0181_result.md)
 and [`docs/current_status.md`](docs/current_status.md) for exact evidence and
 the next step. No further run or residual construction is authorized.
@@ -14,7 +44,7 @@ MPR is the canonical implementation repository for the thesis. LEEM may be
 consulted as historical implementation evidence, but new data contracts,
 models, evaluation logic, and thesis results belong here.
 
-A prospective v0.18.0 contract defines the next safe investigation. A BMW
+The completed v0.18.0/v0.18.1 investigation followed a prospective contract. A BMW
 three-stage source trace found that `/adp/lane_topology_sensor_based` publishes
 camera-derived boundaries in a map-influenced topology graph, not a direct
 centreline, and did not establish physical frame equivalence with RLMB. The

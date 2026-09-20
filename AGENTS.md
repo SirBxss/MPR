@@ -20,7 +20,9 @@ implementation for the thesis; LEEM is historical reference material only.
      and
    - `docs/sensor_topology_feasibility_predeclaration.md` and
      `docs/bmw_sensor_topology_source_evidence.md` before any work that reads
-     `/adp/lane_topology_sensor_based` as a candidate estimate source.
+     `/adp/lane_topology_sensor_based` as a candidate estimate source; and
+   - `docs/bmw_sensor_topology_epoch_evidence.md` for the later correction to
+     unconditional camera-time/raw-geometry interpretations.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
@@ -174,7 +176,44 @@ Read `docs/sensor_topology_batch01_v0181_result.md` and the first section of
 documentation closure. The earlier review-before-rerun instructions above
 record gates already completed, not permission for a further run. The closed
 batch stays negative; no horizon/rule change, residual construction or new
-scientific execution is authorized. The user decides whether to merge PR #20.
+scientific execution is authorized. PR #20 is now merged. The source inquiry
+in `docs/sensor_topology_source_acquisition_decision.md` has returned. The
+next step is focused review of the epoch interpretation correction and the
+recording/frame evidence request in `docs/bmw_sensor_topology_epoch_evidence.md`.
+Do not treat current-source defaults as recording settings, x cutoff as
+geometric span, or source-time pairing as equal physical measurement age.
+This does not reopen closed decoder questions or authorize a private run.
+Select the next executable change only after applicable evidence identifies it.
+The 2026-09-19 arrival of four large MCAPs changes the immediate priority:
+follow `docs/independent_outing_batch02_arrival.md` for isolated file registration,
+truthful private session declarations and the existing summary-only reader.
+The epoch correction is already pushed at `ca6b154`; do not apply it twice.
+This administrative inventory does not decode payloads or assign roles.
+Assess whole-file geometry retention and O(N*M) pairing before a full-drive
+run; do not use the batch01-pinned v0.18 command for new files. Four files do
+not prove four outings and four eligible outings cannot meet the seven-outing
+gate. Keep old outputs immutable and use the batch02 root, not its parent.
+
+The batch02 registration, epoch interpretation and canonical pairing
+maintenance received focused `GO`, zero blockers, at PR #21 head `ed981793`,
+tree `19d57ee15cbde04314341fc551303de8832e92bd`; Python 3.10/3.12 CI passes.
+The PR is merge-ready, still unmerged at the 2026-09-19 check. The reported
+registration commit is now pushed with the expected tree. Read
+`docs/independent_outing_batch02_registration_result.md` for exact identities
+and evidence limits. The suite remains 440 run, 438 passing and two skips.
+This changes no scientific pairing rule or separate v0.18 sensor matcher.
+
+Both returned manifests, including `v002`, remain the same unfilled draft.
+Follow `docs/independent_outing_batch02_session_context.md` for one summary-only
+container time-range/RAM follow-up and truthful provider/session declarations.
+No raw-file rehash, payload inspection or manifest auto-completion is part of
+that command. MCAP log time need not use the Unix epoch; any UTC display is
+conditional, and no file count proves separate physical sessions. Missing
+declarations do not block merging the accepted maintenance PR or synthetic
+engineering work. Whole-file geometry retention still needs resource
+assessment before intake; the separate sensor matcher remains quadratic.
+Do not rerun registration, infer eligibility from summary counts, or execute
+private geometry from this maintenance alone. Closed batch01 stays closed.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

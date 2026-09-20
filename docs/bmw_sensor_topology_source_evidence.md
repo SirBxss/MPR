@@ -1,6 +1,10 @@
 # BMW standalone sensor-topology source evidence
 
-Last updated: 2026-09-15.
+Last updated: 2026-09-19. The three original BMW traces below remain the
+2026-09-15 evidence. A fourth received trace materially qualifies upstream
+processing and timestamp semantics; see
+`docs/bmw_sensor_topology_epoch_evidence.md` for its hash, named BMW HEAD,
+evidence limits and completed focused interpretation review (`GO`, PR #21).
 
 This document tracks the evidence needed to evaluate
 `/adp/lane_topology_sensor_based` as a possible estimate-side source for a new
@@ -8,8 +12,14 @@ MPR residual target. It separates user-reported guidance, accepted MPR
 evidence, BMW-source evidence, and inference. It is not permission to decode a
 private target, calculate a residual, or reuse an old model.
 
-The binding prospective scope is
-`docs/sensor_topology_feasibility_predeclaration.md`.
+The completed structural audit followed
+`docs/sensor_topology_feasibility_predeclaration.md`. Its corrected negative
+result is accepted and merged through PR #20. The next inquiry is scoped in
+`docs/sensor_topology_source_acquisition_decision.md`; it addresses previously
+unresolved extent, frame/epoch and provenance, without reopening the closed
+decoder questions or permitting a new private run. That inquiry has now
+returned; the next gaps are recording-specific build/configuration and an
+applicable physical-frame/epoch specification.
 
 ## Evidence provenance
 
@@ -103,8 +113,13 @@ topic. It established:
 The earlier complete EDP message audit observed 787 SENSOR_TOPOLOGY EDP
 messages, but none became an H100-ready EDP candidate. This does not determine
 how many standalone sensor-topology messages or structural candidates exist.
-No standalone-topic descriptor hash, message count, ego-lane count,
-boundary-reconstruction count, or 100 m span count has been accepted.
+At the time of these source traces, no standalone-topic descriptor hash,
+message count, ego-lane count, boundary-reconstruction count or 100 m span
+count had been accepted. The later v0.18.1 result establishes 4,039 strict
+camera-only chains and zero reaching 100 m, with 9,235 reference-ready
+messages and 17,087 source-time pairs. Its exact evidence and limitations
+are in `docs/sensor_topology_batch01_v0181_result.md`; none of those counts
+establishes a physical sensor-range limit.
 
 ## MPR implementation evidence
 
@@ -121,8 +136,9 @@ MPR already contains historical support for Road-like topology messages:
 - Current RLMB handling requires a metadata-confirmed direct ego path and
   follows only an unambiguous, continuity-checked successor chain to H100.
 
-These are reusable implementation ideas, not producer evidence and not a
-canonical v0.18 implementation.
+These are historical reusable implementation ideas, not producer evidence.
+The now-merged canonical structural audit is implemented separately in the
+`domain`, `io`, `workflows` and `cli` `sensor_topology_feasibility` modules.
 
 ## Copilot-confirmed BMW-source evidence
 
@@ -249,7 +265,10 @@ corresponding arc lengths are generated in the same order,
 starting at zero and nondecreasing across consecutive vertices. Direction
 relative to vehicle travel remains unproven. The audit may validate stored
 order and arc-length consistency and may use orientation-invariant geometric
-span, but it may not infer forward direction or frame equivalence.
+span, but it may not infer forward direction or frame equivalence. The fourth
+trace clarifies that this copy is from LMSB output, which can already be
+tracked and odometry-propagated. It is not evidence of an untouched raw
+camera pipeline.
 
 One frame-transform token exists elsewhere in the LTSB tree, in
 `domains/perception/road_sensor_based/lane_topology_sensor_based/preprocessors/split_preprocessors/bifurcation_detection/bifurcation_state_classifier.cpp`,
@@ -288,8 +307,13 @@ Copilot traced the output timestamp assignment to
 Road.time_stamp_ := LaneMarkingsSensorBasedOutput.timestamp
 ```
 
-The value is the camera lane-marking measurement/validity time in nanoseconds,
-not an LTSB processing or publication time. Because the proto3 scalar has no
+The original trace interpreted this value unconditionally as camera
+lane-marking measurement/validity time. That interpretation is superseded
+by the 2026-09-18 evidence correction: Copilot reports a tracking branch with
+odometry-epoch output and a pipethrough branch with camera-header time, plus
+configuration-dependent camera-timestamp rewriting. The applicable mode
+and settings for batch01 remain unknown. No fixed timestamp adjustment is
+justified. Because the proto3 scalar has no
 presence bit, the audit can test only that the decoded timestamp is a positive
 non-Boolean integer, not that it was explicitly serialized. No nominal LTSB
 publication rate or guaranteed forward range was found. Full forward geometry
@@ -297,8 +321,9 @@ may require following successor indices, while empty map-informed successor
 segments can terminate camera geometry.
 
 RLMB uses a pose-estimate validity timestamp and documents its ego reference
-as the rear-axle centre. Both timestamps use the ADP clock and describe content
-validity, so source-time proximity can be audited. Physical frame-origin
+as the rear-axle centre. The existing audit measures proximity of numeric
+embedded header timestamps. Their common physical epoch and measurement-age
+interpretation is not established for this recording. Physical frame-origin
 equivalence is not established. Consequently no cross-topic point projection,
 anchor distance, SE(2) compensation, or signed residual is authorized by this
 source trace.
@@ -330,9 +355,9 @@ generation or whether producer behavior changed.
 | ranges and graph indices | substantially answered | use `(start, size)` and message-local indices; never guess branches |
 | fallback geometry | camera boundary writers only; every emitted boundary is assigned CAMERA; empty/map-informed topology exists | require sensor whole-message source, camera ranges, and CAMERA boundaries; reject drift |
 | map/RLMB dependence | direct map/map-matching inputs; no direct RLMB topic | state map-influenced topology; do not claim independence |
-| timestamp and rate | timestamp scalar/units/producer answered; no presence bit; rate unresolved | require positive decoded source time; source-time proximity only; no cadence claim |
+| timestamp and rate | scalar/units and LTSB copy assignment answered; upstream epoch is configuration-dependent in the fourth trace; deployed mode and rate unresolved | positive strict numeric header timestamps only; no common-age or cadence claim |
 | forward guarantee | unresolved; successor traversal may be required | audit explicit unique camera-only chains and observed span only |
-| RLMB frame/epoch equivalence | time semantics compatible; physical origin unresolved | no anchor test or H100 residual-pair claim |
+| RLMB frame/epoch equivalence | physical origin and recording-applicable epoch relationship unresolved | no physical synchronization, anchor test or H100 residual-pair claim |
 | generation differences | interface history partial; producer history unresolved | inventory exact recorded descriptors; no cross-generation assumption |
 
 ## Current conclusion
@@ -345,7 +370,8 @@ original cross-topic anchor-distance test or the phrase "H100 structural
 pair", because those require frame-origin equivalence.
 
 A positive synchronized 100 m count would mean only that both inputs appear
-structurally available at nearby validity times. Before any residual is
+structurally available in messages with numerically nearby header timestamps.
+It would not establish physical synchronization. Before any residual is
 calculated, BMW evidence or a separately reviewed empirical frame-calibration
 contract must establish the coordinate transform, timestamp handling, and the
 scientific acceptability of map-influenced topology selection.

@@ -1,10 +1,231 @@
 # Current project status
 
-Last updated: 2026-09-17. This is the first file a new agent should read after
+Last updated: 2026-09-19. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## v0.18.1 real-output GO on 2026-09-17; closed-batch negative accepted
+## PR #21 accepted; next collect session context and assess retained geometry
+
+On 2026-09-19 the user supplied the focused Claude review
+`MPR_batch02_registration_pairing_review.md`, SHA-256
+`6108be4a8ff4c8da9e82c221b409eac6f0f134b8e117878ccc745eb9dec9b03a`:
+**GO, zero blockers** for the epoch interpretation, administrative registration,
+canonical pairing maintenance and handoff. GitHub PR #21 is open and unmerged
+at the checked head `ed981793fbcf458a032db4fc0bfb038c39f55585`, tree
+`19d57ee15cbde04314341fc551303de8832e92bd`, against main `1403927`.
+CI run `35467755430` passed on both Python 3.10 and 3.12. This is merge-ready
+code/documentation; missing session declarations do not block its merge.
+No external push, merge or branch deletion has been performed here.
+
+The earlier reported registration commit `ddaceee60b2b9c4a63ed656a1d982ed858f3da9c`
+is now pushed and its tree matches `1145540895cd910748036293cda4c3d77d4833a1`.
+This verifies the available source tree, not the file's self-reported execution
+or the raw MCAP hashes. The independent reviewer reproduced 440 tests run,
+438 passing and two expected skips. The five optional review items are
+documented in `docs/independent_outing_batch02_registration_result.md`; no
+further runtime correction or repeated review is needed for those items.
+
+Both newly returned private manifests, including the `v002` copy, still have
+the unfilled draft SHA-256 `c5f1f524864d28f9c88bd725f307eb3303a287823ee40f9cff23b4b5cdb711e1`.
+No acquisition time, separate-session evidence or execution-machine RAM has
+been supplied. These are missing facts, not negative scientific findings.
+Follow `docs/independent_outing_batch02_session_context.md`: one additional
+summary-only read collects raw container log-time ranges and machine RAM,
+without rehashing all files, decoding payloads or editing the manifests.
+MCAP timestamps have a user-defined epoch; any Unix-to-UTC display is only
+conditional. Ask the provider for original session IDs, starts/timezones,
+capture/export relationships and log-time clock convention. Preserve the
+original registration and create a new manifest version when facts are known.
+
+Next substantive implementation: assess per-file decoded/reconstructed
+geometry memory in the canonical EDP/RLMB intake, then make only a necessary
+semantics-preserving resource correction with synthetic checks. The optimized
+canonical matcher does not make the separate quadratic, batch01-pinned v0.18
+sensor audit ready for batch02. No batch02 payload, H100 eligibility, residual
+or model result is known. Session declarations and resource assessment still
+precede a formal intake; no seven-outing lock or LTSB target adoption follows
+from this GO. Unknown old batch01 build metadata need not block new-session
+administrative work. Keep the closed batch01 outputs unchanged.
+
+## Historical registration reconciliation and maintenance preparation
+
+The user returned `mpr_batch02_registration_review.zip`, SHA-256
+`5e6b4e284281f63b7dfe3daa27f76980f2eb5baebfcddd1488c7b8da27124783`.
+Its two files reconcile internally: four distinct reported raw hashes,
+exact manifest/report basename coverage and 43,742,434,459 total bytes.
+Each summary advertises EDP, RLMB, LTSB, map-based topology, LMSB and odometry.
+The five path/marking topics each total 57,256 messages; odometry totals
+173,518. EM ego-lane path is not advertised. These are summary counts,
+not payload/geometry compatibility or H100 eligibility results. Raw hashes
+were not independently recomputed here.
+
+The private manifest exactly matches the unfilled draft: dates are null,
+independence descriptions remain placeholders and attestations remain false.
+Do not interpret these defaults as negative data findings or set them true
+on the user's behalf. A formal intake needs truthful owner-completed session
+declarations. The received ZIP contains no machine RAM or build/frame record.
+The original ZIP/registration remain immutable; the user should complete a
+new versioned private manifest copy and send `free -h`.
+
+The registration reports commit
+`ddaceee60b2b9c4a63ed656a1d982ed858f3da9c` and no tracked modifications.
+GitHub still exposes only the source-acquisition branch at `ca6b154`, with
+main at `1403927` and no open PR. The reported local execution commit/tree
+cannot yet be verified remotely. The expected arrival tree is
+`1145540895cd910748036293cda4c3d77d4833a1`.
+
+The 34,081-message largest path stream justifies a narrowly scoped maintenance
+change: `domain/pairing.py::_unique_nearest_positions` now uses sorted integer
+timestamps and binary search instead of all-to-all distances. Original indices,
+duplicate/tie ambiguity, both-direction mutuality, missing/unmatched states,
+signed deltas, gate timing and output ordering are preserved. No scientific
+threshold, schema, output or package version changes. The separate v0.18
+sensor matcher and its closed-batch authorization remain untouched.
+
+Compilation passes; the 58 focused tests pass; the full suite runs 440 tests,
+438 pass and the same two opt-in tests skip. Six new tests establish complete
+audit parity against an exhaustive oracle and guard against quadratic
+distance work. A synthetic 34,081-message pair completes in approximately
+0.213 seconds locally. This is not a whole-MCAP or geometry memory benchmark.
+Exact evidence, timings, limits and handoff are in
+`docs/independent_outing_batch02_registration_result.md`.
+
+Next: apply the new patch on the user's existing local batch02 branch, push
+and open one combined PR to main. Obtain focused review of the pending epoch
+interpretation and this matcher maintenance, with normal CI. Keep the older
+source branch until that PR is accepted and merged; no separate old-branch
+PR is needed. No push/PR/merge/branch deletion has been performed here.
+In parallel collect the missing manifest/RAM evidence. Whole-file geometry
+retention still needs resource assessment before a full intake; this patch
+alone is not permission for a private payload run. Do not rerun registration
+or batch01, infer seven eligible outings from four files, or adopt a new
+sensor residual target from topic names/counts.
+
+## Historical four-file arrival preparation, 2026-09-19
+
+The user reports four new drives, one large MCAP per drive. The screenshot
+shows rounded sizes totaling approximately 43.7 GB, with a 25.9 GB largest
+file. No raw bytes, topic counts, acquisition dates or physical-session
+attestations for these files have been supplied here. They are four candidate
+files, not yet four verified independent/eligible outings.
+
+Git fetch on 2026-09-19 confirms the existing user branch
+`docs/v0.19-source-acquisition-decision` at
+`ca6b154320c7cff7e77adb42cf7c3586e6dc88eb`, tree
+`927cd0e4ff5f76b9bde2104e205fe247f6127424`: the prior epoch correction is
+already present despite the user's report that the last patch was not
+applied. Do not deliver/apply that correction twice. `main` remains
+`1403927`; no open PR was found. Focused interpretation review remains
+pending; presence on the branch is not review acceptance.
+
+Next: follow `docs/independent_outing_batch02_arrival.md`. Register the
+original files under the dedicated `data/raw/new_independent_outings/batch02`
+root, record truthful session provenance privately, and use the existing
+summary-only topic reader plus streaming hashes. The accompanying private
+draft does not pre-attest dates, independence or outcome blindness. Registration
+can proceed with explicit provenance gaps; a valid intake manifest cannot.
+No payload/geometry extraction or cohort assignment is part of this step.
+The old batch's unavailable historical metadata does not block registration.
+
+Source inspection identifies a concrete execution concern: the v0.17 intake
+retains per-file decoded/reconstructed geometry and its mutual-nearest matcher
+does O(N*M) timestamp work. The v0.18 matcher also does O(N*M) work. Counts
+from the new summaries will inform the need for a narrow semantics-preserving
+performance correction before full-drive execution. No memory/runtime failure
+has been observed on these files. Do not split/repack them or reuse the
+batch01-pinned v0.18 command. Old commands using the common parent root would
+now include additional files and violate their exact-coverage requirement.
+
+The unchanged final-cohort gate needs seven eligible new physical outings;
+four alone cannot pass it. Keep the new candidates outcome-blind while
+assessing technical availability. All batch01 negative results and pending
+frame/epoch/correspondence questions remain visible. This handoff changes
+priority and administrative instructions only; no runtime, tests, scientific
+threshold, schema binding or model changes.
+
+Handoff verification: compilation and all 434 tests completed (432 passes,
+two expected opt-in skips) with MCAP extras installed. The documented command
+also ran against four synthetic MCAPs with message/decoded-message iteration
+disabled; known counts, missing statistics, missing summary, file hashes and
+existing-output refusal behaved as documented. These are command checks,
+not a benchmark or a real batch02 diagnostic. No new test cases were added
+to the unchanged runtime suite.
+
+## Historical source inquiry and epoch-correction preparation, 2026-09-18
+
+The user pushed `docs/v0.19-source-acquisition-decision` at
+`3f894efce9af19f781003b30ea742ad9c0bb6226`, tree
+`9457ad603ffc898bdcb1c985e1b1cdc69ef5bbe5`; Git fetch confirms the delivered
+tree. `main` remains the PR #20 merge `1403927`. No open PR was found at this
+checkpoint, and the PR-event workflow query returns no run for the new branch
+head. This is not a failed test: the configured workflow runs on PRs and
+pushes to `main`. The unchanged executable baseline has 434 tests run,
+432 passes and two opt-in skips.
+
+Received `copilot_session_22.txt`, SHA-256
+`f9f16bec168197ee489ced8f4f4d7f29e48f202834e5acbc9e21aed716f11565`.
+Copilot reports BMW HEAD `465073bc593195eee0e4eada0a1389943e006a2b`, a clean
+initial worktree and no link to the August 2025 recording build. The report
+is preserved unchanged outside Git. The assessment and pending focused
+interpretation review are in `docs/bmw_sensor_topology_epoch_evidence.md`.
+
+The important correction is configuration-dependent upstream processing:
+LMSB can track/propagate camera-derived geometry to an odometry timestamp;
+pipethrough and timestamp-override behavior are separate possibilities.
+Withdraw the unconditional camera-measurement-time interpretation. Retain
+the 17,087 pairs only as numeric header-time proximity, with all audit
+counts and preserved outputs unchanged. No new MPR decoder or arithmetic
+defect is established. The code performs no 80 ms correction or inference
+of the producer mode, and no such change is justified now.
+
+The reported `max(61 m, speed * 2.5 s)` x-cutoff is a plausible mechanism,
+not a batch01 diagnosis or a bound on accumulated sensor-chain length.
+Checked-in parameters do not establish deployed values. Equal fractional
+boundary stations can mismatch physical sections, but this is not proof of
+observed statistical bias. Frame equivalence and error independence remain
+unestablished. The new evidence note qualifies other source-report overreach
+and the incomplete immutable-read evidence without demanding a repeat of
+the entire source inquiry.
+
+Next: apply/push the documentation correction to the same user branch,
+open a focused PR and obtain review of the material epoch interpretation.
+The supplied private review prompt names the exact expected tree. In
+parallel, use the narrower recording/frame evidence request supplied outside
+Git. Existing sidecars/build/configuration records and an applicable frame
+specification are the required inputs; no new MCAP scan or payload run is
+authorized. If historical provenance cannot be recovered, record unknown
+and make any future pilot self-contained under its own prospective scope.
+Do not block all future work indefinitely on finding batch01's build.
+
+## Historical merge and source-inquiry preparation, 2026-09-17
+
+On 2026-09-17 GitHub and a local fetch confirm PR #20 merged at
+`1403927b8b0a0155cea19c6daba841160254c8c1`. Merged `main` and final branch
+HEAD `5b2034e6d704c5d23410b46e9cfd6e095859f5e2` both have tree
+`440f3bfc1a19fd9e74ef563c43c410da073cb7e3`, exactly the delivered closure.
+Pre-merge [CI run 35222402624](https://github.com/SirBxss/MPR/actions/runs/35222402624)
+passes Python 3.10 and 3.12, including MCAP-extra installation, compilation
+and unit tests. A separate post-merge main-push run was not verified by the
+available PR-event-filtered workflow query; the successful branch tree and
+merged tree are identical. The implementation baseline remains 434 tests:
+432 passes and two opt-in skips.
+
+The user requested continuation. The next bounded action is documented in
+`docs/sensor_topology_source_acquisition_decision.md`: a focused read-only
+BMW producer/configuration inquiry into extent, frame/epoch/correspondence
+and shared dependencies. A separate Copilot prompt is delivered outside Git.
+No new BMW answer is available yet. The previous interface trace remains
+sufficient for the completed v0.18 audit; these are the unresolved semantic
+questions needed to choose future work, not a request to repeat that trace.
+
+Working branch: `docs/v0.19-source-acquisition-decision`, based on merged
+`main`. v0.19 is only a planning label; no version bump, new CLI, changed
+horizon, target adoption, geometry diagnostic or private run is implemented
+or authorized by this record. Preserve the closed batch. Return the source
+report first, then choose and review the smallest supported implementation.
+The missing BMW source/configuration evidence is the current blocker.
+
+## Historical v0.18.1 real-output GO and accepted closed-batch negative
 
 The user supplied the corrected batch01 audit and reported applying the
 documentation-only review handoff. Artifact reconciliation passed against the
@@ -52,9 +273,9 @@ boundary numerical example lies within the implementation's comparison
 slack. These do not affect the accepted counts or verdict. Preserve the
 received review and all prior artifacts unchanged outside Git.
 
-Next: apply and push the documentation-only closure to existing PR #20,
-then the user may decide to merge after CI. Contract, implementation,
-corrective and real-output reviews are complete; no further review cycle or
+At that checkpoint, the next action was the documentation closure and the
+user's merge decision; both are now complete as recorded above. Contract,
+implementation, corrective and real-output reviews are complete; no further review cycle or
 private rerun is needed for this closure. No new PR is needed. The next
 research step is a prospective acquisition/configuration or target decision
 using producer evidence. The batch cannot justify selecting a shorter
@@ -165,7 +386,10 @@ frame contract; independent ground truth has not been established.
 
 ## Current checkpoint
 
-- Merged repository version: v0.17.1 EDP schema compatibility implemented,
+- Merged repository version: v0.18.1 structural feasibility and accepted
+  negative batch01 closure, through PR #20 at `1403927`. The current step is
+  the source/acquisition evidence inquiry above. Earlier v0.17.1 EDP schema
+  compatibility remains implemented,
   synthetically verified, independently approved, and exercised on the closed
   real batch01. Its v0.17.0 independent-outing intake base is independently
   approved and merged. Claude's earlier focused
@@ -189,7 +413,7 @@ frame contract; independent ground truth has not been established.
   implementation and real planner run remain complete and approved. The first
   pre-fix v0.16 planner output remains rejected; its v0.15.4 residual samples
   were valid and were reused.
-- Current corrective phase: v0.18.1 standalone sensor-topology 100 m structural
+- Completed corrective phase: v0.18.1 standalone sensor-topology 100 m structural
   feasibility. Leon advised the data owner to prefer
   `/adp/lane_topology_sensor_based` over EDP for this study. The BMW source
   trace is now recorded and changed the original a0 proposal: LTSB publishes
@@ -209,16 +433,16 @@ frame contract; independent ground truth has not been established.
   and passing Python 3.10/3.12 CI, as recorded above. The corrected real run is
   received, reconciled and accepted by focused real-output `GO` with zero
   blockers. This phase is closed negative for batch01; the documentation
-  closure and user's merge decision are the remaining delivery steps.
-  No cross-topic projection, H100 residual-pair
-  claim, merge, threshold change, or target adoption is authorized. Three private source traces now
+  closure was applied and PR #20 is merged.
+  No cross-topic projection, H100 residual-pair claim, threshold change or
+  target adoption follows from the merge. Three private source traces now
   record the technical evidence and all 23 complete tracked paths; the third
   rechecked the claims against immutable `HEAD` blobs but did not capture the
   BMW commit SHA. That is retained as a source-trace reproducibility limit and
   does not require another BMW query. The candidate
   target is not adopted, and the historical EDP target/models remain
   unchanged.
-- Working branch and PR #20: `protocol/v0.18.0-sensor-topology-feasibility`.
+- Merged branch and PR #20: `protocol/v0.18.0-sensor-topology-feasibility`.
   The exact pushed a3 contract-review identity is commit
   `75a1f9ff38885636dacafbd17144736420a7e17f`, tree
   `ad6d9a664ac7ec38cea4c06f2197d02ae4942f4c`. The local patch-source base
@@ -897,9 +1121,10 @@ Next actions are ordered:
    is required for this correction;
 4. preserve the accepted v0.18.1 corrective review, passing CI identities and
    the now-reconciled corrected three-file output unchanged; do not rerun;
-5. obtain focused real-output review of both three-file bundles and
-   `docs/sensor_topology_batch01_v0181_result.md` before merging or promoting
-   the bounded result into a scientific conclusion;
+5. retain the accepted real-output `GO` and merged PR #20 closure; complete
+   the source/acquisition inquiry in
+   `docs/sensor_topology_source_acquisition_decision.md` before selecting
+   further sensor-target implementation or acquisition changes;
 6. continue acquiring separate outcome-blind physical outings through new
    manifests and versioned outputs until at least seven new outings are
    technically eligible; where operationally possible, acquire the same
@@ -938,13 +1163,15 @@ The three Copilot traces are preserved outside Git with SHA-256 values
 summarized in the evidence document. They found that `drive_path_range` is not
 written by LTSB, `ego_lane_segment_indices` represents branch alternatives,
 full geometry may require successor traversal, and the producer directly
-consumes map/map-matching inputs. They confirmed compatible validity-time
-semantics, CAMERA boundary provenance, SENSOR_TOPOLOGY whole-message
+consumes map/map-matching inputs. They established the timestamp scalar and
+LTSB copy assignment, CAMERA boundary provenance, SENSOR_TOPOLOGY whole-message
 assignment, nested coordinate validity, and stored-order geometry. The third
 trace resolved all 23 complete paths and rechecked the claims from immutable
 `HEAD` blobs. It did not capture the literal BMW commit SHA, which limits exact
 source-trace reproduction but does not block the descriptor-driven MPR audit.
 The traces did not establish a common physical origin or axes with RLMB.
+The fourth trace now qualifies the upstream epoch and processing mode; see
+the current evidence note before interpreting source-time pairs physically.
 
 The frozen a3 first stage remains limited to the closed 86-file batch01 and
 three privacy-safe outputs. It may inventory descriptors; enforce exactly one
@@ -966,7 +1193,8 @@ runtime import-graph test. Focused corrective review returned `GO` for the
 exact pushed HEAD and tree recorded above; both CI versions pass. The approved
 private rerun is now received and reconciled: reference readiness is 9,235,
 source-time pairing is 17,087, and synchronized candidates remain zero with
-the sensor ladder unchanged. Focused real-output review is the next gate.
+the sensor ladder unchanged. Focused real-output review returned `GO`, and
+PR #20 is merged.
 Even a positive synchronized count after correction
 would authorize only resolution of the physical frame contract and a separate
 alignment-audit predeclaration; it is not an H100 residual pair and does not
@@ -976,8 +1204,12 @@ unless the predeclared scientific threshold is changed—which is not authorized
 
 ## Reading map
 
+- `docs/bmw_sensor_topology_epoch_evidence.md`: fourth source trace, material
+  timestamp correction, evidence limits and recording/frame request.
+- `docs/sensor_topology_source_acquisition_decision.md`: current source-only
+  inquiry, evidence gaps, decision branches and next implementation gate.
 - `docs/sensor_topology_batch01_v0181_result.md`: corrected real batch01
-  output, exact lineage, before/after reconciliation and pending result review.
+  output, exact lineage, before/after reconciliation and accepted review.
 - `docs/modeling_plan.md`: phase gates, evidence, and data-acquisition limits.
 - `docs/model_comparison.md`: concise accepted metric table, output-driven
   presentation figure, model comparison by property, and planner relevance.

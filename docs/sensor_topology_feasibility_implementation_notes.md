@@ -153,14 +153,17 @@ document for their artifact-only verification scope.
 
 1. Read the accepted result and `docs/current_status.md`; implementation,
    corrective and real-output reviews are complete.
-2. Apply/push the documentation closure to the existing PR #20, observe CI,
-   and leave the merge decision to the user. No new PR or review is required
-   for this documentation-only closure.
+2. PR #20 and its documentation closure are merged at `1403927`. Resume on
+   the source/acquisition decision branch recorded in `docs/current_status.md`;
+   do not apply another patch to the completed PR.
 3. Preserve both outputs and review reports unchanged outside Git. Do not
    rerun the closed batch or change a threshold to convert the negative.
-4. Resume scientific work only under a prospective acquisition/configuration
-   or target decision with its applicable contract and review. These outputs
-   do not identify an alternative horizon or establish frame equivalence.
+4. The source/configuration inquiry has returned. Read
+   `docs/bmw_sensor_topology_epoch_evidence.md` for the epoch interpretation
+   correction and remaining recording/frame request before selecting any
+   executable change. The original numerical pairing does not require a code
+   fix; its physical interpretation needs qualification. These outputs do
+   not identify an alternative horizon or establish frame equivalence.
 
 ## Historical corrective checklist (completed)
 

@@ -9,6 +9,7 @@ disagreement along the map-path normal.
 from __future__ import annotations
 
 import math
+from bisect import bisect_left
 from dataclasses import dataclass, field
 from typing import Sequence
 
@@ -582,27 +583,41 @@ def _unique_nearest_positions(
     source: Sequence[tuple[int, int]],
     target: Sequence[tuple[int, int]],
 ) -> tuple[dict[int, int], set[int]]:
-    """Map each source position to one uniquely nearest target position."""
+    """Map source positions to unique nearest targets without an all-pairs scan.
+
+    Sorting retains original positions and duplicate timestamps. Only the
+    neighbors of the insertion point can minimize distance; a repeated nearest
+    timestamp or an equal-distance tie remains ambiguous. Arithmetic stays in
+    integer nanoseconds, including timestamps outside signed int64 range.
+    """
 
     nearest: dict[int, int] = {}
     ambiguous: set[int] = set()
+    ordered = sorted(target, key=lambda item: item[1])
+    times = [timestamp for _, timestamp in ordered]
+    if not times:
+        return nearest, ambiguous
+
     for source_position, source_time_ns in source:
-        distances = [
-            (abs(source_time_ns - target_time_ns), target_position)
-            for target_position, target_time_ns in target
-        ]
-        if not distances:
-            continue
-        minimum_distance = min(distance for distance, _ in distances)
+        insertion = bisect_left(times, source_time_ns)
         candidates = [
-            target_position
-            for distance, target_position in distances
-            if distance == minimum_distance
+            (abs(source_time_ns - times[index]), index)
+            for index in (insertion - 1, insertion)
+            if 0 <= index < len(times)
         ]
-        if len(candidates) != 1:
+        minimum_distance = min(distance for distance, _ in candidates)
+        closest = [index for distance, index in candidates if distance == minimum_distance]
+        if len(closest) != 1:
             ambiguous.add(source_position)
             continue
-        nearest[source_position] = candidates[0]
+        index = closest[0]
+        if (
+            (index > 0 and times[index - 1] == times[index])
+            or (index + 1 < len(times) and times[index + 1] == times[index])
+        ):
+            ambiguous.add(source_position)
+            continue
+        nearest[source_position] = ordered[index][0]
     return nearest, ambiguous
 
 

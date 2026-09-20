@@ -3,7 +3,8 @@
 Date: 2026-09-17. Status: artifact reconciliation and focused independent
 real-output review passed (`GO`, zero blockers). Batch01 is closed negative
 under the frozen 100 m structural rules. Preserve both outputs; no further
-run is authorized. PR #20 remains open for the user's merge decision.
+run is authorized. The user merged PR #20 at `1403927` after applying the
+closure; see `docs/current_status.md` for the exact merge and CI identities.
 
 ## Scope and implementation identity
 
@@ -190,6 +191,13 @@ or output revision changes. O4 is addressed in the current status and README.
 
 ## Interpretation and next gate
 
+Update on 2026-09-18: the later BMW source transcript requires an epoch
+interpretation correction, recorded in
+`docs/bmw_sensor_topology_epoch_evidence.md` and pending its own focused
+review. Treat the 17,087 time pairs as numeric embedded-header proximity;
+the recorded producer mode, geometry epoch and measurement-age relationship
+remain unknown. No count, hash, original review or output is changed.
+
 The binding defect is corrected: reference readiness and timing are now
 evaluated. Under the unchanged strict camera-only reconstruction, this one
 closed batch still supplies no synchronized 100 m structural candidates
@@ -204,9 +212,11 @@ physical reason for the sensor result. Frame equivalence remains unverified;
 LTSB topology is map-influenced and RLMB is not physical ground truth. The
 86 files are one physical outing, not 86 independent validation units.
 
-Next: deliver the documentation closure on the existing PR #20, then let the
-user decide whether to merge after CI. No further corrective or real-output
-review is pending. Do not rerun, change thresholds, adopt
+The documentation closure and user's merge are complete. The next step is
+the interpretation review and recording/frame evidence request in
+`docs/bmw_sensor_topology_epoch_evidence.md`. The original implementation
+and real-output reviews are complete; the later epoch clarification is a
+separate review scope. Do not rerun, change thresholds, adopt
 a shorter horizon, construct residuals, refit models or execute a planner to
 turn this result positive. Any subsequent acquisition change or alternative
 target/horizon requires its own prospective decision and applicable review.
