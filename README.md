@@ -1,15 +1,16 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-**Latest checkpoint (2026-09-20):** PR #21 is merged at `7834def`; final-head
-Python 3.10/3.12 CI passed. The batch02 time/RAM report is reconciled. Original
-session provenance is unavailable, so independent-outing admission remains
-unresolved. A separate recording-level EDP/RLMB geometry diagnostic with
-temporary disk storage is prepared for focused review. It assigns no roles
-and computes no residuals. See
-[`docs/independent_outing_batch02_context_result.md`](docs/independent_outing_batch02_context_result.md)
-and [`docs/recording_pair_feasibility_predeclaration.md`](docs/recording_pair_feasibility_predeclaration.md).
-The metadata requests below are historical; do not keep trying to fill unknown
-session facts or run the new private payload pilot before its review GO.
+**Latest checkpoint (2026-09-21):** PR #22 received implementation/scope **GO**,
+zero blockers, and passed Python 3.10/3.12 CI; it remains open and unmerged.
+The batch02 EDP/RLMB pilot completed: 7,743 H100/anchor candidates, including
+376 with the required EDP sensor-topology label. These are geometric candidates,
+not computed residuals or eligible independent outings. Generic reference
+conversion failures and unreported timestamp offsets need a narrow follow-up
+before residual extraction. See
+[`docs/recording_pair_feasibility_batch02_result.md`](docs/recording_pair_feasibility_batch02_result.md)
+and [`docs/current_status.md`](docs/current_status.md).
+Session provenance remains unavailable. The preparation and metadata requests
+below are historical; do not repeat the completed pilot or fill unknown facts.
 
 **Historical checkpoint:** PR #21 received focused **GO with zero blockers**;
 Python 3.10/3.12 CI passes. It is ready for the user's merge and was still

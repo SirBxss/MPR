@@ -4,7 +4,7 @@ These contracts describe diagnostics, not training labels. EDP–RLMB
 disagreement is not ground-truth lane-estimation error, and RLMB is a
 pseudo-reference candidate rather than physical ground truth.
 
-## Proposed batch02 recording-pair feasibility output
+## Batch02 recording-pair feasibility output
 
 The new `python -m lane_residuals.cli.recording_pair_feasibility` writes exactly
 `recording_pair_feasibility.json`, after its separately required review GO.
@@ -60,6 +60,11 @@ are exported. The maximum-delta field is null, explicitly preserving the
 canonical intake's ungated matching; it is not the sensor audit's 50 ms rule.
 The remaining dictionary fields map enum names, descriptor hashes or failure
 codes to integer counts. Their categories can overlap across dictionaries.
+`pair_failure_counts` covers matched pairs only, assigning the first failure
+reached by the pair checks. Unmatched estimates appear in timestamp counts;
+unlike the v0.17 all-estimate frame audit, they do not add a
+`reference_pair_unavailable` pair failure. Do not add conversion failures to
+pair failures or compare these two workflows' failure totals as identical views.
 
 The three nested candidate counts are defined in the predeclaration. They
 are geometry/anchor/topology feasibility only, not v0.17 eligible frames or

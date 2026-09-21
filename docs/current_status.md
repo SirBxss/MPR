@@ -1,10 +1,52 @@
 # Current project status
 
-Last updated: 2026-09-20. This is the first file a new agent should read after
+Last updated: 2026-09-21. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## PR #21 merged; session provenance unavailable; recording-level pilot prepared
+## PR #22 reviewed; real batch02 pilot complete; residual readiness unresolved
+
+PR #22 is open/unmerged and mergeable at `0661796`, tree
+`ba42ddd448cb61804b00b7eba48c0acd2c7d7138`. Claude returned implementation/scope
+**GO with zero blockers**; CI run `35578240792` passed Python 3.10/3.12 with
+MCAP dependencies installed. The authorized one-run pilot is now complete.
+The new host snapshot had 14 GiB available RAM and 80 GiB free disk, resolving
+the earlier memory precondition. Do not repeat the completed pilot.
+
+The returned report's source fingerprint matches the reviewed package exactly.
+All four files completed: 57,256 messages per topic, 55,077 numeric pairs,
+7,775 H100 pairs, 7,743 also passing the 1 m anchor. Of those, 7,367 are LANE_MAP
+and 376 have an available/no-error EDP estimator with SENSOR_TOPOLOGY (10, 0,
+40, 326 by recording). These are EDP/RLMB geometry candidates, not direct LTSB
+pairs, eligible frames or computed residuals. Pairing remains ungated; no
+numeric delta distribution or physical timing verification was produced.
+
+Read `docs/recording_pair_feasibility_batch02_result.md` for exact identities,
+arithmetic, failure counts and verification limits. The result has been
+reconciled by the implementer; the supplied independent review concerned the
+implementation/scope, not this real output. Raw MCAPs remain unavailable here.
+Unknown session provenance remains unknown, with no role or outing admission.
+Mixed topology and the 376-frame upper bound also prevent claiming the frozen
+500-frame/all-SENSOR outing gates have passed. Do not request missing session
+facts again or fit a model from these counts.
+
+The next code task is a narrow diagnostic extension exposing static RLMB
+conversion reasons/stages and pair time offsets while preserving the current
+rules/counts. Recording 04 has 27,124 generic `map_RoadMessageError` conversions
+out of 34,081 reference messages; that label cannot distinguish empty geometry
+from a parser/pool problem. No cause or correction is yet proven. Assess causal
+features and continuous support after that evidence, before exploratory residual
+extraction. Do not change thresholds or adopt a different target to raise counts.
+
+The reviewed implementation is ready for the owner's merge; this documentation
+closure is intended for the existing PR #22, followed by normal CI at its new
+head. No external mutation has been performed. Earlier preparation/run-request
+instructions below are historical and do not authorize a repeated pilot.
+Documentation-closure verification passes compilation and whitespace checks;
+the full suite with MCAP extras runs 455 tests, 453 pass and the same two
+opt-ins skip. Source/test files and the runtime fingerprint are unchanged.
+
+## Historical PR #21 merge and recording-level pilot preparation
 
 PR #21 is merged at `7834defaf3e3e10b3af908f2b869c96dfa8fae12`, tree
 `537c5930034132967fe5c05d198ed63c71af778e`. GitHub and Git fetch agree, and

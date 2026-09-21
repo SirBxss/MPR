@@ -2,9 +2,13 @@
 
 Date: 2026-09-20. Revision:
 `v0.19.0-batch02-recording-pair-feasibility-2026-09-20-a1`.
-Status: proposed scope and synthetic-tested implementation, awaiting focused
-independent review before any private payload run. No batch02 geometry result
-has been inspected. The existing package version remains 0.18.1; this is a
+Status at declaration: proposed scope and synthetic-tested implementation,
+awaiting focused independent review; no batch02 geometry result had been
+inspected. On 2026-09-21 implementation/scope GO and Python 3.10/3.12 CI were
+verified, and the one authorized real pilot completed. See
+`docs/recording_pair_feasibility_batch02_result.md` for the subsequent evidence.
+The rules below preserve the original declaration, not a request to rerun.
+The existing package version remains 0.18.1; this is a
 separate diagnostic contract, not a change to the v0.17 cohort lock.
 
 ## Trigger and scientific scope

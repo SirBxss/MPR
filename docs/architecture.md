@@ -1,6 +1,6 @@
 # Project architecture
 
-The proposed batch02 `recording_pair_feasibility` consumer reuses the canonical
+The reviewed batch02 `recording_pair_feasibility` consumer reuses the canonical
 intake's extracted streaming geometry converter and existing H100 projection
 helper. Its I/O layer owns indexed MCAP reading, resource guards and a private
 temporary SQLite geometry spool; its workflow validates exact administrative
@@ -8,7 +8,8 @@ and raw-byte lineage and writes one counts-only JSON. Its CLI enforces the
 process allocation cap. It assigns no physical-session identities or cohort
 roles and does not call feature, residual, model or planner computations.
 The historical intake retains its list-collecting wrapper and unchanged rules.
-See `docs/recording_pair_feasibility_predeclaration.md` before private execution.
+See `docs/recording_pair_feasibility_predeclaration.md` for its fixed scope and
+`docs/recording_pair_feasibility_batch02_result.md` for the completed pilot.
 
 MPR keeps the accepted diagnostics frozen, restores native projection as the
 explicit v0.5.2 exact-manifest workflow, retains v0.5.1 as a separate

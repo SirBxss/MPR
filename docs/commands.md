@@ -73,12 +73,16 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-audit-corpus-inventory` | `python -m lane_residuals.cli.corpus_inventory` | v0.12.1 read-only, fail-closed expanded-corpus continuity/session audit | Recursive MCAP root and exact private basename-to-drive map | File/topic/edge CSVs, proposed groups, strict summary, and diagnostic plot |
 | `mpr-lock-independent-outings` | `python -m lane_residuals.cli.independent_outing_intake` | v0.17.0 prospective intake plus the exact v0.17.1 EDP schema-v2 amendment; no model, sampler, planner, or final evaluation | Recursive new-MCAP root, strict private acquisition manifest, an exact prior successful lock only for a declared supersession, and optionally a preserved failed v0.17.0 audit for amended lineage | Recording and outing CSV audits, immutable cohort lock, and strict intake summary |
 | `mpr-audit-sensor-topology-feasibility` | `python -m lane_residuals.cli.sensor_topology_feasibility` | v0.18.1 correction to the reviewed structural/co-availability audit; the authorized corrected run is complete and accepted; no further batch01 run | Exact closed batch01 MCAP root, unchanged private manifest, and complete preserved v0.17.1 intake directory | Recording counts, schema inventory, and feasibility summary only; no coordinates, residuals, model, planner, or figure |
-| module-only pilot | `python -m lane_residuals.cli.recording_pair_feasibility` | Proposed batch02 EDP/RLMB geometry feasibility; focused implementation GO required before private execution | Exact batch02 root, original registration/time-context JSONs, local scratch disk and fresh output directory; no outing manifest | One private counts-only recording report; no roles, eligibility lock, causal features or residuals |
+| module-only pilot | `python -m lane_residuals.cli.recording_pair_feasibility` | Reviewed batch02 EDP/RLMB geometry feasibility; the one authorized pilot is complete | Exact batch02 root, original registration/time-context JSONs, local scratch disk and fresh output directory; no outing manifest | One private counts-only recording report; no roles, eligibility lock, causal features or residuals |
 
-The batch02 command below is for use **after its new focused review GO and
-CI**, not a command authorized by the PR #21 merge. Original session evidence
-is unavailable; do not fabricate a v0.17 manifest. Confirm at least 6 GiB
-`MemAvailable` on the execution machine and 10 GiB free local scratch disk.
+The batch02 command below records the **completed** pilot, not a rerun request.
+Implementation/scope GO and Python 3.10/3.12 CI passed; see
+`docs/recording_pair_feasibility_batch02_result.md` for the returned counts.
+The CLI requires Linux (`/proc/meminfo` and `RLIMIT_AS`). Original session
+evidence is unavailable; do not fabricate a v0.17 manifest. Execution requires
+at least 6 GiB `MemAvailable` and 10 GiB free local scratch disk. The earlier
+2.3 GiB RAM snapshot failed that guard; the completed run's snapshot reports
+14 GiB available RAM and 80 GiB free disk.
 The CLI applies a 4 GiB address-space cap. The thread settings below reduce
 numerical-library memory reservations; no host swap/kernel changes are needed.
 
