@@ -1,6 +1,18 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-**Latest checkpoint:** PR #21 received focused **GO with zero blockers**;
+**Latest checkpoint (2026-09-21):** PR #22 received implementation/scope **GO**,
+zero blockers, and passed Python 3.10/3.12 CI; it remains open and unmerged.
+The batch02 EDP/RLMB pilot completed: 7,743 H100/anchor candidates, including
+376 with the required EDP sensor-topology label. These are geometric candidates,
+not computed residuals or eligible independent outings. Generic reference
+conversion failures and unreported timestamp offsets need a narrow follow-up
+before residual extraction. See
+[`docs/recording_pair_feasibility_batch02_result.md`](docs/recording_pair_feasibility_batch02_result.md)
+and [`docs/current_status.md`](docs/current_status.md).
+Session provenance remains unavailable. The preparation and metadata requests
+below are historical; do not repeat the completed pilot or fill unknown facts.
+
+**Historical checkpoint:** PR #21 received focused **GO with zero blockers**;
 Python 3.10/3.12 CI passes. It is ready for the user's merge and was still
 unmerged at the 2026-09-19 check. The four-file batch02 registration is reconciled.
 The summaries advertise 57,256 messages each for EDP, RLMB, sensor/map

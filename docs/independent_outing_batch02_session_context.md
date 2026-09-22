@@ -1,5 +1,13 @@
 # Batch02: recording times, session declarations and machine capacity
 
+Completion checkpoint, 2026-09-20: the context JSON has been returned and
+reconciled, PR #21 is merged, and the owner says session/acquisition/export
+answers cannot be obtained. Do not rerun this command, repeat the questions
+or fill a new manifest with guesses. Continue from
+`docs/independent_outing_batch02_context_result.md` and the separately scoped
+`docs/recording_pair_feasibility_predeclaration.md`. The instructions below
+record the completed administrative procedure and its then-open questions.
+
 Date: 2026-09-19. The code/interpretation review is complete: PR #21 received
 focused `GO` with zero blockers and passing Python 3.10/3.12 CI. Missing
 session facts do not block merging that PR. Review identities and limits are

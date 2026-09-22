@@ -1,10 +1,98 @@
 # Current project status
 
-Last updated: 2026-09-19. This is the first file a new agent should read after
+Last updated: 2026-09-21. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## PR #21 accepted; next collect session context and assess retained geometry
+## PR #22 reviewed; real batch02 pilot complete; residual readiness unresolved
+
+PR #22 is open/unmerged and mergeable at `0661796`, tree
+`ba42ddd448cb61804b00b7eba48c0acd2c7d7138`. Claude returned implementation/scope
+**GO with zero blockers**; CI run `35578240792` passed Python 3.10/3.12 with
+MCAP dependencies installed. The authorized one-run pilot is now complete.
+The new host snapshot had 14 GiB available RAM and 80 GiB free disk, resolving
+the earlier memory precondition. Do not repeat the completed pilot.
+
+The returned report's source fingerprint matches the reviewed package exactly.
+All four files completed: 57,256 messages per topic, 55,077 numeric pairs,
+7,775 H100 pairs, 7,743 also passing the 1 m anchor. Of those, 7,367 are LANE_MAP
+and 376 have an available/no-error EDP estimator with SENSOR_TOPOLOGY (10, 0,
+40, 326 by recording). These are EDP/RLMB geometry candidates, not direct LTSB
+pairs, eligible frames or computed residuals. Pairing remains ungated; no
+numeric delta distribution or physical timing verification was produced.
+
+Read `docs/recording_pair_feasibility_batch02_result.md` for exact identities,
+arithmetic, failure counts and verification limits. The result has been
+reconciled by the implementer; the supplied independent review concerned the
+implementation/scope, not this real output. Raw MCAPs remain unavailable here.
+Unknown session provenance remains unknown, with no role or outing admission.
+Mixed topology and the 376-frame upper bound also prevent claiming the frozen
+500-frame/all-SENSOR outing gates have passed. Do not request missing session
+facts again or fit a model from these counts.
+
+The next code task is a narrow diagnostic extension exposing static RLMB
+conversion reasons/stages and pair time offsets while preserving the current
+rules/counts. Recording 04 has 27,124 generic `map_RoadMessageError` conversions
+out of 34,081 reference messages; that label cannot distinguish empty geometry
+from a parser/pool problem. No cause or correction is yet proven. Assess causal
+features and continuous support after that evidence, before exploratory residual
+extraction. Do not change thresholds or adopt a different target to raise counts.
+
+The reviewed implementation is ready for the owner's merge; this documentation
+closure is intended for the existing PR #22, followed by normal CI at its new
+head. No external mutation has been performed. Earlier preparation/run-request
+instructions below are historical and do not authorize a repeated pilot.
+Documentation-closure verification passes compilation and whitespace checks;
+the full suite with MCAP extras runs 455 tests, 453 pass and the same two
+opt-ins skip. Source/test files and the runtime fingerprint are unchanged.
+
+## Historical PR #21 merge and recording-level pilot preparation
+
+PR #21 is merged at `7834defaf3e3e10b3af908f2b869c96dfa8fae12`, tree
+`537c5930034132967fe5c05d198ed63c71af778e`. GitHub and Git fetch agree, and
+CI run `35503298582` passed Python 3.10/3.12 at the final PR head `d8f368c`.
+The user returned `batch02_container_context.json`, SHA-256
+`b59f89d646349921b7078f05bdb705be7c477bfc20076c9c68fdb3f933729bad`.
+Its four identities, sizes, time differences and conditional UTC conversions
+reconcile with the preserved registration. All summaries report statistics;
+the intervals are approximately 18, 3, 18 and 57 minutes on disjoint numerical
+log-time ranges. These are not verified acquisition dates, independent
+sessions or eligible-sequence durations. Raw bytes remain unavailable here.
+
+The owner says the requested session/acquisition/export history cannot be
+obtained. **Stop asking for those facts or a completed batch02 v0.17 manifest.**
+Keep the drafts and unknown provenance unchanged. The original independent-
+outing lock remains blocked; do not infer either four independent outings or
+one shared outing. No training/final role is assigned. Unknown identity does
+not prevent a separately scoped technical recording diagnostic.
+
+The host report had 2.3 GiB available of 31 GiB RAM and fully used 2 GiB swap.
+The proposed `recording_pair_feasibility` CLI stores reconstructed geometry
+temporarily on disk, keeps complete capped timestamp streams and reuses the
+canonical EDP/RLMB converter and H100/anchor arithmetic. The shared conversion
+loop is extracted without changing the old intake's list wrapper or gates.
+The new output exposes counts/failure states only; no causal features,
+residuals, model, sensor-target adoption, sequence stitching or cohort lock.
+Resource/decode interruptions yield inconclusive results with null counts,
+never a negative conclusion from a partial prefix. The canonical intake has
+no timestamp-distance gate; this consumer preserves and labels that fact.
+The separate v0.18 sensor matcher's 50 ms rule is not substituted.
+
+Read `docs/independent_outing_batch02_context_result.md` and
+`docs/recording_pair_feasibility_predeclaration.md` for identities, scope,
+synthetic verification, memory limits and interpretation. The new code/scope
+is prepared for focused independent review on a new branch from merged main.
+After GO and Python 3.10/3.12 CI, free enough host memory, then run the one
+fixed batch02 pilot under the documented process limit. No private geometry
+run is yet authorized by its preparation, and no new outcome has been seen.
+The old provider questions and fill-v003 instructions below are historical.
+
+Compilation passes; 455 tests run, 453 pass and the same two opt-in tests
+skip. Fifteen new tests exercise storage, completeness, pairing preservation,
+lineage and resource boundaries. The 52 focused tests pass; their exact module
+set and the synthetic memory comparison are in the context-result document.
+
+## Historical PR #21 acceptance and session-context request
 
 On 2026-09-19 the user supplied the focused Claude review
 `MPR_batch02_registration_pairing_review.md`, SHA-256

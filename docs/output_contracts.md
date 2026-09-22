@@ -4,6 +4,79 @@ These contracts describe diagnostics, not training labels. EDP–RLMB
 disagreement is not ground-truth lane-estimation error, and RLMB is a
 pseudo-reference candidate rather than physical ground truth.
 
+## Batch02 recording-pair feasibility output
+
+The new `python -m lane_residuals.cli.recording_pair_feasibility` writes exactly
+`recording_pair_feasibility.json`, after its separately required review GO.
+It is not a v0.17 lock or a v0.18 sensor audit. The binding scope is in
+`docs/recording_pair_feasibility_predeclaration.md`.
+
+Top-level keys are exactly:
+
+```text
+contract_revision, purpose, status, registration_sha256,
+container_context_sha256, runtime_versions, runtime_source_sha256,
+raw_hashes_verified, physical_session_provenance, independent_outing_count,
+roles_assigned, cohort_lock_created, causal_input_availability_checked,
+residuals_computed, interpretation, recordings
+```
+
+Revision is `v0.19.0-batch02-recording-pair-feasibility-2026-09-20-a1`;
+purpose is `recording_level_geometry_feasibility_without_session_provenance`.
+Status is `complete` only when all four files complete; otherwise
+`inconclusive`. `raw_hashes_verified` records successful pre-decode verification;
+a subsequent file change makes that file inconclusive with null counts.
+Physical-session provenance is `unavailable_owner_report_2026-09-20`,
+independent outing count is null, and the four role/lock/causal-input/residual
+flags are false. A zero-candidate complete inspection is not an execution
+failure and says nothing about independent-outing count.
+
+`runtime_versions` has `python`, `mcap`, `mcap-protobuf-support`, `protobuf`,
+and `numpy`. The runtime-source fingerprint hashes the UTF-8 bytes of
+`json.dumps(mapping, sort_keys=True)` using Python's default separators, where
+mapping is every package-relative POSIX `.py` path to its file-byte SHA-256.
+It fingerprints available runtime source without importing model modules.
+Prior administrative report hashes identify exact immutable input bytes;
+all raw hashes are freshly checked before payload processing.
+
+Each recording has exactly `relative_path_private`, `raw_sha256`,
+`size_bytes`, `status`, `failure_code`, `counts`. Inconclusive results have a
+static failure code and null counts, never a partial-stream aggregate. Complete
+results have null failure code and these exact count-object keys:
+
+```text
+estimate_message_count, reference_message_count, timestamp_pairing_counts,
+pairing_maximum_delta_ns, estimate_topology_counts, estimate_descriptor_counts,
+conversion_failure_counts, pair_failure_counts, anchored_h100_topology_counts,
+h100_pair_count, anchored_h100_pair_count, sensor_anchored_h100_pair_count
+```
+
+`timestamp_pairing_counts` contains integer lengths for the eight canonical
+audit fields: `pairs`, `rejected_by_gate`, `unmatched_first_positions`,
+`unmatched_second_positions`, `missing_time_first_positions`,
+`missing_time_second_positions`, `ambiguous_first_positions`, and
+`ambiguous_second_positions`. No source timestamp arrays or message indices
+are exported. The maximum-delta field is null, explicitly preserving the
+canonical intake's ungated matching; it is not the sensor audit's 50 ms rule.
+The remaining dictionary fields map enum names, descriptor hashes or failure
+codes to integer counts. Their categories can overlap across dictionaries.
+`pair_failure_counts` covers matched pairs only, assigning the first failure
+reached by the pair checks. Unmatched estimates appear in timestamp counts;
+unlike the v0.17 all-estimate frame audit, they do not add a
+`reference_pair_unavailable` pair failure. Do not add conversion failures to
+pair failures or compare these two workflows' failure totals as identical views.
+
+The three nested candidate counts are defined in the predeclaration. They
+are geometry/anchor/topology feasibility only, not v0.17 eligible frames or
+outings. No raw coordinates, anchor distances, confidence/condition values,
+residuals, distribution statistics, model scores or role assignments appear.
+Temporary working geometry is not part of the artifact.
+
+Exit 0 means a complete four-file inspection, including a complete zero result.
+Exit 3 means the JSON records at least one inconclusive file. Exit 2 means
+preflight/command failure; absence of a complete JSON after interruption or
+process termination never supports a negative scientific conclusion.
+
 ## v0.12.1 expanded-corpus inventory outputs
 
 The inventory command writes exactly:

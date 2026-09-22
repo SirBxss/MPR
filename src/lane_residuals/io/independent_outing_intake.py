@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 from dataclasses import dataclass
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Any
 
@@ -141,6 +142,117 @@ class _DecodedReference:
     failure_code: str | None = None
 
 
+def iter_geometry_records(
+    messages: Iterable[tuple[Any, Any, Any, Any]],
+) -> Iterator[_DecodedEstimate | _DecodedReference]:
+    """Reconstruct selected records without retaining the preceding geometry.
+
+    The caller controls MCAP iteration order and owns complete-stream failure
+    handling. Conversion, schema and timestamp rules match the legacy intake.
+    """
+
+    estimate_count = 0
+    reference_count = 0
+    for schema, channel, message, decoded in messages:
+        topic = str(getattr(channel, "topic", ""))
+        schema_name = str(getattr(schema, "name", ""))
+        encoding = str(getattr(channel, "message_encoding", "")).lower()
+        log_time = int(getattr(message, "log_time", 0))
+        publish_time = int(getattr(message, "publish_time", 0))
+        source_time = source_time_ns_from_message(decoded)
+        if source_time is not None and int(source_time) < 0:
+            source_time = None
+        if topic == DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC:
+            index = estimate_count
+            estimate_count += 1
+            descriptor_file_sha256 = estimate_descriptor_support(
+                decoded
+            ).descriptor_file_sha256
+            frame: EstimatedFrameAudit | None = None
+            curve: SplineCurve | None = None
+            estimate_path: EgoRelativePath | None = None
+            failure: str | None = None
+            if (
+                schema_name != DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA
+                or encoding != "protobuf"
+            ):
+                failure = "estimate_schema_or_encoding_mismatch"
+            else:
+                try:
+                    frame = estimated_frame_from_message(
+                        decoded,
+                        message_index=index,
+                        log_time_ns=log_time,
+                        publish_time_ns=publish_time,
+                        require_sensor_topology=False,
+                    )
+                    source_time = frame.source_time_ns
+                    if not frame.candidate_ready or frame.candidate is None:
+                        failure = f"estimate_{frame.conversion_state}"
+                    else:
+                        curve = generate_spline_curve(
+                            frame.candidate,
+                            meaning="curvature_rate",
+                            anchor_policy="anchor_zero",
+                            max_step_m=MAXIMUM_SPLINE_STEP_M,
+                            extra_stations=CANONICAL_MODEL_STATIONS_M,
+                        )
+                        estimate_path = ego_relative_path_from_spline(curve)
+                except (GeometryValidationError, TypeError, ValueError) as error:
+                    failure = f"estimate_{getattr(error, 'code', type(error).__name__)}"
+            yield _DecodedEstimate(
+                message_index=index,
+                source_time_ns=(None if source_time is None else int(source_time)),
+                frame=frame,
+                curve=curve,
+                path=estimate_path,
+                descriptor_file_sha256=descriptor_file_sha256,
+                decoded=decoded,
+                failure_code=failure,
+            )
+        elif topic == DEFAULT_MAP_TOPIC:
+            index = reference_count
+            reference_count += 1
+            reference_path: EgoRelativePath | None = None
+            failure = None
+            if schema_name != DEFAULT_MAP_SCHEMA or encoding != "protobuf":
+                failure = "map_schema_or_encoding_mismatch"
+            else:
+                try:
+                    road = road_frame_from_message(
+                        decoded,
+                        topic=topic,
+                        schema_name=schema_name,
+                        log_time_ns=log_time,
+                        publish_time_ns=publish_time,
+                        sequence=index,
+                    )
+                    source_time = road.source_time_ns
+                    ordered = ordered_ego_lane_from_road_frame(
+                        road,
+                        required_forward_m=max(CANONICAL_MODEL_STATIONS_M),
+                        max_segments=MAP_MAXIMUM_SEGMENTS,
+                        max_junction_gap_m=MAP_MAXIMUM_JUNCTION_GAP_M,
+                        max_junction_heading_delta_rad=(
+                            MAP_MAXIMUM_JUNCTION_HEADING_RAD
+                        ),
+                    )
+                    reference_path = ordered.path
+                except (
+                    GeometryValidationError,
+                    RoadMessageError,
+                    TypeError,
+                    ValueError,
+                ) as error:
+                    failure = f"map_{getattr(error, 'code', type(error).__name__)}"
+            yield _DecodedReference(
+                message_index=index,
+                source_time_ns=(None if source_time is None else int(source_time)),
+                path=reference_path,
+                failure_code=failure,
+            )
+
+
 def _decode_geometry_streams(
     path: Path,
 ) -> tuple[list[_DecodedEstimate], list[_DecodedReference], tuple[str, ...]]:
@@ -153,106 +265,11 @@ def _decode_geometry_streams(
             topics=(DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC, DEFAULT_MAP_TOPIC),
             include_ros1=False,
         )
-        for schema, channel, message, decoded in iterator:
-            topic = str(getattr(channel, "topic", ""))
-            schema_name = str(getattr(schema, "name", ""))
-            encoding = str(getattr(channel, "message_encoding", "")).lower()
-            log_time = int(getattr(message, "log_time", 0))
-            publish_time = int(getattr(message, "publish_time", 0))
-            source_time = source_time_ns_from_message(decoded)
-            if source_time is not None and int(source_time) < 0:
-                source_time = None
-            if topic == DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC:
-                index = len(estimates)
-                descriptor_file_sha256 = estimate_descriptor_support(
-                    decoded
-                ).descriptor_file_sha256
-                frame: EstimatedFrameAudit | None = None
-                curve: SplineCurve | None = None
-                estimate_path: EgoRelativePath | None = None
-                failure: str | None = None
-                if (
-                    schema_name != DEFAULT_ESTIMATED_DRIVE_PATHS_SCHEMA
-                    or encoding != "protobuf"
-                ):
-                    failure = "estimate_schema_or_encoding_mismatch"
-                else:
-                    try:
-                        frame = estimated_frame_from_message(
-                            decoded,
-                            message_index=index,
-                            log_time_ns=log_time,
-                            publish_time_ns=publish_time,
-                            require_sensor_topology=False,
-                        )
-                        source_time = frame.source_time_ns
-                        if not frame.candidate_ready or frame.candidate is None:
-                            failure = f"estimate_{frame.conversion_state}"
-                        else:
-                            curve = generate_spline_curve(
-                                frame.candidate,
-                                meaning="curvature_rate",
-                                anchor_policy="anchor_zero",
-                                max_step_m=MAXIMUM_SPLINE_STEP_M,
-                                extra_stations=CANONICAL_MODEL_STATIONS_M,
-                            )
-                            estimate_path = ego_relative_path_from_spline(curve)
-                    except (GeometryValidationError, TypeError, ValueError) as error:
-                        failure = f"estimate_{getattr(error, 'code', type(error).__name__)}"
-                estimates.append(
-                    _DecodedEstimate(
-                        message_index=index,
-                        source_time_ns=(None if source_time is None else int(source_time)),
-                        frame=frame,
-                        curve=curve,
-                        path=estimate_path,
-                        descriptor_file_sha256=descriptor_file_sha256,
-                        decoded=decoded,
-                        failure_code=failure,
-                    )
-                )
-            elif topic == DEFAULT_MAP_TOPIC:
-                index = len(references)
-                reference_path: EgoRelativePath | None = None
-                failure = None
-                if schema_name != DEFAULT_MAP_SCHEMA or encoding != "protobuf":
-                    failure = "map_schema_or_encoding_mismatch"
-                else:
-                    try:
-                        road = road_frame_from_message(
-                            decoded,
-                            topic=topic,
-                            schema_name=schema_name,
-                            log_time_ns=log_time,
-                            publish_time_ns=publish_time,
-                            sequence=index,
-                        )
-                        source_time = road.source_time_ns
-                        ordered = ordered_ego_lane_from_road_frame(
-                            road,
-                            required_forward_m=max(CANONICAL_MODEL_STATIONS_M),
-                            max_segments=MAP_MAXIMUM_SEGMENTS,
-                            max_junction_gap_m=MAP_MAXIMUM_JUNCTION_GAP_M,
-                            max_junction_heading_delta_rad=(
-                                MAP_MAXIMUM_JUNCTION_HEADING_RAD
-                            ),
-                        )
-                        reference_path = ordered.path
-                    except (
-                        GeometryValidationError,
-                        RoadMessageError,
-                        TypeError,
-                        ValueError,
-                    ) as error:
-                        failure = f"map_{getattr(error, 'code', type(error).__name__)}"
-                references.append(
-                    _DecodedReference(
-                        message_index=index,
-                        source_time_ns=(None if source_time is None else int(source_time)),
-                        path=reference_path,
-                        failure_code=failure,
-                    )
-                )
+        for record in iter_geometry_records(iterator):
+            if isinstance(record, _DecodedEstimate):
+                estimates.append(record)
+            else:
+                references.append(record)
     except Exception as error:
         stream_failures.append(f"geometry_stream_decode_failed:{type(error).__name__}")
         # A partial prefix cannot prove complete-corpus topology or H100
@@ -530,5 +547,6 @@ __all__ = [
     "MAXIMUM_SPLINE_STEP_M",
     "discover_mcaps",
     "inspect_recording_technical_evidence",
+    "iter_geometry_records",
     "read_strict_json_with_bytes",
 ]
