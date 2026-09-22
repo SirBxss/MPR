@@ -4,7 +4,67 @@ Last updated: 2026-09-22. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Reference-failure/timing extension implemented; review before private execution
+## Batch02 timing/reference result reconciled; prepare exploratory residual extraction
+
+PR #22 is merged at `dddbcc9`, tree
+`9a60f7623fa02e56f00827683dec4e78b4428e18`. PR #23 remains open and mergeable
+at `83da0f16f47162979bb1dcf7c7bfea51386a5930`, tree
+`d9f74f8a5692d14d158f5acf2b77d38783db9804`. Claude's implementation/scope
+review returned **GO with zero blockers**. GitHub Actions run `35712459648`
+passed Python 3.10/3.12, including the MCAP-reader installation and unit tests.
+The authorized v0.19.1 private diagnostic is now complete; do not repeat it.
+
+Read `docs/recording_pair_diagnostics_batch02_result.md` for exact artifact
+hashes, arithmetic, review limitations and the next implementation scope.
+The returned JSON SHA-256 is
+`fad94bc2b20715cb8067883c637f1f208f562fc29d4fcc6bd24bd0e0054a6ffb`.
+Its source fingerprint matches the reviewed code, all four files complete,
+and every original nested count equals the preserved pilot. These checks were
+recomputed from supplied artifacts; raw MCAP bytes are unavailable here.
+The independent review covered implementation/scope, not the later real output.
+
+All **29,569 generic reference-conversion failures are empty lane-segment
+lists**, including 27,124 in recording 04. No coordinate-pool error is observed;
+the empty-list check happens before coordinate validation. An additional 1,937
+references fail unique ego-drive-path selection. No converter repair is
+supported by this result; upstream reasons for empty geometry remain unknown.
+All **7,743 anchored H100 pairs have exact source-time delta zero**, including
+all **376 sensor-topology EDP candidates** (10/0/40/326 by recording).
+The 7,367 LANE_MAP candidates remain excluded from the sensor population.
+No time shift or new delta threshold is indicated. Equal source times establish
+neither physical measurement age nor independent information.
+
+The former error/timing blocker is resolved. Next prepare a bounded exploratory
+EDP/RLMB extractor that first checks the six existing prediction-time features
+and recording-local contiguous support, then exports finite 21-station
+pseudo-residuals, conditions and sequence provenance for retained rows.
+Reuse the disk-backed architecture, native projection, H100/no-extrapolation,
+1 m anchor and existing sequence-gap rules. Inspect speed-input causality:
+pose interpolation at the estimate epoch does not itself prove that its upper
+bracket was available at prediction time. Preserve old feature semantics and
+make any necessary new decision explicit before execution. Do not stitch the
+four files, pool LANE_MAP frames or reopen LTSB simply to raise sample counts.
+
+That next phase should produce the first actual residual vectors, subject to
+readiness checks; **376 is an upper bound, not an exported training dataset**.
+The current report has no residuals, features or sequence lengths. A later
+exploratory baseline depends on retained support and a declared development
+protocol; AR/AIOHMM also requires contiguous transitions. No automatic fit or
+final validation follows. The frozen outing gates remain unmet, and the owner
+cannot recover session/acquisition/export history. Do not request it again or
+infer independent outings, training/final roles or an admission lock.
+
+Compilation and whitespace checks pass; the full suite runs 477 tests, with
+475 passing and two expected opt-in skips. Runtime/source/test files are unchanged.
+
+This closure changes documentation only and belongs in existing PR #23.
+Apply it, let CI pass at the updated head, then merge that PR. Prepare the
+separate extraction contract/code from merged main; its focused review and CI
+must precede its private run. There is no new extraction command yet and no
+private rescan is needed now. Earlier review-before-diagnostic instructions
+below are historical gates already completed, not requests to repeat them.
+
+## Historical reference-failure/timing implementation preparation
 
 The owner chose to prioritize EDP/RLMB and put direct LTSB investigation on hold.
 This preserves the established path-residual target; it is not a claim that EDP

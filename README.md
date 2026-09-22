@@ -1,14 +1,17 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-**Latest checkpoint (2026-09-22):** the focused EDP/RLMB reference-failure and
-timestamp diagnostic is implemented and ready for review. It preserves the
-completed pilot's count definitions and requires exact per-recording agreement
-with that preserved result. It adds no residuals or eligibility decision.
-Compilation passes; 477 tests run (475 pass, two expected skips). EDP/RLMB is
-the current priority; direct sensor-topology investigation is on hold. See
-[`docs/current_status.md`](docs/current_status.md) and
-[`docs/recording_pair_diagnostics_predeclaration.md`](docs/recording_pair_diagnostics_predeclaration.md)
-for review, PR sequencing and the one-run boundary. No new private result yet.
+**Latest checkpoint (2026-09-22):** PR #23 received implementation/scope **GO**,
+zero blockers, and passed Python 3.10/3.12 CI. Its completed real diagnostic
+preserves every pilot count: all 29,569 generic reference errors are empty
+lane-segment lists; all 7,743 anchored H100 pairs, including 376 sensor-topology
+EDP candidates, have exact source-time delta zero. These are geometric
+candidates, not computed residuals or a training dataset. The next scoped
+implementation should check causal features and contiguous support, then export
+exploratory EDP/RLMB pseudo-residuals. Direct LTSB work remains on hold.
+See [`docs/current_status.md`](docs/current_status.md) and
+[`docs/recording_pair_diagnostics_batch02_result.md`](docs/recording_pair_diagnostics_batch02_result.md)
+for the evidence and closure/merge instructions. PR #22 is merged; PR #23 is
+open. Do not repeat either completed diagnostic or infer independent outings.
 
 **Historical checkpoint (2026-09-21):** PR #22 received implementation/scope **GO**,
 zero blockers, and passed Python 3.10/3.12 CI; it remains open and unmerged.

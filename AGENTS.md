@@ -260,6 +260,23 @@ put the new implementation in a separate PR after that merge. Its exact pushed
 head needs focused implementation/scope GO and normal CI before the one new
 private run. No new output is available yet and no residual/model follows.
 
+The later 2026-09-22 result checkpoint supersedes those preparation gates:
+PR #22 is merged at `dddbcc9`. PR #23 at `83da0f1`, tree `d9f74f8`, received
+implementation/scope GO with zero blockers and passing Python 3.10/3.12 CI.
+Its one real diagnostic completed with exact equality of every original count.
+Read `docs/recording_pair_diagnostics_batch02_result.md` and the current-status
+header. All 29,569 generic reference errors are empty lane lists; all 7,743
+anchored H100 pairs, including 376 sensor candidates, have source-time delta
+zero. No parser correction or time shift is supported; no residual exists yet.
+Do not repeat this diagnostic. Its documentation closure belongs in PR #23.
+Next prepare separately reviewed exploratory extraction: check six causal
+inputs and file-local contiguous support before exporting retained 21-station
+pseudo-residuals, conditions and provenance. Keep geometry/topology rules and
+resource limits; examine actual odometry input causality, do not bridge files,
+invent session identity or count LANE_MAP rows as sensor data. More suitable
+independent data are still required for the final cohort. No new private
+command or model fit is authorized by the completed diagnostic's GO.
+
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location

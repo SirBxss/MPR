@@ -73,14 +73,15 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-audit-corpus-inventory` | `python -m lane_residuals.cli.corpus_inventory` | v0.12.1 read-only, fail-closed expanded-corpus continuity/session audit | Recursive MCAP root and exact private basename-to-drive map | File/topic/edge CSVs, proposed groups, strict summary, and diagnostic plot |
 | `mpr-lock-independent-outings` | `python -m lane_residuals.cli.independent_outing_intake` | v0.17.0 prospective intake plus the exact v0.17.1 EDP schema-v2 amendment; no model, sampler, planner, or final evaluation | Recursive new-MCAP root, strict private acquisition manifest, an exact prior successful lock only for a declared supersession, and optionally a preserved failed v0.17.0 audit for amended lineage | Recording and outing CSV audits, immutable cohort lock, and strict intake summary |
 | `mpr-audit-sensor-topology-feasibility` | `python -m lane_residuals.cli.sensor_topology_feasibility` | v0.18.1 correction to the reviewed structural/co-availability audit; the authorized corrected run is complete and accepted; no further batch01 run | Exact closed batch01 MCAP root, unchanged private manifest, and complete preserved v0.17.1 intake directory | Recording counts, schema inventory, and feasibility summary only; no coordinates, residuals, model, planner, or figure |
-| module-only pilot/diagnostic | `python -m lane_residuals.cli.recording_pair_feasibility` | Original pilot complete; optional v0.19.1 reference/timing mode implemented and awaiting focused GO/CI before one new private run | Exact batch02 root, original registration/time-context JSONs, local scratch disk and fresh output directory; new mode additionally requires the exact preserved pilot report | Original counts or the separate reference/timing report; no roles, eligibility lock, causal features or residuals |
+| module-only pilot/diagnostic | `python -m lane_residuals.cli.recording_pair_feasibility` | Both v0.19.0 pilot and v0.19.1 reference/timing run complete and reconciled; historical commands below, no rerun requested | Exact batch02 root, original registration/time-context JSONs, local scratch disk and fresh output directory; new mode additionally requires the exact preserved pilot report | Original counts or the separate reference/timing report; no roles, eligibility lock, causal features or residuals |
 
-The **new v0.19.1 command below is for after focused GO and CI on its own
-implementation PR**. PR #22's old GO does not cover this extension. Finish #22
-with its result documentation first, then put the extension on a new branch.
-The explicit preserved-report flag selects the new output contract; retain the
-original file byte-for-byte. The dedicated batch02 root and all resource guards
-are unchanged. Use the existing project environment and check RAM/disk afresh.
+The **v0.19.1 command below records the completed diagnostic**, not a rerun
+request. PR #23 received focused implementation/scope GO and Python 3.10/3.12
+CI; its real output now reconciles with the preserved pilot. Read
+`docs/recording_pair_diagnostics_batch02_result.md` and `docs/current_status.md`.
+Keep both reports byte-for-byte. The next extraction scope is not implemented,
+so no new private command is requested by this closure. The original invocation
+is retained here for reproducibility:
 
 ```bash
 mkdir -p outputs/work/recording_pair_feasibility
@@ -97,11 +98,11 @@ python -m lane_residuals.cli.recording_pair_feasibility \
   --log-level INFO
 ```
 
-The output is `recording_pair_diagnostics.json`. Any original-count drift is
-inconclusive, not a new successful count. No real v0.19.1 result exists yet;
-preserve all output and return it for reconciliation before any next run.
-The Linux preconditions below also apply to this mode. Do not use the historical
-command below as a substitute for the explicit new mode.
+The output is `recording_pair_diagnostics.json`. Every original count matches
+in the completed real report; the candidate timing and reference failures are
+reconciled in the result document. In general, count drift remains inconclusive.
+The Linux preconditions below also apply to this mode. Neither historical
+command authorizes another run or performs residual extraction.
 
 The batch02 command below records the **completed** pilot, not a rerun request.
 Implementation/scope GO and Python 3.10/3.12 CI passed; see
