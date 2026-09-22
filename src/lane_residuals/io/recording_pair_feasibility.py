@@ -18,6 +18,7 @@ import numpy as np
 from ..domain.independent_outing_intake import EXPECTED_TOPOLOGY_SOURCE, MAXIMUM_ANCHOR_DISTANCE_M
 from ..domain.pairing import EgoRelativePath, mutual_nearest_timestamp_pairs
 from ..domain.path_source_probe import DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC
+from ..domain.recording_pair_diagnostics import PairDiagnostics
 from .independent_outing_intake import (
     DEFAULT_MAP_TOPIC, _DecodedEstimate, _h100_geometry, iter_geometry_records,
 )
@@ -62,12 +63,18 @@ def _indexed_summary(reader: Any) -> tuple[Any, dict[str, int]]:
     return summary, counts
 
 
-def _iter_messages(path: Path):
+def decoder_types():
+    """Resolve the actual decoder imports before a new diagnostic creates output."""
     try:
         from mcap.reader import SeekingReader
         from mcap_protobuf.decoder import DecoderFactory
     except ImportError as error:
         raise McapDependencyError('Install the project MCAP extra: pip install -e ".[mcap]"') from error
+    return SeekingReader, DecoderFactory
+
+
+def _iter_messages(path: Path):
+    SeekingReader, DecoderFactory = decoder_types()
     with path.open("rb") as stream:
         reader = SeekingReader(stream, decoder_factories=[DecoderFactory()],
                                record_size_limit=MAX_CHUNK_BYTES)
@@ -103,7 +110,8 @@ def _unpack_path(payload: bytes | None) -> EgoRelativePath | None:
     return EgoRelativePath(**values)
 
 
-def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection) -> dict[str, Any]:
+def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection,
+                    diagnostics: PairDiagnostics | None = None) -> dict[str, Any]:
     times: dict[str, list[int | None]] = {"estimate": [], "reference": []}
     topology_counts: Counter[str] = Counter()
     conversion_failures: Counter[str] = Counter()
@@ -124,9 +132,13 @@ def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection) -> d
                 descriptor_counts[record.descriptor_file_sha256] += 1
         if record.failure_code is not None:
             conversion_failures[record.failure_code] += 1
-        metadata = json.dumps({"topology": topology, "failure": record.failure_code,
-                               "estimator_available": bool(frame is not None and
-                                   frame.estimator_state == "available_no_error")})
+        metadata_values = {"topology": topology, "failure": record.failure_code,
+                           "estimator_available": bool(frame is not None and
+                               frame.estimator_state == "available_no_error")}
+        if diagnostics is not None and role == "reference":
+            metadata_values["reference_failure_detail"] = record.failure_detail
+            diagnostics.reference(record.failure_detail, dict(record.segment_failure_counts))
+        metadata = json.dumps(metadata_values)
         connection.execute("INSERT INTO geometry VALUES (?, ?, ?, ?)",
                            (role, index, metadata, _pack_path(record.path)))
         # Avoid retaining the final decoded message during the pairing pass.
@@ -147,14 +159,16 @@ def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection) -> d
     for pair in pairing.pairs:
         estimate_info, estimate = read("estimate", pair.first_position)
         reference_info, reference = read("reference", pair.second_position)
+        failure = None
+        sensor_ready = False
         if estimate is None:
-            pair_failures[estimate_info["failure"] or "estimate_geometry_not_ready"] += 1
+            failure = estimate_info["failure"] or "estimate_geometry_not_ready"
         elif reference is None:
-            pair_failures[reference_info["failure"] or "map_geometry_not_ready"] += 1
+            failure = reference_info["failure"] or "map_geometry_not_ready"
         else:
             ready, distance, failure = _h100_geometry(estimate, reference)
             if not ready:
-                pair_failures[failure or "h100_geometry_not_ready"] += 1
+                failure = failure or "h100_geometry_not_ready"
             else:
                 counts["h100_pair_count"] += 1
                 if distance is not None and math.isfinite(distance) and distance <= MAXIMUM_ANCHOR_DISTANCE_M:
@@ -162,8 +176,20 @@ def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection) -> d
                     candidate_topologies[estimate_info["topology"]] += 1
                     if estimate_info["estimator_available"] and estimate_info["topology"] == EXPECTED_TOPOLOGY_SOURCE:
                         counts["sensor_anchored_h100_pair_count"] += 1
+                        sensor_ready = True
                 else:
-                    pair_failures["anchor_distance_exceeds_1m_or_invalid"] += 1
+                    failure = "anchor_distance_exceeds_1m_or_invalid"
+        if failure is not None:
+            pair_failures[failure] += 1
+        if diagnostics is not None:
+            diagnostics.pair(
+                topology=estimate_info["topology"],
+                estimator_available=estimate_info["estimator_available"],
+                reference_failure=reference_info["reference_failure_detail"],
+                outcome=failure or "anchored_h100_ready", sensor_ready=sensor_ready,
+                # The canonical matcher stores estimate minus reference.
+                delta_ns=-pair.delta_ns,
+            )
         del estimate, reference
     return {
         "estimate_message_count": len(times["estimate"]),
@@ -180,9 +206,12 @@ def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection) -> d
     }
 
 
-def inspect_recording_pairs(path: Path, scratch_directory: Path) -> dict[str, Any]:
+def inspect_recording_pairs(path: Path, scratch_directory: Path, *,
+                            include_diagnostics: bool = False) -> dict[str, Any]:
     """Return complete counts or an explicitly inconclusive result, never a prefix."""
 
+    empty_details = {"diagnostics": None} if include_diagnostics else {}
+    diagnostics = PairDiagnostics() if include_diagnostics else None
     try:
         with TemporaryDirectory(prefix="mpr-geometry-", dir=scratch_directory) as temporary:
             with closing(sqlite3.connect(str(Path(temporary) / "geometry.sqlite"))) as connection:
@@ -192,17 +221,19 @@ def inspect_recording_pairs(path: Path, scratch_directory: Path) -> dict[str, An
                 connection.execute("PRAGMA temp_store=FILE")
                 connection.execute(f"PRAGMA max_page_count={MAX_SPOOL_BYTES // 4096}")
                 connection.execute("CREATE TABLE geometry (role TEXT, position INTEGER, metadata TEXT, path BLOB, PRIMARY KEY(role, position))")
-                records = iter_geometry_records(_iter_messages(path))
+                records = iter_geometry_records(_iter_messages(path), **(
+                    {"collect_reference_diagnostics": True} if include_diagnostics else {}))
                 with closing(records):
-                    counts = _count_geometry(records, connection)
-        return {"status": "complete", "failure_code": None, "counts": counts}
+                    counts = _count_geometry(records, connection, diagnostics)
+        return {"status": "complete", "failure_code": None, "counts": counts,
+                **({"diagnostics": diagnostics.summary()} if diagnostics is not None else {})}
     except McapDependencyError:
         raise
     except (ResourceLimitError, RecordingReadError, MemoryError) as error:
         code = "memory_limit" if isinstance(error, MemoryError) else str(error)
-        return {"status": "inconclusive", "failure_code": code, "counts": None}
+        return {"status": "inconclusive", "failure_code": code, "counts": None, **empty_details}
     except Exception as error:
         # Do not leak payload values from an exception or turn partial counts
         # into a negative geometry finding. Disk-full and decode errors are
         # execution failures, with no automatic threshold change or retry.
-        return {"status": "inconclusive", "failure_code": type(error).__name__, "counts": None}
+        return {"status": "inconclusive", "failure_code": type(error).__name__, "counts": None, **empty_details}

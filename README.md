@@ -1,6 +1,16 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-**Latest checkpoint (2026-09-21):** PR #22 received implementation/scope **GO**,
+**Latest checkpoint (2026-09-22):** the focused EDP/RLMB reference-failure and
+timestamp diagnostic is implemented and ready for review. It preserves the
+completed pilot's count definitions and requires exact per-recording agreement
+with that preserved result. It adds no residuals or eligibility decision.
+Compilation passes; 477 tests run (475 pass, two expected skips). EDP/RLMB is
+the current priority; direct sensor-topology investigation is on hold. See
+[`docs/current_status.md`](docs/current_status.md) and
+[`docs/recording_pair_diagnostics_predeclaration.md`](docs/recording_pair_diagnostics_predeclaration.md)
+for review, PR sequencing and the one-run boundary. No new private result yet.
+
+**Historical checkpoint (2026-09-21):** PR #22 received implementation/scope **GO**,
 zero blockers, and passed Python 3.10/3.12 CI; it remains open and unmerged.
 The batch02 EDP/RLMB pilot completed: 7,743 H100/anchor candidates, including
 376 with the required EDP sensor-topology label. These are geometric candidates,

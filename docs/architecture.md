@@ -1,5 +1,16 @@
 # Project architecture
 
+The v0.19.1 extension is explicitly selected by `--preserved-feasibility-report`
+on the same CLI. `io.reference_diagnostics` maps exceptions to static labels;
+it is imported only by the opted-in iterator, preserving the frozen intake
+module graph. An optional static stage observer in the road converter never
+changes the validity/selection rules. `domain.recording_pair_diagnostics`
+aggregates scalar pair outcomes and exact integer delta summaries. The existing
+spool/count pass feeds this observer while returning the original counts.
+The workflow checks the exact preserved report and rejects any count drift.
+The separate output contract and review boundary are documented in
+`docs/recording_pair_diagnostics_predeclaration.md`.
+
 The reviewed batch02 `recording_pair_feasibility` consumer reuses the canonical
 intake's extracted streaming geometry converter and existing H100 projection
 helper. Its I/O layer owns indexed MCAP reading, resource guards and a private

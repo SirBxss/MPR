@@ -246,6 +246,20 @@ reasons and numeric timestamp offsets before residual readiness is assessed.
 No threshold change or target adoption follows from these observed counts.
 PR #22 remains open and merge-ready; this result closure belongs in that PR.
 
+The 2026-09-22 checkpoint implements that next diagnostic behind the explicit
+`--preserved-feasibility-report` flag on the existing CLI. Read
+`docs/recording_pair_diagnostics_predeclaration.md` before using it. Its failure
+classification and integer timing summaries are observational; all old counts
+must match the exact preserved pilot or the recording is inconclusive. The
+new output is `recording_pair_diagnostics.json`. EDP/RLMB is prioritized and
+direct LTSB work is on hold. This does not settle independence or adopt a target.
+The suite now runs 477 tests: 475 pass and two expected opt-ins skip; 74 focused
+tests pass. The default v0.17 import graph and legacy count behavior are intact.
+PR #22 still needs its previously delivered documentation closure and merge;
+put the new implementation in a separate PR after that merge. Its exact pushed
+head needs focused implementation/scope GO and normal CI before the one new
+private run. No new output is available yet and no residual/model follows.
+
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location

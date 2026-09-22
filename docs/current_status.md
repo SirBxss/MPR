@@ -1,10 +1,61 @@
 # Current project status
 
-Last updated: 2026-09-21. This is the first file a new agent should read after
+Last updated: 2026-09-22. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## PR #22 reviewed; real batch02 pilot complete; residual readiness unresolved
+## Reference-failure/timing extension implemented; review before private execution
+
+The owner chose to prioritize EDP/RLMB and put direct LTSB investigation on hold.
+This preserves the established path-residual target; it is not a claim that EDP
+is independent ground truth or intrinsically superior. The completed pilot's
+376 sensor-topology candidates remain the latest real geometric result.
+
+The next step is implemented on `diagnostic/v0.19-reference-timing`, extending
+the existing CLI with `--preserved-feasibility-report`. Read
+`docs/recording_pair_diagnostics_predeclaration.md` (revision
+`v0.19.1-batch02-reference-timing-2026-09-22-a1`) and the output contract.
+It adds static reference-failure stages/reasons/causes, segment-rejection
+counts, topology-stratified pair outcomes and signed/absolute source-time
+offset summaries. The sign is reference minus estimate; exact integer
+nearest-rank percentiles avoid float loss. No delta gate or time shift is added.
+
+The exact preserved real pilot is required by SHA-256 before raw hashing or
+payload inspection. Every original per-recording count must match it; drift
+is inconclusive with null counts/diagnostics. The complete-stream matcher,
+H100 projection, 1 m anchor, topology rules and resource limits are unchanged.
+Without the new flag, the old output schema remains unchanged. The frozen
+v0.17 import graph still passes. New-mode decoder imports are checked before
+output creation, addressing the broken-install path noted in review O2.
+
+Compilation passes; **477 tests run, 475 pass, two expected opt-ins skip**.
+Twenty-two new tests bring the focused selection to 74 passing tests. Both
+real-MCAP tests run with the optional dependencies installed. A separate
+synthetic comparison against exact PR #22 head `0661796` preserves every
+original count, all 24 record timestamps/failure states and path-array bytes.
+The new details separate deliberately injected empty-road, polyline-pool,
+boundary-pool and ego-path failures. This is synthetic evidence only.
+Expected runtime-source SHA-256:
+`2f09d5a192d23e28833df06a4d3920768384d186d3fba334765b5620eda5267b`.
+
+GitHub still shows PR #22 open at `0661796` on this date; its previously
+delivered result-closure patch has not been pushed. The new batch includes that
+same documentation patch as 0001 for convenience; do not apply it twice.
+Finish the closure and merge #22 after CI, then apply patch 0002 on a new
+branch from that merged main. Open a separate implementation PR and obtain
+focused Claude GO plus Python 3.10/3.12 CI before the one new private run.
+This review-before-run boundary comes from AGENTS.md and the new declaration;
+the old pilot's GO does not cover the extension. Implementation is complete
+and reviewable; no external push/PR/merge or private execution was performed.
+
+After GO, write only `recording_pair_diagnostics.json` into a fresh
+`outputs/diagnostics/data/recording_pair_diagnostics_v0191_batch02` directory.
+Reconcile failure causes, numeric deltas and original-count equality before
+any converter correction, timing decision, feature/sequence audit or residual
+extraction. No new real timing/failure breakdown is available here. Session
+provenance stays unavailable; do not ask for it again or infer outing roles.
+
+## Historical PR #22 pilot review and real-result reconciliation
 
 PR #22 is open/unmerged and mergeable at `0661796`, tree
 `ba42ddd448cb61804b00b7eba48c0acd2c7d7138`. Claude returned implementation/scope

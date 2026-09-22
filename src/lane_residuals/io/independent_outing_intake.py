@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+from collections import Counter
 from dataclasses import dataclass
 from collections.abc import Iterable, Iterator
 from pathlib import Path
@@ -140,16 +141,24 @@ class _DecodedReference:
     source_time_ns: int | None
     path: EgoRelativePath | None
     failure_code: str | None = None
+    failure_detail: str | None = None
+    segment_failure_counts: tuple[tuple[str, int], ...] = ()
 
 
 def iter_geometry_records(
     messages: Iterable[tuple[Any, Any, Any, Any]],
+    *,
+    collect_reference_diagnostics: bool = False,
 ) -> Iterator[_DecodedEstimate | _DecodedReference]:
     """Reconstruct selected records without retaining the preceding geometry.
 
     The caller controls MCAP iteration order and owns complete-stream failure
     handling. Conversion, schema and timestamp rules match the legacy intake.
     """
+
+    if collect_reference_diagnostics:
+        # Keep the frozen v0.17 import graph unchanged in the default mode.
+        from .reference_diagnostics import reference_failure_detail
 
     estimate_count = 0
     reference_count = 0
@@ -215,8 +224,18 @@ def iter_geometry_records(
             reference_count += 1
             reference_path: EgoRelativePath | None = None
             failure = None
+            detail = None
+            segment_failures: tuple[tuple[str, int], ...] = ()
+            reference_stage = "schema"
+
+            def observe_stage(name: str) -> None:
+                nonlocal reference_stage
+                reference_stage = name
+
             if schema_name != DEFAULT_MAP_SCHEMA or encoding != "protobuf":
                 failure = "map_schema_or_encoding_mismatch"
+                if collect_reference_diagnostics:
+                    detail = "schema:schema_or_encoding_mismatch:none"
             else:
                 try:
                     road = road_frame_from_message(
@@ -226,8 +245,15 @@ def iter_geometry_records(
                         log_time_ns=log_time,
                         publish_time_ns=publish_time,
                         sequence=index,
+                        **({"stage_observer": observe_stage} if collect_reference_diagnostics else {}),
                     )
                     source_time = road.source_time_ns
+                    if collect_reference_diagnostics:
+                        segment_failures = tuple(sorted(Counter(
+                            item.failure_code for item in road.segment_extractions
+                            if item.failure_code is not None
+                        ).items()))
+                        reference_stage = "ordered_ego_path"
                     ordered = ordered_ego_lane_from_road_frame(
                         road,
                         required_forward_m=max(CANONICAL_MODEL_STATIONS_M),
@@ -245,11 +271,15 @@ def iter_geometry_records(
                     ValueError,
                 ) as error:
                     failure = f"map_{getattr(error, 'code', type(error).__name__)}"
+                    if collect_reference_diagnostics:
+                        detail = reference_failure_detail(error, reference_stage)
             yield _DecodedReference(
                 message_index=index,
                 source_time_ns=(None if source_time is None else int(source_time)),
                 path=reference_path,
                 failure_code=failure,
+                failure_detail=detail,
+                segment_failure_counts=segment_failures,
             )
 
 

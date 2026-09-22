@@ -4,6 +4,84 @@ These contracts describe diagnostics, not training labels. EDP–RLMB
 disagreement is not ground-truth lane-estimation error, and RLMB is a
 pseudo-reference candidate rather than physical ground truth.
 
+## v0.19.1 batch02 reference/timing extension
+
+The explicit `--preserved-feasibility-report` mode on
+`python -m lane_residuals.cli.recording_pair_feasibility` writes exactly
+`recording_pair_diagnostics.json`. The unchanged default-mode contract follows
+this section. Scope and fixed inputs are in
+`docs/recording_pair_diagnostics_predeclaration.md`.
+
+The extended top-level keys equal the default contract plus
+`preserved_feasibility_sha256`. Revision is
+`v0.19.1-batch02-reference-timing-2026-09-22-a1`; purpose is
+`recording_level_reference_failures_and_numeric_pair_timing`. The interpretation
+states that numeric offsets do not prove physical synchronization. All existing
+unknown-provenance/no-role/no-lock/no-feature/no-residual fields remain fixed.
+The preserved report digest is
+`89cbeeb89d3939a297f1602a8750663fd6cfa514d3376642053e05754548f9ec`.
+
+Each recording adds `legacy_counts_match_preserved` and `diagnostics` to the
+six existing keys. A complete record has unchanged `counts`, comparison `true`
+and a diagnostics object. A count mismatch is `inconclusive`, failure code
+`preserved_counts_mismatch`, comparison `false`, with null counts/diagnostics.
+An incomplete read/resource/file-state failure has comparison `null` and null
+counts/diagnostics, since no complete comparison was possible. Batch status
+and exit codes retain the existing all-recordings completion rule.
+
+The diagnostics object contains exactly:
+
+```text
+reference_failure_detail_counts, reference_segment_failure_counts,
+pair_outcomes_by_estimate_topology, timestamp_delta_summaries
+```
+
+`reference_failure_detail_counts` maps `stage:reason:direct_cause` to counts
+over all reference messages, including unmatched references. Stages and reason
+labels are static; see the allowlists/classifier in `io/reference_diagnostics.py`.
+Examples: `road_fields:lane_segments_empty:none`,
+`polyline_coordinates:vertex_pool_unreadable_coordinates:distributed_mean_invalid`,
+`boundary_coordinates:vertex_pool_unreadable_coordinates:distributed_mean_invalid`,
+`ordered_ego_path:map_ego_drive_path_not_unique:none`.
+Unknown geometry codes, stages and exception messages map to static fallbacks;
+no exception text or arbitrary exception attribute is serialized.
+
+`reference_segment_failure_counts` maps the existing reconstruction failure
+codes to failed-segment counts across road frames that returned. These are
+neither failed-reference-message counts nor ego-only counts. They can coexist
+with a successfully selected ego path; do not add them to message/pair failures.
+
+`pair_outcomes_by_estimate_topology` maps each observed EDP topology label to:
+
+```text
+pair_count, available_estimator_pair_count, outcome_counts,
+reference_failure_counts, reference_failure_counts_with_available_estimator
+```
+
+`outcome_counts` partitions matched pairs into the old first-failure codes and
+`anchored_h100_ready`; its sum equals `pair_count`. Reference-failure dictionaries
+use the detail labels above, independently of the first outcome. Their second
+view requires available/no-error estimator state. Thus a reference failure
+masked by an earlier estimate failure remains visible; these overlapping views
+must not be summed. Unmatched references receive no estimated topology label.
+
+`timestamp_delta_summaries` has exactly `all_numeric_pairs`,
+`anchored_h100_pairs`, `sensor_anchored_h100_pairs`, with each value containing:
+
+```text
+count, negative_count, zero_count, positive_count,
+signed_reference_minus_estimate_ns, absolute_ns
+```
+
+The last two fields each contain `min`, `p50`, `p95`, `p99`, `max`. All values
+are integer nanoseconds or null for an empty set. Percentiles use nearest rank,
+`ceil(p*n/100)-1`; p50 is not an interpolated even-sample median. Positive signed
+delta means the reference timestamp is numerically later. This sign is the
+negative of the canonical matcher's stored estimate-minus-reference `delta_ns`;
+the matcher is unchanged. Counts of the three timing sets equal the original
+pair, anchored and sensor-anchored counts respectively. No delta gate, offset
+correction, physical-epoch inference or per-pair timestamp export is added.
+
 ## Batch02 recording-pair feasibility output
 
 The new `python -m lane_residuals.cli.recording_pair_feasibility` writes exactly
