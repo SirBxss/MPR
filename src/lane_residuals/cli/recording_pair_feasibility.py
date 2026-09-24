@@ -29,6 +29,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("mcap_root", type=Path)
     parser.add_argument("--registration", required=True, type=Path)
     parser.add_argument("--container-context", required=True, type=Path)
+    parser.add_argument("--preserved-feasibility-report", type=Path,
+                        help="select v0.19.1 failure/timing diagnostics using the exact completed pilot JSON; review GO required before private execution")
     parser.add_argument("--scratch-directory", required=True, type=Path,
                         help="existing local-disk directory for temporary geometry; at least 10 GiB free")
     parser.add_argument("--output-directory", required=True, type=Path)

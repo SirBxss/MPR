@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Iterator, Literal, Mapping, Sequence
+from typing import Any, Callable, Iterable, Iterator, Literal, Mapping, Sequence
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -701,13 +701,20 @@ def road_frame_from_message(
     log_time_ns: int,
     publish_time_ns: int,
     sequence: int = 0,
+    stage_observer: Callable[[str], None] | None = None,
 ) -> RoadFrame:
     """Convert one decoded ``Adp.Perception.Road``-like message.
 
     Both the original field names and the underscore-suffixed variants observed
     in reprocessed/shadow schemas are supported.
+    An optional observer receives static stage names without relaxing validation.
     """
 
+    def stage(name: str) -> None:
+        if stage_observer is not None:
+            stage_observer(name)
+
+    stage("road_fields")
     vertices = tuple(
         _get_attr(
             message,
@@ -721,17 +728,20 @@ def road_frame_from_message(
     if not lane_segments:
         raise RoadMessageError("lane segment list is empty")
 
+    stage("polyline_coordinates")
     x_pool, y_pool = (
         _coordinate_pool(vertices)
         if vertices
         else (np.empty(0, dtype=np.float64), np.empty(0, dtype=np.float64))
     )
+    stage("polyline_optional_values")
     heading_pool = _optional_numeric_pool(vertices, ("heading", "heading_"))
     curvature_pool = _optional_numeric_pool(
         vertices,
         ("curvature", "curvature_"),
     )
 
+    stage("arc_length_pool")
     arc_pool_raw = _get_attr(
         message,
         ("polyline_arc_length_pool", "polyline_arc_length_pool_"),
@@ -745,6 +755,7 @@ def road_frame_from_message(
     if arc_pool is not None and len(arc_pool) != len(vertices):
         arc_pool = None
 
+    stage("boundary_fields")
     boundary_vertices = tuple(
         _get_attr(
             message,
@@ -759,12 +770,14 @@ def road_frame_from_message(
             default=(),
         )
     )
+    stage("boundary_coordinates")
     if boundary_vertices:
         boundary_x, boundary_y = _coordinate_pool(boundary_vertices)
         boundary_points = np.column_stack((boundary_x, boundary_y))
     else:
         boundary_points = np.empty((0, 2), dtype=np.float64)
 
+    stage("ego_metadata")
     ego_segment_id = _optional_metadata(
         message,
         (
@@ -794,6 +807,7 @@ def road_frame_from_message(
     except (TypeError, ValueError, OverflowError):
         ego_indices = set()
 
+    stage("segment_reconstruction")
     extracted: list[RoadSegment] = []
     extraction_records: list[SegmentExtraction] = []
     rejection_reasons: Counter[str] = Counter()
@@ -959,6 +973,7 @@ def road_frame_from_message(
             )
         )
 
+    stage("road_metadata")
     metadata: list[tuple[str, MetadataValue]] = []
     for output_name, aliases in (
         (
@@ -992,6 +1007,7 @@ def road_frame_from_message(
         if item is not None:
             metadata.append((output_name, item))
 
+    stage("frame_validation")
     return RoadFrame(
         topic=topic,
         schema_name=schema_name,

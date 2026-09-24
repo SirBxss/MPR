@@ -1,6 +1,19 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-**Latest checkpoint (2026-09-21):** PR #22 received implementation/scope **GO**,
+**Latest checkpoint (2026-09-22):** PR #23 received implementation/scope **GO**,
+zero blockers, and passed Python 3.10/3.12 CI. Its completed real diagnostic
+preserves every pilot count: all 29,569 generic reference errors are empty
+lane-segment lists; all 7,743 anchored H100 pairs, including 376 sensor-topology
+EDP candidates, have exact source-time delta zero. These are geometric
+candidates, not computed residuals or a training dataset. The next scoped
+implementation should check causal features and contiguous support, then export
+exploratory EDP/RLMB pseudo-residuals. Direct LTSB work remains on hold.
+See [`docs/current_status.md`](docs/current_status.md) and
+[`docs/recording_pair_diagnostics_batch02_result.md`](docs/recording_pair_diagnostics_batch02_result.md)
+for the evidence and closure/merge instructions. PR #22 is merged; PR #23 is
+open. Do not repeat either completed diagnostic or infer independent outings.
+
+**Historical checkpoint (2026-09-21):** PR #22 received implementation/scope **GO**,
 zero blockers, and passed Python 3.10/3.12 CI; it remains open and unmerged.
 The batch02 EDP/RLMB pilot completed: 7,743 H100/anchor candidates, including
 376 with the required EDP sensor-topology label. These are geometric candidates,
