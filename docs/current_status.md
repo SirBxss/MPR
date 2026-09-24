@@ -1,10 +1,81 @@
 # Current project status
 
-Last updated: 2026-09-22. This is the first file a new agent should read after
+Last updated: 2026-09-24. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Batch02 timing/reference result reconciled; prepare exploratory residual extraction
+## Exploratory residual extractor implemented; review before first private extraction
+
+PR #23 and its result closure are merged at
+`49ca0022104d96b0e4595dde0a48e69ca899406c`, tree
+`ee8392a44e8fa2b778ef16a382930fa2f522ed74`. GitHub Actions run `35984264643`
+passed Python 3.10/3.12 at final PR head `f32f27d`, including MCAP dependencies.
+The user confirmed the merge and closure patch. Do not apply that patch again.
+The earlier open-PR/run instructions below are historical.
+
+The next implementation is on `feature/v0.19.2-exploratory-residuals`. Read
+`docs/exploratory_residuals_predeclaration.md`, the v0.19.2 output contract and
+`docs/commands.md`. It adds a bounded module-only CLI with the same indexed
+reader, disk-backed geometry, native projection, 21-station sign, H100 coverage
+and 1 m anchor. It verifies both exact preserved reports and fresh raw hashes;
+every original count and timing diagnostic must match before residual values
+are calculated. Resource/decode/parity failure makes the batch inconclusive,
+with no partial archive. Odometry and estimate metadata are spooled on disk.
+
+The explicit new output decision separates finite **geometric residuals** from
+the subset with **all six usable conditions**. Missing features do not erase
+valid geometry and are not imputed. Both populations have their own file-local
+sequence layout; skipped estimates/pairs, nonpositive or >200 ms gaps split
+sequences. Neither file boundaries nor excluded frames are bridged.
+
+The old speed helper can interpolate using a pose after the estimate epoch.
+Its 50 ms displacement arithmetic is preserved, with a new conservative check:
+every used odometry source timestamp must be <= the estimate source timestamp,
+and every positive input log timestamp must be <= the positive estimate log
+timestamp. Current-endpoint interpolation therefore requires an exact-epoch
+pose; the earlier endpoint may still interpolate causal past values. Reject
+future/late/missing evidence with explicit causes. These are recorded-clock
+checks, not proof of physical online availability. The subset may be empty.
+This restriction and the two output populations are prospective decisions for
+focused review; no historical feature/eligibility result is rewritten.
+
+A complete run writes `exploratory_residuals.npz`, `candidate_audit.json` and
+`exploratory_residual_summary.json`. The last file is the completion marker,
+with hashes for the other two. Arrays preserve profile identities and exact
+uint64 source timestamps; condition rows map explicitly to residual rows.
+These exploratory outputs are not interchangeable with old training archives.
+No role, cohort lock, standardizer, model, planner or figure is generated.
+
+Local verification: **503 tests run, 501 pass, two expected opt-ins skip**
+(wheel artifact and private alignment parity). All **100 focused tests pass**,
+including 26 new tests and the real indexed Protobuf odometry reader test.
+Compilation and whitespace checks pass. A separate probe against exact merged
+base `49ca002` gives byte-identical old counts, diagnostics, 24 record
+fingerprints and geometry-array hashes. Synthetic fixtures also establish
+residual sign/origin handling, complete-feature parity and explicit exclusions,
+duplicate handling, file mutation rejection, deterministic artifacts and
+sequence breaks. No private MCAPs are available here; no actual new residual
+or feature/sequence result has been measured. Expected runtime-source SHA-256:
+`96a0df813a1a815fdae963e68ceca1563dd1a89653201453164bf12962c82d6c`.
+
+**Next:** apply the new numbered patch on a branch from this merged main,
+push and open a separate implementation PR. Obtain focused Claude GO on its
+exact pushed implementation and passing Python 3.10/3.12 CI before the one
+private extraction command documented in `docs/commands.md`. This boundary
+comes from AGENTS.md and the new predeclaration. Return all three completed
+outputs (or the summary alone if inconclusive), then reconcile residual,
+complete-feature and transition counts before declaring any exploratory fit.
+Do not repeat the old pilot/timing diagnostic. No external push/PR/merge or
+private run was performed by this implementation session.
+
+The latest real evidence remains **376 sensor candidates, split 10/0/40/326**,
+with exact numeric estimate/reference time equality. This is an upper bound,
+not a training dataset. The 7,367 LANE_MAP candidates remain excluded; RLMB is
+still a pseudo-reference. Direct LTSB investigation stays on hold. Session,
+acquisition and export history remain unavailable; do not request them again,
+infer outings, or claim the frozen independent final-cohort gate passed.
+
+## Historical batch02 timing/reference result reconciliation
 
 PR #22 is merged at `dddbcc9`, tree
 `9a60f7623fa02e56f00827683dec4e78b4428e18`. PR #23 remains open and mergeable

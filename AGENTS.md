@@ -277,6 +277,23 @@ invent session identity or count LANE_MAP rows as sensor data. More suitable
 independent data are still required for the final cohort. No new private
 command or model fit is authorized by the completed diagnostic's GO.
 
+The 2026-09-24 checkpoint supersedes the PR #23 closure instructions above:
+PR #23 is merged at `49ca002`, tree `ee8392a`; CI run `35984264643` passed
+Python 3.10/3.12 at final head `f32f27d`. The separately scoped v0.19.2 extractor
+is implemented; read `docs/exploratory_residuals_predeclaration.md` and its output
+contract. It preserves every original count and diagnostic, exports geometric
+pseudo-residuals separately from the complete-feature subset, and never bridges
+files or excluded frames. The prospective availability check retains the fixed
+50 ms speed arithmetic but rejects used odometry states after the estimate epoch
+or logged after the estimate. This implies exact current-epoch pose support;
+recorded-clock checks do not prove physical availability. A strict subset may
+be empty without disproving geometric residual feasibility. These new decisions
+need focused review of the exact pushed implementation plus normal CI before
+one private run. No real v0.19.2 result, model fit or outing lock exists yet.
+Do not rerun the old pilot/diagnostic or request unavailable session metadata.
+Verification now runs 503 tests: 501 pass and the two existing opt-ins skip;
+100 focused tests pass, including 26 new tests and real MCAP odometry reading.
+
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location
