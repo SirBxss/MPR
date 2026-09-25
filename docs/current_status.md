@@ -4,6 +4,21 @@ Last updated: 2026-09-25. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
+## Current checkpoint: v0.19.3 implementation on merged PR #24
+
+PR #24 was merged as `95745ea` on main; its earlier "open/close PR" text
+below is historical. Branch `feature/v0.19.3-archive-and-flow-foundation`
+starts at the merged main. See `docs/flow_matching_foundation_v0193.md` for
+the new-data comparison assessment, exact published-archive reader, synthetic
+straight-path conditional flow math and the separate future training gate.
+The completed batch02 outputs and frozen historical comparisons stay intact.
+No model was fitted, no new private run was requested, and the one technical
+archive still has unknown physical outing relationships. Run the read-only
+`python -m lane_residuals.cli.exploratory_archive DIRECTORY` on the three
+published output files after extraction; the default SHA-256 pins the original
+result. A separately reviewed cohort and sufficiently long independent
+sequences are prerequisites for a flow-vs-baselines performance claim.
+
 ## Batch02 exploratory residuals reconciled; close PR #24
 
 PR #24 is **open** at pushed head

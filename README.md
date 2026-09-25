@@ -1,6 +1,16 @@
-# Minimal Path-Residual Model (MPR) v0.18.1
+# Minimal Path-Residual Model (MPR)
 
-**Latest checkpoint (2026-09-25):** PR #24 has focused review GO and passing
+**Current checkpoint (2026-09-25):** PR #24 is merged at `95745ea`.
+The v0.19.3 branch adds an exact, read-only validator for its published batch02
+archive and synthetic conditional flow-matching bridge and free-running
+sampling math. No fitted flow, outing lock or new performance result exists.
+The 134 complete-condition rows are short and heavily concentrated in one
+technical recording; a same-row, physically grouped comparison needs a
+separately reviewed protocol and more independently identified outings. See
+[`docs/flow_matching_foundation_v0193.md`](docs/flow_matching_foundation_v0193.md)
+and [`docs/current_status.md`](docs/current_status.md).
+
+**Historical checkpoint (2026-09-25):** PR #24 has focused review GO and passing
 Python 3.10/3.12 CI. Its one private batch02 extraction is reconciled: 376
 finite EDP/RLMB H100 pseudo-residuals, of which 134 have all six recorded-causal
 conditions. The complete subset has 26 short file-local sequences, at most
