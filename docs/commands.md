@@ -74,9 +74,21 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-lock-independent-outings` | `python -m lane_residuals.cli.independent_outing_intake` | v0.17.0 prospective intake plus the exact v0.17.1 EDP schema-v2 amendment; no model, sampler, planner, or final evaluation | Recursive new-MCAP root, strict private acquisition manifest, an exact prior successful lock only for a declared supersession, and optionally a preserved failed v0.17.0 audit for amended lineage | Recording and outing CSV audits, immutable cohort lock, and strict intake summary |
 | `mpr-audit-sensor-topology-feasibility` | `python -m lane_residuals.cli.sensor_topology_feasibility` | v0.18.1 correction to the reviewed structural/co-availability audit; the authorized corrected run is complete and accepted; no further batch01 run | Exact closed batch01 MCAP root, unchanged private manifest, and complete preserved v0.17.1 intake directory | Recording counts, schema inventory, and feasibility summary only; no coordinates, residuals, model, planner, or figure |
 | module-only pilot/diagnostic | `python -m lane_residuals.cli.recording_pair_feasibility` | Both v0.19.0 pilot and v0.19.1 reference/timing run complete and reconciled; historical commands below, no rerun requested | Exact batch02 root, original registration/time-context JSONs, local scratch disk and fresh output directory; new mode additionally requires the exact preserved pilot report | Original counts or the separate reference/timing report; no roles, eligibility lock, causal features or residuals |
-| module-only exploratory extractor | `python -m lane_residuals.cli.exploratory_residuals` | v0.19.2 implemented; focused GO and CI required before one private run | Exact batch02 root, original registration/context, both preserved reports, local scratch and absent output directory | Geometric H100 vectors, complete-feature subset, candidate audit and file-local sequences; no fit or outing admission |
+| module-only exploratory extractor | `python -m lane_residuals.cli.exploratory_residuals` | v0.19.2 reviewed and real output reconciled; historical command below, no rerun | Exact batch02 root, original registration/context, both preserved reports, local scratch and absent output directory | Geometric H100 vectors, complete-feature subset, candidate audit and file-local sequences; no fit or outing admission |
 
-## v0.19.2 exploratory extraction: review before the private run
+## Completed v0.19.2 extraction: result reconciled
+
+The one authorized private batch02 run is complete and reconciled in
+`docs/exploratory_residuals_batch02_v0192_result.md`. The command below is
+historical and **must not be rerun** into another directory. Both preserved
+reports and the three returned output files remain immutable. No model or
+training command is authorized. Finish the result documentation closure and
+merge the existing PR #24 after new-head CI; a later reviewed protocol must
+validate this new archive before any analysis consumer.
+
+## Historical v0.19.2 extraction command and output return
+
+### v0.19.2 original pre-run instructions (already completed)
 
 The new module is `python -m lane_residuals.cli.exploratory_residuals`.
 Apply the new implementation on a branch from merged PR #23, push, and open a

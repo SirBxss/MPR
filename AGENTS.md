@@ -294,6 +294,24 @@ Do not rerun the old pilot/diagnostic or request unavailable session metadata.
 Verification now runs 503 tests: 501 pass and the two existing opt-ins skip;
 100 focused tests pass, including 26 new tests and real MCAP odometry reading.
 
+The 2026-09-25 result checkpoint supersedes the review-before-run instructions
+above: PR #24 at `42bedf6` (tree `74ad92c`) received focused implementation
+GO with zero blockers. Python 3.10/3.12 GitHub Actions run `36108508093` passed
+503 tests with the two expected opt-in skips. The authorized batch02 v0.19.2
+extraction is complete: 376 finite SENSOR EDP/RLMB pseudo-residuals, 134
+complete-condition rows, 26 condition sequences/108 transitions and a 10-frame
+maximum. The 242 missing conditions consist of 232 future-source speed brackets
+and 10 interpolation-gap failures; no new causal-speed definition was adopted.
+Read `docs/exploratory_residuals_batch02_v0192_result.md` for hashes, complete
+reconciliation and limitations. **Do not rerun** the old pilot, timing diagnostic
+or this extraction. Keep its outputs immutable. Its documentation-only closure
+belongs on existing PR #24; pass CI at that new head before merging. No model fit,
+outings/roles/lock, target change, AR/AIOHMM run or final-data validation is
+authorized by these results. The next consumer needs an exact archive validator
+and separately reviewed scope; prioritize prospectively identified independent
+data with longer feature-ready sequences. Owner cannot recover batch02 session
+provenance; do not request it again.
+
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location

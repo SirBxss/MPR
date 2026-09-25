@@ -1,6 +1,18 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-**Latest checkpoint (2026-09-24):** PR #23 and its result closure are merged
+**Latest checkpoint (2026-09-25):** PR #24 has focused review GO and passing
+Python 3.10/3.12 CI. Its one private batch02 extraction is reconciled: 376
+finite EDP/RLMB H100 pseudo-residuals, of which 134 have all six recorded-causal
+conditions. The complete subset has 26 short file-local sequences, at most
+10 frames / ~0.9 s, concentrated in one technical recording. This supports
+an exploratory archive, not a defensible new temporal-model comparison or a
+final independent-outing cohort. See
+[`docs/exploratory_residuals_batch02_v0192_result.md`](docs/exploratory_residuals_batch02_v0192_result.md)
+and [`docs/current_status.md`](docs/current_status.md). Apply the documentation
+closure in the existing PR #24 and merge after new-head CI; do not rerun the
+private extraction or fit a model on its own authority.
+
+**Historical checkpoint (2026-09-24):** PR #23 and its result closure are merged
 at `49ca002`; final-head Python 3.10/3.12 CI passed. The next bounded exploratory
 EDP/RLMB extractor is implemented for review. It preserves H100 projection and
 all prior counts/diagnostics, exports geometric residuals separately from rows

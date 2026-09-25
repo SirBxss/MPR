@@ -2,6 +2,11 @@
 
 ## v0.19.2 batch02 exploratory residuals
 
+The one completed real batch02 run is reconciled in
+`docs/exploratory_residuals_batch02_v0192_result.md`. This describes its
+immutable format; it is no longer a pending command. No historical model CLI
+consumes this archive.
+
 Binding scope: `docs/exploratory_residuals_predeclaration.md`. This new
 module-only consumer exports exploratory EDP-minus-RLMB pseudo-residuals;
 RLMB is not independent physical ground truth. It uses the exact four batch02

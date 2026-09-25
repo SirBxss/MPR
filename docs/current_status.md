@@ -1,10 +1,97 @@
 # Current project status
 
-Last updated: 2026-09-24. This is the first file a new agent should read after
+Last updated: 2026-09-25. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Exploratory residual extractor implemented; review before first private extraction
+## Batch02 exploratory residuals reconciled; close PR #24
+
+PR #24 is **open** at pushed head
+`42bedf6e70b3ce23937f3d1d55a85e7fd3456f46`, tree
+`74ad92ca1866c091555060d241a86c55e05da013`. The independently supplied
+Claude implementation/scope review returned **GO with zero blockers** on this
+head. We separately checked GitHub Actions run `36108508093`: Python 3.10 and
+3.12 passed after installing MCAP extras, each with 503 tests and two expected
+opt-in skips. The one authorized real extraction completed on all four files.
+Read `docs/exploratory_residuals_batch02_v0192_result.md` for exact artifact
+SHA-256, independently reconciled lineage and arrays, all numeric results,
+review observations and interpretation limits. Preserve its three output files.
+**Do not rerun** the completed pilot, timing diagnostic or extraction.
+
+All original per-recording counts match both preserved reports. All **376**
+SENSOR_TOPOLOGY candidates (10/0/40/326) yield finite 21-station signed
+EDP/RLMB pseudo-residuals under the unchanged projection/H100/anchor gates;
+there are no geometry construction failures. All estimate/reference source-time
+differences in the candidate audit are numerically zero. The 7,367 LANE_MAP
+anchored candidates remain excluded. RLMB is a pseudo-reference; independence,
+physical frame/age and ground-truth error are unproven. All four odometry
+streams completed without invalid messages or duplicate timestamp conflicts.
+
+Exactly **134/376** rows have all six conditions (1/0/17/116 per recording).
+The remaining **242** keep valid geometric vectors; 232 use a future-source
+odometry state under the unchanged speed interpolation, 10 fail the 50 ms
+interpolation-gap limit. In the 232 future-source cases the state leads the
+estimate by ~9.44–30.41 ms, yet maximum input MCAP log/publish times equal the
+estimate log/publish timestamps. This requires clock/producer semantics before
+any alternate speed rule: equality of recorded log times does not prove physical
+online availability. No row was imputed. The archive's exact key/dtype/shape
+contract, condition-to-residual indices, candidate identities, source-time
+strings and all sequence offsets/durations/break causes were checked directly
+against the complete audit. Candidate/reference timestamps and the hashes of
+both preserved reports were compared with their original bytes. The raw MCAPs
+are unavailable here, so their hashes/coordinates cannot be rechecked locally.
+
+The geometric rows form **19** file-local sequences, **357** transitions,
+longest 113 frames (~11.2 s). The condition-complete rows form **26** file-local
+sequences, only **108** transitions and a **10-frame (~0.9 s) maximum**.
+Recording 04 contributes 116/134 complete rows. Far-horizon disagreements are
+larger: median absolute value at 100 m is 0.6805 m and the maximum over all
+stations/frames is 4.2514 m. These are observed pseudo-reference differences,
+not a validated physical error distribution or an outlier-based new gate.
+
+**Next:** apply the documentation-only result closure to the existing PR #24
+at `42bedf6`; have Python 3.10/3.12 CI pass at the new documentation head,
+then merge that PR. A runnable closure patch is delivered separately. No new
+private run, converter/feature change, label threshold, model or fit follows.
+The complete-feature support is too short and recording-concentrated for a
+credible new AR/AIOHMM comparison. A future bounded descriptive Gaussian is
+possible only under a new reviewed protocol using the same complete row subset
+for any unconditional/conditional comparison, an exact archive validator and
+explicit development-only limits. More independently identified outings with
+longer contiguous feature-ready support remain necessary for the intended
+thesis comparison and frozen final cohort. Do not request the unrecoverable
+batch02 session history, assign four outings/roles or reinterpret technical
+files as held-out physical drives. Direct LTSB work stays on hold.
+
+The documentation-only closure passes compilation, whitespace checks and
+full local tests with MCAP extras: **503 run, 501 pass, two expected opt-in
+skips**. No source, tests, configuration, previous result or runtime fingerprint
+was changed by the closure.
+
+The reviewed implementation contains no observed blocking defect. Claude's
+nonblocking observations are tracked in the result document; specifically,
+it found rejection-label precedence differences without speed availability or
+value differences, and requests a full archive validator before any later
+consumer. No new code patch or rerun is needed for the completed output.
+
+**Reproducible 100-test focused selection** (three new modules plus the seven
+previous diagnostic/intake modules):
+
+```bash
+PYTHONPATH=src python -m unittest \
+  tests.domain.test_exploratory_residuals \
+  tests.io.test_exploratory_residuals \
+  tests.workflows.test_exploratory_residuals_cli \
+  tests.domain.test_recording_pair_diagnostics \
+  tests.io.test_recording_pair_diagnostics \
+  tests.workflows.test_recording_pair_diagnostics_cli \
+  tests.io.test_recording_pair_feasibility \
+  tests.workflows.test_recording_pair_feasibility_cli \
+  tests.io.test_independent_outing_intake \
+  tests.workflows.test_independent_outing_intake_cli
+```
+
+## Historical v0.19.2 implementation preparation
 
 PR #23 and its result closure are merged at
 `49ca0022104d96b0e4595dde0a48e69ca899406c`, tree
