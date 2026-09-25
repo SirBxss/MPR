@@ -1,6 +1,31 @@
 # Minimal Path-Residual Model (MPR) v0.18.1
 
-**Latest checkpoint (2026-09-22):** PR #23 received implementation/scope **GO**,
+**Latest checkpoint (2026-09-25):** PR #24 has focused review GO and passing
+Python 3.10/3.12 CI. Its one private batch02 extraction is reconciled: 376
+finite EDP/RLMB H100 pseudo-residuals, of which 134 have all six recorded-causal
+conditions. The complete subset has 26 short file-local sequences, at most
+10 frames / ~0.9 s, concentrated in one technical recording. This supports
+an exploratory archive, not a defensible new temporal-model comparison or a
+final independent-outing cohort. See
+[`docs/exploratory_residuals_batch02_v0192_result.md`](docs/exploratory_residuals_batch02_v0192_result.md)
+and [`docs/current_status.md`](docs/current_status.md). Apply the documentation
+closure in the existing PR #24 and merge after new-head CI; do not rerun the
+private extraction or fit a model on its own authority.
+
+**Historical checkpoint (2026-09-24):** PR #23 and its result closure are merged
+at `49ca002`; final-head Python 3.10/3.12 CI passed. The next bounded exploratory
+EDP/RLMB extractor is implemented for review. It preserves H100 projection and
+all prior counts/diagnostics, exports geometric residuals separately from rows
+with all six recorded-causal conditions, and records file-local sequences.
+The speed check rejects contributing future-state or late-log odometry without
+changing the old 50 ms arithmetic. Actual residual counts are not known yet;
+376 remains the geometric upper bound. Focused implementation GO and normal CI
+must precede one private extraction run. No model fit or final-outing admission.
+See [`docs/current_status.md`](docs/current_status.md),
+[`docs/exploratory_residuals_predeclaration.md`](docs/exploratory_residuals_predeclaration.md)
+and [`docs/commands.md`](docs/commands.md). Direct LTSB work stays on hold.
+
+**Historical checkpoint (2026-09-22):** PR #23 received implementation/scope **GO**,
 zero blockers, and passed Python 3.10/3.12 CI. Its completed real diagnostic
 preserves every pilot count: all 29,569 generic reference errors are empty
 lane-segment lists; all 7,743 anchored H100 pairs, including 376 sensor-topology

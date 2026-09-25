@@ -1,8 +1,129 @@
 # v0.4.5 output contracts
 
-These contracts describe diagnostics, not training labels. EDP–RLMB
-disagreement is not ground-truth lane-estimation error, and RLMB is a
-pseudo-reference candidate rather than physical ground truth.
+## v0.19.2 batch02 exploratory residuals
+
+The one completed real batch02 run is reconciled in
+`docs/exploratory_residuals_batch02_v0192_result.md`. This describes its
+immutable format; it is no longer a pending command. No historical model CLI
+consumes this archive.
+
+Binding scope: `docs/exploratory_residuals_predeclaration.md`. This new
+module-only consumer exports exploratory EDP-minus-RLMB pseudo-residuals;
+RLMB is not independent physical ground truth. It uses the exact four batch02
+files and both preserved reports. It assigns no outing identity or role.
+
+A complete run writes exactly `exploratory_residuals.npz`,
+`candidate_audit.json` and `exploratory_residual_summary.json`. An inconclusive
+batch writes only the summary; aggregate counts/support are null, even when
+other recordings completed. Never use a partial dataset. The complete summary
+is written last and contains SHA-256 hashes for the other two files. Consumers
+must require complete status, the exact revision and matching artifact hashes
+before loading arrays with `allow_pickle=False`. A directory left without a
+complete summary by interrupted serialization is not a usable dataset.
+
+The summary contains exactly:
+
+```text
+contract_revision, purpose, status, registration_sha256,
+container_context_sha256, preserved_feasibility_sha256,
+preserved_diagnostics_sha256, runtime_versions, runtime_source_sha256,
+raw_hashes_verified, physical_session_provenance, independent_outing_count,
+roles_assigned, cohort_lock_created, model_fitted, standardizers_fitted,
+residuals_exported, recorded_input_causality_checked,
+physical_input_availability_proven, candidate_count, condition_failure_counts,
+residual_failure_counts, support, recordings, artifacts_sha256, interpretation
+```
+
+Revision is `v0.19.2-batch02-exploratory-residuals-2026-09-24-a1`; purpose is
+`exploratory_recording_local_edp_rlmb_residuals_without_outing_admission`.
+Physical session provenance remains `unavailable_owner_report_2026-09-20`;
+independent outing count is null; roles, lock, model and standardizer flags are
+false. `physical_input_availability_proven` stays false. Recorded source/log
+checks do not establish physical clock equivalence or online availability.
+`residuals_exported=true` means the archive was written, including the valid
+empty-archive case; use `support.geometric_profile_count` for its actual size.
+`recorded_input_causality_checked` means checks completed, not that every row
+passed. Both flags are false for an inconclusive batch. Condition failure
+counts are nonexclusive; one candidate can have multiple causes.
+
+Each recording contains `recording_id`, `relative_path_private`, `raw_sha256`,
+`size_bytes`, `status`, `failure_code`, `legacy_counts_match_preserved`,
+`diagnostics_match_preserved`, `counts`, `odometry` and
+`input_ready_sequence_count_before_residuals`. Counts retain the old schema.
+Both comparisons must be true for a complete record. Inconclusive records have
+null comparisons, counts, odometry and input-ready sequence count. Complete
+observations from other recordings may remain in the summary, but do not
+constitute a dataset. Odometry keys are `message_count`,
+`distinct_valid_timestamp_count`, `duplicate_timestamp_group_count`,
+`duplicate_message_count`, `conflicting_timestamp_group_count`,
+`discarded_conflicting_message_count`, `maximum_timestamp_multiplicity`,
+`schema_counts`, `failure_counts`. Distinct valid timestamps include conflict
+groups, whose messages are separately counted and excluded from speed lookup.
+
+`support` contains `geometric_profile_count`, `conditioned_profile_count`,
+`geometry_sequences`, `conditioned_sequences`, `geometry_transition_count`
+and `conditioned_transition_count`. Each sequence has `sequence_index`,
+`recording_id`, `start_row`, `stop_row`, `frame_count`, `transition_count`,
+`duration_ns`, `start_reasons`. Row ranges are half-open in the corresponding
+population. Singletons have zero transitions/duration. Empty populations have
+no sequences. Break reasons are recording boundary, skipped original estimate
+or canonical pair index, nonpositive source-time gap, or gap above 200 ms.
+`recording_start` labels the initial sequence only. No cross-file stitching.
+
+The NPZ has exactly the following arrays, all with non-object dtypes. Let N be
+geometric profiles, M the complete-feature subset, and G/S their sequence counts.
+
+| Array | dtype / shape | Meaning |
+|---|---|---|
+| `stations_m` | float64 (21,) | 0, 5, ..., 100 m |
+| `condition_names` | U48 (6,) | Fixed BMW schema-v1 order |
+| `residuals_m` | float64 (N,21) | Finite signed physical-unit vectors |
+| `recording_id` | U16 (N,) | Technical file ID, never outing/feature/role |
+| `candidate_index` | int64 (N,) | Index into the full candidate audit |
+| `pair_index` | int64 (N,) | File-local canonical matched-pair index |
+| `estimate_message_index` | int64 (N,) | Original estimate storage-order index |
+| `reference_message_index` | int64 (N,) | Original reference storage-order index |
+| `estimate_source_time_ns_decimal` | U20 (N,) | Exact uint64 timestamp as decimal text |
+| `reference_source_time_ns_decimal` | U20 (N,) | Exact uint64 timestamp as decimal text |
+| `geometry_sequence_offsets` | int64 (G+1,) | Half-open offsets into residual/profile rows |
+| `conditioned_profile_indices` | int64 (M,) | Residual/profile row for each condition row |
+| `conditions` | float64 (M,6) | Finite complete recorded-causal inputs only |
+| `conditioned_sequence_offsets` | int64 (S+1,) | Half-open offsets into condition rows |
+
+Offsets start at zero and end at the corresponding row count; an empty
+population uses `[0]`. Do not align `conditions[i]` with `residuals_m[i]`:
+use `residuals_m[conditioned_profile_indices]`. Conditions keep speed, mean
+absolute estimated curvature, curvature delta and near/middle/far confidence
+order. No standardization, padding, zero imputation or model fitting occurs.
+Timestamps are private, exact integer evidence, not datetime claims. This is
+not the historical training archive schema; existing training CLIs must not
+be pointed at it. A future reviewed consumer must validate its full contract.
+
+The audit object contains `contract_revision` and `rows`, one row per original
+sensor candidate, including exclusions. Each row has:
+
+```text
+recording_id, candidate_index, pair_index, estimate_message_index,
+reference_message_index, estimate_source_time_ns_private,
+reference_source_time_ns_private, estimate_log_time_ns_private,
+estimate_publish_time_ns_private, signed_reference_minus_estimate_ns,
+condition_failure_codes, speed_bracket_evidence, residual_failure_code,
+anchor_distance_m, reference_anchor_station_m, residual_available,
+conditions_available
+```
+
+`conditions_available` describes feature checks independently of residual
+success; only rows with both booleans true enter the conditioned NPZ subset.
+`speed_bracket_evidence` is empty if arithmetic could not be evaluated;
+otherwise it has previous/current lower/upper timestamps and maximum input
+log/publish times, all suffixed `_ns_private` as defined by the domain helper.
+Future-state/late-log rejections retain this evidence. Geometry failures leave
+both anchor fields null. Neither vectors nor conditions are duplicated in the
+JSON audit. These outputs contain private recording evidence and stay out of Git.
+
+The historical diagnostic contracts follow. The separate v0.19.2 scope above
+adds exploratory pseudo-residual arrays without adopting physical ground-truth
+labels. EDP–RLMB disagreement is not ground-truth lane-estimation error.
 
 ## v0.19.1 batch02 reference/timing extension
 

@@ -74,14 +74,87 @@ command requires `--speed-source`. Use `--help` for the complete option set.
 | `mpr-lock-independent-outings` | `python -m lane_residuals.cli.independent_outing_intake` | v0.17.0 prospective intake plus the exact v0.17.1 EDP schema-v2 amendment; no model, sampler, planner, or final evaluation | Recursive new-MCAP root, strict private acquisition manifest, an exact prior successful lock only for a declared supersession, and optionally a preserved failed v0.17.0 audit for amended lineage | Recording and outing CSV audits, immutable cohort lock, and strict intake summary |
 | `mpr-audit-sensor-topology-feasibility` | `python -m lane_residuals.cli.sensor_topology_feasibility` | v0.18.1 correction to the reviewed structural/co-availability audit; the authorized corrected run is complete and accepted; no further batch01 run | Exact closed batch01 MCAP root, unchanged private manifest, and complete preserved v0.17.1 intake directory | Recording counts, schema inventory, and feasibility summary only; no coordinates, residuals, model, planner, or figure |
 | module-only pilot/diagnostic | `python -m lane_residuals.cli.recording_pair_feasibility` | Both v0.19.0 pilot and v0.19.1 reference/timing run complete and reconciled; historical commands below, no rerun requested | Exact batch02 root, original registration/time-context JSONs, local scratch disk and fresh output directory; new mode additionally requires the exact preserved pilot report | Original counts or the separate reference/timing report; no roles, eligibility lock, causal features or residuals |
+| module-only exploratory extractor | `python -m lane_residuals.cli.exploratory_residuals` | v0.19.2 reviewed and real output reconciled; historical command below, no rerun | Exact batch02 root, original registration/context, both preserved reports, local scratch and absent output directory | Geometric H100 vectors, complete-feature subset, candidate audit and file-local sequences; no fit or outing admission |
+
+## Completed v0.19.2 extraction: result reconciled
+
+The one authorized private batch02 run is complete and reconciled in
+`docs/exploratory_residuals_batch02_v0192_result.md`. The command below is
+historical and **must not be rerun** into another directory. Both preserved
+reports and the three returned output files remain immutable. No model or
+training command is authorized. Finish the result documentation closure and
+merge the existing PR #24 after new-head CI; a later reviewed protocol must
+validate this new archive before any analysis consumer.
+
+## Historical v0.19.2 extraction command and output return
+
+### v0.19.2 original pre-run instructions (already completed)
+
+The new module is `python -m lane_residuals.cli.exploratory_residuals`.
+Apply the new implementation on a branch from merged PR #23, push, and open a
+separate PR. Its exact pushed implementation needs focused Claude GO and passing
+Python 3.10/3.12 CI before this one private run, as required by AGENTS.md and
+`docs/exploratory_residuals_predeclaration.md`. The old diagnostic's GO does not
+cover this new residual export and input-availability decision. No session
+manifest is required or fabricated. Keep the implementation PR open while its
+first output is reconciled; do not merge merely because extraction exits zero.
+
+After those gates, from `~/PycharmProjects/MPR` with the project environment
+activated and MCAP extras installed:
+
+```bash
+mkdir -p outputs/work/exploratory_residuals
+free -h
+df -h outputs/work/exploratory_residuals
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONPATH=src \
+python -m lane_residuals.cli.exploratory_residuals \
+  data/raw/new_independent_outings/batch02 \
+  --registration outputs/diagnostics/data/batch02_registration_v001/batch02_registration.json \
+  --container-context outputs/diagnostics/data/batch02_container_context_v001/batch02_container_context.json \
+  --preserved-feasibility-report outputs/diagnostics/data/recording_pair_feasibility_v0190_batch02/recording_pair_feasibility.json \
+  --preserved-diagnostics-report outputs/diagnostics/data/recording_pair_diagnostics_v0191_batch02/recording_pair_diagnostics.json \
+  --scratch-directory outputs/work/exploratory_residuals \
+  --output-directory outputs/datasets/exploratory_residuals_v0192_batch02 \
+  --log-level INFO
+```
+
+Require at least 6 GiB `MemAvailable`, 10 GiB free local scratch, and an absent
+output directory. The CLI enforces the 4 GiB process address-space limit before
+heavy imports. It verifies all four raw hashes, then reads EDP/RLMB/odometry
+with disk-backed geometry/poses. Output is deterministic and private; keep it
+out of Git. Preserve all old reports byte-for-byte.
+
+Exit 0 creates three files: `exploratory_residual_summary.json`,
+`candidate_audit.json`, `exploratory_residuals.npz`. It may contain zero complete
+condition rows; inspect support and failure counts rather than assuming training
+readiness. Exit 3 writes only an inconclusive summary with null aggregate
+support. Exit 2 is a preflight/execution error; preserve the log and any partial
+output. Do not retry into an existing directory or change gates to force rows.
+
+For a complete run, prepare these exact files for result reconciliation:
+
+```bash
+zip -j ~/Downloads/MPR/mpr_v0192_exploratory_residuals_result.zip \
+  outputs/datasets/exploratory_residuals_v0192_batch02/exploratory_residual_summary.json \
+  outputs/datasets/exploratory_residuals_v0192_batch02/candidate_audit.json \
+  outputs/datasets/exploratory_residuals_v0192_batch02/exploratory_residuals.npz
+```
+
+For exit 3, return only the summary. For exit 2, return the terminal failure
+and any summary that exists; do not upload raw MCAPs. We first reconcile exact
+lineage, profile/subset mapping, feature exclusions and contiguous transitions.
+Then a separate development protocol can specify a minimal exploratory fit.
+No existing training CLI consumes this new archive and no model runs here.
+
+## Historical completed recording diagnostics
 
 The **v0.19.1 command below records the completed diagnostic**, not a rerun
 request. PR #23 received focused implementation/scope GO and Python 3.10/3.12
 CI; its real output now reconciles with the preserved pilot. Read
 `docs/recording_pair_diagnostics_batch02_result.md` and `docs/current_status.md`.
-Keep both reports byte-for-byte. The next extraction scope is not implemented,
-so no new private command is requested by this closure. The original invocation
-is retained here for reproducibility:
+Keep both reports byte-for-byte. The separate v0.19.2 command above needs its
+own review before execution. The original invocation below is retained only
+for reproducibility:
 
 ```bash
 mkdir -p outputs/work/recording_pair_feasibility

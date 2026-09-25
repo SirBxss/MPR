@@ -1,5 +1,18 @@
 # Project architecture
 
+The separately reviewed v0.19.2 extractor has four small modules named
+`exploratory_residuals`. Domain code reuses native alignment and speed arithmetic,
+checks recorded input chronology, constructs file-local sequence layouts and
+builds arrays. I/O adds disk-backed odometry/feature metadata and exact parity
+against every preserved count and timing diagnostic before residual construction.
+Workflow code validates both immutable reports and raw bytes, coordinates four
+recordings and publishes a complete archive/audit with hashes; the CLI applies
+the existing process cap before heavy imports. The old indexed reader gains an
+optional topic-limit mapping, and its count pass an optional scalar-identity
+observer. Their defaults and the frozen intake import graph remain unchanged.
+No model or planner module is invoked. See the new predeclaration and output
+contract for the geometric/complete-feature population distinction.
+
 The v0.19.1 extension is explicitly selected by `--preserved-feasibility-report`
 on the same CLI. `io.reference_diagnostics` maps exceptions to static labels;
 it is imported only by the opted-in iterator, preserving the frozen intake

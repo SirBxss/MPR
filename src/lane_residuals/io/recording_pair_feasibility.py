@@ -11,7 +11,7 @@ import math
 from pathlib import Path
 import sqlite3
 from tempfile import TemporaryDirectory
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable, Mapping
 
 import numpy as np
 
@@ -39,7 +39,8 @@ class RecordingReadError(ValueError):
     """A static, payload-free completeness failure code."""
 
 
-def _indexed_summary(reader: Any) -> tuple[Any, dict[str, int]]:
+def _indexed_summary(reader: Any, *, topic_limits: Mapping[str, int] | None = None) -> tuple[Any, dict[str, int]]:
+    limits = {topic: MAX_MESSAGES_PER_TOPIC for topic in TOPICS} if topic_limits is None else topic_limits
     summary = reader.get_summary()
     if summary is None or summary.statistics is None or not summary.chunk_indexes:
         raise ResourceLimitError("indexed_summary_required_no_scan_fallback")
@@ -57,8 +58,8 @@ def _indexed_summary(reader: Any) -> tuple[Any, dict[str, int]]:
         raise RecordingReadError("summary_message_count_mismatch")
     counts = {topic: sum(stats.channel_message_counts.get(key, 0)
                          for key, channel in summary.channels.items()
-                         if channel.topic == topic) for topic in TOPICS}
-    if any(count > MAX_MESSAGES_PER_TOPIC for count in counts.values()):
+                         if channel.topic == topic) for topic in limits}
+    if any(count > limits[topic] for topic, count in counts.items()):
         raise ResourceLimitError("advertised_topic_count_exceeds_resource_limit")
     return summary, counts
 
@@ -73,23 +74,24 @@ def decoder_types():
     return SeekingReader, DecoderFactory
 
 
-def _iter_messages(path: Path):
+def _iter_messages(path: Path, *, topic_limits: Mapping[str, int] | None = None):
+    limits = {topic: MAX_MESSAGES_PER_TOPIC for topic in TOPICS} if topic_limits is None else topic_limits
     SeekingReader, DecoderFactory = decoder_types()
     with path.open("rb") as stream:
         reader = SeekingReader(stream, decoder_factories=[DecoderFactory()],
                                record_size_limit=MAX_CHUNK_BYTES)
-        _, expected = _indexed_summary(reader)
+        _, expected = _indexed_summary(reader, topic_limits=limits)
         actual: Counter[str] = Counter()
         # Storage order avoids the log-time merge queue retaining geometry or
         # payloads from many overlapping chunks. Matching below uses complete
         # source-time streams and is invariant to this ordering for count outputs.
-        for record in reader.iter_decoded_messages(topics=TOPICS, log_time_order=False):
+        for record in reader.iter_decoded_messages(topics=tuple(limits), log_time_order=False):
             topic = record[1].topic
             actual[topic] += 1
-            if actual[topic] > MAX_MESSAGES_PER_TOPIC:
+            if actual[topic] > limits[topic]:
                 raise ResourceLimitError("decoded_topic_count_exceeds_resource_limit")
             yield record
-        if any(actual[topic] != expected[topic] for topic in TOPICS):
+        if any(actual[topic] != expected[topic] for topic in limits):
             raise RecordingReadError("decoded_summary_topic_count_mismatch")
 
 
@@ -111,7 +113,8 @@ def _unpack_path(payload: bytes | None) -> EgoRelativePath | None:
 
 
 def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection,
-                    diagnostics: PairDiagnostics | None = None) -> dict[str, Any]:
+                    diagnostics: PairDiagnostics | None = None, *,
+                    on_sensor_pair: Callable[[int, Any], None] | None = None) -> dict[str, Any]:
     times: dict[str, list[int | None]] = {"estimate": [], "reference": []}
     topology_counts: Counter[str] = Counter()
     conversion_failures: Counter[str] = Counter()
@@ -156,7 +159,7 @@ def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection,
             (role, position)).fetchone()
         return json.loads(metadata), _unpack_path(geometry)
 
-    for pair in pairing.pairs:
+    for pair_index, pair in enumerate(pairing.pairs):
         estimate_info, estimate = read("estimate", pair.first_position)
         reference_info, reference = read("reference", pair.second_position)
         failure = None
@@ -181,6 +184,10 @@ def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection,
                     failure = "anchor_distance_exceeds_1m_or_invalid"
         if failure is not None:
             pair_failures[failure] += 1
+        if sensor_ready and on_sensor_pair is not None:
+            # New consumers may retain scalar identities only; the original
+            # count/selection path is unchanged when this observer is absent.
+            on_sensor_pair(pair_index, pair)
         if diagnostics is not None:
             diagnostics.pair(
                 topology=estimate_info["topology"],
