@@ -312,6 +312,25 @@ and separately reviewed scope; prioritize prospectively identified independent
 data with longer feature-ready sequences. Owner cannot recover batch02 session
 provenance; do not request it again.
 
+The later 2026-09-25 checkpoint supersedes the PR #24 merge instruction:
+PR #24 is merged as `95745ea`. Branch
+`feature/v0.19.3-archive-and-flow-foundation` adds a pinned, read-only
+v0.19.2 output validator and synthetic straight-path conditional flow math;
+read `docs/flow_matching_foundation_v0193.md` and the new header of
+`docs/current_status.md`. This is not a cohort, new reference, trained flow,
+model comparison, log-density implementation or permission to rerun MCAPs.
+For future model fits, predeclare matched rows and physical outing splits,
+with substantially longer feature-ready sequences before temporal claims.
+
+The 2026-09-27 PR #25 checkpoint is in the first section of
+`docs/current_status.md`. The exact pushed head `df91ee8` received independent
+GO with zero blockers but has an unmerged, high-priority hash/parse race
+correction prepared on top. Re-review and Python 3.10/3.12 CI must apply to
+the corrected final PR head. The proposed RC-GAN-to-flow substitution needs a
+supervisor-visible decision before a real fit; the independent-outing gate
+for another model family remains unchanged. Do not infer training permission
+from the synthetic flow primitives or from this review.
+
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location

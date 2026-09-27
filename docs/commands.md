@@ -1,5 +1,15 @@
 # Supported commands
 
+## Current read-only batch02 check
+
+After extracting the **already published** three-file v0.19.2 result into a
+local directory, run
+`python -m lane_residuals.cli.exploratory_archive /path/to/unzipped/result`.
+The command checks the pinned complete result and prints only counts; it
+creates no outputs, retrains nothing and never reads an MCAP. The earlier
+v0.19.2 extraction command documented below is historical and must not be
+rerun. The v0.19.3 flow math has no fitting CLI or trained model yet.
+
 All historical console aliases and their `python -m` forms remain supported.
 v0.5.2 restores corpus-independent native projection alignment;
 v0.13.0 preserves the fail-closed expanded sequential checkpoint, and v0.13.1
