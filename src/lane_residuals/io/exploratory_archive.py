@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+import hashlib
+import io
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping
@@ -18,7 +20,6 @@ import numpy as np
 from ..domain.exploratory_residuals import sequence_layout
 from ..domain.residual_dataset import CANONICAL_MODEL_STATIONS_M
 from ..domain.sequence_dataset import BMW_CONDITION_FEATURE_NAMES
-from .corpus_inventory import sha256_file
 from .independent_outing_intake import read_strict_json_with_bytes
 
 REVISION = "v0.19.2-batch02-exploratory-residuals-2026-09-24-a1"
@@ -84,10 +85,11 @@ def load_exploratory_archive(directory: Path, *,
     directory = Path(directory)
     _require(directory.is_dir() and {p.name for p in directory.iterdir()} == {SUMMARY, AUDIT, ARCHIVE},
              "exactly three complete output files required")
-    _require(sha256_file(directory / SUMMARY) == expected_summary_sha256,
+    summary, summary_raw = read_strict_json_with_bytes(directory / SUMMARY)
+    _require(hashlib.sha256(summary_raw).hexdigest() == expected_summary_sha256,
              "summary differs from the pinned published result")
-    summary, _ = read_strict_json_with_bytes(directory / SUMMARY)
-    audit, _ = read_strict_json_with_bytes(directory / AUDIT)
+    audit, audit_raw = read_strict_json_with_bytes(directory / AUDIT)
+    archive_raw = (directory / ARCHIVE).read_bytes()
     _require(isinstance(summary, dict) and isinstance(audit, dict), "invalid report objects")
     expected = {"contract_revision": REVISION, "status": "complete",
                 "purpose": "exploratory_recording_local_edp_rlmb_residuals_without_outing_admission",
@@ -100,8 +102,9 @@ def load_exploratory_archive(directory: Path, *,
     for key, value in expected.items():
         _require(type(summary.get(key)) is type(value) and summary[key] == value, f"summary {key} mismatch")
     _require(set(summary.get("artifacts_sha256", {})) == {ARCHIVE, AUDIT}, "artifact hash keys mismatch")
-    for name in (ARCHIVE, AUDIT):
-        _require(sha256_file(directory / name) == summary["artifacts_sha256"][name], f"{name} digest mismatch")
+    for name, raw in ((ARCHIVE, archive_raw), (AUDIT, audit_raw)):
+        _require(hashlib.sha256(raw).hexdigest() == summary["artifacts_sha256"][name],
+                 f"{name} digest mismatch")
     _require(set(audit) == {"contract_revision", "rows"} and audit["contract_revision"] == REVISION
              and isinstance(audit["rows"], list), "audit revision or row list mismatch")
     rows = audit["rows"]
@@ -144,10 +147,10 @@ def load_exploratory_archive(directory: Path, *,
     for r in recordings:
         _require(sum(row["recording_id"] == r["recording_id"] for row in rows)
                  == r["counts"]["sensor_anchored_h100_pair_count"], "per-record candidate count mismatch")
-    with zipfile.ZipFile(directory / ARCHIVE) as zf:
+    with zipfile.ZipFile(io.BytesIO(archive_raw)) as zf:
         _require(set(zf.namelist()) == {k + ".npy" for k in ARRAY_DTYPES}
                  and len(zf.namelist()) == len(ARRAY_DTYPES), "NPZ member mismatch")
-    with np.load(directory / ARCHIVE, allow_pickle=False) as stored:
+    with np.load(io.BytesIO(archive_raw), allow_pickle=False) as stored:
         _require(set(stored.files) == set(ARRAY_DTYPES), "NPZ array keys mismatch")
         arrays = {key: stored[key] for key in ARRAY_DTYPES}
     for key, dtype in ARRAY_DTYPES.items():

@@ -11,7 +11,9 @@ are not the thesis execution path.
 - The completed development comparison contains the Gaussian baselines and the
   reviewed conditional autoregressive models. RC-GAN is not pursued on the
   current one-outing corpus because the data-volume and complexity gates do
-  not support it.
+  not support it. The originally planned RC-GAN is proposed to be replaced
+  by conditional flow matching, subject to a supervisor-visible thesis-scope
+  decision before fitting. The same independent-data gate applies to flow.
 - All families consume the same conditions, targets, masks, lengths, sequence
   provenance, recording-group folds, and evaluation rows.
 - A model never sees a held-out drive while fitting parameters,

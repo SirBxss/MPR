@@ -1,5 +1,13 @@
 # Minimal Path-Residual Model (MPR)
 
+**Pre-merge review checkpoint (2026-09-27):** PR #25 is open. Claude's
+independent review of `df91ee8` returned GO for archive validation and
+synthetic flow math, with zero blockers and a recommended hash/parse race
+correction. The narrow correction and synthetic regression are prepared on
+the exact reviewed head; they need focused re-review and Python 3.10/3.12 CI
+at the final PR head before merge. No training or private rerun follows.
+Read [`docs/current_status.md`](docs/current_status.md) for the gate.
+
 **Current checkpoint (2026-09-25):** PR #24 is merged at `95745ea`.
 The v0.19.3 branch adds an exact, read-only validator for its published batch02
 archive and synthetic conditional flow-matching bridge and free-running

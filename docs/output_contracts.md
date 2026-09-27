@@ -7,8 +7,13 @@ v0.19.2 archive consumer. Its default SHA-256 pins the independently
 reconciled complete summary (`64bee5e5...`); it verifies the recorded
 artifact hashes and semantic audit/NPZ/temporal contract below. Passing
 validation establishes neither physical ground truth nor a training cohort.
+Residual and condition values are protected only by the hash chain to the
+pinned summary; structural checks do not reconstruct numeric values from raw
+MCAPs. The loader hashes the exact bytes it parses, including if directory
+files change during a call.
 The callable returns condition rows and the original geometric profile
-indices; callers must use `conditioned_residuals_m`, not align by raw position.
+indices; callers must use `conditioned_residuals_m` with
+`conditioned_sequence_offsets`, not align by raw position or geometric offsets.
 `domain.flow_matching` exports a mathematical bridge and synthetic sampler,
 no model artifact/output or likelihood contract. See
 `docs/flow_matching_foundation_v0193.md` for its explicit limitations.

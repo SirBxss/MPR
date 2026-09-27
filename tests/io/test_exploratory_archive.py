@@ -3,8 +3,10 @@ from __future__ import annotations
 from collections import Counter
 import json
 from pathlib import Path
+import shutil
 from tempfile import TemporaryDirectory
 import unittest
+from unittest import mock
 
 import numpy as np
 
@@ -82,6 +84,45 @@ class ArchiveValidationTests(unittest.TestCase):
         (self.path / AUDIT).write_bytes((self.path / AUDIT).read_bytes() + b" ")
         with self.assertRaisesRegex(ValueError, "digest mismatch"):
             self.read()
+
+    def test_rejects_changed_npz_bytes_even_if_audit_remains_valid(self):
+        with (self.path / ARCHIVE).open("ab") as handle:
+            handle.write(b"altered")
+        with self.assertRaisesRegex(ValueError, "exploratory_residuals.npz digest mismatch"):
+            self.read()
+
+    def test_replacement_between_hash_and_parse_cannot_admit_unpinned_values(self):
+        """Regression: prior reader hashed A then silently parsed consistent B."""
+        with TemporaryDirectory() as other:
+            other_path = Path(other)
+            for name in (SUMMARY, AUDIT, ARCHIVE):
+                shutil.copyfile(self.path / name, other_path / name)
+            with np.load(other_path / ARCHIVE, allow_pickle=False) as source:
+                arrays = {key: source[key] for key in source.files}
+            arrays["residuals_m"] = arrays["residuals_m"] + 5.0
+            write_deterministic_npz(other_path / ARCHIVE, arrays)
+            other_summary = json.loads((other_path / SUMMARY).read_text())
+            other_summary["artifacts_sha256"][ARCHIVE] = sha256_file(other_path / ARCHIVE)
+            save_json(other_path / SUMMARY, other_summary)
+            original_read = Path.read_bytes
+            swapped = []
+
+            def replace_before_read(path):
+                if path == self.path / SUMMARY and not swapped:
+                    for name in (SUMMARY, AUDIT, ARCHIVE):
+                        shutil.copyfile(other_path / name, self.path / name)
+                    swapped.append(True)
+                return original_read(path)
+
+            with mock.patch.object(Path, "read_bytes", replace_before_read):
+                try:
+                    result = self.read()
+                except ValueError:
+                    self.assertTrue(swapped)
+                    return
+            self.assertTrue(swapped)
+            self.assertEqual(result.arrays["residuals_m"][0, 0], 0.0,
+                             "loader admitted values from bytes that differ from the pinned summary")
 
     def test_rejects_rehashed_wrong_subset_without_relying_on_hash(self):
         with np.load(self.path / ARCHIVE, allow_pickle=False) as source:

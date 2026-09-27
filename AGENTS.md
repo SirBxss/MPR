@@ -322,6 +322,15 @@ model comparison, log-density implementation or permission to rerun MCAPs.
 For future model fits, predeclare matched rows and physical outing splits,
 with substantially longer feature-ready sequences before temporal claims.
 
+The 2026-09-27 PR #25 checkpoint is in the first section of
+`docs/current_status.md`. The exact pushed head `df91ee8` received independent
+GO with zero blockers but has an unmerged, high-priority hash/parse race
+correction prepared on top. Re-review and Python 3.10/3.12 CI must apply to
+the corrected final PR head. The proposed RC-GAN-to-flow substitution needs a
+supervisor-visible decision before a real fit; the independent-outing gate
+for another model family remains unchanged. Do not infer training permission
+from the synthetic flow primitives or from this review.
+
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location

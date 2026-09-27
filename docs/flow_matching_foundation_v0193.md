@@ -20,6 +20,11 @@ indices, file-local sequence breaks and reported support. It returns
 recording-local arrays, not a drive-grouped model dataset. Its optional
 `expected_summary_sha256` is for explicit review of a differently published
 fixture; the default admits only the independently reconciled batch02 bytes.
+Each file is read into the bytes used for both hashing and parsing, so a
+replacement during validation cannot substitute unverified values. Residual
+and condition *values* have no second copy in the audit: they are protected
+only by the hash chain to the pinned summary. Semantic checks cover identities,
+structure and temporal support, not an independent numeric reconstruction.
 `python -m lane_residuals.cli.exploratory_archive DIRECTORY` validates the
 three unzipped files read-only and prints aggregate counts. It cannot redo
 raw geometry, recover a physical session, establish source independence,
@@ -45,10 +50,18 @@ mechanisms, so a score shift alone cannot identify a causal dataset effect.
 
 ## Conditional flow candidate, with its testable math
 
-We replace the shelved RC-GAN proposal with a *candidate* conditional
-straight-path flow-matching family. This is a generative hypothesis, not a
-claim of improved RMSE. Following the straight-line/rectified-flow objective
-of [Liu et al. (2022)](https://arxiv.org/abs/2209.03003), draw independent
+The original thesis plan named RC-GAN as its third family. We propose
+conditional straight-path flow matching as its replacement, subject to an
+explicit supervisor-visible scope decision before any real fit. Its velocity
+regression avoids adversarial optimization while serving the same goal of
+sample-based residual uncertainty; neither approach promises better RMSE.
+The `docs/model_comparison.md` gate against fitting a new family on the
+current one-outing corpus applies **unchanged** to flow matching. Synthetic
+bridge/sampler arithmetic does not constitute a fitted thesis model. A
+continuous-normalizing-flow likelihood would require a separately implemented
+and verified divergence integral; this prototype supplies none. Following the
+straight-line/rectified-flow objective of
+[Liu et al. (2022)](https://arxiv.org/abs/2209.03003), draw independent
 standard-normal noise `z0`, a training residual `y` and `tau ~ U[0,1]`, then
 form `z_tau = (1-tau) z0 + tau y`, target velocity `y-z0`. A future network
 could minimize mean squared error between its field
@@ -61,7 +74,7 @@ available for online use. At inference, each sequence starts with zero
 state, draws fresh noise at each frame, integrates `dz/dtau = v_theta`, and
 passes back the **generated** previous residual. No future/current reference
 is an input. The temporal direction follows the autoregressive factorization
-studied in [Autoregressive Flow Matching (2025)](https://arxiv.org/abs/2503.10375),
+studied in [ElGazzar and van Gerven, *Probabilistic Forecasting via Autoregressive Flow Matching* (2025)](https://arxiv.org/abs/2503.10375),
 though no architecture or trained field has been adopted here.
 
 `domain.flow_matching` implements the bridge, exact velocity target, simple
@@ -71,12 +84,20 @@ sampler with this loss supplies samples, but it does not automatically supply
 tractable log probability; likelihood-based metrics would require a separately
 verified density computation. Choice of capacity, solver steps, noise scaling,
 normalization and optimization must be predeclared and checked on real
-independently grouped training data; no hyperparameter sweep or real-data fit
-is part of this patch.
+independently grouped training data. Before any fit, specify whether the
+initial zero means zero metres or zero standardized units, add an explicit
+sequence-start indicator (zero can also be a real residual), and map
+`conditioned_residuals_m` using `conditioned_sequence_offsets` rather than
+geometric offsets. A conditioned sequence resets even if a geometric-only
+predecessor exists. Predeclare a solver-step convergence check on the
+*evaluation metrics*, with any solver selection confined to training/validation
+data; a few Euler steps can bias dispersion. Label any call with an observed
+previous residual as teacher-forced, never as free-running simulation. No
+hyperparameter sweep or real-data fit is part of this patch.
 
 | Category | Statement |
 |---|---|
-| Data proves | Finite pseudo-residuals and 134 condition-ready rows with short file-local support; archive bytes and audit structure validate. |
+| Data shows | Finite pseudo-residuals and 134 condition-ready rows with short file-local support; the loader checks pinned bytes and audit structure. |
 | Current code assumes | A straight independent Gaussian noise/data coupling and one preceding residual for the candidate's synthetic mathematical contract; source clock and recorded availability semantics are unchanged. |
 | Hypothesis | A learned conditional velocity field might represent wider and time-dependent uncertainty than Gaussian baselines when sufficiently many independently identified sequences exist. |
 

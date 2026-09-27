@@ -50,6 +50,9 @@ def linear_flow_batch(residuals: np.ndarray, conditions: np.ndarray,
     The caller supplies fresh independent standard-normal base noise and
     uniform time draws. Previous observed residual is legal only during
     training; inference instead feeds back the sampled previous residual.
+    Starts reset in physical residual units, even if a non-conditioned
+    geometric predecessor exists. A future standardized model must declare
+    its start-state space and distinguish starts from genuine zero residuals.
     """
     y = np.asarray(residuals, dtype=np.float64)
     if y.ndim != 2 or y.shape[1] != 21:
@@ -71,7 +74,12 @@ def linear_flow_batch(residuals: np.ndarray, conditions: np.ndarray,
 
 def integrate_euler(vector_field: VectorField, base_noise: np.ndarray,
                     conditions: np.ndarray, previous: np.ndarray, steps: int) -> np.ndarray:
-    """Fixed-step ODE integration over tau in [0,1]; no likelihood estimate."""
+    """Fixed-step ODE integration over tau in [0,1]; no likelihood estimate.
+
+    Passing observed previous residuals here gives teacher-forced one-step
+    draws, not a free-running sequence. Use ``sample_free_running`` for
+    generation with history feedback and sequence-boundary resets.
+    """
     z = np.asarray(base_noise, dtype=np.float64)
     if z.ndim != 2 or z.shape[1] != 21:
         raise ValueError("base_noise must have 21 stations")

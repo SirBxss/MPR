@@ -1,8 +1,47 @@
 # Current project status
 
-Last updated: 2026-09-25. This is the first file a new agent should read after
+Last updated: 2026-09-27. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
+
+## PR #25 review and narrow pre-merge correction
+
+PR #25 is open at pushed head `df91ee88eff8415fa1f5f916d3cf48867e6f1d1c`
+on `feature/v0.19.3-archive-and-flow-foundation`, based on merged PR #24
+`95745ea`. The supplied independent Claude review dated 2026-09-27 returned
+**GO for the stated archive/flow-math scope, with zero blockers**. The
+supplied review file `MPR_v0.19.3_archive_flow_foundation_review.md` hashes to
+`2ecce4d4b78fa45852650046864f0b1a0bbdfa063cf35773d98a1d85a2ad108f`.
+The reviewer ran 510 tests on Python 3.11 without MCAP extras: 505 pass and five
+skip (three missing MCAP extras, two existing opt-ins). GitHub Python 3.10/3.12
+CI at that pushed head was **not verified** by the reviewer. Separately, the
+author's prior local run with MCAP extras had 510 run, 508 pass and two opt-in
+skips. Do not describe 510 as the number passed.
+
+The review reproduced one high-priority nonblocking time-of-check/time-of-use
+defect: the reader hashed each path and then reopened it to parse, admitting
+altered bytes if files were replaced at the right time. A narrow follow-up
+commit based on the **exact pushed head** reads each file into bytes once,
+hashes those bytes and parses those same bytes; synthetic replacement and NPZ
+digest regressions are added. This correction has **not yet** been pushed,
+re-reviewed or merged. No published result bytes or extraction code change.
+Local Python 3.12.14 verification with MCAP extras: **512 run, 510 pass,
+two expected opt-in skips**, plus compilation and `git diff --check` clean.
+The pinned reader accepts the preserved output again with unchanged
+376 geometric / 134 complete-condition profiles and 108 conditional
+transitions. This does not substitute for GitHub CI at the eventual pushed
+head.
+The review's small documentation issues are also addressed: paper title,
+numeric hash-chain limit, RC-GAN-to-flow proposal and unchanged fit gate,
+sequence-start state and Euler solver calibration obligations. Read
+`docs/flow_matching_foundation_v0193.md`. A trainable flow is still a later
+separate design and review step, not part of PR #25.
+
+Next: apply the follow-up commit to the user's existing PR #25 branch, run
+local tests, push the new head, correct the PR test-count wording, request a
+focused Claude re-review of the delta, check both Python 3.10/3.12 CI jobs on
+that **final** head, then merge if GO with no blockers. No new MCAP scan,
+batch02 training, outing assignment or final performance claim follows.
 
 ## Current checkpoint: v0.19.3 implementation on merged PR #24
 
