@@ -1,5 +1,14 @@
 # Project architecture
 
+The v0.19.4 synthetic engineering module `modeling.flow_matching` owns a
+trainable NumPy tanh velocity field for both unconditional and six-feature
+conditional modes. It composes the existing `domain.flow_matching` bridge and
+Euler solver. No IO/workflow/CLI entry point connects it to recorded data;
+the pinned archive reader remains read-only. It fits normalization on supplied
+synthetic training rows, uses conditioned offsets, and returns physical
+free-running samples with sequence reset and zero padding. See
+`docs/flow_matching_dual_synthetic_v0194.md` for the research gate.
+
 The separately reviewed v0.19.2 extractor has four small modules named
 `exploratory_residuals`. Domain code reuses native alignment and speed arithmetic,
 checks recorded input chronology, constructs file-local sequence layouts and

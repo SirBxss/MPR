@@ -4,6 +4,32 @@ Last updated: 2026-09-27. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
+## v0.19.4 synthetic dual flow implementation; review next
+
+PR #25 is **merged** at `7a988046002555a20a03fead8e6437124222d0c2`,
+final pushed head `ccac468d627c40b26319eab66753537ba93b756d`.
+The focused independent re-review returned GO, zero blockers, for the exact
+corrected head. GitHub Actions run `36325679164` completed successfully on
+that head: Python 3.10 and 3.12 jobs passed. The read-only archive and
+synthetic flow foundation are closed. The pre-merge instructions in the next
+section are historical and must not be followed again.
+
+On branch `feature/v0.19.4-synthetic-dual-flow`, the implementation adds two small trainable
+NumPy flow fields for **synthetic-only** engineering: an unconditional
+temporal null and a six-feature, one-state conditional field. Both use the
+same 21-station target, independent straight-path noise and training-only
+normalization; the conditional sampler is free-running, with explicit start
+state and generated history. Python 3.12.14 local full-suite verification:
+**518 run, 501 pass, 17 skips** (MCAP extras absent and two existing opt-ins);
+the nine focused flow tests pass. Compilation and whitespace check pass. Read
+`docs/flow_matching_dual_synthetic_v0194.md` for the contract, tests and
+limits. No new CLI, real-data fit, locked cohort, likelihood, artifact,
+planner run or model comparison is authorized here. The code still requires
+focused review of the pushed PR head and passing Python 3.10/3.12 CI before
+merge. The independent-outing/long-condition-support gate remains the next
+*scientific* step, and the RC-GAN replacement still needs a supervisor-visible
+decision before any real training.
+
 ## PR #25 review and narrow pre-merge correction
 
 PR #25 is open at pushed head `df91ee88eff8415fa1f5f916d3cf48867e6f1d1c`

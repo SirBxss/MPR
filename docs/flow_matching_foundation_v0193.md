@@ -107,8 +107,9 @@ First obtain prospectively identified physical outings with SENSOR EDP/RLMB
 H100 pairs and long contiguous *causal* condition support, or formally review
 a different reference and availability contract if those cannot be obtained.
 Then predeclare a cohort/split and same-row baselines before implementing a
-trainable field (optional deep-learning dependency), save/load and common
-sample evaluator. On batch02 alone, at most a separately approved descriptive
+**real-data training path**, model save/load and a common sample evaluator.
+The separate v0.19.4 NumPy fields exercise learning on synthetic inputs only;
+they do not relax this gate. On batch02 alone, at most a separately approved descriptive
 common-row Gaussian check is feasible. The 232 future-source odometry cases
 remain excluded from the six-feature population; no imputation, clock shift
 or new speed definition is authorized by the flow proposal.

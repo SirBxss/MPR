@@ -8,7 +8,8 @@ local directory, run
 The command checks the pinned complete result and prints only counts; it
 creates no outputs, retrains nothing and never reads an MCAP. The earlier
 v0.19.2 extraction command documented below is historical and must not be
-rerun. The v0.19.3 flow math has no fitting CLI or trained model yet.
+rerun. The v0.19.4 trainable flow prototype has no real-data fitting CLI or
+published fitted model; its two modes are tested on synthetic sequences only.
 
 All historical console aliases and their `python -m` forms remain supported.
 v0.5.2 restores corpus-independent native projection alignment;
