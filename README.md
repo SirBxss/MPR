@@ -1,6 +1,23 @@
 # Minimal Path-Residual Model (MPR)
 
-**Pre-merge review checkpoint (2026-09-27):** PR #25 is open. Claude's
+**PR #26 corrective checkpoint (2026-09-29):** Independent review gave GO
+with zero blockers at `0dce87e`; GitHub Actions run `36575095341` passed both
+Python 3.10 and 3.12 there. A material nonblocking finding showed that the
+synthetic learner could ignore tiny but varying curvature features because of
+an absolute normalization floor. A narrow follow-up commit preserves every
+positive fitted standard deviation, validates deterministic seeds and pins
+conditioned-offset training features in a regression test. Review and both CI
+jobs must pass again on the **new pushed PR head** before merge. See
+[`docs/current_status.md`](docs/current_status.md).
+
+**Current checkpoint (2026-09-27):** PR #25 merged at `7a98804` after
+independent re-review GO and Python 3.10/3.12 CI passed on final head
+`ccac468`. The new v0.19.4 branch adds trainable **unconditional** and
+**conditional** synthetic-only flow fields and free-running physical-unit
+sampling. It does not fit batch02, open its final cohort or claim measured
+performance. See [`docs/flow_matching_dual_synthetic_v0194.md`](docs/flow_matching_dual_synthetic_v0194.md).
+
+**Historical pre-merge review checkpoint (2026-09-27):** PR #25 was open. Claude's
 independent review of `df91ee8` returned GO for archive validation and
 synthetic flow math, with zero blockers and a recommended hash/parse race
 correction. The narrow correction and synthetic regression are prepared on
@@ -8,7 +25,7 @@ the exact reviewed head; they need focused re-review and Python 3.10/3.12 CI
 at the final PR head before merge. No training or private rerun follows.
 Read [`docs/current_status.md`](docs/current_status.md) for the gate.
 
-**Current checkpoint (2026-09-25):** PR #24 is merged at `95745ea`.
+**Historical checkpoint (2026-09-25):** PR #24 is merged at `95745ea`.
 The v0.19.3 branch adds an exact, read-only validator for its published batch02
 archive and synthetic conditional flow-matching bridge and free-running
 sampling math. No fitted flow, outing lock or new performance result exists.

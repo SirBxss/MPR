@@ -50,9 +50,10 @@ def linear_flow_batch(residuals: np.ndarray, conditions: np.ndarray,
     The caller supplies fresh independent standard-normal base noise and
     uniform time draws. Previous observed residual is legal only during
     training; inference instead feeds back the sampled previous residual.
-    Starts reset in physical residual units, even if a non-conditioned
-    geometric predecessor exists. A future standardized model must declare
-    its start-state space and distinguish starts from genuine zero residuals.
+    Starts reset to zero in the supplied residual units, even if a
+    non-conditioned geometric predecessor exists. The v0.19.4 model passes
+    standardized residuals and separately marks starts, distinguishing them
+    from an observed zero residual.
     """
     y = np.asarray(residuals, dtype=np.float64)
     if y.ndim != 2 or y.shape[1] != 21:
