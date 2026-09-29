@@ -1,8 +1,41 @@
 # Current project status
 
-Last updated: 2026-09-27. This is the first file a new agent should read after
+Last updated: 2026-09-29. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
+
+## PR #26 independent review and narrow corrective follow-up
+
+PR #26 is **open** on `feature/v0.19.4-synthetic-dual-flow` at reviewed head
+`0dce87ec66a07ea75b03df36aa76750fddecca94`. The supplied independent
+Claude review dated 2026-09-29 gives **GO with zero blockers** for the
+synthetic-only scope. It independently checked objective/gradients/Adam,
+conditioning, free-running sampling and the research gate. Its Python 3.11
+run: 518 tests, 513 pass, five skipped. We independently checked GitHub
+Actions run `36575095341` at that exact head: Python 3.10 and 3.12 jobs both
+passed, including package/MCAP installation, compilation and full tests.
+
+One material nonblocking defect warrants correction *before merge*: an
+absolute `1e-6` normalization floor erased nonconstant small-unit features,
+including plausible curvature variation. A narrow correction based on the
+**exact pushed head** retains every positive fitted standard deviation and
+uses scale one only for exactly constant columns. A synthetic unit-rescaling
+regression shows the conditional response remains invariant. The same change
+also validates integer seeds and numeric learning rate, exposes one pure
+conditioned-offset training feature helper for a direct start/predecessor
+test, and corrects stale domain and agent handoff text. No real archive,
+MCAP, data gate, model family or evaluator is changed. Direct dataclass
+construction validation, a saved-model schema and real learned-field solver
+calibration remain later obligations before a real-data path. Local Python
+3.12.14 full suite: **519 run, 502 pass, 17 skips** (missing MCAP/protobuf
+extras and two existing opt-ins). Ten focused flow tests pass. Compilation
+and `git diff --check` pass.
+
+Next: apply the numbered corrective patch to the existing PR #26 branch, run
+the full tests, push, obtain focused review of the **delta**, confirm both
+CI jobs at that new head, then merge on GO. Do not merge based on the prior
+head's GO/CI after changing it. No real fit, new data role or RMSE claim
+follows from this correction.
 
 ## v0.19.4 synthetic dual flow implementation; review next
 

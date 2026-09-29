@@ -23,7 +23,8 @@ Mode = Literal["unconditional", "conditional"]
 def _scale(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     mean = values.mean(axis=0)
     scale = values.std(axis=0)
-    scale[scale < 1e-6] = 1.0
+    # Keep every varying column in its own units, including small curvatures.
+    scale[scale == 0.] = 1.0
     return mean, scale
 
 
@@ -33,6 +34,19 @@ def _inputs(z: np.ndarray, time: np.ndarray, conditions: np.ndarray,
     if mode == "conditional":
         parts.extend((conditions, previous, starts[:, None].astype(np.float64)))
     return np.concatenate(parts, axis=1)
+
+
+def _training_inputs(y_standard: np.ndarray, x_standard: np.ndarray,
+                     offsets: np.ndarray, noise: np.ndarray, time: np.ndarray,
+                     mode: Mode) -> tuple[np.ndarray, np.ndarray]:
+    """Build one bridge and its observed, conditioned-sequence-local context."""
+    bridge = linear_flow_batch(y_standard, x_standard, offsets, noise, time)
+    starts = np.zeros(len(y_standard), dtype=bool)
+    starts[offsets[:-1]] = True
+    previous = bridge.observed_previous.copy()
+    previous[starts] = 0.  # standardized reset, distinct from an observed zero
+    return (_inputs(bridge.bridge, time, x_standard, previous, starts, mode),
+            bridge.target_velocity)
 
 
 @dataclass(frozen=True)
@@ -99,6 +113,8 @@ class SyntheticFlowModel:
             raise ValueError("sample_count must be a positive integer")
         if type(steps) is not int or steps < 1:
             raise ValueError("steps must be a positive integer")
+        if type(seed) is not int or seed < 0:
+            raise ValueError("seed must be a nonnegative integer")
         noise = np.random.default_rng(seed).standard_normal((sample_count, b, frames, 21))
         values = np.zeros_like(noise)
         for draw in range(sample_count):
@@ -139,6 +155,10 @@ def fit_synthetic_flow(residuals: np.ndarray, conditions: np.ndarray,
     y = _finite_shape(y, (n, 21), "residuals")
     x = _finite_shape(conditions, (n, 6), "conditions")
     offsets = _offsets(sequence_offsets, n)
+    if type(seed) is not int or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if type(learning_rate) not in (int, float):
+        raise ValueError("learning_rate must be a positive finite number")
     if (any(type(value) is not int or value < 1 for value in
             (epochs, batch_size, hidden_width)) or not np.isfinite(learning_rate)
             or learning_rate <= 0):
@@ -147,8 +167,6 @@ def fit_synthetic_flow(residuals: np.ndarray, conditions: np.ndarray,
     x_mean, x_scale = _scale(x) if mode == "conditional" else (np.zeros(6), np.ones(6))
     y_standard = (y - y_mean) / y_scale
     x_standard = (x - x_mean) / x_scale
-    starts = np.zeros(n, dtype=bool)
-    starts[offsets[:-1]] = True
     rng = np.random.default_rng(seed)
     input_width = 50 if mode == "conditional" else 22
     w1 = rng.normal(0, 1 / np.sqrt(input_width), (input_width, hidden_width))
@@ -163,12 +181,8 @@ def fit_synthetic_flow(residuals: np.ndarray, conditions: np.ndarray,
     for _ in range(epochs):
         z0 = rng.standard_normal((n, 21))
         time = rng.uniform(0., 1., n)
-        bridge = linear_flow_batch(y_standard, x_standard, offsets, z0, time)
-        # At a start there is no observed prior; do not encode -mean/scale.
-        previous = bridge.observed_previous.copy()
-        previous[starts] = 0.
-        features = _inputs(bridge.bridge, time, x_standard, previous, starts, mode)
-        target = bridge.target_velocity
+        features, target = _training_inputs(y_standard, x_standard, offsets, z0, time,
+                                            mode)
         order = rng.permutation(n)
         epoch_loss = 0.
         for lo in range(0, n, batch_size):

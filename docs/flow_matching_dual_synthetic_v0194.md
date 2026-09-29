@@ -30,6 +30,10 @@ observed zero. At later frames the previous physical residual is standardized
 using the training parameters. The unconditional mode ignores conditions and
 past residual by construction. The conditional mode uses the six-feature
 schema only; it does not read RLMB or future observations as current inputs.
+Every nonconstant training column retains its own fitted standard deviation,
+even when its physical-unit variation is small (for example curvature).
+Exactly constant columns use scale one and standardized value zero. Both fit
+and sampling require a nonnegative integer seed; fit defaults to zero.
 
 Sampling returns physical residuals in `[draw, sequence, padded-frame, 21]`,
 with exactly zero padding. A fixed random seed defines normal noise for the

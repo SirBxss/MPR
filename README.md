@@ -1,5 +1,15 @@
 # Minimal Path-Residual Model (MPR)
 
+**PR #26 corrective checkpoint (2026-09-29):** Independent review gave GO
+with zero blockers at `0dce87e`; GitHub Actions run `36575095341` passed both
+Python 3.10 and 3.12 there. A material nonblocking finding showed that the
+synthetic learner could ignore tiny but varying curvature features because of
+an absolute normalization floor. A narrow follow-up commit preserves every
+positive fitted standard deviation, validates deterministic seeds and pins
+conditioned-offset training features in a regression test. Review and both CI
+jobs must pass again on the **new pushed PR head** before merge. See
+[`docs/current_status.md`](docs/current_status.md).
+
 **Current checkpoint (2026-09-27):** PR #25 merged at `7a98804` after
 independent re-review GO and Python 3.10/3.12 CI passed on final head
 `ccac468`. The new v0.19.4 branch adds trainable **unconditional** and

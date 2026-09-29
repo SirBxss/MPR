@@ -322,20 +322,20 @@ model comparison, log-density implementation or permission to rerun MCAPs.
 For future model fits, predeclare matched rows and physical outing splits,
 with substantially longer feature-ready sequences before temporal claims.
 
-The 2026-09-27 PR #25 checkpoint is in the first section of
-`docs/current_status.md`. The exact pushed head `df91ee8` received independent
-GO with zero blockers but has an unmerged, high-priority hash/parse race
-correction prepared on top. Re-review and Python 3.10/3.12 CI must apply to
-the corrected final PR head. The proposed RC-GAN-to-flow substitution needs a
-supervisor-visible decision before a real fit; the independent-outing gate
-for another model family remains unchanged. Do not infer training permission
-from the synthetic flow primitives or from this review.
+The 2026-09-27 PR #25 correction was re-reviewed and merged as `7a98804`;
+its Python 3.10/3.12 CI passed at final head `ccac468`. PR #26 adds
+synthetic-only unconditional and six-feature autoregressive conditional
+trainable flow fields. Read the first section of `docs/current_status.md`
+for its current review/head and the narrow scale correction. Neither mode
+may be fitted on batch02 by this PR. The proposed RC-GAN-to-flow substitution
+needs a supervisor-visible decision before a real fit; the independent-outing
+and long-condition-support gate for another model family remains unchanged.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a
 `README.md` and numbered `git format-patch` files. The user's download location
 is `~/Downloads/MPR`; always include `unzip <bundle>.zip` before `git am` in the
-instructions.
+instructions. The actual repository directory is `~/PycharmProjects/MPR`.
 
 ## Code review rules
 
