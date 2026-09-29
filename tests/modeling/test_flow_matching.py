@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
+from unittest.mock import patch
 
 import numpy as np
 
+from lane_residuals.modeling import flow_matching as flow_module
 from lane_residuals.modeling.flow_matching import (
     SyntheticFlowModel, _training_inputs, fit_synthetic_flow,
 )
@@ -171,6 +174,98 @@ class SyntheticFlowTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 model.sample(x[None, :, :], np.array([2]), sample_count=1,
                              seed=invalid_seed)
+
+    def test_direct_model_construction_validates_shapes_scales_and_copies(self):
+        w1 = np.zeros((50, 2))
+        model = SyntheticFlowModel("conditional", np.zeros(21), np.ones(21),
+                                   np.zeros(6), np.ones(6), w1, np.zeros(2),
+                                   np.zeros((2, 21)), np.zeros(21), ())
+        w1[0, 0] = 7.
+        self.assertEqual(model.weights_in[0, 0], 0.)
+        self.assertFalse(model.weights_in.flags.writeable)
+        invalid = (
+            {"mode": "unknown"}, {"mode": ["conditional"]},
+            {"residual_scale": np.zeros(21)},
+            {"condition_scale": np.ones(6) * -1},
+            {"condition_mean": np.zeros(5)},
+            {"weights_in": np.zeros((22, 2))},
+            {"weights_out": np.zeros((3, 21))},
+            {"bias_out": np.full(21, np.nan)},
+            {"training_losses": (float("nan"),)},
+        )
+        for change in invalid:
+            with self.subTest(change=next(iter(change))):
+                with self.assertRaises(ValueError):
+                    replace(model, **change)
+
+    def test_training_bridge_noise_time_are_paired_across_modes_and_widths(self):
+        rng = np.random.default_rng(7)
+        x = rng.normal(size=(32, 6))
+        y = rng.normal(size=(32, 21))
+        original = flow_module._training_inputs
+        captured = []
+
+        def capture(y_standard, x_standard, offsets, noise, time, mode):
+            captured.append((noise.copy(), time.copy()))
+            return original(y_standard, x_standard, offsets, noise, time, mode)
+
+        with patch.object(flow_module, "_training_inputs", side_effect=capture):
+            for mode, width in (("unconditional", 9), ("conditional", 17)):
+                fit_synthetic_flow(y, x, np.arange(0, 33, 8), mode=mode,
+                                   hidden_width=width, epochs=2, seed=46)
+        for a, b in zip(captured[:2], captured[2:]):
+            np.testing.assert_array_equal(a[0], b[0])
+            np.testing.assert_array_equal(a[1], b[1])
+        self.assertFalse(np.array_equal(captured[0][0], captured[1][0]))
+        self.assertFalse(np.array_equal(captured[0][1], captured[1][1]))
+
+    def test_velocity_gradients_match_finite_differences_in_both_modes(self):
+        rng = np.random.default_rng(87)
+        for input_width in (22, 50):
+            with self.subTest(input_width=input_width):
+                inputs = rng.normal(size=(4, input_width))
+                targets = rng.normal(size=(4, 21))
+                params = [rng.normal(size=(input_width, 3)) * .1,
+                          rng.normal(size=3) * .1,
+                          rng.normal(size=(3, 21)) * .1,
+                          rng.normal(size=21) * .1]
+                _, gradients = flow_module._batch_loss_and_gradients(
+                    inputs, targets, params)
+
+                def independent_loss() -> float:
+                    w1, b1, w2, b2 = params
+                    prediction = np.tanh(inputs @ w1 + b1) @ w2 + b2
+                    return float(np.mean((prediction - targets) ** 2))
+
+                for param, gradient in zip(params, gradients):
+                    for index in list(np.ndindex(param.shape))[:3]:
+                        original = param[index]
+                        param[index] = original + 1e-6
+                        upper = independent_loss()
+                        param[index] = original - 1e-6
+                        lower = independent_loss()
+                        param[index] = original
+                        np.testing.assert_allclose(gradient[index],
+                                                   (upper - lower) / (2e-6),
+                                                   rtol=2e-6, atol=1e-8)
+
+    def test_learned_synthetic_field_euler_step_halving(self):
+        rng = np.random.default_rng(55)
+        x = rng.normal(size=(128, 6))
+        y = .7 * x[:, :1] + .2 * rng.normal(size=(128, 21))
+        conditions = rng.normal(size=(2, 4, 6))
+        lengths = np.array([4, 2])
+        for mode in ("unconditional", "conditional"):
+            with self.subTest(mode=mode):
+                model = fit_synthetic_flow(y, x, np.arange(0, 129, 8),
+                                           mode=mode, seed=22, epochs=30,
+                                           hidden_width=16)
+                draws = [model.sample(conditions, lengths, sample_count=2,
+                                      seed=42, steps=steps)
+                         for steps in (4, 8, 16, 32)]
+                distances = [float(np.sqrt(np.mean((left - right) ** 2)))
+                             for left, right in zip(draws[:-1], draws[1:])]
+                self.assertTrue(distances[0] > distances[1] > distances[2] > 0)
 
 
 if __name__ == "__main__":

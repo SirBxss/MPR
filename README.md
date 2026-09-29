@@ -1,6 +1,15 @@
 # Minimal Path-Residual Model (MPR)
 
-**PR #26 corrective checkpoint (2026-09-29):** Independent review gave GO
+**Current checkpoint (2026-09-29):** PR #26 merged at `6d00ab8` after
+focused review GO; final-head Python 3.10/3.12 CI passed at `b24d411`.
+The v0.19.5 branch hardens the two existing synthetic-only flow fields:
+it validates constructed model state, pairs training bridge draws across
+modes with independent random streams, and checks Euler step halving on
+learned synthetic fields. This changes no real-data fit or independent-outing
+gate. See [`docs/flow_matching_synthetic_contract_v0195.md`](docs/flow_matching_synthetic_contract_v0195.md)
+and [`docs/current_status.md`](docs/current_status.md).
+
+**Historical PR #26 corrective checkpoint (2026-09-29):** Independent review gave GO
 with zero blockers at `0dce87e`; GitHub Actions run `36575095341` passed both
 Python 3.10 and 3.12 there. A material nonblocking finding showed that the
 synthetic learner could ignore tiny but varying curvature features because of

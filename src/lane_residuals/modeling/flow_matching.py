@@ -18,6 +18,7 @@ from ..domain.flow_matching import _finite_shape, _offsets, integrate_euler, lin
 
 
 Mode = Literal["unconditional", "conditional"]
+_INPUT_WIDTH = {"unconditional": 22, "conditional": 50}
 
 
 def _scale(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -49,6 +50,21 @@ def _training_inputs(y_standard: np.ndarray, x_standard: np.ndarray,
             bridge.target_velocity)
 
 
+def _batch_loss_and_gradients(inputs: np.ndarray, target: np.ndarray,
+                              parameters: list[np.ndarray]) -> tuple[float, list[np.ndarray]]:
+    """Sum of squared errors and gradients of mean row/station squared error."""
+    w1, b1, w2, b2 = parameters
+    hidden = np.tanh(inputs @ w1 + b1)
+    difference = hidden @ w2 + b2 - target
+    sum_squared = float(np.sum(difference * difference))
+    grad_output = 2 * difference / (len(inputs) * 21)
+    grad_w2 = hidden.T @ grad_output
+    grad_b2 = grad_output.sum(axis=0)
+    grad_hidden = (grad_output @ w2.T) * (1 - hidden * hidden)
+    return sum_squared, [inputs.T @ grad_hidden, grad_hidden.sum(axis=0),
+                         grad_w2, grad_b2]
+
+
 @dataclass(frozen=True)
 class SyntheticFlowModel:
     mode: Mode
@@ -61,6 +77,32 @@ class SyntheticFlowModel:
     weights_out: np.ndarray
     bias_out: np.ndarray
     training_losses: tuple[float, ...]
+
+    def __post_init__(self) -> None:
+        """Reject malformed direct constructions and detach all model arrays."""
+        if type(self.mode) is not str or self.mode not in _INPUT_WIDTH:
+            raise ValueError("mode must be unconditional or conditional")
+        w1 = np.asarray(self.weights_in)
+        if w1.ndim != 2 or w1.shape[1] < 1:
+            raise ValueError("weights_in must have a positive hidden width")
+        width = w1.shape[1]
+        shapes = {
+            "residual_mean": (21,), "residual_scale": (21,),
+            "condition_mean": (6,), "condition_scale": (6,),
+            "weights_in": (_INPUT_WIDTH[self.mode], width),
+            "bias_in": (width,), "weights_out": (width, 21),
+            "bias_out": (21,),
+        }
+        for name, shape in shapes.items():
+            array = _finite_shape(getattr(self, name), shape, name).copy()
+            if name in ("residual_scale", "condition_scale") and np.any(array <= 0):
+                raise ValueError(f"{name} must be strictly positive")
+            array.setflags(write=False)
+            object.__setattr__(self, name, array)
+        losses = np.asarray(self.training_losses, dtype=np.float64)
+        if losses.ndim != 1 or not np.all(np.isfinite(losses)) or np.any(losses < 0):
+            raise ValueError("training_losses must be finite nonnegative values")
+        object.__setattr__(self, "training_losses", tuple(float(v) for v in losses))
 
     def velocity(self, z: np.ndarray, time: np.ndarray, conditions: np.ndarray,
                  previous: np.ndarray, starts: np.ndarray) -> np.ndarray:
@@ -146,7 +188,7 @@ def fit_synthetic_flow(residuals: np.ndarray, conditions: np.ndarray,
     Noise and bridge time are freshly sampled each epoch. This is an engineering
     prototype, with no selection, fitted artifact, or empirical thesis result.
     """
-    if mode not in ("unconditional", "conditional"):
+    if type(mode) is not str or mode not in _INPUT_WIDTH:
         raise ValueError("mode must be unconditional or conditional")
     y = np.asarray(residuals, dtype=np.float64)
     if y.ndim != 2 or y.shape[1] != 21 or not len(y):
@@ -167,11 +209,14 @@ def fit_synthetic_flow(residuals: np.ndarray, conditions: np.ndarray,
     x_mean, x_scale = _scale(x) if mode == "conditional" else (np.zeros(6), np.ones(6))
     y_standard = (y - y_mean) / y_scale
     x_standard = (x - x_mean) / x_scale
-    rng = np.random.default_rng(seed)
-    input_width = 50 if mode == "conditional" else 22
-    w1 = rng.normal(0, 1 / np.sqrt(input_width), (input_width, hidden_width))
+    # Mode/width-specific initialization cannot shift the paired bridge draws.
+    initialization, noise_rng, time_rng, permutation_rng = (
+        np.random.default_rng(child) for child in np.random.SeedSequence(seed).spawn(4)
+    )
+    input_width = _INPUT_WIDTH[mode]
+    w1 = initialization.normal(0, 1 / np.sqrt(input_width), (input_width, hidden_width))
     b1 = np.zeros(hidden_width)
-    w2 = rng.normal(0, 1 / np.sqrt(hidden_width), (hidden_width, 21))
+    w2 = initialization.normal(0, 1 / np.sqrt(hidden_width), (hidden_width, 21))
     b2 = np.zeros(21)
     parameters = [w1, b1, w2, b2]
     first = [np.zeros_like(p) for p in parameters]
@@ -179,24 +224,17 @@ def fit_synthetic_flow(residuals: np.ndarray, conditions: np.ndarray,
     iteration = 0
     losses = []
     for _ in range(epochs):
-        z0 = rng.standard_normal((n, 21))
-        time = rng.uniform(0., 1., n)
+        z0 = noise_rng.standard_normal((n, 21))
+        time = time_rng.uniform(0., 1., n)
         features, target = _training_inputs(y_standard, x_standard, offsets, z0, time,
                                             mode)
-        order = rng.permutation(n)
+        order = permutation_rng.permutation(n)
         epoch_loss = 0.
         for lo in range(0, n, batch_size):
             indices = order[lo:lo + batch_size]
             inputs, targets = features[indices], target[indices]
-            hidden = np.tanh(inputs @ w1 + b1)
-            difference = hidden @ w2 + b2 - targets
-            epoch_loss += float(np.sum(difference * difference))
-            grad_output = 2 * difference / (len(indices) * 21)
-            grad_w2 = hidden.T @ grad_output
-            grad_b2 = grad_output.sum(axis=0)
-            grad_hidden = (grad_output @ w2.T) * (1 - hidden * hidden)
-            gradients = [inputs.T @ grad_hidden, grad_hidden.sum(axis=0),
-                         grad_w2, grad_b2]
+            squared, gradients = _batch_loss_and_gradients(inputs, targets, parameters)
+            epoch_loss += squared
             iteration += 1
             for index, (param, grad) in enumerate(zip(parameters, gradients)):
                 first[index] = 0.9 * first[index] + 0.1 * grad
@@ -207,8 +245,5 @@ def fit_synthetic_flow(residuals: np.ndarray, conditions: np.ndarray,
         if not np.isfinite(loss) or any(not np.all(np.isfinite(p)) for p in parameters):
             raise ValueError("flow training diverged")
         losses.append(loss)
-    arrays = (y_mean, y_scale, x_mean, x_scale, *parameters)
-    frozen = tuple(a.copy() for a in arrays)
-    for array in frozen:
-        array.setflags(write=False)
-    return SyntheticFlowModel(mode, *frozen, tuple(losses))
+    return SyntheticFlowModel(mode, y_mean, y_scale, x_mean, x_scale,
+                              *parameters, tuple(losses))

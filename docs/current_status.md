@@ -4,6 +4,37 @@ Last updated: 2026-09-29. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
+## PR #26 merged; v0.19.5 synthetic reproducibility engineering
+
+PR #26 merged on main as `6d00ab84ee0bc7b35e1a9f811888e656a81e5b8b`.
+The user reports focused review GO on final head
+`b24d4119ca393f2c675c3c2b6888c4dc130c3124`; GitHub Actions run
+`36581621320` passed both Python 3.10 and 3.12 jobs. The preceding PR #26 review and apply instructions
+below are historical; do not apply the correction again.
+
+The next bounded engineering branch `feature/v0.19.5-synthetic-flow-contract`
+hardens the two existing synthetic-only flow modes. It validates constructed
+model parameters and positive scales; separates initialization, bridge noise,
+bridge time and minibatch order into deterministic seed streams; and tests
+that both modes see exactly the same bridge draws on the same training rows.
+It checks Euler step halving on learned *synthetic* fields with identical
+sample noise and finite-difference velocity gradients for both modes. See
+`docs/flow_matching_synthetic_contract_v0195.md`.
+Local Python 3.12.14 verification: **523 tests run, 506 passed, 17 skips**
+(missing MCAP/protobuf extras and the two existing opt-ins); all 14 focused
+flow tests passed. Compilation and whitespace checks passed. This branch
+still needs independent review and final-head CI before merge.
+There is no new model family, MCAP read, archive adapter, real-data fit,
+independent-outing assignment, score or trained artifact. The scientific
+next step remains separately identified outings with enough contiguous
+causal-feature support and a reviewed reference/input contract. The full
+conditional model also requires a decision about online availability of a
+previous residual; no current code proves it.
+
+Review this branch on its exact pushed head and require Python 3.10/3.12 CI
+before merging. No private execution or research metric follows from a
+synthetic-only GO.
+
 ## PR #26 independent review and narrow corrective follow-up
 
 PR #26 is **open** on `feature/v0.19.4-synthetic-dual-flow` at reviewed head

@@ -325,9 +325,10 @@ with substantially longer feature-ready sequences before temporal claims.
 The 2026-09-27 PR #25 correction was re-reviewed and merged as `7a98804`;
 its Python 3.10/3.12 CI passed at final head `ccac468`. PR #26 adds
 synthetic-only unconditional and six-feature autoregressive conditional
-trainable flow fields. Read the first section of `docs/current_status.md`
-for its current review/head and the narrow scale correction. Neither mode
-may be fitted on batch02 by this PR. The proposed RC-GAN-to-flow substitution
+trainable flow fields; it merged as `6d00ab8` after focused review and
+final-head Python 3.10/3.12 CI at `b24d411`. Read the first section of
+`docs/current_status.md` for the current v0.19.5 synthetic hardening scope.
+Neither mode may be fitted on batch02 by this work. The proposed RC-GAN-to-flow substitution
 needs a supervisor-visible decision before a real fit; the independent-outing
 and long-condition-support gate for another model family remains unchanged.
 
