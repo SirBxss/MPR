@@ -1,6 +1,19 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-09-29):** PR #26 merged at `6d00ab8` after
+**Current checkpoint (2026-09-30):** PR #27 is open and unmerged. Claude
+gave synthetic-scope GO with zero blockers at `08cdfdf`; GitHub Actions run
+`36692825235` passed Python 3.10 and 3.12. A carried-forward finding C1
+showed that floating-point rounding can give an exactly constant decimal
+column a tiny positive standard deviation. The narrow follow-up detects
+exact row equality and sets its mean to the recorded constant and scale to
+one; genuinely varying columns keep their fitted statistics. Three new
+regressions raise the suite to 526 tests. Apply this correction in PR #27
+and require delta review plus CI on the new head before merging. Both flow
+modes remain synthetic-only; the independent-data and real-fit gates stand.
+See [`docs/current_status.md`](docs/current_status.md) and
+[`docs/flow_matching_synthetic_contract_v0195.md`](docs/flow_matching_synthetic_contract_v0195.md).
+
+**Historical checkpoint (2026-09-29):** PR #26 merged at `6d00ab8` after
 focused review GO; final-head Python 3.10/3.12 CI passed at `b24d411`.
 The v0.19.5 branch hardens the two existing synthetic-only flow fields:
 it validates constructed model state, pairs training bridge draws across

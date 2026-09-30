@@ -24,8 +24,11 @@ _INPUT_WIDTH = {"unconditional": 22, "conditional": 50}
 def _scale(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     mean = values.mean(axis=0)
     scale = values.std(axis=0)
-    # Keep every varying column in its own units, including small curvatures.
-    scale[scale == 0.] = 1.0
+    # Rounded means can give identical decimal values a tiny nonzero std.
+    # Detect constancy from the supplied values, without a units-based floor.
+    constant = np.all(values == values[:1], axis=0)
+    mean[constant] = values[0, constant]
+    scale[constant] = 1.0
     return mean, scale
 
 

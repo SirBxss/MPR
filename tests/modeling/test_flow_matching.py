@@ -104,6 +104,76 @@ class SyntheticFlowTests(unittest.TestCase):
         np.testing.assert_array_equal(constant.residual_scale, np.ones(21))
         np.testing.assert_array_equal(constant.condition_scale, np.ones(6))
 
+    def test_exact_constant_columns_have_exact_zero_standardized_values(self):
+        # Decimal constants can have nonzero np.std from rounded means.
+        for count in (3, 17, 192):
+            with self.subTest(count=count):
+                constants = np.array([.1, -.3, 1e-7, 0., 2., -.01])
+                values = np.tile(constants, (count, 1))
+                # A one-ULP change is variation; do not use an epsilon floor.
+                values[-1, -1] = np.nextafter(constants[-1], np.inf)
+                mean, scale = flow_module._scale(values)
+                np.testing.assert_array_equal(mean[:-1], constants[:-1])
+                np.testing.assert_array_equal(scale[:-1], np.ones(5))
+                np.testing.assert_array_equal(
+                    ((values - mean) / scale)[:, :-1], np.zeros((count, 5)))
+                self.assertEqual(mean[-1], values.mean(axis=0)[-1])
+                self.assertEqual(scale[-1], values.std(axis=0)[-1])
+                self.assertGreater(scale[-1], 0.)
+
+    def test_decimal_constant_normalization_reaches_both_fit_modes(self):
+        rng = np.random.default_rng(84)
+        x = rng.normal(size=(192, 6))
+        x[:, 5] = .1
+        y = .8 * x[:, :1] + .2 * rng.normal(size=(192, 21))
+        y[:, 20] = -.3
+        offsets = np.arange(0, 193, 8)
+        opts = dict(seed=13, epochs=8, batch_size=48, hidden_width=24)
+        for mode in ("unconditional", "conditional"):
+            with self.subTest(mode=mode):
+                model = fit_synthetic_flow(y, x, offsets, mode=mode, **opts)
+                self.assertEqual(model.residual_mean[20], -.3)
+                self.assertEqual(model.residual_scale[20], 1.)
+                np.testing.assert_array_equal(
+                    (y[:, 20] - model.residual_mean[20]) / model.residual_scale[20],
+                    np.zeros(192))
+                if mode == "conditional":
+                    self.assertEqual(model.condition_mean[5], .1)
+                    self.assertEqual(model.condition_scale[5], 1.)
+                    probe = np.zeros((2, 6))
+                    probe[:, 5] = [.1, .1 + 1e-9]
+                    velocity = model.velocity(
+                        np.zeros((2, 21)), np.full(2, .5), probe,
+                        np.zeros((2, 21)), np.ones(2, dtype=bool))
+                    np.testing.assert_allclose(velocity[0], velocity[1],
+                                               rtol=0., atol=1e-8)
+
+    def test_all_varying_column_fits_are_unchanged(self):
+        def prior_scale(values):
+            mean = values.mean(axis=0)
+            scale = values.std(axis=0)
+            scale[scale == 0.] = 1.
+            return mean, scale
+
+        rng = np.random.default_rng(34)
+        x = rng.normal(size=(48, 6))
+        x[:, 1:3] *= 1e-7
+        y = rng.normal(size=(48, 21))
+        offsets = np.arange(0, 49, 8)
+        for mode in ("unconditional", "conditional"):
+            with self.subTest(mode=mode):
+                opts = dict(mode=mode, seed=9, epochs=3, hidden_width=7,
+                            batch_size=13)
+                with patch.object(flow_module, "_scale", side_effect=prior_scale):
+                    before = fit_synthetic_flow(y, x, offsets, **opts)
+                after = fit_synthetic_flow(y, x, offsets, **opts)
+                for name in ("residual_mean", "residual_scale", "condition_mean",
+                             "condition_scale", "weights_in", "bias_in",
+                             "weights_out", "bias_out"):
+                    np.testing.assert_array_equal(getattr(after, name),
+                                                  getattr(before, name))
+                self.assertEqual(after.training_losses, before.training_losses)
+
     def test_conditional_field_can_learn_previous_residual_dependence(self):
         rng = np.random.default_rng(10)
         y = np.zeros((320, 21))

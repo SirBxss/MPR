@@ -32,7 +32,13 @@ past residual by construction. The conditional mode uses the six-feature
 schema only; it does not read RLMB or future observations as current inputs.
 Every nonconstant training column retains its own fitted standard deviation,
 even when its physical-unit variation is small (for example curvature).
-Exactly constant columns use scale one and standardized value zero. Both fit
+After the PR #27 C1 correction, exact constancy is determined from equality
+of the supplied values across rows, rather than `std == 0` (rounded means
+can give decimal constants a tiny positive standard deviation). Constant
+columns use the recorded value as their exact mean, scale one and
+standardized value zero. Varying columns keep their fitted statistics;
+there is no epsilon floor. See `flow_matching_synthetic_contract_v0195.md`
+for the reviewed finding and narrow follow-up. Both fit
 and sampling require a nonnegative integer seed; fit defaults to zero.
 
 Sampling returns physical residuals in `[draw, sequence, padded-frame, 21]`,
