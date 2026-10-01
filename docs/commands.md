@@ -1,5 +1,16 @@
 # Supported commands
 
+## New v0.19.6 generic development recording workflow
+
+Use `python -m lane_residuals.cli.recording_ingestion prepare`, `register` and
+`audit` for explicitly declared **new** recordings. The full apply/test/PR/Claude
+review and local pilot instructions are in
+[`generic_recording_ingestion_runbook_v0196.md`](generic_recording_ingestion_runbook_v0196.md).
+The exact pushed implementation needs focused GO and Python 3.10/3.12 CI before
+its private payload audit. It exports readiness counts/support only; no residual
+archive, model, outing admission or deletion. Do not use completed batch02
+commands below for the new 30 GB file.
+
 ## Current read-only batch02 check
 
 After extracting the **already published** three-file v0.19.2 result into a

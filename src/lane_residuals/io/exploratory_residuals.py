@@ -49,8 +49,9 @@ def _failure(error: Exception) -> str:
 
 
 class _OdometryStore:
-    def __init__(self, connection: sqlite3.Connection):
+    def __init__(self, connection: sqlite3.Connection, *, message_limit: int | None = None):
         self.db = connection
+        self.message_limit = TOPIC_LIMITS[DEFAULT_ODOMETRY_TOPIC] if message_limit is None else message_limit
         self.message_count = 0
         self.failures: Counter[str] = Counter()
         self.schemas: Counter[str] = Counter()
@@ -59,7 +60,7 @@ class _OdometryStore:
 
     def add(self, schema, channel, message, decoded):
         self.message_count += 1
-        if self.message_count > TOPIC_LIMITS[DEFAULT_ODOMETRY_TOPIC]:
+        if self.message_count > self.message_limit:
             raise ResourceLimitError("decoded_topic_count_exceeds_resource_limit")
         identity = f"{schema.name}|{channel.message_encoding}|sha256:{hashlib.sha256(schema.data).hexdigest()}"
         self.schemas[identity] += 1
@@ -123,8 +124,13 @@ def _estimate_features(record: _DecodedEstimate):
         return None, _failure(error)
 
 
-def _extract_stream(messages: Iterable[Any], db: sqlite3.Connection, expected_counts, expected_diagnostics):
-    odometry = _OdometryStore(db)
+def _scan_stream(messages: Iterable[Any], db: sqlite3.Connection, expected_counts=None, expected_diagnostics=None,
+                 *, compute_residuals: bool = False, odometry_message_limit: int | None = None,
+                 on_record=None):
+    if ((expected_counts is None) != (expected_diagnostics is None) or
+            (compute_residuals and expected_counts is None)):
+        raise ValueError("preserved_observations_required_for_residuals")
+    odometry = _OdometryStore(db, message_limit=odometry_message_limit)
     db.execute("CREATE TABLE estimate_inputs (position INTEGER PRIMARY KEY, time TEXT, log TEXT, publish TEXT, features TEXT, failure TEXT)")
 
     def geometry_messages():
@@ -137,6 +143,8 @@ def _extract_stream(messages: Iterable[Any], db: sqlite3.Connection, expected_co
     def observed_records():
         with closing(iter_geometry_records(geometry_messages(), collect_reference_diagnostics=True)) as records:
             for record in records:
+                if on_record is not None:
+                    on_record(record)
                 if isinstance(record, _DecodedEstimate):
                     frame = record.frame
                     if (record.path is not None and frame is not None and
@@ -151,7 +159,7 @@ def _extract_stream(messages: Iterable[Any], db: sqlite3.Connection, expected_co
 
     candidates = []
     def on_sensor_pair(pair_index, pair):
-        if len(candidates) >= expected_counts["sensor_anchored_h100_pair_count"]:
+        if expected_counts is not None and len(candidates) >= expected_counts["sensor_anchored_h100_pair_count"]:
             raise RecordingReadError("preserved_candidate_count_exceeded")
         candidates.append((pair_index, pair))
 
@@ -159,9 +167,9 @@ def _extract_stream(messages: Iterable[Any], db: sqlite3.Connection, expected_co
     with closing(observed_records()) as records:
         counts = _count_geometry(records, db, diagnostics, on_sensor_pair=on_sensor_pair)
     details = diagnostics.summary()
-    if counts != expected_counts:
+    if expected_counts is not None and counts != expected_counts:
         raise RecordingReadError("preserved_counts_mismatch")
-    if details != expected_diagnostics:
+    if expected_diagnostics is not None and details != expected_diagnostics:
         raise RecordingReadError("preserved_diagnostics_mismatch")
     if len(candidates) != counts["sensor_anchored_h100_pair_count"]:
         raise RecordingReadError("candidate_identity_count_mismatch")
@@ -185,7 +193,7 @@ def _extract_stream(messages: Iterable[Any], db: sqlite3.Connection, expected_co
             "conditions": conditions, "residuals_m": None, "residual_failure_code": None,
             "anchor_distance_m": None, "reference_anchor_station_m": None})
     _, input_sequences = sequence_layout([r for r in rows if r["conditions"] is not None])
-    for row in rows:
+    for row in rows if compute_residuals else ():
         def read_path(role, position):
             raw = db.execute("SELECT path FROM geometry WHERE role=? AND position=?", (role, position)).fetchone()[0]
             return _unpack_path(raw)
@@ -195,9 +203,18 @@ def _extract_stream(messages: Iterable[Any], db: sqlite3.Connection, expected_co
             row.update(residuals_m=values, anchor_distance_m=distance, reference_anchor_station_m=station)
         except (GeometryValidationError, ValueError, TypeError) as error:
             row["residual_failure_code"] = _failure(error)
-    return {"status": "complete", "failure_code": None, "legacy_counts_match_preserved": True,
-        "diagnostics_match_preserved": True, "counts": counts, "odometry": odometry.summary(),
+    return {"status": "complete", "failure_code": None,
+        "legacy_counts_match_preserved": True if expected_counts is not None else None,
+        "diagnostics_match_preserved": True if expected_diagnostics is not None else None,
+        "counts": counts, "diagnostics": details, "odometry": odometry.summary(),
         "input_ready_sequence_count_before_residuals": len(input_sequences), "candidates": rows}
+
+
+def _extract_stream(messages: Iterable[Any], db: sqlite3.Connection, expected_counts, expected_diagnostics):
+    """Keep the reviewed batch02 parity gate and exact result shape unchanged."""
+    result = _scan_stream(messages, db, expected_counts, expected_diagnostics, compute_residuals=True)
+    result.pop("diagnostics")
+    return result
 
 
 def inconclusive(code: str):

@@ -1,10 +1,69 @@
 # Current project status
 
-Last updated: 2026-09-30. This is the first file a new agent should read after
+Last updated: 2026-10-01. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## PR #27 reviewed; exact constant-column correction before merge
+## PR #27 merged; generic new-recording readiness is the next implementation
+
+PR #27 merged as `d03f7769c05ee751224aec3870b740c13a575edc`, tree
+`0e12d76a7bba6a232d00b4668c967abd196e45e0`. Final head
+`8273741e9941fd0e6b61816d856b9b1ca7a57db2` contains the exact constant-column
+correction. The owner supplied delta GO; GitHub Actions run `36709679003`
+passed Python 3.10/3.12 at that head. The earlier pre-merge instructions below
+are historical. Do not reapply C1 or reopen PR #27. Both flow modes remain
+synthetic-only, with no recorded-data fit or new score.
+
+The owner now has AWS download access and reports one approximately 30 GB
+MCAP merged from 180 input chunks. The screenshot establishes export controls
+and a selected 3,584-second range, not file identity, actual contents or
+independent-drive provenance. Its date/clock display is ambiguous. Treat this
+as one development pilot technical recording; retain source/session evidence
+truthfully without guessing a UTC date or treating an export UUID as a drive.
+
+Branch `feature/v0.19.6-generic-recording-ingestion` adds separate generic
+`prepare`, `register` and `audit` commands. Read
+`docs/generic_recording_ingestion_v0196.md` and its full runbook. It preserves
+exact source declaration bytes and raw identities, then uses the existing
+indexed EDP/RLMB converters, H100/anchor/pairing rules, strict 50 ms speed and
+original-storage-order sequence definition. It returns advertised index
+evidence, conversion/timing failures, geometry and complete-input support,
+including clock-order breaks. Hashing and decoding share an open descriptor;
+execution failures are inconclusive with null technical counts. Its separate
+1,000,000-message odometry budget does not change batch02's 300,000 budget.
+
+This is readiness only: no numeric conditions/residual archive, outing roles,
+cohort lock, AWS integration, model, pipeline deletion or final-data admission.
+The old batch02 workflows, pinned archive and published outputs stay frozen.
+No private result for the new file exists here. The exact pushed head needs
+focused independent implementation/scope GO and normal Python 3.10/3.12 CI
+before the new private payload audit. See the runbook for exact paths,
+installation/testing commands, PR title/body, Claude prompt and result return.
+
+Local Python 3.12.14 with MCAP/Protobuf extras: **559 run, 557 pass, two existing
+opt-in skips**; all **33** new focused tests pass. The previous 526-test baseline
+is unchanged apart from these additions. Real compressed Protobuf fixtures and
+an isolated CLI subprocess exercise the index, same-descriptor reader and
+allocation cap. Compilation and whitespace checks pass. These are engineering
+tests, not a measurement of the owner's 30 GB file. CI/review at the future
+pushed head are still pending.
+An isolated before/after run on the reviewed two-candidate extractor fixture
+has byte-identical strict JSON, SHA-256
+`ebd19c28535cd3480f038e4df615c6c156d3b0270d5fa3cfb2e1afe89301a3a9`:
+two SENSOR H100 candidates, two complete conditions and unchanged -0.5 m
+signed profiles. This is a synthetic regression, not a new real-data result.
+
+After its real report is reviewed, address the demonstrated obstacle or
+implement a separate generic development residual exporter with exact report
+parity and archive validation. Longer causal sequences and evidence-backed
+physical outings are still necessary before the matched-row, physical-outing
+comparison protocol and real flow fitting. Do not promote a pilot already
+used for development into an untouched final drive. Preserve the raw cache
+until durable numeric archives and retrieval/source evidence are verified.
+The independent-outing gate, pseudo-reference limitation and supervisor-visible
+RC-GAN-to-flow decision remain unchanged.
+
+## Historical PR #27 review and correction before merge (2026-09-30)
 
 PR #27 remains **open and unmerged** on
 `feature/v0.19.5-synthetic-flow-contract`. Its exact pushed head
