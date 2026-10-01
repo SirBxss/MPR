@@ -325,11 +325,26 @@ with substantially longer feature-ready sequences before temporal claims.
 The 2026-09-27 PR #25 correction was re-reviewed and merged as `7a98804`;
 its Python 3.10/3.12 CI passed at final head `ccac468`. PR #26 adds
 synthetic-only unconditional and six-feature autoregressive conditional
-trainable flow fields. Read the first section of `docs/current_status.md`
-for its current review/head and the narrow scale correction. Neither mode
-may be fitted on batch02 by this PR. The proposed RC-GAN-to-flow substitution
+trainable flow fields; it merged as `6d00ab8` after focused review and
+final-head Python 3.10/3.12 CI at `b24d411`. Read the first section of
+`docs/current_status.md` for the current v0.19.5 synthetic hardening scope.
+Neither mode may be fitted on batch02 by this work. The proposed RC-GAN-to-flow substitution
 needs a supervisor-visible decision before a real fit; the independent-outing
 and long-condition-support gate for another model family remains unchanged.
+
+The 2026-09-30 checkpoint supersedes the v0.19.5 preparation wording:
+PR #27 received synthetic-scope GO at `08cdfdf`, tree `2bc747a`, and both
+Python 3.10/3.12 jobs passed in run `36692825235`. It is still unmerged.
+The supplied PR #26 delta and PR #27 reviews carry forward finding C1:
+`std == 0` misses exactly constant decimal columns. The narrow local
+correction detects exact input equality, pins the constant mean and uses
+scale one, preserving varying-column statistics without an epsilon floor.
+Three regression tests raise the suite to 526 run; this local environment
+passes 509 with 17 dependency/opt-in skips and all 17 focused flow tests.
+Apply in the existing PR #27, then require focused delta GO and final-head
+CI before merge. Do not create a new PR, reopen private diagnostics or fit
+on batch02 on this correction's authority. Read the current-status header
+for review identities, numerical before/after evidence and the data gate.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

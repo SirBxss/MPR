@@ -1,8 +1,103 @@
 # Current project status
 
-Last updated: 2026-09-29. This is the first file a new agent should read after
+Last updated: 2026-09-30. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
+
+## PR #27 reviewed; exact constant-column correction before merge
+
+PR #27 remains **open and unmerged** on
+`feature/v0.19.5-synthetic-flow-contract`. Its exact pushed head
+`08cdfdf4cf8de5b43d2013d3deaa72443bd9bada`, tree
+`2bc747a27c77e4d6d1e4f2a168e366f7dbe2cf7c`, received independent Claude
+**GO with zero blockers** for the synthetic-only scope. GitHub Actions run
+`36692825235` passed both Python 3.10 and 3.12 jobs, including dependency
+installation, compilation and the full suite. The reviewer's own Python 3.11
+run had 523 tests: 518 passed, five skipped. CI was not available to the
+reviewer; it was checked separately through GitHub on 2026-09-30.
+
+The two supplied reviews agree on one carried-forward, priority-1 nonblocking
+finding **C1** from PR #26: identical decimal values do not reliably give
+`np.std == 0`. At this PR head, a feature equal to `0.1` on all 192 training
+rows receives scale `1.3877787807814457e-17` and standardized value `-1`.
+Adding `1e-9` to that feature changes its standardized value to `72057593`,
+saturating the synthetic field. The old claim that every exactly constant
+column already standardized to zero was an intention, not true for this case.
+
+The narrow follow-up fixes C1 in the shared `_scale` helper. It detects exact
+input equality across rows, sets the mean to the recorded constant and the
+scale to one. Varying columns retain NumPy's fitted mean and standard
+deviation, without a units-based threshold. Three new regression tests cover
+decimal constants and exact-zero standardized values, a one-ULP variation,
+constant residual/condition columns through both fit modes, nearby input
+response, and bit-for-bit unchanged all-varying fits. The original
+small-curvature/unit-rescaling test remains in force.
+
+Before/after synthetic diagnostic (192 rows, seed 13, 55 epochs, width 24):
+the mean absolute velocity response to the `1e-9` feature perturbation falls
+from `0.8614214444478483` to `1.5183827880531949e-10`; the corrected mean is
+exactly `0.1`, scale one, and training standardized value zero. This is a
+numerical regression demonstration, not a real-data performance result.
+Local Python 3.12.14 verification: **526 run, 509 passed, 17 skips**
+(15 missing MCAP/protobuf dependencies, two existing opt-ins); all **17**
+focused flow tests pass. Compilation and `git diff --check` pass.
+
+Review evidence supplied by the user (not committed):
+
+- `MPR_v0.19.4_PR26_delta_review_b24d411.md`, SHA-256
+  `92495fd78dd23e52fff357d100be1972ef7ff457a478b9e83d17e16f163bd709`;
+- `MPR_v0.19.5_PR27_synthetic_flow_contract_review.md`, SHA-256
+  `03bfe85f384bc73e2b1c929486b4e1755e3bed6c7322cf3d2693616bd6b2d71f`.
+
+Next: apply the correction to the existing PR #27 branch, run tests, push,
+obtain focused delta GO and passing Python 3.10/3.12 CI on the **new final
+head**, then merge. The old head's GO/CI does not review this correction.
+No new PR or v0.19.6 implementation is needed for this delta. The current
+patch is local and has not been pushed, re-reviewed or merged.
+
+Both unconditional and full conditional flows remain synthetic-only.
+Batch02 still has 376 geometric / 134 complete-condition pseudo-residual
+rows, 26 short conditional sequences / 108 transitions, at most 10 frames
+(about 0.9 s), and unknown physical-session relationships. Do not reopen
+the completed private extraction or ask the owner to recover unavailable
+batch02 evidence. The next scientific step remains independently identified
+outings with longer causal-feature sequences, or a separately reviewed
+reference/clock/feature contract, followed by a matched-row physical-outing
+comparison protocol. The supervisor-visible RC-GAN-to-flow decision,
+online/reset/history interpretation and learned-field solver calibration
+remain required before a real flow fit. See
+`docs/flow_matching_synthetic_contract_v0195.md`.
+
+## Historical PR #26 merge and v0.19.5 preparation
+
+PR #26 merged on main as `6d00ab84ee0bc7b35e1a9f811888e656a81e5b8b`.
+The user reports focused review GO on final head
+`b24d4119ca393f2c675c3c2b6888c4dc130c3124`; GitHub Actions run
+`36581621320` passed both Python 3.10 and 3.12 jobs. The preceding PR #26 review and apply instructions
+below are historical; do not apply the correction again.
+
+The next bounded engineering branch `feature/v0.19.5-synthetic-flow-contract`
+hardens the two existing synthetic-only flow modes. It validates constructed
+model parameters and positive scales; separates initialization, bridge noise,
+bridge time and minibatch order into deterministic seed streams; and tests
+that both modes see exactly the same bridge draws on the same training rows.
+It checks Euler step halving on learned *synthetic* fields with identical
+sample noise and finite-difference velocity gradients for both modes. See
+`docs/flow_matching_synthetic_contract_v0195.md`.
+Local Python 3.12.14 verification: **523 tests run, 506 passed, 17 skips**
+(missing MCAP/protobuf extras and the two existing opt-ins); all 14 focused
+flow tests passed. Compilation and whitespace checks passed. This branch
+still needs independent review and final-head CI before merge.
+There is no new model family, MCAP read, archive adapter, real-data fit,
+independent-outing assignment, score or trained artifact. The scientific
+next step remains separately identified outings with enough contiguous
+causal-feature support and a reviewed reference/input contract. The full
+conditional model also requires a decision about online availability of a
+previous residual; no current code proves it.
+
+Review this branch on its exact pushed head and require Python 3.10/3.12 CI
+before merging. No private execution or research metric follows from a
+synthetic-only GO.
 
 ## PR #26 independent review and narrow corrective follow-up
 
@@ -19,7 +114,9 @@ One material nonblocking defect warrants correction *before merge*: an
 absolute `1e-6` normalization floor erased nonconstant small-unit features,
 including plausible curvature variation. A narrow correction based on the
 **exact pushed head** retains every positive fitted standard deviation and
-uses scale one only for exactly constant columns. A synthetic unit-rescaling
+intended to use scale one for exactly constant columns. The later C1 review
+found that testing `std == 0` missed decimal constants; the current PR #27
+follow-up above corrects that implementation. A synthetic unit-rescaling
 regression shows the conditional response remains invariant. The same change
 also validates integer seeds and numeric learning rate, exposes one pure
 conditioned-offset training feature helper for a direct start/predecessor

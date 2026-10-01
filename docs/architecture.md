@@ -1,5 +1,12 @@
 # Project architecture
 
+The v0.19.5 synthetic-only flow hardening stays entirely in
+`modeling.flow_matching`: immutable validated field state and separate
+seed-derived random streams for initialization, bridge noise/time and
+permutation. The existing `domain.flow_matching` bridge/sampler arithmetic
+and all I/O, workflows, CLI, archive readers and real-data gates remain
+unchanged. See `docs/flow_matching_synthetic_contract_v0195.md`.
+
 The v0.19.4 synthetic engineering module `modeling.flow_matching` owns a
 trainable NumPy tanh velocity field for both unconditional and six-feature
 conditional modes. It composes the existing `domain.flow_matching` bridge and
