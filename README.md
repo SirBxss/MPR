@@ -1,6 +1,17 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-09-30):** PR #27 is open and unmerged. Claude
+**Current checkpoint (2026-10-01):** PR #27 merged as `d03f776`; final-head
+Python 3.10/3.12 CI and the C1 delta review passed. Both flow modes remain
+synthetic-only. The new v0.19.6 branch implements reusable development-only
+MCAP declaration, registration and bounded EDP/RLMB/causal-input readiness.
+It accepts explicitly listed new files without changing the pinned batch02
+workflows. No new private result, residual archive, model fit, outing lock or
+raw deletion follows yet. For exact paths, PR/review steps and the new 30 GB
+pilot commands, read the complete
+[`v0.19.6 runbook`](docs/generic_recording_ingestion_runbook_v0196.md) and
+[`scientific contract`](docs/generic_recording_ingestion_v0196.md).
+
+**Historical checkpoint (2026-09-30):** PR #27 is open and unmerged. Claude
 gave synthetic-scope GO with zero blockers at `08cdfdf`; GitHub Actions run
 `36692825235` passed Python 3.10 and 3.12. A carried-forward finding C1
 showed that floating-point rounding can give an exactly constant decimal

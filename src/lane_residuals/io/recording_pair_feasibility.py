@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from contextlib import closing
+from contextlib import closing, nullcontext
 from dataclasses import fields
 from io import BytesIO
 import json
@@ -74,11 +74,15 @@ def decoder_types():
     return SeekingReader, DecoderFactory
 
 
-def _iter_messages(path: Path, *, topic_limits: Mapping[str, int] | None = None):
+def _iter_messages(path: Path, *, topic_limits: Mapping[str, int] | None = None,
+                   stream: Any = None):
     limits = {topic: MAX_MESSAGES_PER_TOPIC for topic in TOPICS} if topic_limits is None else topic_limits
     SeekingReader, DecoderFactory = decoder_types()
-    with path.open("rb") as stream:
-        reader = SeekingReader(stream, decoder_factories=[DecoderFactory()],
+    # New consumers may keep one verified file descriptor open through hashing
+    # and decoding. The historical path-based call and its defaults are intact.
+    with (path.open("rb") if stream is None else nullcontext(stream)) as source:
+        source.seek(0)
+        reader = SeekingReader(source, decoder_factories=[DecoderFactory()],
                                record_size_limit=MAX_CHUNK_BYTES)
         _, expected = _indexed_summary(reader, topic_limits=limits)
         actual: Counter[str] = Counter()

@@ -11,6 +11,8 @@ implementation for the thesis; LEEM is historical reference material only.
    - `docs/output_contracts.md` for exact artifact schemas;
    - `docs/architecture.md` for ownership boundaries;
    - `docs/commands.md` for supported entry points;
+   - `docs/generic_recording_ingestion_v0196.md` and its runbook before
+     registering or auditing newly downloaded arbitrary MCAPs;
    - `docs/bmw_edp_schema_evidence.md` before changing any estimated-drive-
      path schema binding; and
    - `docs/independent_outing_schema_v2_amendment.md` for the reviewed v0.17.1
@@ -345,6 +347,21 @@ Apply in the existing PR #27, then require focused delta GO and final-head
 CI before merge. Do not create a new PR, reopen private diagnostics or fit
 on batch02 on this correction's authority. Read the current-status header
 for review identities, numerical before/after evidence and the data gate.
+
+The 2026-10-01 checkpoint supersedes the PR #27 pre-merge instructions above:
+it merged as `d03f776`, corrected final head `8273741`; delta GO and Python
+3.10/3.12 CI run `36709679003` passed. Do not reapply that correction.
+The separate v0.19.6 generic recording intake/readiness branch is prepared
+for implementation review. Its commands declare development-only sources,
+register raw hashes and audit indexed geometry, strict causal inputs and
+recording-local sequence support. It accepts new declared files and preserves
+the batch02 pins/defaults. Read `docs/generic_recording_ingestion_v0196.md`
+before use. The new merged 180-chunk file is one technical recording, not
+180 outings. Do not infer session identity or UTC dates from its screenshot.
+Require exact-head GO and CI before its new private payload audit. No numeric
+residual/condition export, fitting, outing admission or raw-cache deletion is
+authorized by this readiness scope; prepare that follow-up only from reviewed
+new evidence. Old completed private diagnostics must not be repeated.
 
 Do not push, merge, open a pull request, or modify external systems unless the
 user asks. Deliver repository changes as a ZIP patch batch containing a

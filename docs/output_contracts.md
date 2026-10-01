@@ -1,5 +1,85 @@
 # v0.4.5 output contracts
 
+## v0.19.6 generic development recording readiness
+
+Binding contract: `docs/generic_recording_ingestion_v0196.md`. These new
+generic artifacts do not satisfy the pinned batch02 archive reader or v0.17
+independent-outing manifest/lock. No model reads them.
+
+`prepare` writes one fresh private strict-JSON specification. `register`
+writes exactly `source_specification.json` (original bytes) and
+`registration.json` (completion marker written last). Registration fields are
+exactly `contract_revision`, `purpose`, `batch_id`,
+`source_specification_sha256`, `recordings`, `runtime_versions`,
+`runtime_source_sha256`. Each identity has `recording_id`,
+`canonical_path_private`, `raw_sha256`, `size_bytes`. No payload was decoded.
+Preserve both files without additions or edits. An interrupted directory
+without a valid two-file registration is unusable.
+
+`audit` writes only `recording_readiness.json`, with these top-level fields:
+
+```text
+contract_revision, purpose, batch_id, status,
+registration_sha256, source_specification_sha256,
+technical_recording_count, independent_outing_count,
+roles_assigned, cohort_lock_created, model_fitted,
+residual_profiles_constructed, numeric_conditions_exported,
+recorded_input_causality_checked_for_all_recordings,
+physical_input_availability_proven, reference_independence_proven,
+raw_cache_deletion_authorized, runtime_versions, runtime_source_sha256,
+execution_limits, resources_at_start, recordings, interpretation
+```
+
+Revision is `v0.19.6-generic-recording-readiness-2026-10-01-a1`; purpose is
+`development_only_recording_readiness`. Status is `complete` only if every
+declared recording completes and its raw/registration state remains unchanged.
+`independent_outing_count` stays null. Role/lock/fit, residual/numeric-condition
+export, physical-availability/reference-independence proof and deletion flags
+stay false. A complete readiness report is not a residual archive or a data
+split. Runtime source SHA hashes the sorted package Python-file hash map, as
+in the earlier diagnostics; package versions are recorded separately.
+
+Each recording has exactly:
+
+```text
+recording_id, raw_sha256, size_bytes, source_declaration_status,
+indexed_metadata, status, failure_code, counts, diagnostics,
+odometry, source_clock_order, log_clock_order,
+sensor_geometry_support, complete_condition_support, condition_failure_counts
+```
+
+`counts` and `diagnostics` use the existing full geometry/timing definitions;
+`odometry` uses the existing duplicate/schema/failure summary. No numeric
+conditions, residual profiles, payload coordinates, literal source locator,
+local raw path, physical-session ID or candidate row table is exported.
+Source declaration status contains boolean presence flags, a **claimed**
+merged-input count and `physical_session_identity_verified: false`.
+
+Indexed metadata reports advertised chunk/message sizes/counts, decimal log
+endpoints and selected-topic channels with schema name/encoding, descriptor
+SHA and advertised message count. This is index evidence, not verified decoded
+counts or a UTC acquisition interval. A resource-limited report may retain
+this independently read index evidence while all decoded observations are null.
+No indexed metadata is retained if file/registration mutation invalidates its
+identity. If summary reading fails, the field is null.
+
+Support summaries contain `frame_count`, `sequence_count`, `transition_count`,
+`maximum_frame_count`, `maximum_duration_ns`, `sequence_length_histogram` and
+`sequence_start_reason_counts`. These are candidates before residual construction,
+not residual/vector counts or v0.17 eligible outing durations. They never bridge
+recordings, original estimate/pair gaps or nonpositive/>200 ms source gaps.
+Clock summaries contain message/missing/backward/adjacent-repeat counts and
+exact decimal min/max timestamps; storage order is observed, never repaired.
+
+An inconclusive recording has a static failure code and null `counts`,
+`diagnostics`, `odometry`, both clock summaries, both support summaries and
+condition failures. Completed other recordings may remain visible in the same
+inconclusive report; there are no pooled batch counts, fitted dataset or partial
+archive to consume. The all-recordings causality flag is false. Preserve such
+a report as execution evidence, not a zero-sample data finding. Exit codes:
+0 complete, 3 preserved inconclusive report, 2 preflight/input/dependency failure
+without a completed report. An interrupted write is not a completion marker.
+
 ## v0.19.3 published batch02 consumer
 
 `io.exploratory_archive.load_exploratory_archive` is a read-only exact

@@ -1,5 +1,16 @@
 # Project architecture
 
+The v0.19.6 generic development intake adds `recording_ingestion` modules in
+domain, I/O, workflow and CLI layers. Domain owns strict declarations and
+support/clock summaries; I/O owns indexed metadata and disk-backed readiness;
+workflow owns raw identity, source snapshots, resource guards and publication;
+CLI applies the allocation cap and selects prepare/register/audit. It reuses
+the existing geometry and feature scanner in an explicit no-residual mode.
+The old batch02 wrapper still requires preserved counts/diagnostics and retains
+its result shape. The indexed iterator optionally accepts an already verified
+open stream; its path-based defaults stay intact. No modeling, archive, AWS or
+deletion adapter is introduced. See `docs/generic_recording_ingestion_v0196.md`.
+
 The v0.19.5 synthetic-only flow hardening stays entirely in
 `modeling.flow_matching`: immutable validated field state and separate
 seed-derived random streams for initialization, bridge noise/time and
