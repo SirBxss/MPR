@@ -90,6 +90,7 @@ class RecordingIngestionWorkflowTests(unittest.TestCase):
         self.assertEqual(report["recordings"][0]["complete_condition_support"]["transition_count"], 1)
         self.assertEqual(report["recordings"][0]["source_declaration_status"]["claimed_merged_input_mcap_count"], 180)
         self.assertIsNone(report["independent_outing_count"])
+        self.assertIs(report["selected_chunk_crc_validation_enabled"], True)
         for key in ("roles_assigned", "cohort_lock_created", "model_fitted", "residual_profiles_constructed",
                     "numeric_conditions_exported", "reference_independence_proven", "raw_cache_deletion_authorized"):
             self.assertIs(report[key], False)

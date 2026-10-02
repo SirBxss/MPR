@@ -92,7 +92,7 @@ def inspect_recording_readiness(path: Path, stream, scratch: Path):
         source_order[role].add(record.source_time_ns)
 
     def messages():
-        with closing(_iter_messages(path, topic_limits=TOPIC_LIMITS, stream=stream)) as records:
+        with closing(_iter_messages(path, topic_limits=TOPIC_LIMITS, stream=stream, validate_crcs=True)) as records:
             for item in records:
                 log_order[item[1].topic].add(item[2].log_time)
                 yield item

@@ -4,6 +4,13 @@ Date: 2026-10-02. This is also the patch ZIP's complete `README.md`.
 Base main: **`8d55edf5f4c2ae7d30ce2533f702138319d63270`**, merged PR #28.
 The package version stays 0.18.1; v0.19.7 identifies this engineering amendment.
 
+**Post-review update:** the original patch is applied and PR #29 is open at
+`33f9542`, with GO and passing Python 3.10/3.12 CI. R1's small readiness CRC
+delta is prepared before the audit; use `bounded_storage_reader_crc_runbook_v0197.md`
+to apply it to the same PR. Sections 2–4 below record the completed original
+delivery, not commands to repeat. The private successor still needs final-head
+delta GO/CI and merge.
+
 ## 1. Decision and current evidence
 
 The first audit failed with **`ZstdError`**, exit 3. It did not find zero pairs:
@@ -253,6 +260,12 @@ contains the authoritative raw path (the moved pilot file remains there).
   if test -f .venv/bin/activate; then . .venv/bin/activate; fi
   python -m pip install -e '.[test,mcap]'
   python -m lane_residuals.cli.recording_ingestion audit --help
+  env PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+    python -m unittest \
+    tests.io.test_indexed_storage_reader \
+    tests.io.test_recording_ingestion \
+    tests.io.test_recording_pair_feasibility \
+    tests.workflows.test_recording_ingestion
   git rev-parse HEAD
 
   mpr_registration="outputs/registrations/recording_ingestion_v0196_batch03_pilot001"
@@ -350,6 +363,7 @@ authorized research workflow; the JSON is not a public PR attachment.
 | Exit 3, ZSTD memory/window code | New decoder/resource evidence; inspect progress/memory snapshot before a separate engineering decision |
 | Exit 3, corrupt/incomplete frame or generic decompression code | Inspect selected failing offset/phase and source-integrity evidence; generic category alone does not prove corruption |
 | Exit 3, index/predecessor/raw drift | Preserve evidence; resolve exact lineage/integrity discrepancy before any further run |
+| Exit 3, CRCValidationError | A stored selected-chunk checksum mismatched; decoded observations remain null. Review the offset/context before any further run |
 | Exit 2 or external kill/no completed report | Return terminal output; no complete data result and no automatic rerun |
 
 Do not automatically rerun, re-download, overwrite the old result or delete
@@ -358,3 +372,12 @@ result supports a separately reviewed numeric exporter. Real flow training
 and old/new comparisons then require validated archives, sufficient causal
 sequences and a physical-session split protocol. This pilot does not become
 an untouched final-validation outing merely because it passes technically.
+
+With the CRC delta, expected post-merge focused count is **56**. A completed
+successor checks nonzero stored CRCs on chunks read for selected topics.
+CRC 0 is unavailable; skipped chunks and full file/source integrity remain
+outside this check. The policy flag does not claim complete CRC coverage.
+An external kill may leave a private `mpr-ingestion-*` temporary spool under
+scratch. Preserve terminal evidence and return it; nothing is deleted
+automatically. Manual cleanup/retry planning must be scoped to that spool,
+never the raw MCAP, registration or failed readiness output.

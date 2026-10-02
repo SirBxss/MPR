@@ -1,5 +1,12 @@
 # Project architecture
 
+The PR #29 R1 delta adds a CRC-validation keyword to the shared indexed
+iterator, default false. Only generic readiness opts in; the existing chunk
+decoder checks nonzero stored CRCs before messages reach scientific parsing.
+The workflow records enabled policy, not complete CRC coverage/file integrity.
+Historical batch02 defaults and all domain/model/archive modules stay fixed.
+See `docs/bounded_storage_reader_crc_review_v0197.md`.
+
 The v0.19.7 correction adds the optional I/O adapter
 `indexed_storage_reader.IndexedStorageReader`. It retains MCAP's summary and
 Protobuf decoding interfaces but yields selected messages from one chunk at

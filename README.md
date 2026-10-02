@@ -1,6 +1,15 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-02):** PR #28 is merged at `8d55edf` after
+**Current checkpoint (2026-10-02, PR #29 review):** Claude GO has zero blockers
+at `33f9542`; Python 3.10/3.12 CI passes there (576 tests, two skips).
+The same-PR R1 delta enables stored chunk CRC checks for readiness after a
+synthetic bit flip silently changed valid payload values. Valid inputs retain
+their scientific results; failed checks publish null counts. Local validation:
+579 tests (577 pass, two skips), 56 focused passes. Delta review/CI at the new
+head precede merge and the one private successor. Read the complete
+[`CRC delta runbook`](docs/bounded_storage_reader_crc_runbook_v0197.md).
+
+**Earlier checkpoint (2026-10-02):** PR #28 is merged at `8d55edf` after
 exact-head GO and passing Python 3.10/3.12 CI. The first 30 GB pilot audit is
 **inconclusive (`ZstdError`)**, with null decoded counts, not zero pairs.
 Its index advertises EDP, RLMB and odometry within the existing limits.

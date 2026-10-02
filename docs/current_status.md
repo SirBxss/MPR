@@ -4,7 +4,44 @@ Last updated: 2026-10-02. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Batch03 pilot inconclusive; v0.19.7 bounded reader is the next reviewed step
+## PR #29 reviewed; readiness CRC delta precedes its private successor
+
+PR #29 is open and unmerged at `33f9542ffa835ded9d45c562528862506c1e91af`,
+tree `7682cd3c5df0ae339d98d5a58fcbd6bcf0c89926`. Claude returns GO with zero
+blockers for the original bounded-reader scope. This session verified Actions
+run `36997429154`: Python 3.10/3.12, compilation, MCAP 1.5.0 installed, each
+with 576 tests and two existing opt-in skips. The owner's 576/53 results agree.
+The reviewer's CI was unverified; this separate check closes that limit.
+Review SHA: `2c7bb53023bd152cc9cb11345e580f8f614167786183553de95cf2b1a712e0f7`.
+
+R1 is a priority-1 nonblocking recommendation, adopted before the one-shot
+successor: one compressed bit can change valid confidence values while
+preserving Protobuf structure, counts and geometry. The reviewed readiness
+path reports complete with six geometry/condition frames on this synthetic
+mutation. The CRC amendment instead returns CRCValidationError, chunk context
+and null decoded observations. This resolves a demonstrated integrity limit,
+not the still-unknown private ZstdError cause. Raw SHA equality establishes
+registered identity, not authenticity against a trusted original export.
+
+The shared `_iter_messages` adds `validate_crcs=False`; only readiness passes
+True. Historical batch02 defaults, model/archive/domain code and every
+scientific/resource rule are unchanged. Readiness adds the policy flag
+`selected_chunk_crc_validation_enabled: true`. CRC 0 is unavailable per MCAP;
+no complete file-integrity/CRC-coverage claim follows. Read
+`bounded_storage_reader_crc_review_v0197.md` and its dedicated runbook.
+
+Local delta: **579 run, 577 pass, two existing skips; 56 focused pass**.
+Three new tests cover silent compressed confidence corruption, valid-output
+parity and unavailable CRCs. Focused tests pass on MCAP 1.4.0 and isolated
+1.5.0 (embedded workers use installed 1.4.0); compilation/whitespace pass.
+Apply/push the delta to **the same PR #29**, obtain delta GO and both CI jobs
+at the final pushed head, then merge. The old GO/CI does not approve this new
+delta. After merge, rerun the 56 focused tests in the owner's environment,
+then execute the one unchanged-path predecessor-gated successor and return
+its report. No new PR, raw re-registration, numeric extraction, fit, outing
+role, final-data admission or deletion is authorized by this correction.
+
+## Earlier 2026-10-02: pilot inconclusive; original bounded reader prepared
 
 PR #28 merged at `8d55edf5f4c2ae7d30ce2533f702138319d63270`, tree
 `979a446fef8c7bb0df6cb2f12f0701a6f935f260`. Final head `ef7efb9` received

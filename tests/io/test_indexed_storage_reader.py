@@ -229,3 +229,101 @@ print(count)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), "128")
         self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), before)
+
+    def silently_changed_geometry_recording(self, *, enable_crcs=True):
+        """Flip one compressed bit while retaining valid inner/protobuf structure.
+
+        Select a fixture mutation by decoded properties rather than a writer-
+        version-specific byte offset. CRC fields and index/record sizes stay
+        unchanged, so only stored integrity checks can reject this mutation.
+        """
+        import struct
+        import zstandard
+        from tests.io.recording_ingestion_fixture import write_recording
+        from tests.domain.test_exploratory_residuals import T
+        path = self.root/"crc_geometry.mcap"
+        write_recording(path, times=tuple(T+i*100_000_000 for i in range(6)), enable_crcs=enable_crcs)
+        raw = path.read_bytes()
+        reader = self.reader(BytesIO(raw)); summary = reader.get_summary()
+        # A later EDP-only chunk: a completed positive prefix precedes it.
+        index = [c for c in summary.chunk_indexes if 1 in c.message_index_offsets][-1]
+        chunk = next(self.storage.StreamReader(BytesIO(raw[index.chunk_start_offset:index.chunk_start_offset+index.chunk_length]),
+                                              skip_magic=True, emit_chunks=True).records)
+        original = zstandard.decompress(chunk.data, chunk.uncompressed_size)
+        self.assertEqual(original[0], 5)  # one Message, no embedded descriptors
+        channel_id = struct.unpack_from("<H", original, 9)[0]
+        channel = summary.channels[channel_id]
+        decode = self.DecoderFactory().decoder_for(channel.message_encoding, summary.schemas[channel.schema_id])
+        initial = decode(original[31:])
+        initial_confidences = tuple(initial.drive_paths[0].drive_path_confidences)
+        initial.drive_paths[0].ClearField("drive_path_confidences")
+        other_fields = initial.SerializeToString()
+        for position in range(len(chunk.data)):
+            changed = bytearray(chunk.data); changed[position] ^= 1
+            try:
+                decoded = zstandard.decompress(changed, chunk.uncompressed_size)
+                if len(decoded) != len(original) or decoded[:31] != original[:31]:
+                    continue
+                message = decode(decoded[31:])
+                confidences = tuple(message.drive_paths[0].drive_path_confidences)
+                message.drive_paths[0].ClearField("drive_path_confidences")
+                if (message.SerializeToString() != other_fields or confidences == initial_confidences or
+                        len(confidences) != len(initial_confidences) or not all(0 <= value <= 1 for value in confidences)):
+                    continue
+            except Exception:
+                continue
+            offset = index.chunk_start_offset+index.chunk_length-len(chunk.data)+position
+            damaged = bytearray(raw); damaged[offset] ^= 1
+            path.write_bytes(damaged)
+            self.assertEqual(sum(a != b for a, b in zip(raw, damaged)), 1)
+            self.assertEqual(chunk.uncompressed_crc != 0, enable_crcs)
+            return path
+        self.fail("No valid single-bit compressed fixture mutation was found")
+
+    def test_readiness_rejects_silent_compressed_payload_change_with_stored_crc(self):
+        from lane_residuals.io.recording_ingestion import inspect_recording_readiness, TOPIC_LIMITS
+        from lane_residuals.io.recording_pair_feasibility import _iter_messages, inspect_recording_pairs
+        path = self.silently_changed_geometry_recording()
+        # The historical default still decodes the altered payload completely:
+        # no decompressor/protobuf error or message-count drift catches it.
+        self.assertEqual(len(list(_iter_messages(path, topic_limits=TOPIC_LIMITS))), 24)
+        self.assertEqual(inspect_recording_pairs(path, self.root)["status"], "complete")
+        with path.open("rb") as stream:
+            report = inspect_recording_readiness(path, stream, self.root)
+        self.assertEqual(report["status"], "inconclusive")
+        self.assertEqual(report["failure_code"], "CRCValidationError")
+        context = report["reader_failure_context"]
+        self.assertEqual(context["phase"], "chunk_decompression")
+        self.assertEqual(context["exception_class"], "CRCValidationError")
+        self.assertGreater(context["completed_selected_chunk_count"], 0)
+        for key in ("counts", "diagnostics", "odometry", "source_clock_order", "log_clock_order",
+                    "sensor_geometry_support", "complete_condition_support", "condition_failure_counts"):
+            self.assertIsNone(report[key])
+        self.assertNotIn("crc_geometry.mcap", json.dumps(report))
+        self.assertFalse(any(p.name.startswith("mpr-ingestion-") for p in self.root.iterdir()))
+
+    def test_valid_stored_crcs_preserve_all_readiness_observations(self):
+        from lane_residuals.io import recording_ingestion as ingestion
+        from lane_residuals.io.recording_pair_feasibility import _iter_messages
+        from tests.io.recording_ingestion_fixture import write_recording
+        path = self.root/"valid_crc.mcap"; write_recording(path)
+        with path.open("rb") as stream:
+            verified = ingestion.inspect_recording_readiness(path, stream, self.root)
+        def no_crc(*args, **kwargs):
+            kwargs["validate_crcs"] = False
+            return _iter_messages(*args, **kwargs)
+        with patch.object(ingestion, "_iter_messages", side_effect=no_crc), path.open("rb") as stream:
+            previous_policy = ingestion.inspect_recording_readiness(path, stream, self.root)
+        self.assertEqual(verified, previous_policy)
+        self.assertEqual(verified["status"], "complete")
+        self.assertEqual(verified["sensor_geometry_support"]["frame_count"], 2)
+
+    def test_zero_chunk_crcs_do_not_claim_integrity_or_reject_valid_format(self):
+        from lane_residuals.io.recording_ingestion import inspect_recording_readiness
+        path = self.silently_changed_geometry_recording(enable_crcs=False)
+        with path.open("rb") as stream:
+            report = inspect_recording_readiness(path, stream, self.root)
+        # MCAP explicitly defines zero as no available chunk CRC. Enabling
+        # validation cannot detect this valid-protobuf mutation in that case.
+        self.assertEqual(report["status"], "complete")
+        self.assertIsNone(report["reader_failure_context"])

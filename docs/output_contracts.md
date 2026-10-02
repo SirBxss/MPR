@@ -27,6 +27,7 @@ without a valid two-file registration is unusable.
 contract_revision, purpose, batch_id, status,
 registration_sha256, source_specification_sha256,
 reader_implementation, preserved_readiness_report_sha256,
+selected_chunk_crc_validation_enabled,
 technical_recording_count, independent_outing_count,
 roles_assigned, cohort_lock_created, model_fitted,
 residual_profiles_constructed, numeric_conditions_exported,
@@ -92,6 +93,13 @@ New v0.19.7 readiness has `reader_implementation` equal to
 null for a first audit or the exact old JSON digest for the explicit successor.
 Readiness `runtime_versions` adds `zstandard` and `lz4` (version text or null);
 registration keeps `python`, `mcap`, `mcap-protobuf-support`, `protobuf`, `numpy`.
+The post-review R1 delta adds `selected_chunk_crc_validation_enabled: true`;
+the earlier reviewed v0.19.7 report omits this key. This is the enabled reader
+policy, not a claim that every chunk has a stored CRC. Readiness checks the
+uncompressed CRC of each chunk read for selected topics when its stored value
+is nonzero. CRC 0 is unavailable; ignored chunks, attachments and complete
+data-section/source integrity are not certified. A stored checksum mismatch
+returns `CRCValidationError`, with chunk context and null decoded observations.
 Each new recording also has `reader_failure_context`: null on success and
 failures outside chunk iteration, otherwise exactly:
 

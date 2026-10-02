@@ -269,6 +269,7 @@ def run_readiness(arguments):
         "batch_id": registration["batch_id"], "status": "complete" if complete else "inconclusive",
         "registration_sha256": digest, "source_specification_sha256": registration["source_specification_sha256"],
         "reader_implementation": STORAGE_READER_IMPLEMENTATION, "preserved_readiness_report_sha256": preserved_digest,
+        "selected_chunk_crc_validation_enabled": True,
         "technical_recording_count": len(results), "independent_outing_count": None,
         "roles_assigned": False, "cohort_lock_created": False, "model_fitted": False,
         "residual_profiles_constructed": False, "numeric_conditions_exported": False,

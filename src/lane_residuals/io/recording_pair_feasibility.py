@@ -76,7 +76,7 @@ def decoder_types():
 
 
 def _iter_messages(path: Path, *, topic_limits: Mapping[str, int] | None = None,
-                   stream: Any = None):
+                   stream: Any = None, validate_crcs: bool = False):
     limits = {topic: MAX_MESSAGES_PER_TOPIC for topic in TOPICS} if topic_limits is None else topic_limits
     SeekingReader, DecoderFactory = decoder_types()
     # New consumers may keep one verified file descriptor open through hashing
@@ -84,7 +84,7 @@ def _iter_messages(path: Path, *, topic_limits: Mapping[str, int] | None = None,
     with (path.open("rb") if stream is None else nullcontext(stream)) as source:
         source.seek(0)
         reader = SeekingReader(source, decoder_factories=[DecoderFactory()],
-                               record_size_limit=MAX_CHUNK_BYTES)
+                               record_size_limit=MAX_CHUNK_BYTES, validate_crcs=validate_crcs)
         _, expected = _indexed_summary(reader, topic_limits=limits)
         actual: Counter[str] = Counter()
         # MPR's indexed adapter yields from one chunk at a time. Upstream's

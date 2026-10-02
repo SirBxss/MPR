@@ -6,8 +6,10 @@ Date: 2026-10-02. Engineering amendment to the unchanged scientific contract
 
 Read [`recording_ingestion_batch03_v0196_result.md`](recording_ingestion_batch03_v0196_result.md)
 first. The private result is inconclusive, not a zero-pair finding. This
-correction is locally implemented/tested; exact-head independent GO and
-Python 3.10/3.12 CI are pending before its one private execution.
+original correction received exact-head GO and Python 3.10/3.12 CI at
+`33f9542`. R1's same-PR readiness CRC amendment now needs delta GO/CI before
+the private execution. Read `bounded_storage_reader_crc_review_v0197.md` and
+its dedicated runbook; the original apply steps are completed.
 
 ## Reader correction
 
@@ -43,8 +45,11 @@ definition; the old FIFO would have used summary listing order. Within a
 chunk, original message order and all timestamp/sequence/schema fields stay
 unchanged. No backward-clock repair is introduced.
 
-NONE, ZSTD and LZ4 use the existing MCAP decompressors. CRC policy remains the
-existing default (not newly required). Exact decoded-topic count reconciliation
+NONE, ZSTD and LZ4 use the existing MCAP decompressors. The post-review R1
+amendment makes readiness validate nonzero stored chunk CRCs; the shared
+iterator's historical default stays false. CRC 0 means unavailable. This
+checks chunks read for selected topics, not skipped chunks, attachments,
+the complete data section or source authenticity. Exact decoded-topic count reconciliation
 still rejects interrupted or incomplete selected streams. The reader does
 not certify every ignored topic/chunk or provenance of the original export.
 
@@ -112,7 +117,7 @@ targeted integrity/source evidence only after that result is reconciled.
 
 ## Verification and limits
 
-The suite rises from 559 to **576 tests: 574 pass, two existing opt-in skips**
+The original suite rises from 559 to **576 tests: 574 pass, two existing opt-in skips**
 with MCAP extras. All **53 focused tests** pass. Seventeen new tests include
 real NONE/ZSTD/LZ4 field/decoded-byte parity, first-yield chunk decompression
 count, reversed summary indexes, backward clocks, inner/outer bounds, index/
@@ -133,3 +138,10 @@ The complete case retains two 21-station -0.5 m profiles and two conditions.
 Reproducible scripts/logs accompany the patch ZIP. They use only temporary
 synthetic files, establish regression/resource behavior and measure no real
 pair count or scientific-model performance.
+
+R1 adds three tests: **579 run, 577 pass, two skips; 56 focused pass**.
+A valid compressed confidence mutation is complete under the reviewed no-CRC
+readiness path and inconclusive with null counts under the amendment. Healthy
+outputs stay unchanged. Zero stored CRCs remain accepted without an integrity
+claim. New-head delta review/CI are pending; read the CRC review document for
+the exact old-head GO/CI identity and amended policy/output contract.
