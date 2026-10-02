@@ -28,6 +28,7 @@ from .mcap import McapDependencyError
 TOPICS = (DEFAULT_ESTIMATED_DRIVE_PATHS_TOPIC, DEFAULT_MAP_TOPIC)
 MAX_MESSAGES_PER_TOPIC = 100_000
 MAX_CHUNK_BYTES = 128 * 1024**2
+STORAGE_READER_IMPLEMENTATION = "v0.19.7-indexed-storage-chunkwise-a1"
 MAX_SPOOL_BYTES = 8 * 1024**3
 
 
@@ -67,11 +68,11 @@ def _indexed_summary(reader: Any, *, topic_limits: Mapping[str, int] | None = No
 def decoder_types():
     """Resolve the actual decoder imports before a new diagnostic creates output."""
     try:
-        from mcap.reader import SeekingReader
+        from .indexed_storage_reader import IndexedStorageReader
         from mcap_protobuf.decoder import DecoderFactory
     except ImportError as error:
         raise McapDependencyError('Install the project MCAP extra: pip install -e ".[mcap]"') from error
-    return SeekingReader, DecoderFactory
+    return IndexedStorageReader, DecoderFactory
 
 
 def _iter_messages(path: Path, *, topic_limits: Mapping[str, int] | None = None,
@@ -86,9 +87,9 @@ def _iter_messages(path: Path, *, topic_limits: Mapping[str, int] | None = None,
                                record_size_limit=MAX_CHUNK_BYTES)
         _, expected = _indexed_summary(reader, topic_limits=limits)
         actual: Counter[str] = Counter()
-        # Storage order avoids the log-time merge queue retaining geometry or
-        # payloads from many overlapping chunks. Matching below uses complete
-        # source-time streams and is invariant to this ordering for count outputs.
+        # MPR's indexed adapter yields from one chunk at a time. Upstream's
+        # log_time_order=False FIFO still queues all selected chunks' payloads.
+        # No timestamp sorting, prefiltering or scan fallback is introduced.
         for record in reader.iter_decoded_messages(topics=tuple(limits), log_time_order=False):
             topic = record[1].topic
             actual[topic] += 1

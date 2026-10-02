@@ -1,5 +1,17 @@
 # Supported commands
 
+## v0.19.7 corrective pilot successor
+
+PR #28's original pilot is complete but inconclusive with `ZstdError`.
+Do not repeat prepare/register or the original audit. After exact-head
+corrective GO/CI and merge, use the existing `recording_ingestion audit` with
+the new `--preserved-readiness-report` flag, unchanged registration and fresh
+v0.19.7 output/scratch paths. The complete guarded commands, PR text and Claude
+prompt are in [`bounded_storage_reader_runbook_v0197.md`](bounded_storage_reader_runbook_v0197.md).
+The flag is only for this old one-recording ZstdError state; generic first
+audits on future compatible declared batches omit it. No numeric archive,
+model, outing admission or deletion is introduced.
+
 ## New v0.19.6 generic development recording workflow
 
 Use `python -m lane_residuals.cli.recording_ingestion prepare`, `register` and

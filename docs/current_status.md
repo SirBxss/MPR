@@ -1,10 +1,75 @@
 # Current project status
 
-Last updated: 2026-10-01. This is the first file a new agent should read after
+Last updated: 2026-10-02. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## PR #27 merged; generic new-recording readiness is the next implementation
+## Batch03 pilot inconclusive; v0.19.7 bounded reader is the next reviewed step
+
+PR #28 merged at `8d55edf5f4c2ae7d30ce2533f702138319d63270`, tree
+`979a446fef8c7bb0df6cb2f12f0701a6f935f260`. Final head `ef7efb9` received
+Claude GO with zero blockers. Actions run `36872777200` passed Python 3.10/3.12,
+559 tests per job with two existing opt-in skips. This supersedes the older
+pre-review/pre-run status below. The owner then completed the one authorized
+readiness audit; no further original v0.19.6 run is pending.
+
+The uploaded one-file ZIP has exact terminal SHA
+`264549408a82ab73f21cf0560d1fe40283eeb62d38ff745bd57eecae37e9d68b`.
+Its readiness JSON SHA is
+`55ec8bde1ae22f54f05443ac1816bd85d508c9e605d69d7e712489c47f23d2a7`.
+Read `recording_ingestion_batch03_v0196_result.md` for raw/registration/source
+lineage, reported versions, resources and scientific limits. Its runtime
+source fingerprint matches merged code. One registered ~30 GB pilot technical
+recording was verified; its stream failed with `ZstdError`, exit 3. All decoded
+geometry/timing/odometry/clock/condition/support fields are **null, not zero**.
+The index advertises 36,032 EDP, 36,032 RLMB and 109,191 odometry messages in
+116,243 chunks, maximum advertised size 2,109,683 bytes. Index/count/resource
+guards passed; index evidence establishes neither usable bindings nor pairs.
+
+Investigation reproduced a reader defect: upstream MCAP 1.4.0 FIFO
+`log_time_order=False` expands every selected chunk and queues raw selected
+payloads before its first yield. The inspected 1.5.0 wheel has the same
+algorithm. Earlier bounded-reader claims and geometry-liveness tests missed
+this raw-payload retention. A valid 512 MiB selected-payload synthetic fixture
+under a 256 MiB AS cap fails at zero yields with the exact baseline and
+completes 128 yields with the correction. This does not prove the native
+private-file `ZstdError` was allocation failure; a damaged/incomplete frame or
+another decoder issue remains possible because the old report lacks context.
+
+Branch `feature/v0.19.7-bounded-storage-reader` implements physical-offset,
+one-chunk indexed iteration behind the existing lazy optional dependency
+boundary, using the same summary/Protobuf decoder. It adds fixed ZSTD failure
+codes and payload-free chunk/progress/memory context; incomplete prefixes
+still publish null readiness. The optional `--preserved-readiness-report`
+accepts only the same one-recording old ZstdError lineage and exact fresh
+index metadata, hashes the predecessor and rechecks its bytes before publish.
+Audit records compression-library versions. Registration schemas, scientific
+revision and every geometry/pairing/causal/sequence/resource rule stay fixed.
+Read `bounded_storage_reader_v0197.md` and its complete runbook before use.
+
+Local verification with MCAP extras: **576 run, 574 pass, two existing opt-in
+skips; 53 focused pass**. Seventeen tests were added. Six actual compressed
+synthetic fixtures have byte-identical scientific readiness/extraction output
+against the exact merged baseline after removing only the new null context
+field. NONE/ZSTD/LZ4, unknown frame sizes, physical ordering, corruption,
+resource retention, report/index drift and spool cleanup are covered. MCAP
+1.5.0 also passes the focused import-path check, while isolated subprocess
+tests use the installed 1.4.0 runtime. These are engineering regressions;
+Python 3.10/3.12 CI and independent GO at the future pushed head remain pending.
+
+Next: apply/test/push the corrective patch in a **new PR** against merged
+main. After its exact-head GO/CI and merge, execute **one** predecessor-gated
+successor on unchanged registered pilot001 bytes into fresh v0.19.7 outputs.
+Return and reconcile that JSON. Do not repeat prepare/register or overwrite
+the failed audit. If complete, assess actual SENSOR pair support, timing,
+clock order and complete-condition sequence duration before separately
+implementing generic development numeric extraction/archive validation.
+If inconclusive, diagnose the new category/context before any further run.
+No real flow fit, old/new comparison, outing role, final-data admission or raw
+deletion follows yet. Both flow modes remain synthetic-only. Preserve future
+untouched final outings and source/session/retrieval evidence.
+
+## Historical 2026-10-01: PR #27 merged; generic readiness prepared
 
 PR #27 merged as `d03f7769c05ee751224aec3870b740c13a575edc`, tree
 `0e12d76a7bba6a232d00b4668c967abd196e45e0`. Final head

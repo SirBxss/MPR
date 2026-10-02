@@ -78,7 +78,8 @@ def indexed_metadata(stream):
 def inconclusive_readiness(code):
     return {"status": "inconclusive", "failure_code": code, "counts": None, "diagnostics": None,
             "odometry": None, "source_clock_order": None, "log_clock_order": None,
-            "sensor_geometry_support": None, "complete_condition_support": None, "condition_failure_counts": None}
+            "sensor_geometry_support": None, "complete_condition_support": None, "condition_failure_counts": None,
+            "reader_failure_context": None}
 
 
 def inspect_recording_readiness(path: Path, stream, scratch: Path):
@@ -114,12 +115,18 @@ def inspect_recording_readiness(path: Path, stream, scratch: Path):
                 "odometry": result["odometry"], "source_clock_order": {k: v.summary() for k, v in source_order.items()},
                 "log_clock_order": {k: v.summary() for k, v in log_order.items()},
                 "sensor_geometry_support": summarize_support(rows), "complete_condition_support": summarize_support(conditions),
-                "condition_failure_counts": dict(sorted(failures.items()))}
+                "condition_failure_counts": dict(sorted(failures.items())), "reader_failure_context": None}
     except McapDependencyError:
         raise
     except (ResourceLimitError, RecordingReadError) as error:
-        return inconclusive_readiness(str(error))
-    except MemoryError:
-        return inconclusive_readiness("memory_limit")
+        result = inconclusive_readiness(str(error))
+        result["reader_failure_context"] = getattr(error, "reader_failure_context", None)
+        return result
+    except MemoryError as error:
+        result = inconclusive_readiness("memory_limit")
+        result["reader_failure_context"] = getattr(error, "reader_failure_context", None)
+        return result
     except Exception as error:
-        return inconclusive_readiness(type(error).__name__)
+        result = inconclusive_readiness(type(error).__name__)
+        result["reader_failure_context"] = getattr(error, "reader_failure_context", None)
+        return result

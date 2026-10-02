@@ -1,6 +1,19 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-01):** PR #27 merged as `d03f776`; final-head
+**Current checkpoint (2026-10-02):** PR #28 is merged at `8d55edf` after
+exact-head GO and passing Python 3.10/3.12 CI. The first 30 GB pilot audit is
+**inconclusive (`ZstdError`)**, with null decoded counts, not zero pairs.
+Its index advertises EDP, RLMB and odometry within the existing limits.
+The v0.19.7 correction replaces an upstream storage-order payload queue with
+one-chunk iteration and adds safe failure context plus a preserved-report
+successor gate. Locally, 576 tests run (574 pass, two existing skips).
+New-head corrective review and CI are pending before one private successor;
+no residual archive, fit, outing role or deletion is authorized yet. Read the
+[`result`](docs/recording_ingestion_batch03_v0196_result.md),
+[`correction contract`](docs/bounded_storage_reader_v0197.md) and complete
+[`apply/test/PR/review/run instructions`](docs/bounded_storage_reader_runbook_v0197.md).
+
+**Historical checkpoint (2026-10-01):** PR #27 merged as `d03f776`; final-head
 Python 3.10/3.12 CI and the C1 delta review passed. Both flow modes remain
 synthetic-only. The new v0.19.6 branch implements reusable development-only
 MCAP declaration, registration and bounded EDP/RLMB/causal-input readiness.

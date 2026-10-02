@@ -4,9 +4,14 @@ Date: 2026-10-01. Contract:
 `v0.19.6-generic-recording-readiness-2026-10-01-a1`.
 Base: merged PR #27, commit `d03f7769c05ee751224aec3870b740c13a575edc`,
 tree `0e12d76a7bba6a232d00b4668c967abd196e45e0`.
-Status: local implementation and synthetic/MCAP-fixture tests; focused review
-of the exact pushed head and Python 3.10/3.12 CI precede the new private audit.
-No new private MCAP has been inspected by this implementation agent.
+Status amended 2026-10-02: PR #28 is merged at `8d55edf` after focused GO and
+Python 3.10/3.12 CI. The owner's first pilot returned inconclusive ZstdError.
+Read `recording_ingestion_batch03_v0196_result.md` and the narrow engineering
+amendment `bounded_storage_reader_v0197.md`. The original storage-order flag
+did not bound upstream raw-payload queuing; v0.19.7 corrects that assumption
+without changing this scientific contract. No private raw file is available
+to this implementation environment. The old runbook describes completed
+original steps; use the v0.19.7 runbook for the corrective successor.
 
 ## Why this phase
 

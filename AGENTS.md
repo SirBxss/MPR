@@ -28,6 +28,25 @@ implementation for the thesis; LEEM is historical reference material only.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
+## Current checkpoint: 2026-10-02
+
+PR #28 is merged at `8d55edf5f4c2ae7d30ce2533f702138319d63270`; its exact
+reviewed head `ef7efb9` received GO and Python 3.10/3.12 CI. The one authorized
+batch03 pilot001 audit returned inconclusive `ZstdError`, with readable index
+evidence but null decoded observations. Read
+`docs/recording_ingestion_batch03_v0196_result.md` and
+`docs/bounded_storage_reader_v0197.md` before further work. The old assumption
+that SeekingReader's FIFO storage iterator bounds raw-payload retention is
+disproved. Its confirmed queue defect does not prove the private failure was
+memory rather than a bad compressed frame. Preserve the registered file and
+failed report; do not remerge, re-register, raise caps, change geometry or
+declare zero pairs. The narrow v0.19.7 chunkwise reader and safe context are
+implemented locally; 576 tests run, 574 pass, two existing opt-ins skip, with
+53 focused passes. Exact-head corrective GO and normal CI must precede the
+single predecessor-gated successor in a fresh directory. No private successor
+has run here, and no generic archive/model/deletion/final-data gate is opened.
+The earlier v0.19.6 preparation/review instructions below are historical.
+
 Update `docs/current_status.md` whenever a phase is implemented, reviewed,
 merged, or materially reinterpreted. It is the hand-off record for future
 agents and new chats.
