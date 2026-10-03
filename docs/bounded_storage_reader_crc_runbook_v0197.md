@@ -1,5 +1,13 @@
 # MPR PR #29 — apply the CRC delta, then review, merge and audit
 
+**2026-10-03 update:** PR #29 is merged at `fc6d5ff`. Do not reapply this delta.
+The successor stopped at initial RAM preflight (exit 2, no new report), before
+decoding; the shell may have left empty scratch. Source/reference evidence is
+now prioritized. Use `reference_redesign_runbook_20261003.md` for the current
+read-only checks, prospective study and deferred recovery; the old section 5
+requires absent scratch and is not a recovery command for that empty directory.
+These original sections are preserved as the dated implementation runbook.
+
 Date: 2026-10-02. This is the new delta ZIP's complete `README.md`.
 It applies **on your existing branch**, at exact reviewed head
 `33f9542ffa835ded9d45c562528862506c1e91af`. Do not reapply the original

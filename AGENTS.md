@@ -28,7 +28,38 @@ implementation for the thesis; LEEM is historical reference material only.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
-## Current checkpoint: 2026-10-02
+## Current checkpoint: 2026-10-03
+
+PR #29 merged as `fc6d5ff72c5812d43367897cc92416fd870e2686`; final head
+`fe97561a3cfe6c727b16c56d661c21d551ae7aa6` has passing Python 3.10/3.12 CI
+in run `37002940067`. Owner reports Claude delta GO. The post-merge 56 focused
+tests passed. The private successor then stopped at initial memory preflight:
+4.5 GiB MemAvailable < 6 GiB, exit 2, before raw hashing/decoding/output.
+No new report or data finding exists. Read
+`docs/recording_ingestion_batch03_v0197_preflight_stop.md`; the scratch directory
+can remain empty from the shell preparation. Do not repeat registration,
+automatically retry or lower caps. The original ZstdError is unresolved.
+
+Owner's road-team discussion motivates a **prospective all-topology EDP and
+reference study**. Map preference reportedly makes SENSOR-only EDP scarce;
+the quoted ~90% is verbal context, not a new-file statistic. Investigate
+`/adp/position_on_map_pose_estimate` (reported 6 x 6 covariance),
+`/adp/foresight_lane_data_opb` and actually recorded foresight topics before
+choosing a reference. Exact recorded schemas, producer dependencies, frames,
+origins, covariance convention, lane binding and epochs are not established.
+Read `docs/reference_redesign_investigation_20261003.md` and its complete
+runbook. Next acquire BMW source/metadata evidence, then design a separately
+reviewed bounded structural adapter. The old readiness successor is deferred.
+
+This is a documentation/evidence phase, not a filter removal or adopted target.
+Existing SENSOR-only outputs/contracts, six features, H100/sign, no-extrapolation
+and final-data gates remain unchanged. Do not use covariance as a mean correction,
+call shared-map disagreement ground-truth error, fuse correlated paths as
+independent, select a reference by closeness to EDP, apply a pose transform twice,
+or fit a model. Topology remains observable provenance in the proposed study.
+The earlier checkpoints below are historical.
+
+## Historical checkpoint: 2026-10-02
 
 PR #29 is open at reviewed head `33f9542ffa835ded9d45c562528862506c1e91af`,
 tree `7682cd3c5df0ae339d98d5a58fcbd6bcf0c89926`. Claude GO has zero blockers;

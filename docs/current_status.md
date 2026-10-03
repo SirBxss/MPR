@@ -1,10 +1,62 @@
 # Current project status
 
-Last updated: 2026-10-02. This is the first file a new agent should read after
+Last updated: 2026-10-03. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## PR #29 reviewed; readiness CRC delta precedes its private successor
+## Current: PR #29 merged; resource-only stop; prospective reference study
+
+PR #29 merged as `fc6d5ff72c5812d43367897cc92416fd870e2686`, final feature head
+`fe97561a3cfe6c727b16c56d661c21d551ae7aa6`. The tree
+`fea8e02b7bfd4f05a038de2d3efe192bc852eed7` matches the delivered CRC delta.
+Owner reports Claude delta GO; no delta review file was supplied this turn.
+Actions run `37002940067` was independently checked: both Python 3.10/3.12
+jobs passed at the final feature head, including installation/compile/tests.
+Owner's post-merge 56 focused tests all passed (4.850 s).
+
+The successor attempt then exited **2** with `available_memory_below_6gib`:
+4.5 GiB MemAvailable, 53 GiB disk free. In merged code this first check is
+before raw hashing, indexed inspection, payload decoding, spooling and output
+creation. Registration/specification/old-report hashes and pilot path/size
+checks passed. The shell may have created empty scratch. No completed new
+JSON, decoded counts or new corruption/geometry finding exists. The original
+v0.19.6 ZstdError remains unresolved; preserve all its inputs/report.
+Read `recording_ingestion_batch03_v0197_preflight_stop.md`. Do not automatically
+retry, rerun registration or lower the guard. The full new runbook explains
+read-only state checks and deferred reuse of an empty scratch directory.
+
+The owner now prioritizes a prospective all-topology EDP/reference study.
+Road-team verbal information says EDP prefers usable map topology and map
+availability is around 90%; earlier BMW source traces independently describe
+per-cycle switching with map availability/horizon. The percentage and current
+recording configuration remain unverified. Old batch02 anchored geometry has
+7,743 candidates: 376 SENSOR and 7,367 LANE_MAP. Those counts motivate the
+new study; they are not all-topology residual or feature-ready training counts.
+The completed v0.19.2 archive remains 376 SENSOR residuals/134 complete rows.
+
+New candidate evidence: `/adp/position_on_map_pose_estimate` reportedly has a
+6 x 6 covariance; `/adp/foresight_lane_data_opb` and other foresight topics
+reportedly contain useful information. No recorded descriptor, producer trace,
+frame/epoch/geometry/uncertainty calibration or independence for these new
+topics was supplied. Do not infer an accurate lane path from covariance or
+the topic name. RLMB here is `/adp/road_lane_map_based`, not the historical
+EM fusion topic or lane-topology-map topic. Shared map/pose errors can cancel
+in EDP/reference disagreement; independence/cross-covariance matters.
+
+Read `reference_redesign_investigation_20261003.md` for the evidence ledger,
+proposed populations, illustrative covariance propagation, source questions
+and decision branches. Read `reference_redesign_runbook_20261003.md` for the
+docs patch/PR/review steps, BMW-source and metadata-only IDE prompts and
+deferred old-readiness recovery. Current deliverable is documentation only.
+Acquire source/recorded-schema evidence next, then separately specify/review a
+bounded structural audit. **No immediate private payload rerun, topology
+filter change, reference adoption/fusion, covariance feature, numeric exporter,
+fit, old/new comparison or final-data admission follows.** The owner's
+reference proposal is expressly exploratory. Historical contracts/output bytes
+remain unchanged. Both flow modes remain synthetic-only. A changed target or
+source population requires a new contract and explicit comparison limitations.
+
+## Historical 2026-10-02: PR #29 reviewed; CRC delta prepared
 
 PR #29 is open and unmerged at `33f9542ffa835ded9d45c562528862506c1e91af`,
 tree `7682cd3c5df0ae339d98d5a58fcbd6bcf0c89926`. Claude returns GO with zero

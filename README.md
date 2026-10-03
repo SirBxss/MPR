@@ -1,6 +1,20 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-02, PR #29 review):** Claude GO has zero blockers
+**Current checkpoint (2026-10-03):** PR #29 merged as `fc6d5ff`, with the CRC
+correction and final-head Python 3.10/3.12 CI. The post-merge 56 focused tests
+passed. The private successor stopped **before hashing/decoding**, exit 2:
+4.5 GiB available RAM < 6 GiB; disk free 53 GiB passed. No new report/pair
+finding exists. Preserve the old ZstdError result. The new priority is a
+**prospective all-topology EDP/reference study**, informed by the owner's
+road-team discussion of map preference. Investigate position-on-map pose
+covariance and foresight schemas/provenance before choosing a reference;
+existing SENSOR-only targets/features remain unchanged. No new decoder,
+residual archive or fit is implemented. Read the
+[`investigation`](docs/reference_redesign_investigation_20261003.md),
+[`preflight result`](docs/recording_ingestion_batch03_v0197_preflight_stop.md)
+and [`complete commands/source prompts`](docs/reference_redesign_runbook_20261003.md).
+
+**Historical checkpoint (2026-10-02, PR #29 review):** Claude GO has zero blockers
 at `33f9542`; Python 3.10/3.12 CI passes there (576 tests, two skips).
 The same-PR R1 delta enables stored chunk CRC checks for readiness after a
 synthetic bit flip silently changed valid payload values. Valid inputs retain

@@ -4,6 +4,21 @@ MPR is the canonical thesis implementation. LEEM is retained only as a source
 of implementation ideas and historical evidence; its model code and results
 are not the thesis execution path.
 
+## Current development decision: 2026-10-03
+
+Prioritize the prospective all-topology EDP/reference evidence study in
+`reference_redesign_investigation_20261003.md`. The owner's road-team report
+and old source/count evidence motivate investigating map-backed EDP alongside
+sensor-backed EDP; they do not adopt a new reference or amend historical
+SENSOR-only results. Pose covariance and foresight require exact schema,
+frame/time, producer-dependence and uncertainty evidence before construction.
+The merged bounded/CRC reader remains reusable, but the new pilot stopped on
+RAM preflight before decoding. No model fit or new data comparison is opened.
+A prospective new target/population and any extra causal features require
+separate versioned contracts; comparisons must distinguish population change,
+reference change and model change. Untouched physical-session evaluation and
+the existing matched-row/training-only-transform discipline still apply.
+
 ## Fixed scientific rules
 
 - The target is the 21-dimensional signed H100 pseudo-residual at
@@ -57,8 +72,9 @@ are not the thesis execution path.
 | v0.19.3 | Exact published archive validation and synthetic conditional flow foundation | PR #24 merged as `95745ea`. Implement strict batch02 loader and straight-path one-state free-running flow math with synthetic tests; no fitted model, new split, likelihood or outing admission. See `docs/flow_matching_foundation_v0193.md` |
 | v0.19.4 | Synthetic dual flow training prototype | PR #25 merged as `7a98804`. Unconditional temporal null and six-feature autoregressive conditional flow use one synthetic training contract, explicit start-state indicator, generated-history sampling and training-only transforms. No real fit or score; see `docs/flow_matching_dual_synthetic_v0194.md` |
 | v0.19.5 | Synthetic flow reproducibility and model-state validation | PR #27 merged at `d03f776`; delta GO and final-head CI passed at `8273741`. Exact constant columns, model-state validation, paired random streams and learned-field Euler checks remain synthetic-only; no real fit or score |
-| v0.19.6 | Generic development-only recording registration and readiness | Prepared for exact-head review/CI. Preserve source declarations/raw hashes and audit new indexed EDP/RLMB geometry, causal inputs and storage-order support. No residual archive, fit, outing roles or raw deletion; see `docs/generic_recording_ingestion_v0196.md` |
-| next decision | Collect independently identified usable outings, then review the comparison protocol | Do not fit AR/AIOHMM/flow on the short 134-row condition subset as a generalization claim. A separately reviewed descriptive Gaussian protocol could compare families on identical complete rows with explicit development-only limits; independent-data admission remains blocked. Direct LTSB stays on hold |
+| v0.19.6 | Generic development-only recording registration and readiness | PR #28 merged; first registered pilot audit is inconclusive ZstdError. Preserve its report/lineage; no generic numeric archive, fit, outing roles or deletion |
+| v0.19.7 | Bounded storage reader, failure context and readiness CRC checks | PR #29 merged at fc6d5ff after owner-reported delta GO and verified final-head CI. Its successor stopped at RAM preflight before decoding; no new data result |
+| next evidence | Prospective all-topology EDP/reference investigation | Acquire pose/foresight schema, producer dependency, frame/epoch and covariance evidence before a separately reviewed structural adapter or target/population amendment. Keep SENSOR-only archives immutable; no fit on the short 134-row subset as a generalization claim. Direct LTSB stays on hold |
 | final | Locked comparison and thesis figures | Hyperparameters frozen before evaluating untouched physical drives |
 
 The v0.10 Gaussian is the temporal null model: it uses sequence-shaped inputs

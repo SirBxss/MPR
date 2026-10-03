@@ -1,6 +1,18 @@
 # Supported commands
 
-## v0.19.7 corrective pilot successor
+## Current 2026-10-03: reference evidence and preflight state
+
+PR #29 is merged at `fc6d5ff`. The owner's successor stopped before decoding
+on the 6 GiB memory guard; no report exists. Use
+[`reference_redesign_runbook_20261003.md`](reference_redesign_runbook_20261003.md)
+for read-only resource/state checks and source/schema evidence prompts.
+The old readiness successor is deferred; its later recovery may reuse only
+an empty nonsymlink scratch directory with no successor output.
+There is no newly supported position-on-map/foresight CLI, all-topology
+extractor, new numeric artifact or fit command. Existing `path_probe` is
+EDP-specific and must not be presented as an arbitrary-topic semantic probe.
+
+## Historical v0.19.7 corrective pilot instructions
 
 PR #29's original `33f9542` has GO and passing Python 3.10/3.12 CI. Apply
 the reviewed R1 readiness-only CRC delta to that same PR and obtain new-head

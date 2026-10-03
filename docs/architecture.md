@@ -1,5 +1,14 @@
 # Project architecture
 
+The 2026-10-03 reference investigation is a documentation/evidence phase.
+No new pose/foresight adapter, all-topology exporter or fusion is implemented.
+Existing readiness still counts multiple EDP source populations while its
+condition/support consumer and numeric batch02 archive remain SENSOR-only.
+Reusable container/identity/bounded-reader layers do not establish the semantics
+or independence of a new topic. Read `reference_redesign_investigation_20261003.md`
+before altering that boundary. The pilot's memory-only preflight stop has no
+new decoded result; it is recorded separately from the old ZstdError.
+
 The PR #29 R1 delta adds a CRC-validation keyword to the shared indexed
 iterator, default false. Only generic readiness opts in; the existing chunk
 decoder checks nonzero stored CRCs before messages reach scientific parsing.
