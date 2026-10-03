@@ -28,6 +28,37 @@ implementation for the thesis; LEEM is historical reference material only.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
+## Current checkpoint: 2026-10-02
+
+PR #29 is open at reviewed head `33f9542ffa835ded9d45c562528862506c1e91af`,
+tree `7682cd3c5df0ae339d98d5a58fcbd6bcf0c89926`. Claude GO has zero blockers;
+Actions run `36997429154` passes Python 3.10/3.12 (576 tests, two opt-in skips),
+verified separately from the review. Before the single private successor,
+adopt R1: readiness validates nonzero stored chunk CRCs; historical batch02
+defaults stay false. Read `docs/bounded_storage_reader_crc_review_v0197.md`
+and its dedicated runbook. The same-PR delta runs 579 tests (577 pass, two
+existing skips), with 56 focused passes. It needs delta GO and CI at the new
+pushed head before merge/private execution. CRC 0 means unavailable, not full
+integrity proof; no raw bytes, registration, geometry, causality, resource
+limit or output path changes. The earlier checkpoint below is historical.
+
+PR #28 is merged at `8d55edf5f4c2ae7d30ce2533f702138319d63270`; its exact
+reviewed head `ef7efb9` received GO and Python 3.10/3.12 CI. The one authorized
+batch03 pilot001 audit returned inconclusive `ZstdError`, with readable index
+evidence but null decoded observations. Read
+`docs/recording_ingestion_batch03_v0196_result.md` and
+`docs/bounded_storage_reader_v0197.md` before further work. The old assumption
+that SeekingReader's FIFO storage iterator bounds raw-payload retention is
+disproved. Its confirmed queue defect does not prove the private failure was
+memory rather than a bad compressed frame. Preserve the registered file and
+failed report; do not remerge, re-register, raise caps, change geometry or
+declare zero pairs. The narrow v0.19.7 chunkwise reader and safe context are
+implemented locally; 576 tests run, 574 pass, two existing opt-ins skip, with
+53 focused passes. Exact-head corrective GO and normal CI must precede the
+single predecessor-gated successor in a fresh directory. No private successor
+has run here, and no generic archive/model/deletion/final-data gate is opened.
+The earlier v0.19.6 preparation/review instructions below are historical.
+
 Update `docs/current_status.md` whenever a phase is implemented, reviewed,
 merged, or materially reinterpreted. It is the hand-off record for future
 agents and new chats.

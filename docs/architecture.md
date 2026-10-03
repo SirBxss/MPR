@@ -1,5 +1,22 @@
 # Project architecture
 
+The PR #29 R1 delta adds a CRC-validation keyword to the shared indexed
+iterator, default false. Only generic readiness opts in; the existing chunk
+decoder checks nonzero stored CRCs before messages reach scientific parsing.
+The workflow records enabled policy, not complete CRC coverage/file integrity.
+Historical batch02 defaults and all domain/model/archive modules stay fixed.
+See `docs/bounded_storage_reader_crc_review_v0197.md`.
+
+The v0.19.7 correction adds the optional I/O adapter
+`indexed_storage_reader.IndexedStorageReader`. It retains MCAP's summary and
+Protobuf decoding interfaces but yields selected messages from one chunk at
+a time in physical byte-offset order. `recording_pair_feasibility.decoder_types`
+resolves it lazily; the frozen default intake import graph is unchanged.
+Readiness I/O retains fixed failure context while nulling incomplete counts;
+the workflow pins the old inconclusive report/index lineage for one explicit
+successor. No domain arithmetic, model, raw deletion or resource limit changes.
+See `docs/bounded_storage_reader_v0197.md` for behavior and evidence limits.
+
 The v0.19.6 generic development intake adds `recording_ingestion` modules in
 domain, I/O, workflow and CLI layers. Domain owns strict declarations and
 support/clock summaries; I/O owns indexed metadata and disk-backed readiness;

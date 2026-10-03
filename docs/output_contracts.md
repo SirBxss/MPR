@@ -6,6 +6,11 @@ Binding contract: `docs/generic_recording_ingestion_v0196.md`. These new
 generic artifacts do not satisfy the pinned batch02 archive reader or v0.17
 independent-outing manifest/lock. No model reads them.
 
+The v0.19.7 engineering amendment adds the fields explicitly listed below
+to readiness only. Preserve old v0.19.6 JSON bytes; legacy reports omit those
+fields. Registration/specification keys and the scientific contract revision
+remain unchanged. See `docs/bounded_storage_reader_v0197.md`.
+
 `prepare` writes one fresh private strict-JSON specification. `register`
 writes exactly `source_specification.json` (original bytes) and
 `registration.json` (completion marker written last). Registration fields are
@@ -21,6 +26,8 @@ without a valid two-file registration is unusable.
 ```text
 contract_revision, purpose, batch_id, status,
 registration_sha256, source_specification_sha256,
+reader_implementation, preserved_readiness_report_sha256,
+selected_chunk_crc_validation_enabled,
 technical_recording_count, independent_outing_count,
 roles_assigned, cohort_lock_created, model_fitted,
 residual_profiles_constructed, numeric_conditions_exported,
@@ -45,7 +52,8 @@ Each recording has exactly:
 recording_id, raw_sha256, size_bytes, source_declaration_status,
 indexed_metadata, status, failure_code, counts, diagnostics,
 odometry, source_clock_order, log_clock_order,
-sensor_geometry_support, complete_condition_support, condition_failure_counts
+sensor_geometry_support, complete_condition_support, condition_failure_counts,
+reader_failure_context
 ```
 
 `counts` and `diagnostics` use the existing full geometry/timing definitions;
@@ -79,6 +87,35 @@ archive to consume. The all-recordings causality flag is false. Preserve such
 a report as execution evidence, not a zero-sample data finding. Exit codes:
 0 complete, 3 preserved inconclusive report, 2 preflight/input/dependency failure
 without a completed report. An interrupted write is not a completion marker.
+
+New v0.19.7 readiness has `reader_implementation` equal to
+`v0.19.7-indexed-storage-chunkwise-a1`; `preserved_readiness_report_sha256` is
+null for a first audit or the exact old JSON digest for the explicit successor.
+Readiness `runtime_versions` adds `zstandard` and `lz4` (version text or null);
+registration keeps `python`, `mcap`, `mcap-protobuf-support`, `protobuf`, `numpy`.
+The post-review R1 delta adds `selected_chunk_crc_validation_enabled: true`;
+the earlier reviewed v0.19.7 report omits this key. This is the enabled reader
+policy, not a claim that every chunk has a stored CRC. Readiness checks the
+uncompressed CRC of each chunk read for selected topics when its stored value
+is nonzero. CRC 0 is unavailable; ignored chunks, attachments and complete
+data-section/source integrity are not certified. A stored checksum mismatch
+returns `CRCValidationError`, with chunk context and null decoded observations.
+Each new recording also has `reader_failure_context`: null on success and
+failures outside chunk iteration, otherwise exactly:
+
+```text
+indexed_chunk_ordinal, chunk_start_offset_bytes,
+completed_selected_chunk_count, phase, compression, exception_class,
+process_virtual_memory_bytes, process_resident_memory_bytes
+```
+
+The ordinal, byte offset and completed-selected-chunk count are nonnegative
+integers. Memory snapshots are nonnegative integer bytes or null if unavailable.
+Phase is `chunk_read`, `chunk_decompression` or `chunk_records`; compression is
+`""`, `zstd`, `lz4` or `unsupported`. `exception_class` is the original class
+name; native error text is excluded. These container/execution observations
+must never be interpreted as completed prefix readiness. Scientific counts
+remain null on any incomplete stream, including a positive decoded prefix.
 
 ## v0.19.3 published batch02 consumer
 

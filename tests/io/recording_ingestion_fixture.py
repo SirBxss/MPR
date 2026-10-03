@@ -4,7 +4,8 @@ from tests.domain.test_geometry_validation import _estimated_schema
 from tests.domain.test_exploratory_residuals import T
 
 
-def write_recording(path, *, times=(T, T + 100_000_000), include_odometry=True, missing_confidence_at=None):
+def write_recording(path, *, times=(T, T + 100_000_000), include_odometry=True,
+                    missing_confidence_at=None, enable_crcs=True):
     from google.protobuf import descriptor_pb2, descriptor_pool, message_factory
     from mcap.writer import Writer, CompressionType
     from lane_residuals.io.recording_pair_feasibility import TOPICS
@@ -53,7 +54,7 @@ def write_recording(path, *, times=(T, T + 100_000_000), include_odometry=True, 
     for item in (geometry, odometry):
         descriptors.file.add().CopyFrom(item)
     with path.open("wb") as stream:
-        writer = Writer(stream, compression=CompressionType.ZSTD, chunk_size=1)
+        writer = Writer(stream, compression=CompressionType.ZSTD, chunk_size=1, enable_crcs=enable_crcs)
         writer.start()
         channels = []
         for topic, name in zip((*TOPICS, DEFAULT_ODOMETRY_TOPIC), names):

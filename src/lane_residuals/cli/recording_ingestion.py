@@ -38,6 +38,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     audit = subparsers.add_parser("audit", help="Audit indexed metadata, geometry and causal-input support after implementation review.")
     audit.add_argument("--registration-directory", required=True, type=Path)
     audit.add_argument("--scratch-directory", required=True, type=Path)
+    audit.add_argument("--preserved-readiness-report", type=Path,
+                       help="Preserve and reconcile an inconclusive ZstdError predecessor for a reviewed successor audit.")
     for command in (prepare, registration, audit):
         if command is not prepare:
             command.add_argument("--output-directory", required=True, type=Path)

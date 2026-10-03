@@ -90,6 +90,7 @@ class RecordingIngestionWorkflowTests(unittest.TestCase):
         self.assertEqual(report["recordings"][0]["complete_condition_support"]["transition_count"], 1)
         self.assertEqual(report["recordings"][0]["source_declaration_status"]["claimed_merged_input_mcap_count"], 180)
         self.assertIsNone(report["independent_outing_count"])
+        self.assertIs(report["selected_chunk_crc_validation_enabled"], True)
         for key in ("roles_assigned", "cohort_lock_created", "model_fitted", "residual_profiles_constructed",
                     "numeric_conditions_exported", "reference_independence_proven", "raw_cache_deletion_authorized"):
             self.assertIs(report[key], False)
@@ -198,6 +199,82 @@ class RecordingIngestionWorkflowTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "scratch_free_space_below_10gib"):
                 workflow.run_readiness(self.args)
         self.reader.assert_not_called(); self.assertFalse(self.args.output_directory.exists())
+
+    def preserved_failure(self):
+        self.register()
+        with patch.object(workflow, "inspect_recording_readiness", return_value=ingestion.inconclusive_readiness("ZstdError")):
+            prior, status = workflow.run_readiness(self.args)
+        self.assertEqual(status, 3)
+        path = self.args.output_directory/workflow.REPORT_NAME
+        self.args.preserved_readiness_report = path
+        self.args.output_directory = self.root/"successor"
+        return path, prior
+
+    def test_preserved_zstd_successor_reuses_registration_and_pins_exact_predecessor_bytes(self):
+        path, prior = self.preserved_failure()
+        old_bytes = path.read_bytes()
+        registration = {p.name: p.read_bytes() for p in self.registration.iterdir()}
+        report, status = workflow.run_readiness(self.args)
+        self.assertEqual(status, 0)
+        self.assertEqual(report["preserved_readiness_report_sha256"], hashlib.sha256(old_bytes).hexdigest())
+        self.assertEqual(report["recordings"][0]["indexed_metadata"], prior["recordings"][0]["indexed_metadata"])
+        self.assertEqual(report["reader_implementation"], "v0.19.7-indexed-storage-chunkwise-a1")
+        self.assertIn("zstandard", report["runtime_versions"])
+        self.assertIn("lz4", report["runtime_versions"])
+        self.assertEqual(path.read_bytes(), old_bytes)
+        self.assertEqual(registration, {p.name: p.read_bytes() for p in self.registration.iterdir()})
+        self.assertIsNone(report["recordings"][0]["reader_failure_context"])
+
+    def test_preserved_zstd_report_rejects_wrong_lineage_identity_and_nonnull_prefixes_before_decode(self):
+        path, prior = self.preserved_failure()
+        changes = (("registration_sha256", "0"*64), ("batch_id", "other"), ("status", "complete"),
+                   ("residual_profiles_constructed", True))
+        self.reader.reset_mock()
+        for key, value in changes:
+            changed = deepcopy(prior); changed[key] = value
+            path.write_text(json.dumps(changed))
+            with self.assertRaises(ValueError): workflow.run_readiness(self.args)
+        for key, value in (("raw_sha256", "0"*64), ("recording_id", "other"), ("size_bytes", 1),
+                           ("failure_code", "MemoryError"), ("counts", {}), ("indexed_metadata", None)):
+            changed = deepcopy(prior); changed["recordings"][0][key] = value
+            path.write_text(json.dumps(changed))
+            with self.assertRaises(ValueError): workflow.run_readiness(self.args)
+        changed = deepcopy(prior); del changed["recordings"][0]["counts"]
+        path.write_text(json.dumps(changed))
+        with self.assertRaises(ValueError): workflow.run_readiness(self.args)
+        self.reader.assert_not_called(); self.assertFalse(self.args.output_directory.exists())
+
+    def test_preserved_zstd_gate_is_single_recording_and_does_not_accept_other_batches(self):
+        path, prior = self.preserved_failure()
+        changed = deepcopy(prior); changed["recordings"].append(deepcopy(changed["recordings"][0]))
+        path.write_text(json.dumps(changed)); self.reader.reset_mock()
+        with self.assertRaisesRegex(ValueError, "one_zstd_predecessor_recording_required"):
+            workflow.run_readiness(self.args)
+        self.reader.assert_not_called(); self.assertFalse(self.args.output_directory.exists())
+
+    def test_preserved_indexed_metadata_must_match_before_successor_decoding(self):
+        path, prior = self.preserved_failure()
+        changed = deepcopy(prior["recordings"][0]["indexed_metadata"])
+        changed["advertised_message_count_all_topics"] += 1
+        self.reader.reset_mock()
+        with patch.object(workflow, "indexed_metadata", return_value=(changed, None)):
+            report, status = workflow.run_readiness(self.args)
+        self.assertEqual(status, 3)
+        self.assertEqual(report["recordings"][0]["failure_code"], "preserved_indexed_metadata_mismatch")
+        self.assertIsNone(report["recordings"][0]["counts"])
+        self.reader.assert_not_called()
+
+    def test_preserved_report_drift_during_successor_nulls_observations_before_publish(self):
+        path, prior = self.preserved_failure()
+        def messages(*args, **kwargs):
+            path.write_bytes(path.read_bytes()+b" ")
+            yield from self.messages
+        self.reader.side_effect = messages
+        report, status = workflow.run_readiness(self.args)
+        self.assertEqual(status, 3)
+        self.assertEqual(report["recordings"][0]["failure_code"], "preserved_readiness_changed_before_report_publish")
+        self.assertIsNone(report["recordings"][0]["counts"])
+        self.assertIsNone(report["recordings"][0]["indexed_metadata"])
 
 
 class RecordingIngestionCliTests(unittest.TestCase):

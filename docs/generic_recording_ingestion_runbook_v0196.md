@@ -1,5 +1,10 @@
 # MPR v0.19.6 — apply, review and inspect the new merged recording
 
+**Historical original runbook.** PR #28 is merged and its one pilot audit
+returned inconclusive ZstdError. Do not repeat these steps for pilot001.
+Read `recording_ingestion_batch03_v0196_result.md` and follow
+`bounded_storage_reader_runbook_v0197.md` for the reviewed corrective successor.
+
 This runbook is also the patch ZIP's `README.md`. Follow the sections in order.
 The code is based on merged PR #27, main
 `d03f7769c05ee751224aec3870b740c13a575edc`. No new private result is included.

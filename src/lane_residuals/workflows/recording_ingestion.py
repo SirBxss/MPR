@@ -20,7 +20,7 @@ from ..io.independent_outing_intake import read_strict_json_with_bytes
 from ..io.recording_ingestion import (
     TOPIC_LIMITS, file_state, inconclusive_readiness, indexed_metadata, inspect_recording_readiness, sha256_stream,
 )
-from ..io.recording_pair_feasibility import MAX_CHUNK_BYTES, MAX_SPOOL_BYTES, RecordingReadError, ResourceLimitError, decoder_types
+from ..io.recording_pair_feasibility import MAX_CHUNK_BYTES, MAX_SPOOL_BYTES, STORAGE_READER_IMPLEMENTATION, RecordingReadError, ResourceLimitError, decoder_types
 from ..io.reports import write_strict_json
 from .recording_pair_feasibility import _available_memory_bytes, MINIMUM_AVAILABLE_MEMORY_BYTES, MINIMUM_FREE_SCRATCH_BYTES
 
@@ -41,9 +41,10 @@ def _new_output(path):
     return output
 
 
-def _runtime():
+def _runtime(*, include_compression=False):
     versions = {"python": platform.python_version()}
-    for name in ("mcap", "mcap-protobuf-support", "protobuf", "numpy"):
+    names = ("mcap", "mcap-protobuf-support", "protobuf", "numpy")
+    for name in names + (("zstandard", "lz4") if include_compression else ()):
         try:
             versions[name] = version(name)
         except PackageNotFoundError:
@@ -159,15 +160,43 @@ def _resources(scratch):
     return {"mem_available_bytes": available, "scratch_free_bytes": free}
 
 
+def _preserved_readiness(arguments, registration, digest):
+    path = getattr(arguments, "preserved_readiness_report", None)
+    if path is None:
+        return None, None
+    report, raw = read_strict_json_with_bytes(path.expanduser())
+    if (not isinstance(report, dict) or report.get("contract_revision") != CONTRACT_REVISION or
+            report.get("purpose") != "development_only_recording_readiness" or
+            report.get("status") != "inconclusive" or report.get("batch_id") != registration["batch_id"] or
+            report.get("registration_sha256") != digest or
+            report.get("source_specification_sha256") != registration["source_specification_sha256"] or
+            report.get("technical_recording_count") != 1 or report.get("independent_outing_count") is not None or
+            any(report.get(key) is not False for key in ("roles_assigned", "cohort_lock_created", "model_fitted",
+                "residual_profiles_constructed", "numeric_conditions_exported", "raw_cache_deletion_authorized"))):
+        raise RecordingIngestionError("preserved_readiness_lineage_mismatch")
+    rows = report.get("recordings")
+    if not isinstance(rows, list) or len(rows) != 1 or len(registration["recordings"]) != 1:
+        raise RecordingIngestionError("one_zstd_predecessor_recording_required")
+    row, identity = rows[0], registration["recordings"][0]
+    if (not isinstance(row, dict) or any(row.get(key) != identity[key] for key in ("recording_id", "raw_sha256", "size_bytes")) or
+            row.get("status") != "inconclusive" or row.get("failure_code") != "ZstdError" or
+            not isinstance(row.get("indexed_metadata"), dict) or
+            any(key not in row or row[key] is not None for key in ("counts", "diagnostics", "odometry", "source_clock_order",
+                "log_clock_order", "sensor_geometry_support", "complete_condition_support", "condition_failure_counts"))):
+        raise RecordingIngestionError("preserved_zstd_readiness_identity_or_state_mismatch")
+    return report, hashlib.sha256(raw).hexdigest()
+
+
 def run_readiness(arguments):
     output = _new_output(arguments.output_directory)
     specification, registration, digest = _registration(arguments.registration_directory)
+    preserved, preserved_digest = _preserved_readiness(arguments, registration, digest)
     scratch = arguments.scratch_directory.expanduser().resolve(strict=True)
     if not scratch.is_dir():
         raise RecordingIngestionError("existing_scratch_directory_required")
     resources = _resources(scratch)
     decoder_types()
-    runtime = _runtime()
+    runtime = _runtime(include_compression=True)
     results, states = [], []
     for index, (identity, declaration) in enumerate(zip(registration["recordings"], specification["recordings"]), 1):
         path = Path(identity["canonical_path_private"])
@@ -182,6 +211,8 @@ def run_readiness(arguments):
             try:
                 _resources(scratch)
                 metadata, code = indexed_metadata(stream)
+                if preserved is not None and metadata != preserved["recordings"][index - 1]["indexed_metadata"]:
+                    raise RecordingReadError("preserved_indexed_metadata_mismatch")
                 if code is not None:
                     result = inconclusive_readiness(code)
                 else:
@@ -224,11 +255,21 @@ def run_readiness(arguments):
     if not metadata_unchanged:
         for row in results:
             row.update(inconclusive_readiness("registration_changed_before_report_publish"), indexed_metadata=None)
+    if preserved_digest is not None:
+        try:
+            predecessor_unchanged = sha256_file(arguments.preserved_readiness_report.expanduser()) == preserved_digest
+        except OSError:
+            predecessor_unchanged = False
+        if not predecessor_unchanged:
+            for row in results:
+                row.update(inconclusive_readiness("preserved_readiness_changed_before_report_publish"), indexed_metadata=None)
     complete = all(row["status"] == "complete" for row in results)
     soft, _ = resource.getrlimit(resource.RLIMIT_AS)
     report = {"contract_revision": CONTRACT_REVISION, "purpose": "development_only_recording_readiness",
         "batch_id": registration["batch_id"], "status": "complete" if complete else "inconclusive",
         "registration_sha256": digest, "source_specification_sha256": registration["source_specification_sha256"],
+        "reader_implementation": STORAGE_READER_IMPLEMENTATION, "preserved_readiness_report_sha256": preserved_digest,
+        "selected_chunk_crc_validation_enabled": True,
         "technical_recording_count": len(results), "independent_outing_count": None,
         "roles_assigned": False, "cohort_lock_created": False, "model_fitted": False,
         "residual_profiles_constructed": False, "numeric_conditions_exported": False,
