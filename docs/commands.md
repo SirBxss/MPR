@@ -1,6 +1,15 @@
 # Supported commands
 
-## Current 2026-10-03: reference evidence and preflight state
+## Current 2026-10-04: PR #30 evidence closure
+
+Use `reference_evidence_followup_runbook_20261004.md` for guarded commands
+that update **the existing PR #30**, final-head review/CI and the independent
+BMW-source/metadata-only follow-up prompts. Read the evidence reconciliation
+and draft native-audit proposal. Old step 6 remains deferred; no pose/foresight
+payload audit, all-topology residual or training command is added. The JSON's
+ad hoc v0.19.8 label is evidence metadata, not a supported MPR CLI version.
+
+## Historical 2026-10-03: reference evidence and preflight state
 
 PR #29 is merged at `fc6d5ff`. The owner's successor stopped before decoding
 on the 6 GiB memory guard; no report exists. Use

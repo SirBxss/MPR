@@ -28,7 +28,38 @@ implementation for the thesis; LEEM is historical reference material only.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
-## Current checkpoint: 2026-10-03
+## Current checkpoint: 2026-10-04
+
+PR #30 is open at `cf2ae298835f154e3e597e746408dfd47e24238a`, tree
+`ae8565dedaa2ccf0a8ba65c312eabebba3ed010c`. Claude GO has zero blockers;
+Actions run `37211254466` passes Python 3.10/3.12, each 579 tests/two skips,
+independently verified. A documentation-only evidence closure is prepared for
+the same PR; new-head delta GO/CI precede merge. Read
+`docs/reference_evidence_reconciliation_20261004.md` and the complete
+`docs/reference_evidence_followup_runbook_20261004.md`.
+
+The pilot's metadata report exposes 38 selected schema versions, including
+35 foresight topics and EDP/RLMB/pose/lane/ENU/MPP structures. Counts are
+advertised; no payload was decoded, fresh raw SHA or summary CRC verified.
+Source dossier `master@465073bc` is externally reported evidence, not a full
+immutable checkout identity or deployed recording build. It reports shared
+map/pose/camera dependencies, covariance basis changing with writer mode,
+and stamps that need not equal geometry epochs. Rebuilding foresight+pose
+does not establish a better independent reference. SENSOR can include map
+road-layer support; its enum alone does not establish independence.
+
+Old runbook step 6 remains deferred; ZstdError and decoded feasibility are
+unresolved. Next is the focused source/provenance follow-up and reviewed
+native-structure audit proposal in
+`docs/reference_native_structure_audit_proposal_20261004.md`. This is not a
+frozen contract, implementation or private-run authorization. Missing producer
+identity/mode can remain unknown for native counts; it blocks physical
+transformation/propagation/accuracy claims. Distinguish map-relative agreement
+from physical lane/path error and choose the target explicitly before export.
+No reference adoption, mode guessing, covariance propagation/correction,
+all-topology extraction, feature amendment, model fit, outing roles or deletion.
+
+## Historical checkpoint: 2026-10-03
 
 PR #29 merged as `fc6d5ff72c5812d43367897cc92416fd870e2686`; final head
 `fe97561a3cfe6c727b16c56d661c21d551ae7aa6` has passing Python 3.10/3.12 CI

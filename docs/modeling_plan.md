@@ -4,7 +4,20 @@ MPR is the canonical thesis implementation. LEEM is retained only as a source
 of implementation ideas and historical evidence; its model code and results
 are not the thesis execution path.
 
-## Current development decision: 2026-10-03
+## Current development decision: 2026-10-04
+
+Read `reference_evidence_reconciliation_20261004.md`. Recorded structures
+support a native availability audit proposal, not a better independent
+reference. Reported producer dependence and covariance/epoch conflicts block
+automatic foresight+pose replacement or propagation. Keep old step 6 deferred;
+review/freeze the next structural contract before implementation. Choose
+explicitly between map-relative disagreement and a separately justified
+physical-lane/path error target before numeric export. All-topology reporting
+must stratify source and attrition; SENSOR itself need not be independent.
+No real model fit or old/new comparison is authorized by metadata presence.
+Both flow modes remain synthetic-only; the six causal features stay frozen.
+
+## Historical development decision: 2026-10-03
 
 Prioritize the prospective all-topology EDP/reference evidence study in
 `reference_redesign_investigation_20261003.md`. The owner's road-team report

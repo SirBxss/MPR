@@ -32,6 +32,14 @@ against the merged source. There is no new readiness JSON to reconcile.
 | CLI error | `available_memory_below_6gib` | Fail before data processing |
 | Exit status | 2 | No completed audit |
 
+**2026-10-04 review clarification:** the above is the owner's initial stop,
+not every resource failure. The second `_resources` check occurs after raw
+hashing inside the per-recording `try`. A failure there produces **exit 3 and
+an inconclusive JSON with null decoded observations**, still resource-only.
+Claude reproduced this synthetically; it is not a new private execution.
+Preserve such a report and review any fresh successor path; do not overwrite
+it or reuse the ZstdError-only predecessor gate for a resource report.
+
 The memory requirement is exactly `6 * 1024**3` bytes, obtained from Linux
 `/proc/meminfo:MemAvailable`, not rounded `free -h` text. The disk snapshot
 is comfortably above the scratch threshold on this filesystem. This attempt

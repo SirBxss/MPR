@@ -1,10 +1,84 @@
 # Current project status
 
-Last updated: 2026-10-03. This is the first file a new agent should read after
+Last updated: 2026-10-04. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current: PR #29 merged; resource-only stop; prospective reference study
+## Current: PR #30 evidence reconciled; old step 6 deferred
+
+PR #30 is open, unmerged at `cf2ae298835f154e3e597e746408dfd47e24238a`,
+tree `ae8565dedaa2ccf0a8ba65c312eabebba3ed010c`, base merged PR #29
+`fc6d5ff72c5812d43367897cc92416fd870e2686`. Its original ten-file docs-only
+scope has Claude **GO/zero blockers**. This session independently verified
+Actions run `37211254466`, Python 3.10/3.12 jobs `111462756848` /
+`111462756661`: installation/compile/tests pass, **579 run, 577 pass,
+two existing skips**, MCAP 1.5.0. This closes the reviewer's CI limit for that
+head. A same-PR documentation delta is prepared; its final pushed head needs
+delta GO/CI before merge. No remote change or private execution was made here.
+
+The owner completed old README steps 1--5, supplied the four evidence files
+and correctly left step 6 pending. Read
+`reference_evidence_reconciliation_20261004.md` for exact file hashes, checked
+descriptor graphs/extents, reported source findings, inference limits and
+review-item disposition. The private 730,352-byte metadata JSON hash is
+`8b797a3efc5866fc067cdd596610d4cc7ac3f6621e8bcea6d623fbafcb505c9a`.
+It reports footer-offset-selected schema/channel/statistics reads, no chunks
+or payload decoding. All 38 descriptor graphs/counts/types match internally.
+There are 35 foresight topics, including lane data, ENU and MPP associations.
+EDP/RLMB/pose each advertise 36,032 messages; lane/ENU data 3,602. These are
+not validity, duration, rates, pairing or H100 residual counts. Raw SHA is a
+preserved declaration; nonzero summary CRC was not recomputed. The ad hoc
+report label v0.19.8 is not a new MPR implementation/package release.
+
+The BMW dossier identifies only `master@465073bc` dated 2026-08-05, lacking
+full checkout SHA/dirty state and recording deployment evidence. Its private
+source cannot be independently opened here. It reports map/pose/camera
+dependence across RLMB/EDP/foresight, space morphing, native EDP origin, held
+foresight restamping, copied EDP/RLMB timestamps and odometry compensation.
+SENSOR can include map road-layer support. Pose writer reportedly changes
+covariance basis between HPL ENU rotation-vector and GNSS along/cross-track;
+published yaw bias can lack matching covariance adjustment. Recorded repeated
+double covariance and status fields do not prove dimensions, convention,
+calibration or a unique mode discriminator. Structural schema compatibility
+does not establish the recorded software/calibration or acquisition date.
+
+**Decision:** keep old step 6 deferred. Foresight+same pose is not adopted as
+a better/independent reference; covariance is not a mean correction or known
+reference-error distribution. Map-relative EDP disagreement could be studied
+under a reviewed explicit target, but cannot be called physical lane/path
+error. The paper/thesis scope needs an explicit decision before extraction.
+Trace the reported ASTAS KPI reference for actual measured quantities and
+availability; independent ego pose alone does not prove lane/path truth.
+
+The delta documents N1/N2: initial resource failure exit 2/no report, later
+post-hash resource failure exit 3/inconclusive report; recovery guards use
+explicit checks that survive Python optimization. Existing old reports/inputs
+remain immutable, ZstdError unresolved. No new decoded counts or residuals.
+Old 95.1% map share is conditional on valid map-based RLMB anchoring and is
+not a drive-wide source share; source-stratified counts/attrition are mandatory.
+
+Next actions are completely specified in
+`reference_evidence_followup_runbook_20261004.md`: apply/push to **same PR #30**,
+obtain final-head delta GO and Python 3.10/3.12 CI, merge; BMW-source and
+metadata-only provenance follow-ups can run in parallel and require no MPR
+knowledge in the BMW prompt. Do not repeat old evidence scans or request
+unavailable session/build evidence indefinitely. Native counting can preserve
+unknown producer semantics while physical conversion cannot assume them.
+The native-audit scope in
+`reference_native_structure_audit_proposal_20261004.md` is a **draft**: freeze
+explicit budgets/publication/schema policy and obtain focused contract review
+before implementation; synthetic tests and implementation GO/CI before one
+private run. There is no new audit CLI or payload command in this delta.
+
+After native results, establish reference/frame/epoch/lane binding and version
+the target/all-topology population, then numeric export/archive validation,
+causal sequence validation and real fits. Preserve old SENSOR-only archives,
+six features, H100/sign/no-extrapolation rules and training-only transforms.
+Both flow modes remain synthetic-only. New-data versus old-data and model
+comparisons must separate population/target/model changes and use declared
+physical-session evaluation groups. No final-data roles or raw deletion.
+
+## Historical 2026-10-03: PR #29 merged; resource-only stop; reference study
 
 PR #29 merged as `fc6d5ff72c5812d43367897cc92416fd870e2686`, final feature head
 `fe97561a3cfe6c727b16c56d661c21d551ae7aa6`. The tree

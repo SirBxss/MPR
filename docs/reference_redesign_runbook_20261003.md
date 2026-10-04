@@ -1,5 +1,11 @@
 # MPR: close the preflight incident and investigate the reference
 
+**2026-10-04 continuation:** steps 1--5 have returned evidence and PR #30 is
+open. Use `reference_evidence_followup_runbook_20261004.md` for the same-PR
+closure and focused follow-up prompts. Step 6 below **remains deferred**;
+metadata presence does not establish new reference validity. Its guards now
+survive Python optimization, and the later resource-stop case is explicit.
+
 Date: 2026-10-03. This is the delivery ZIP's complete README.
 Patch scope is **documentation only** on merged main
 `fc6d5ff72c5812d43367897cc92416fd870e2686`. No new topic decoder, topology
@@ -202,9 +208,11 @@ available**, not only the MPR project. The MPR checkout alone does not contain
 these BMW definitions. Paste the following as a read-only task:
 
 ```text
-Perform a read-only source investigation for MPR's prospective estimate/reference
-study. Do not modify code, use credentials, export raw source/recordings, run
-private payload scans or infer interfaces from names. Record literal checkout
+Perform a read-only source investigation of path-estimation and map-derived
+lane geometry interfaces. No external project context is required. Do not
+modify files (including repository-memory notes), use credentials, export raw
+source/recordings, run private payload scans or infer interfaces from names.
+Record literal checkout
 HEAD SHA and dirty state. Tie each claim to complete tracked path, symbol,
 line range and exact revision; inspect Git history where behavior changed.
 If the BMW checkout is unavailable, state that and stop the source phase.
@@ -297,6 +305,11 @@ directory and report its content hash. Do not claim schema alone proves frame,
 timestamp, covariance calibration or producer independence.
 ```
 
+Steps 4 and 5 are independent and can run in parallel: source investigation
+uses the BMW checkout, while recorded metadata inspection uses MPR and the
+registered local file. Neither requires deferred step 6. The returned schema
+inventory is now reconciled in `reference_evidence_reconciliation_20261004.md`.
+
 These are local evidence tasks, not a newly supported MPR CLI or authorization
 to improvise a payload scan. Do not call the existing `path_probe` with new
 topic names: it is EDP-specific and does not establish the new schemas.
@@ -357,27 +370,31 @@ recover, not automatic repeated retries after payload failures/reports.
 from pathlib import Path
 import json, shutil, sys
 registration = json.loads(Path(sys.argv[1]).read_text())
-assert registration['batch_id'] == 'batch03_aws_pilot001'
-assert len(registration['recordings']) == 1
+def require(condition, message):
+    if not condition:
+        raise SystemExit('Stop: ' + message)
+require(registration['batch_id'] == 'batch03_aws_pilot001', 'unexpected batch identity')
+require(len(registration['recordings']) == 1, 'expected one technical recording')
 row = registration['recordings'][0]
-assert row['recording_id'] == 'pilot_001'
-assert row['raw_sha256'] == 'a2fee0ef9d1150b72fba3e6a91bd3530ebb54e7e26902fdd9edad49ee2239d78'
-assert row['size_bytes'] == 29961313204
+require(row['recording_id'] == 'pilot_001', 'unexpected recording identity')
+require(row['raw_sha256'] == 'a2fee0ef9d1150b72fba3e6a91bd3530ebb54e7e26902fdd9edad49ee2239d78', 'raw declaration changed')
+require(row['size_bytes'] == 29961313204, 'registered size changed')
 raw = Path(row['canonical_path_private'])
-assert raw.is_file() and raw.stat().st_size == row['size_bytes']
+require(raw.is_file() and raw.stat().st_size == row['size_bytes'], 'raw path or size changed')
 with raw.open('rb') as stream:
-    assert stream.read(1)
+    require(bool(stream.read(1)), 'raw file is not readable')
 output, scratch = map(Path, sys.argv[2:])
-assert not output.exists() and not output.is_symlink(), 'successor output already exists'
-assert not scratch.is_symlink(), 'scratch is a symlink'
+require(not output.exists() and not output.is_symlink(), 'successor output already exists')
+require(not scratch.is_symlink(), 'scratch is a symlink')
 if scratch.exists():
-    assert scratch.is_dir() and next(scratch.iterdir(), None) is None, 'scratch is not empty'
+    require(scratch.is_dir(), 'scratch is not a directory')
+    require(next(scratch.iterdir(), None) is None, 'scratch is not empty')
 else:
     scratch.mkdir(parents=True)
 available = next(int(line.split()[1])*1024 for line in Path('/proc/meminfo').read_text().splitlines()
                  if line.startswith('MemAvailable:'))
-assert available >= 6*1024**3, 'available memory below 6 GiB; no audit started'
-assert shutil.disk_usage(scratch).free >= 10*1024**3, 'scratch free below 10 GiB'
+require(available >= 6*1024**3, 'available memory below 6 GiB; no audit started')
+require(shutil.disk_usage(scratch).free >= 10*1024**3, 'scratch free below 10 GiB')
 print('Preserved identity and empty scratch checked; audit will rehash raw bytes once.')
 PY
   free -h
@@ -399,7 +416,20 @@ PY
 ```
 
 This reuses empty scratch; it deletes nothing and does not touch the old
-report. Any later failure/report requires reconciliation. If a completed
+report. The two resource checks have different publication outcomes:
+
+| Stop | Exit | New report | Meaning |
+|---|---:|---|---|
+| Initial resource preflight | 2 | Absent | No raw hash or decode started |
+| Resource recheck after raw hashing, inside the per-recording try | 3 | Inconclusive, null observations | Raw identity checked; no new decoded data finding |
+
+The latter report can have `available_memory_below_6gib` or
+`scratch_free_space_below_10gib`; preserve it. Its existing output makes this
+recovery stop. The ZstdError-only predecessor gate cannot accept that new
+resource report as a replacement predecessor. Any further attempt requires
+reconciliation and a reviewed fresh output path, not deletion or auto-retry.
+
+Any later failure/report requires reconciliation. If a completed
 report is produced, package it using section 6 of the existing
 `bounded_storage_reader_crc_runbook_v0197.md`, and return its JSON ZIP, code
 SHA, ZIP SHA and terminal output. Do not ZIP an absent output or describe exit

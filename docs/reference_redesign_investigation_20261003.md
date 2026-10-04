@@ -1,5 +1,10 @@
 # Prospective all-topology EDP and reference investigation
 
+**2026-10-04 evidence update:** the first source/recorded-schema inquiry has
+returned; read `reference_evidence_reconciliation_20261004.md`. Reported source
+dependence and mode-dependent covariance narrow the feasible interpretation.
+This original proposal is not an adopted reference or covariance model.
+
 Date: 2026-10-03. Status: evidence-acquisition and methodological discussion,
 **not an adopted new residual target, reference, extractor or feature schema**.
 MPR remains the canonical thesis implementation. This record supersedes the
@@ -193,6 +198,9 @@ reference normals. Retain common longitudinal support without extrapolation.
 Small perturbations can change the nearest branch or lane identity, where a
 single local Gaussian/Jacobian approximation becomes unsuitable. A 6 x 6
 continuous pose covariance does not encode a multimodal lane-choice error.
+Perturbations can also move candidates across the <= 1 m anchor and H100
+coverage gates. That censoring/selection change is not captured by a local
+Jacobian on the already accepted population; report gate stability separately.
 Plan synthetic finite-difference and perturbation-draw checks on stable
 correspondences before any private covariance propagation is implemented.
 

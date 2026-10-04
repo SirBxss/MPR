@@ -1,5 +1,12 @@
 # Project architecture
 
+The 2026-10-04 evidence closure is still docs-only: recorded descriptors and
+externally reported producer semantics are reconciled separately from payload
+validity. Read `reference_evidence_reconciliation_20261004.md` and the draft
+`reference_native_structure_audit_proposal_20261004.md`. Shared I/O layers do
+not authorize covariance mode inference, cross-frame conversion, a new
+reference or all-topology export. No new CLI/adapter is implemented.
+
 The 2026-10-03 reference investigation is a documentation/evidence phase.
 No new pose/foresight adapter, all-topology exporter or fusion is implemented.
 Existing readiness still counts multiple EDP source populations while its

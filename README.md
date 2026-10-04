@@ -1,6 +1,20 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-03):** PR #29 merged as `fc6d5ff`, with the CRC
+**Current checkpoint (2026-10-04):** PR #30's original `cf2ae29` has Claude
+GO/zero blockers and verified passing Python 3.10/3.12 CI (579 tests/two
+existing skips). Returned metadata exposes EDP/RLMB/pose/foresight schemas;
+advertised counts do not establish residual feasibility. Reported BMW source
+shows shared map/pose dependencies and mode-dependent covariance/epoch
+caveats. Foresight plus pose is not adopted as better independent truth.
+**Old runbook step 6 remains deferred.** The docs-only same-PR closure and
+focused next tasks are in the
+[`complete follow-up runbook`](docs/reference_evidence_followup_runbook_20261004.md),
+[`evidence reconciliation`](docs/reference_evidence_reconciliation_20261004.md)
+and [`draft native-audit proposal`](docs/reference_native_structure_audit_proposal_20261004.md).
+New-head delta GO/CI precede merge. No new decoder, residuals, covariance
+propagation, all-topology export, fit or raw deletion follows from these files.
+
+**Historical checkpoint (2026-10-03):** PR #29 merged as `fc6d5ff`, with the CRC
 correction and final-head Python 3.10/3.12 CI. The post-merge 56 focused tests
 passed. The private successor stopped **before hashing/decoding**, exit 2:
 4.5 GiB available RAM < 6 GiB; disk free 53 GiB passed. No new report/pair
