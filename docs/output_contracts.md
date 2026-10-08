@@ -1,5 +1,79 @@
 # v0.4.5 output contracts
 
+## v0.19.8 registered-file metadata inventory
+
+Binding contract: `generic_recording_inventory_v0198.md`. Registration and
+specification remain unchanged v0.19.6 inputs. A fresh output contains only
+`recording_inventory.json`, with exactly these top-level fields:
+
+```text
+contract_revision, purpose, batch_id, status,
+registration_sha256, source_specification_sha256,
+technical_recording_count, independent_outing_count,
+message_payloads_decoded, geometry_readiness_assessed,
+residual_profiles_constructed, numeric_conditions_exported,
+reference_independence_proven, model_fitted, roles_assigned,
+raw_cache_deletion_authorized, runtime_versions, runtime_source_sha256,
+execution_limits, resources_at_start, recordings, interpretation
+```
+
+Revision: `v0.19.8-registered-mcap-inventory-2026-10-08-a1`; purpose:
+`development_only_recording_inventory`. Independent outings remain null;
+all decoded/readiness/residual/export/proof/fit/role/deletion flags are false.
+Runtime uses the original registration fingerprint version set. Limits and
+resources explicitly record execution policy; the existing CLI applies <=4 GiB.
+
+Each recording has exactly `recording_id`, `raw_sha256`, `size_bytes`,
+`source_declaration_status`, `status`, `failure_code`, `inventory`. On success
+failure_code is null. On incomplete inventory, all `inventory` is null:
+no prefix topic/schema/statistics count survives. Other completed recordings
+may remain visible; there are no pooled counts. Raw or registration drift
+invalidates affected inventories. Exit 0 complete, 3 completed inconclusive
+JSON, 2 input/preflight error without a completed report.
+
+A complete inventory has exactly:
+
+```text
+summary_crc_status, summary_bytes, summary_record_groups,
+summary_offsets_present, header_profile_present,
+header_library_present, header_library_sha256,
+schemas, channels, topics, advertised_statistics,
+chunk_index_summary, auxiliary_indexes
+```
+
+CRC status is `validated` for a matching nonzero stored summary CRC or
+`unavailable` for zero; mismatch is inconclusive. Summary bytes include summary
+offsets; groups each contain opcode, record_count and total_bytes, without raw
+positions. Header strings are not exported. Schema rows have schema_id, name,
+encoding, data_size_bytes and data_sha256; descriptor bytes are not exported.
+Channel rows have channel_id, schema_id, topic, message_encoding,
+metadata_entry_count and advertised_message_count. No metadata keys/values are
+exported. Topic rows have topic, channel_count and advertised_message_count;
+multiple schema/channel versions remain separate in the preceding tables.
+
+Statistics are null if absent. Otherwise exactly message_count, schema_count,
+channel_count, attachment_count, metadata_count, chunk_count,
+log_start_ns_decimal, log_end_ns_decimal. These are advertised MCAP counts/
+log endpoints, not decoded observations or verified acquisition UTC. Per-topic/
+channel counts are null when the channel-count map is unavailable and total
+messages is positive. A nonempty map is reconciled to total count; unlisted
+channels then have advertised zero. An explicitly zero advertised total
+permits zero per-channel counts.
+
+Chunk summary has indexed_chunk_count, compression_counts,
+maximum_advertised_chunk_sizes (record_length_bytes, compressed_bytes,
+uncompressed_bytes), and index_order_and_global_chunk_uniqueness_verified:
+false. Compression keys are empty string, zstd, lz4 or other. No chunk-index
+list/coordinates or actual chunk validation is exported. Index counts/sizes
+can exceed readiness's decoding ceiling without making inventory incomplete.
+Auxiliary indexes have metadata_index_count, attachment_index_count,
+metadata_records_inspected:false, attachment_records_inspected:false. Index
+presence/absence is not a full producer-identity census; file-level record
+values and attachment contents remain uninspected.
+
+This artifact is not accepted by a residual/archive/model workflow, does not
+replace any readiness result, and cannot authorize old step 6 or deletion.
+
 ## v0.19.6 generic development recording readiness
 
 Binding contract: `docs/generic_recording_ingestion_v0196.md`. These new

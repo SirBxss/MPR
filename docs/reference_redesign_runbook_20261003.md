@@ -201,6 +201,12 @@ asking for unavailable old batch02 session evidence.
 After documentation GO and CI pass, merge this new PR. The read-only evidence
 gathering below can proceed while it is reviewed. It changes no MPR source.
 
+Historical prompt note (added 2026-10-08): the step-4 prompt below was revised
+on 2026-10-04 after the owner's first execution at the original `cf2ae29`
+version. Later restrictions are not retrospective claims about that execution.
+The post-merge continuation is `generic_recording_inventory_runbook_v0198.md`;
+old step 6 remains deferred.
+
 ## 4. Acquire the BMW source evidence
 
 Use Codex in PyCharm or Copilot **with the BMW producer/interface checkout

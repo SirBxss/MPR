@@ -16,6 +16,9 @@ def _bounded_run(arguments):
     soft = PROCESS_ADDRESS_SPACE_BYTES if previous[0] == resource.RLIM_INFINITY else min(previous[0], PROCESS_ADDRESS_SPACE_BYTES)
     resource.setrlimit(resource.RLIMIT_AS, (soft, previous[1]))
     try:
+        if arguments.command == "inventory":
+            from ..workflows.recording_inventory import run_inventory
+            return run_inventory(arguments)
         from ..workflows.recording_ingestion import run_prepare, run_readiness, run_registration
         return {"prepare": run_prepare, "register": run_registration, "audit": run_readiness}[arguments.command](arguments)
     finally:
@@ -23,7 +26,7 @@ def _bounded_run(arguments):
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Development-only MCAP registration and bounded EDP/RLMB/input readiness; no residual export or fit.")
+    parser = argparse.ArgumentParser(description="Development-only MCAP registration, metadata inventory and bounded EDP/RLMB/input readiness; no residual export or fit.")
     subparsers = parser.add_subparsers(dest="command", required=True)
     prepare = subparsers.add_parser("prepare", help="Create a one-recording development declaration with unknown evidence set to null.")
     prepare.add_argument("--mcap-file", required=True, type=Path)
@@ -35,12 +38,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     prepare.add_argument("--output-specification", required=True, type=Path)
     registration = subparsers.add_parser("register", help="Hash files and preserve source declarations; no payload decoding.")
     registration.add_argument("--specification", required=True, type=Path)
+    inventory = subparsers.add_parser("inventory", help="Inventory every summary topic/schema/count on registered bytes without decoding payloads.")
+    inventory.add_argument("--registration-directory", required=True, type=Path)
+    inventory.add_argument("--scratch-directory", required=True, type=Path)
     audit = subparsers.add_parser("audit", help="Audit indexed metadata, geometry and causal-input support after implementation review.")
     audit.add_argument("--registration-directory", required=True, type=Path)
     audit.add_argument("--scratch-directory", required=True, type=Path)
     audit.add_argument("--preserved-readiness-report", type=Path,
                        help="Preserve and reconcile an inconclusive ZstdError predecessor for a reviewed successor audit.")
-    for command in (prepare, registration, audit):
+    for command in (prepare, registration, inventory, audit):
         if command is not prepare:
             command.add_argument("--output-directory", required=True, type=Path)
         command.add_argument("--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO")
@@ -50,13 +56,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         _, status = _bounded_run(arguments)
         return status
     except MemoryError:
-        logging.error("memory_limit; no completed audit")
+        logging.error("memory_limit; no completed %s", "inventory" if arguments.command == "inventory" else "audit")
         return 2
     except (OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as error:
         # Never print decoder exceptions, raw paths, source locators or payloads.
         from ..domain.recording_ingestion import RecordingIngestionError
         code = error.code if isinstance(error, RecordingIngestionError) else type(error).__name__
-        logging.error("%s; no completed audit (see the runbook and preserve existing outputs)", code)
+        logging.error("%s; no completed %s (see the runbook and preserve existing outputs)",
+                      code, "inventory" if arguments.command == "inventory" else "audit")
         return 2
 
 

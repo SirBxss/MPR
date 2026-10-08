@@ -4,7 +4,18 @@ MPR is the canonical thesis implementation. LEEM is retained only as a source
 of implementation ideas and historical evidence; its model code and results
 are not the thesis execution path.
 
-## Current development decision: 2026-10-04
+## Current development decision: 2026-10-08
+
+Resume generic intake infrastructure with registered-file metadata inventory.
+Read `generic_recording_inventory_v0198.md` and
+`reference_evidence_checkpoint_20261008.md`. Inventory is independent of the
+unresolved scientific reference/target and is not the native-structure audit.
+No topology/feature/target amendment or model fit follows from its completion.
+Keep the old readiness step deferred; review the one new inventory before
+choosing a separate decoder follow-up. Archive export, training, old/new
+comparisons and raw retirement retain their documented evidence requirements.
+
+## Historical development decision: 2026-10-04
 
 Read `reference_evidence_reconciliation_20261004.md`. Recorded structures
 support a native availability audit proposal, not a better independent

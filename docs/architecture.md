@@ -1,5 +1,13 @@
 # Project architecture
 
+The v0.19.8 generic inventory uses `io.recording_inventory` for standard-library,
+one-record summary parsing/CRC and bounded metadata aggregates;
+`workflows.recording_inventory` reuses immutable registration/resource/runtime
+helpers and owns verified-file/batch publication. The existing CLI imports
+this workflow only for the new `inventory` subcommand. No decoder, scientific
+calculation or model is invoked; the old audit and frozen intake graph remain
+unchanged. See `generic_recording_inventory_v0198.md`.
+
 The 2026-10-04 evidence closure is still docs-only: recorded descriptors and
 externally reported producer semantics are reconciled separately from payload
 validity. Read `reference_evidence_reconciliation_20261004.md` and the draft
