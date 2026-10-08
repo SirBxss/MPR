@@ -1,6 +1,17 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-04):** PR #30's original `cf2ae29` has Claude
+**Current checkpoint (2026-10-08):** PR #30 is merged as `c8a7572`; final
+review GO and Python 3.10/3.12 CI passed. Generic intake resumes with a new
+registered-file `inventory` command: every summary topic/schema/count,
+streamed chunk-index aggregates and nonzero summary CRC checks, without
+payload decoding. Prepare/register/readiness stay reusable; a generic numeric
+export, real fits and raw retirement are still later stages. The 30 GB pilot
+has no completed decode result; old step 6 remains deferred. See the complete
+[`apply/test/PR/review/pilot runbook`](docs/generic_recording_inventory_runbook_v0198.md),
+[`inventory contract`](docs/generic_recording_inventory_v0198.md), and
+[`post-merge evidence checkpoint`](docs/reference_evidence_checkpoint_20261008.md).
+
+**Historical checkpoint (2026-10-04):** PR #30's original `cf2ae29` has Claude
 GO/zero blockers and verified passing Python 3.10/3.12 CI (579 tests/two
 existing skips). Returned metadata exposes EDP/RLMB/pose/foresight schemas;
 advertised counts do not establish residual feasibility. Reported BMW source

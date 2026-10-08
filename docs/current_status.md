@@ -1,10 +1,57 @@
 # Current project status
 
-Last updated: 2026-10-04. This is the first file a new agent should read after
+Last updated: 2026-10-08. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current: PR #30 evidence reconciled; old step 6 deferred
+## Current: generic registered-file inventory implemented for review
+
+PR #30 merged on 2026-10-05 as `c8a757229c87d040d913ccdeed96364fd1d5e0bc`.
+Final head `1e1fe43`, tree `badf8da510ea6632f20d50402ac3e20e033a6fae`, has
+Claude GO/zero blockers and dated Codex verification of exact-head Actions
+37290291636: Python 3.10/3.12 each 579 run/577 pass/two skips. No newer
+main implementation exists as checked 2026-10-08.
+
+The owner returns to generic pipeline work. New `recording_ingestion inventory`
+reuses the immutable v0.19.6 registration, verifies each raw file once through
+one descriptor and inventories every summary topic/schema/advertised count.
+It streams chunk-index aggregates and validates nonzero summary CRCs without
+retaining the whole index or decoding a payload. Unknown encodings remain
+metadata evidence. Missing statistics/maps stay null, file-level metadata
+values uninspected, affected partial inventories null. Old prepare/register/
+readiness, scientific target/topology/six features and pinned archives stay
+unchanged. Read `generic_recording_inventory_v0198.md` and its complete runbook.
+
+Next: apply/test/push a new feature PR; focused implementation GO and exact-head
+Python 3.10/3.12 CI; merge; then one registered-pilot inventory in a fresh
+output, with old registration/report hash guards. Return its JSON/receipt ZIP
+for reconciliation. No private execution or decoded result was produced here.
+Validation: Python 3.12.14, full delivery suite 606 run/604 pass/two skips;
+27 inventory tests; 74 combined inventory/reader/readiness tests under MCAP
+1.4.0; standard-writer parity under 1.4.0 and 1.5.0; exact tree application,
+README shell syntax and 45 guard fixture executions across five interpreter
+modes. A synthetic 224 MB chunk-index group with 116,243 indexes/185 entries
+each completed in 18.868 s; this is not private-file throughput. Inventory
+metadata memory stays bounded by the declared records/text, not index count.
+This command is separate from old readiness step 6, which remains deferred.
+ZstdError and valid native geometry remain unresolved. Inventory completion
+cannot prove producer identity, readiness, H100 pairs or independent ground truth.
+
+Read `reference_evidence_checkpoint_20261008.md` for all four returned Oct-05
+artifacts, the fully reported BMW source checkout and the covariance/range/
+epoch/dependence conclusions. Native-reference audit remains a draft requiring
+its own reviewed contract; no reference construction is adopted. Jonas's
+odometry proposal was evaluated but is not an implemented target. Do not
+infer Data Portal filter values or segment semantics from the acquisition lead.
+
+A completed inventory is followed by the smallest supported decoder/readiness
+follow-up. Generic numeric export still needs a chosen target/population,
+completed diagnostics and exact parity; then archive validation, grouped
+causal sequences and real fits. Raw retirement requires durable verified
+numeric outputs and tested retrieval, not merely AWS access. Both flows stay
+synthetic-only. Physical outings/untouched evaluation groups remain prospective.
+
+## Historical 2026-10-04: PR #30 evidence reconciled; old step 6 deferred
 
 PR #30 is open, unmerged at `cf2ae298835f154e3e597e746408dfd47e24238a`,
 tree `ae8565dedaa2ccf0a8ba65c312eabebba3ed010c`, base merged PR #29

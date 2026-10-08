@@ -1,5 +1,16 @@
 # Supported commands
 
+## New v0.19.8 registered-file inventory
+
+Use `python -m lane_residuals.cli.recording_ingestion inventory` with
+`--registration-directory`, an existing `--scratch-directory`, and a fresh
+`--output-directory`. It inventories all summary topics/schemas/counts without
+decoding messages; it has no readiness-successor flag. Exact complete apply,
+PR/review and post-merge pilot commands are in
+[`generic_recording_inventory_runbook_v0198.md`](generic_recording_inventory_runbook_v0198.md).
+Old step 6 is still deferred. Unknown encodings are metadata, not supported
+residual inputs; exit 0 means inventory completion only.
+
 ## Current 2026-10-04: PR #30 evidence closure
 
 Use `reference_evidence_followup_runbook_20261004.md` for guarded commands

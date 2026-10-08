@@ -28,7 +28,26 @@ implementation for the thesis; LEEM is historical reference material only.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
-## Current checkpoint: 2026-10-04
+## Current checkpoint: 2026-10-08
+
+PR #30 is merged as `c8a757229c87d040d913ccdeed96364fd1d5e0bc`, tree
+`badf8da510ea6632f20d50402ac3e20e033a6fae`; reviewed final head `1e1fe43`
+has Claude GO/zero blockers and independently verified exact-head CI.
+Read `docs/reference_evidence_checkpoint_20261008.md` for all returned
+Oct-05 evidence and its distinctions between recording/source/hypothesis.
+
+The owner resumes generic pipeline work. The new registered-file inventory
+is metadata only, with raw verification and bounded summary parsing; it
+neither implements nor freezes the native-reference proposal. Read
+`docs/generic_recording_inventory_v0198.md` and its complete runbook before
+running `recording_ingestion inventory`. Exact-head implementation GO and
+Python 3.10/3.12 CI precede one new private inventory in a fresh directory.
+No new private result exists here. Old step 6 remains deferred, the pilot
+ZstdError unresolved, decoded support unknown. Preserve all old identities.
+Generic numeric export, reference/target/population adoption, real fits,
+outing roles and raw deletion remain separate evidence-backed steps.
+
+## Historical checkpoint: 2026-10-04
 
 PR #30 is open at `cf2ae298835f154e3e597e746408dfd47e24238a`, tree
 `ae8565dedaa2ccf0a8ba65c312eabebba3ed010c`. Claude GO has zero blockers;
