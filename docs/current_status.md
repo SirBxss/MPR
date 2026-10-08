@@ -4,7 +4,44 @@ Last updated: 2026-10-08. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current: PR #31 merged; pilot inventory complete; payload support unknown
+## Current: v0.19.9 selected-stream decode check prepared for review
+
+Remote base is merged PR #31, `05e0c71f93f8133204f6b5577f5ca69662f647fc`.
+The accepted inventory closure below is included alongside the implementation.
+`recording_ingestion decode-check` validates a complete preserved inventory
+and existing registration, freshly hashes each raw file once and decodes
+explicit selected Protobuf streams using disk-backed scalar ChunkIndex ordering.
+It validates selected nonzero chunk CRCs and reconciles decoded per-channel
+counts; affected incomplete results are null with safe progress context and
+first-cause retention. It does not invoke geometry or a scientific adapter.
+
+The old chunkwise reader still retains every index/map via SeekingReader;
+the new reader streams index maps and stages scalar ordering on disk. A valid
+116,243-chunk/185-channel-per-index synthetic MCAP completes under 256 MiB
+RLIMIT_AS (36,440 KiB RSS) while old summary loading hits MemoryError. This
+establishes the engineering difference, not the private original ZstdError's
+cause. Read `generic_recording_decode_check_v0199.md` for exact coverage,
+budgets, unsupported cases and interpretation; its runbook contains all
+apply/test/PR/Claude/post-merge run/report steps.
+
+Local suite: 650 run, 648 pass, two unchanged opt-in skips; 44 focused decode
+tests; focused tests also pass with MCAP 1.4/1.5 and optimized execution,
+and all 80 synthetic README guard cases pass in normal/optimized modes.
+Review/CI at the pushed head and merge are pending; no new remote PR
+or private payload result is claimed. The owner should apply the complete
+two-patch bundle to this exact main base, test, push a new branch/open a PR,
+obtain implementation GO and Python 3.10/3.12 CI, then merge. Only then run
+one new EDP/RLMB/odometry decoding check, preserving old files and the complete
+inventory hash. Exit 0/3 report returns for review; exit 2 stops without retry.
+
+Real decoded support remains unknown. Successful decoding would unblock
+bounded semantic/geometry work; it would not select ground truth or a
+training target. The native-reference proposal remains separately draft,
+all-topology EDP is not adopted, old scientific adapters/archives remain fixed,
+both flows stay synthetic-only, and no numeric export, fit, outing roles or
+raw retirement is authorized. Old deferred step 6 remains deferred.
+
+## Historical 2026-10-08: PR #31 merged; pilot inventory complete
 
 PR #31 merged as `05e0c71f93f8133204f6b5577f5ca69662f647fc`, tree
 `b44bbc4f18fc68a5a7f0ec8875f9a4f5b3feab7e`. Claude GO/zero blockers covered

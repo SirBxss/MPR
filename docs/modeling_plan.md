@@ -1,5 +1,12 @@
 # Thesis modeling plan
 
+The v0.19.9 generic selected-stream decoder is infrastructure only: successful
+byte decoding/count reconciliation does not adopt all-topology EDP, an
+independent reference or a new training population. Review its real result
+before semantic extraction and target/session/causal decisions. Both flow
+modes remain synthetic-only; no new or legacy/new combined fit follows from
+the metadata inventory or this decoder. See `generic_recording_decode_check_v0199.md`.
+
 MPR is the canonical thesis implementation. LEEM is retained only as a source
 of implementation ideas and historical evidence; its model code and results
 are not the thesis execution path.

@@ -19,6 +19,9 @@ def _bounded_run(arguments):
         if arguments.command == "inventory":
             from ..workflows.recording_inventory import run_inventory
             return run_inventory(arguments)
+        if arguments.command == "decode-check":
+            from ..workflows.recording_decode_check import run_decode_check
+            return run_decode_check(arguments)
         from ..workflows.recording_ingestion import run_prepare, run_readiness, run_registration
         return {"prepare": run_prepare, "register": run_registration, "audit": run_readiness}[arguments.command](arguments)
     finally:
@@ -26,7 +29,7 @@ def _bounded_run(arguments):
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Development-only MCAP registration, metadata inventory and bounded EDP/RLMB/input readiness; no residual export or fit.")
+    parser = argparse.ArgumentParser(description="Development-only MCAP registration, inventory, selected-stream decoding and EDP/RLMB/input readiness; no residual export or fit.")
     subparsers = parser.add_subparsers(dest="command", required=True)
     prepare = subparsers.add_parser("prepare", help="Create a one-recording development declaration with unknown evidence set to null.")
     prepare.add_argument("--mcap-file", required=True, type=Path)
@@ -41,12 +44,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     inventory = subparsers.add_parser("inventory", help="Inventory every summary topic/schema/count on registered bytes without decoding payloads.")
     inventory.add_argument("--registration-directory", required=True, type=Path)
     inventory.add_argument("--scratch-directory", required=True, type=Path)
+    decode = subparsers.add_parser("decode-check", help="Check selected indexed Protobuf streams and chunk CRC coverage against a complete preserved inventory; no geometry.")
+    decode.add_argument("--registration-directory", required=True, type=Path)
+    decode.add_argument("--scratch-directory", required=True, type=Path)
+    decode.add_argument("--preserved-inventory-report", required=True, type=Path)
+    decode.add_argument("--topic", action="append", required=True, help="Exact topic name; repeat for each selected stream. No automatic topic selection.")
     audit = subparsers.add_parser("audit", help="Audit indexed metadata, geometry and causal-input support after implementation review.")
     audit.add_argument("--registration-directory", required=True, type=Path)
     audit.add_argument("--scratch-directory", required=True, type=Path)
     audit.add_argument("--preserved-readiness-report", type=Path,
                        help="Preserve and reconcile an inconclusive ZstdError predecessor for a reviewed successor audit.")
-    for command in (prepare, registration, inventory, audit):
+    for command in (prepare, registration, inventory, decode, audit):
         if command is not prepare:
             command.add_argument("--output-directory", required=True, type=Path)
         command.add_argument("--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO")
@@ -56,14 +64,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         _, status = _bounded_run(arguments)
         return status
     except MemoryError:
-        logging.error("memory_limit; no completed %s", "inventory" if arguments.command == "inventory" else "audit")
+        logging.error("memory_limit; no completed %s", arguments.command if arguments.command in ("inventory", "decode-check") else "audit")
         return 2
     except (OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as error:
         # Never print decoder exceptions, raw paths, source locators or payloads.
         from ..domain.recording_ingestion import RecordingIngestionError
         code = error.code if isinstance(error, RecordingIngestionError) else type(error).__name__
         logging.error("%s; no completed %s (see the runbook and preserve existing outputs)",
-                      code, "inventory" if arguments.command == "inventory" else "audit")
+                      code, arguments.command if arguments.command in ("inventory", "decode-check") else "audit")
         return 2
 
 

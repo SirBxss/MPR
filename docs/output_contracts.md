@@ -1,5 +1,89 @@
 # v0.4.5 output contracts
 
+## v0.19.9 registered-file selected-stream decoding check
+
+Binding candidate: `generic_recording_decode_check_v0199.md`. A fresh output
+contains only `recording_decode_check.json`, with exactly:
+
+```text
+contract_revision, purpose, batch_id, status,
+registration_sha256, source_specification_sha256, preserved_inventory_report_sha256,
+selected_topics, reader_implementation, selected_payload_decoding_enabled,
+selected_chunk_crc_validation_enabled, technical_recording_count, independent_outing_count,
+geometry_readiness_assessed, residual_profiles_constructed, numeric_conditions_exported,
+reference_independence_proven, model_fitted, roles_assigned, raw_cache_deletion_authorized,
+runtime_versions, runtime_source_sha256, resources_at_start, execution_limits,
+recordings, interpretation
+```
+
+Revision `v0.19.9-selected-stream-decode-check-2026-10-08-a1`, purpose
+`development_only_recording_decode_check`, reader
+`v0.19.9-disk-index-selected-chunks-a1`. Topics are sorted unique explicit
+names. Both `enabled` fields record execution policy, not completion.
+Independent-outing count is null; all seven scientific/deletion flags false.
+Runtime fingerprints all package Python sources and includes Python, mcap,
+mcap-protobuf-support, protobuf, numpy, zstandard and lz4 versions (nullable
+missing distribution). Resources have `mem_available_bytes` and
+`scratch_free_bytes`, matching the existing intake helper.
+
+Execution limits have exactly maximum_selected_topics, maximum_messages_per_topic,
+maximum_selected_messages_per_recording, maximum_selected_chunk_bytes,
+maximum_index_database_bytes, maximum_selected_schema_bytes,
+maximum_selected_schema_count, maximum_selected_channel_count,
+maximum_selected_payload_bytes, maximum_decode_seconds_per_recording,
+maximum_preserved_inventory_bytes, process_address_space_soft_limit_bytes,
+minimum_mem_available_bytes, minimum_scratch_free_bytes. Values/coverage are
+specified in the binding contract; CLI address space <=4 GiB, not RSS.
+
+Each recording has exactly recording_id, raw_sha256, size_bytes,
+source_declaration_status, status, failure_code, invalidation_codes,
+reader_failure_context, decode_check. Complete: failure/context null,
+invalidation_codes empty and decode_check object. Inconclusive: first static
+failure code retained, decode_check null, subsequent distinct identity failures
+in ordered invalidation_codes. Context is null when unavailable or exactly:
+
+```text
+phase, indexed_chunk_ordinal, chunk_start_offset_bytes,
+completed_selected_chunk_count, decoded_selected_message_count,
+selected_payload_bytes_processed, channel_id, schema_id, compression,
+exception_class, process_virtual_memory_bytes, process_resident_memory_bytes
+```
+
+Scalar context counts describe a successful prefix only, not full-stream
+statistics. Ordinal is zero-based over all physically ordered indexed chunks,
+including skipped ones. Phase is selection, schema_load, index_staging,
+resource_check, chunk_read, chunk_decompression, chunk_records, payload_decode,
+or count_reconciliation. Compression is null, empty, zstd, lz4 or unsupported;
+no native exception text/path/payload/time is exported.
+
+Complete decode_check has exactly:
+
+```text
+summary_crc_status, indexed_chunk_count, index_ranges_and_unique_offsets_validated,
+summary_index_listing_in_physical_order, selected_indexed_chunk_count,
+skipped_indexed_chunk_count, selected_chunks_without_channel_indexes,
+completed_selected_chunk_count, selected_chunk_crc,
+decoded_selected_message_count, selected_payload_bytes_processed,
+channel_versions, topics
+```
+
+`selected_chunk_crc` has checked_nonzero_count and unavailable_zero_count;
+their sum equals completed_selected_chunk_count, which equals
+selected_indexed_chunk_count. Selected plus skipped equals indexed count.
+Each channel version has channel_id, schema_id, topic, message_encoding,
+advertised_message_count, schema_name, schema_encoding, schema_data_sha256,
+decoded_message_count. Each topic has topic, advertised_message_count,
+decoded_message_count, channel_version_count. Per-channel and per-topic
+decoded counts exactly reconcile to advertisements before complete publication.
+No unselected decoded population count or pooled batch count is emitted.
+
+Exit 0 means all registered files complete; 3 completed inconclusive JSON;
+2 input/preflight failure without completed JSON. A drifted preserved inventory
+detected by fresh inventory comparison stops before payload/new output.
+Before-publication identity drift discards affected complete counts. Outputs
+do not prove whole-file integrity, geometric compatibility, H100 support,
+reference independence, physical sessions, training admission or raw deletion.
+
 ## v0.19.8 registered-file metadata inventory
 
 Binding contract: `generic_recording_inventory_v0198.md`. Registration and
