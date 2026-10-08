@@ -30,6 +30,25 @@ implementation for the thesis; LEEM is historical reference material only.
 
 ## Current checkpoint: 2026-10-08
 
+PR #31 is now merged as `05e0c71f93f8133204f6b5577f5ca69662f647fc`, tree
+`b44bbc4f18fc68a5a7f0ec8875f9a4f5b3feab7e`. Reviewed head `296e161` has Claude
+GO/zero blockers and successful Python 3.10/3.12 CI (606 run/two existing
+skips, temporary merge of that exact head). The owner completed one pilot
+inventory, exit 0: fresh raw verification, validated nonzero summary CRC,
+506 channels/topics, 448 schemas and exact reconciliation with prior metadata.
+Read `docs/recording_inventory_batch03_v0198_result.md`. No payload decoded;
+ZstdError/native support/residual eligibility remain unresolved.
+
+Next is a specified, bounded selected-stream decoding check for generic input
+infrastructure, before geometry. It is not yet implemented/frozen. Include
+index-memory behavior, selected CRC coverage and full-count versus incomplete
+publication tests; implementation GO/CI precedes a new private run. Do not
+repeat registration/inventory or treat this result as authorization to run
+old deferred step 6. Native-reference proposal/target adoption/numeric export/
+real fits/outing roles/raw retirement remain separate evidence-backed steps.
+
+## Historical checkpoint: 2026-10-08 inventory implementation prepared
+
 PR #30 is merged as `c8a757229c87d040d913ccdeed96364fd1d5e0bc`, tree
 `badf8da510ea6632f20d50402ac3e20e033a6fae`; reviewed final head `1e1fe43`
 has Claude GO/zero blockers and independently verified exact-head CI.
