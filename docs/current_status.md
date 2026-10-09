@@ -1,10 +1,68 @@
 # Current project status
 
-Last updated: 2026-10-08. This is the first file a new agent should read after
+Last updated: 2026-10-09. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current: v0.19.9 selected-stream decode check prepared for review
+## Current: PR #32 merged; registered pilot selected streams decode completely
+
+PR #32 is merged as `85cd9d6fef920bd8f347c471c14f520835ef2b24`, tree
+`1d6b997bb7ff26e10d3172cc47a4dad9293f1c48`. Claude's supplied review gives GO
+with zero blockers at head `92120f7d08e0cb41446a67199227516ed1057537`.
+Codex independently checked Actions run `37795138166`: Python 3.10/3.12
+each ran 650 tests, 648 passed and two unchanged opt-ins skipped. The jobs
+checked out temporary merge `c39ad015037a8586acf6b062cb3a58d01641db2a`,
+whose parents are the reviewed head and merged PR #31 and whose tree equals
+the actual merge/delivery. They did not check out the feature head directly.
+
+The owner's 44 focused tests passed (4.409 s), immutable small-file guards
+passed before and after, and the one authorized decode check exited 0.
+Its report/receipt ZIP names the actual merge and reconciles against the
+preserved inventory, raw identity, schema hashes and merged Python sources.
+Read `recording_decode_check_batch03_v0199_result.md` for all result hashes,
+counts, resource observations, integrity coverage and verification limits.
+No private MCAP is available here; no raw scan was repeated by the agent.
+
+Decoded selected messages: EDP 36,032; RLMB 36,032; odometry 109,191; total
+181,255. Of 116,243 indexed chunks, 103,409 were selected/completed and
+12,834 skipped. All inspected selected chunks had nonzero CRCs and passed;
+the nonzero summary CRC passed. One schema/channel version per selected topic
+matches inventory; no invalidation/failure is reported. The new reader thus
+works on these registered bytes. The original readiness ZstdError remains
+historical; successful decoding does not prove its original cause.
+
+Generic prepare/register, summary inventory and selected decoding are reusable
+for newly declared supported files. There is no generic numeric residual export
+or automatic raw-retirement mechanism yet. The H100-pair count, causal-feature
+support, contiguous-sequence lengths and topology frequencies in this pilot
+are **unknown**, not zero. A decoded EDP message is not a 21-station residual
+profile. Equal EDP/RLMB counts are not verified pairing or frame equivalence.
+
+Next freeze a narrow, bounded generic EDP/RLMB/odometry semantic/geometry
+readiness contract, extending existing layers and arithmetic. First separate
+schema/qualifier/topology and geometric H100 observations from old SENSOR
+admission, feature availability and sequence support. A scientifically valid
+residual also needs common longitudinal coverage, origin/frame/epoch treatment,
+unambiguous pairing and no extrapolation. Preserve the fixed six-feature order,
+SENSOR rules and prior artifacts; do not silently adopt all-topology training.
+Read `generic_pipeline_continuation_20261009.md` for the staged plan and
+nonbinding acquisition estimates. Pose/foresight construction remains a separate
+draft proposal; this result does not show it provides better independent truth.
+
+Do not rerun this pilot's completed registration/inventory/decode check or the
+old deferred step. Do not request unavailable batch02 provenance again. Future
+files need prospective session/source/retrieval evidence, not guessed dates or
+one-file-one-outing assumptions. The pilot's physical-session identity and
+redownload/source locator remain undeclared. No reference/target/population
+adoption, residual/condition export, real model fit, role lock or raw deletion
+is authorized by this closure. Both flow modes remain synthetic-only.
+
+The documentation-only result closure is prepared locally on the exact merged
+main; it needs its own owner-applied documentation PR and CI. No remote push,
+new PR or future private execution is claimed. Local validation is recorded in
+the delivered README; executable code/tests/contracts are unchanged.
+
+## Historical 2026-10-08: v0.19.9 decoder prepared for review
 
 Remote base is merged PR #31, `05e0c71f93f8133204f6b5577f5ca69662f647fc`.
 The accepted inventory closure below is included alongside the implementation.

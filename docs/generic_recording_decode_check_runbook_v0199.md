@@ -1,5 +1,16 @@
 # MPR v0.19.9 — complete selected-stream decoding instructions
 
+## Accepted pilot execution: 2026-10-09
+
+PR #32 is merged as `85cd9d6`. The owner's Step 5 completed with exit 0;
+the Step 6 ZIP was returned and reconciled. Read
+`recording_decode_check_batch03_v0199_result.md` and
+`generic_pipeline_continuation_20261009.md` for the current stopping point.
+The application/PR/pilot commands below record an already completed workflow.
+Do not rerun them for pilot001, reuse its output/scratch paths, or use a repeat
+decode check as the next geometry command. No new private command is authorized
+by the documentation-only result closure.
+
 This bundle continues **merged PR #31** at
 `05e0c71f93f8133204f6b5577f5ca69662f647fc`.
 The pilot's inventory is complete; payload decoding remains unknown.

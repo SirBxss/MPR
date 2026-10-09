@@ -1,5 +1,15 @@
 # Supported commands
 
+## Current 2026-10-09: accepted pilot selected-stream decoding
+
+PR #32 is merged; the one pilot decode run completed, exit 0. Its registration,
+inventory and decoding must not be repeated as the next task. Read
+[`recording_decode_check_batch03_v0199_result.md`](recording_decode_check_batch03_v0199_result.md)
+and [`generic_pipeline_continuation_20261009.md`](generic_pipeline_continuation_20261009.md).
+The generic stages below remain available for distinct newly declared files
+using their own paths and supported formats. No generic H100/export/training
+or raw-retirement command is added by the documentation closure.
+
 ## New v0.19.9 selected-stream decoding check
 
 Use `python -m lane_residuals.cli.recording_ingestion decode-check` with
@@ -24,7 +34,7 @@ PR/review and post-merge pilot commands are in
 Old step 6 is still deferred. Unknown encodings are metadata, not supported
 residual inputs; exit 0 means inventory completion only.
 
-## Current 2026-10-04: PR #30 evidence closure
+## Historical 2026-10-04: PR #30 evidence closure
 
 Use `reference_evidence_followup_runbook_20261004.md` for guarded commands
 that update **the existing PR #30**, final-head review/CI and the independent
