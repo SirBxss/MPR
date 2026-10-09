@@ -1,6 +1,18 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-08):** PR #30 is merged as `c8a7572`; final
+**Current checkpoint (2026-10-08):** PR #31 is merged as `05e0c71` and the
+pilot's metadata inventory completed with exit 0. The next generic stage,
+`recording_ingestion decode-check`, is prepared for implementation review:
+explicit selected Protobuf streams, disk-backed index ordering, selected
+chunk CRC coverage and advertised/decoded count reconciliation. It creates
+no geometry, residuals or models. A synthetic 116,243-chunk memory check
+passes; the real 30 GB pilot still has no completed decoding result. Read the
+complete [`apply/test/PR/Claude/run instructions`](docs/generic_recording_decode_check_runbook_v0199.md),
+[`decoding contract`](docs/generic_recording_decode_check_v0199.md) and
+[`accepted inventory result`](docs/recording_inventory_batch03_v0198_result.md).
+Review GO and Python 3.10/3.12 CI precede merge and one new private check.
+
+**Historical checkpoint (2026-10-08, inventory implementation):** PR #30 is merged as `c8a7572`; final
 review GO and Python 3.10/3.12 CI passed. Generic intake resumes with a new
 registered-file `inventory` command: every summary topic/schema/count,
 streamed chunk-index aggregates and nonzero summary CRC checks, without

@@ -4,7 +4,85 @@ Last updated: 2026-10-08. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current: generic registered-file inventory implemented for review
+## Current: v0.19.9 selected-stream decode check prepared for review
+
+Remote base is merged PR #31, `05e0c71f93f8133204f6b5577f5ca69662f647fc`.
+The accepted inventory closure below is included alongside the implementation.
+`recording_ingestion decode-check` validates a complete preserved inventory
+and existing registration, freshly hashes each raw file once and decodes
+explicit selected Protobuf streams using disk-backed scalar ChunkIndex ordering.
+It validates selected nonzero chunk CRCs and reconciles decoded per-channel
+counts; affected incomplete results are null with safe progress context and
+first-cause retention. It does not invoke geometry or a scientific adapter.
+
+The old chunkwise reader still retains every index/map via SeekingReader;
+the new reader streams index maps and stages scalar ordering on disk. A valid
+116,243-chunk/185-channel-per-index synthetic MCAP completes under 256 MiB
+RLIMIT_AS (36,440 KiB RSS) while old summary loading hits MemoryError. This
+establishes the engineering difference, not the private original ZstdError's
+cause. Read `generic_recording_decode_check_v0199.md` for exact coverage,
+budgets, unsupported cases and interpretation; its runbook contains all
+apply/test/PR/Claude/post-merge run/report steps.
+
+Local suite: 650 run, 648 pass, two unchanged opt-in skips; 44 focused decode
+tests; focused tests also pass with MCAP 1.4/1.5 and optimized execution,
+and all 80 synthetic README guard cases pass in normal/optimized modes.
+Review/CI at the pushed head and merge are pending; no new remote PR
+or private payload result is claimed. The owner should apply the complete
+two-patch bundle to this exact main base, test, push a new branch/open a PR,
+obtain implementation GO and Python 3.10/3.12 CI, then merge. Only then run
+one new EDP/RLMB/odometry decoding check, preserving old files and the complete
+inventory hash. Exit 0/3 report returns for review; exit 2 stops without retry.
+
+Real decoded support remains unknown. Successful decoding would unblock
+bounded semantic/geometry work; it would not select ground truth or a
+training target. The native-reference proposal remains separately draft,
+all-topology EDP is not adopted, old scientific adapters/archives remain fixed,
+both flows stay synthetic-only, and no numeric export, fit, outing roles or
+raw retirement is authorized. Old deferred step 6 remains deferred.
+
+## Historical 2026-10-08: PR #31 merged; pilot inventory complete
+
+PR #31 merged as `05e0c71f93f8133204f6b5577f5ca69662f647fc`, tree
+`b44bbc4f18fc68a5a7f0ec8875f9a4f5b3feab7e`. Claude GO/zero blockers covered
+head `296e16146fe214d29af22133f5b5499abb36354c`; independently checked Actions
+37749442988 passes Python 3.10/3.12, each 606 run/604 pass/two existing skips,
+on the temporary merge of that head into its reviewed base.
+
+The owner completed the one registered pilot inventory with exit 0 and
+returned its JSON/receipt ZIP. Exact JSON hash is
+`53932550e4fe2233c2bac33c0778b9549e9ab5bee83822dca225b98d4df41784`;
+receipt merge/source fingerprint and original registration/spec/raw lineage
+match. The terminal reports all three preserved small-file hashes passing
+before and after. Nonzero summary CRC validates; 506 topics/channels,
+448 schemas, 116,243 ZSTD chunk indexes and 186,441,684 advertised messages
+reconcile exactly with earlier metadata. All 506/448 prior channel/schema
+associations/hashes and 38 selected topic/schema/count rows match. Largest
+uncompressed chunk is 2,109,683 bytes; compressed payload 964,816 bytes.
+EDP/RLMB advertise 36,032 messages each and odometry 109,191. These are
+message counts, not residual rows. Read
+`recording_inventory_batch03_v0198_result.md` for full reconciliation,
+privacy notes and the disposition of nonblocking review findings.
+
+Next implementation: specify a target-independent selected-stream decoding
+check before geometry, starting with those three streams. Check embedded
+schemas, decompression, available selected-chunk CRCs, per-schema counts and
+count reconciliation under bounded execution/publication rules. This stage
+is not yet implemented or frozen and has no private-run command. Inspect
+retained index memory too: the old chunkwise decoder still materializes the
+full summary, whereas the successful inventory streams aggregates. That code
+property does not identify the cause of the original ZstdError.
+
+Do not repeat inventory/registration or automatically run old deferred step 6.
+The original ZstdError and decoded support remain unresolved. The owner run
+passed resource gates (~8.2 GiB available RAM, ~52 GiB scratch free); that is
+not evidence that a later decoder will fit. Native-reference contract review,
+reference/target/population adoption, numeric export, archive/causal validation,
+real fits, physical-outing roles and raw retirement remain separate steps.
+Both flows stay synthetic-only. No scientific rules or source code change in
+this result reconciliation.
+
+## Historical 2026-10-08: inventory implementation prepared for review
 
 PR #30 merged on 2026-10-05 as `c8a757229c87d040d913ccdeed96364fd1d5e0bc`.
 Final head `1e1fe43`, tree `badf8da510ea6632f20d50402ac3e20e033a6fae`, has

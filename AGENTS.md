@@ -30,6 +30,39 @@ implementation for the thesis; LEEM is historical reference material only.
 
 ## Current checkpoint: 2026-10-08
 
+The v0.19.9 selected-stream decode check is implemented locally on merged
+PR #31 (`05e0c71`). Read `docs/generic_recording_decode_check_v0199.md` and
+its complete runbook. Disk-backed scalar index ordering avoids the old full
+summary retention; embedded Protobuf decoding/count reconciliation and
+selected nonzero chunk CRC coverage run without a scientific adapter. A valid
+116,243-chunk synthetic fixture completes under 256 MiB process address space;
+this does not diagnose the original private ZstdError. Implementation GO and
+Python 3.10/3.12 CI precede one new post-merge EDP/RLMB/odometry decode check.
+No private decoding result exists here. Preserve old registration/reports;
+no re-registration, old deferred step 6, geometry, reference/target/topology
+adoption, export, real fit, role assignment or raw deletion follows yet.
+
+## Historical checkpoint: 2026-10-08 accepted inventory result
+
+PR #31 is now merged as `05e0c71f93f8133204f6b5577f5ca69662f647fc`, tree
+`b44bbc4f18fc68a5a7f0ec8875f9a4f5b3feab7e`. Reviewed head `296e161` has Claude
+GO/zero blockers and successful Python 3.10/3.12 CI (606 run/two existing
+skips, temporary merge of that exact head). The owner completed one pilot
+inventory, exit 0: fresh raw verification, validated nonzero summary CRC,
+506 channels/topics, 448 schemas and exact reconciliation with prior metadata.
+Read `docs/recording_inventory_batch03_v0198_result.md`. No payload decoded;
+ZstdError/native support/residual eligibility remain unresolved.
+
+Next is a specified, bounded selected-stream decoding check for generic input
+infrastructure, before geometry. It is not yet implemented/frozen. Include
+index-memory behavior, selected CRC coverage and full-count versus incomplete
+publication tests; implementation GO/CI precedes a new private run. Do not
+repeat registration/inventory or treat this result as authorization to run
+old deferred step 6. Native-reference proposal/target adoption/numeric export/
+real fits/outing roles/raw retirement remain separate evidence-backed steps.
+
+## Historical checkpoint: 2026-10-08 inventory implementation prepared
+
 PR #30 is merged as `c8a757229c87d040d913ccdeed96364fd1d5e0bc`, tree
 `badf8da510ea6632f20d50402ac3e20e033a6fae`; reviewed final head `1e1fe43`
 has Claude GO/zero blockers and independently verified exact-head CI.
@@ -233,6 +266,11 @@ agents and new chats.
   Preserve the failed result and declare any separate engineering decision.
 
 ## Verification and delivery
+
+The v0.19.9 selected-stream decoder raises the baseline to 650 run, 648
+passing and the same two opt-in skips. Its 44 focused tests pass with
+MCAP 1.4/1.5; run these before the new post-merge private check. Local Python
+3.12 validation does not substitute for pushed-head Python 3.10/3.12 CI.
 
 Run at minimum:
 

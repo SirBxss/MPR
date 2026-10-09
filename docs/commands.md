@@ -1,5 +1,18 @@
 # Supported commands
 
+## New v0.19.9 selected-stream decoding check
+
+Use `python -m lane_residuals.cli.recording_ingestion decode-check` with
+`--registration-directory`, existing `--scratch-directory`, a complete
+`--preserved-inventory-report`, repeated explicit `--topic` arguments and a
+new `--output-directory`. There are no default topics or readiness-successor
+argument. Only selected indexed Protobuf streams are decoded and counted;
+no geometry or numeric export is produced. Exit 0 complete, 3 completed
+inconclusive report, 2 input/preflight stop without report. Full owner steps
+and post-merge pilot guards are in
+[`generic_recording_decode_check_runbook_v0199.md`](generic_recording_decode_check_runbook_v0199.md).
+Old deferred step 6 remains deferred; this is a distinct engineering check.
+
 ## New v0.19.8 registered-file inventory
 
 Use `python -m lane_residuals.cli.recording_ingestion inventory` with

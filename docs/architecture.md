@@ -1,5 +1,14 @@
 # Project architecture
 
+The v0.19.9 generic decoder uses `io.recording_decode_check` for explicit
+Protobuf selection, bounded embedded descriptors, temporary SQLite scalar
+index ordering, selected decompression/CRC/count checks and safe context.
+`workflows.recording_decode_check` owns predecessor/registration/raw lineage,
+same-descriptor verification and complete/null per-file publication. The CLI
+routes `decode-check` lazily. Historical I/O/scientific adapters are unchanged;
+registration helpers still import their existing graph but scientific calls
+are never invoked here. See `generic_recording_decode_check_v0199.md`.
+
 The v0.19.8 generic inventory uses `io.recording_inventory` for standard-library,
 one-record summary parsing/CRC and bounded metadata aggregates;
 `workflows.recording_inventory` reuses immutable registration/resource/runtime
