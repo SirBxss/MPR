@@ -28,7 +28,35 @@ implementation for the thesis; LEEM is historical reference material only.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
-## Current checkpoint: 2026-10-08
+## Current checkpoint: 2026-10-09 accepted pilot decode result
+
+PR #32 is merged as `85cd9d6fef920bd8f347c471c14f520835ef2b24`, tree
+`1d6b997bb7ff26e10d3172cc47a4dad9293f1c48`. Claude GO/zero blockers covered
+`92120f7`; independently checked Python 3.10/3.12 CI passed, each 650 run,
+648 pass/two unchanged skips, on its exact temporary merge. The owner ran the
+44 focused tests and one authorized decode check, exit 0. Read
+`docs/recording_decode_check_batch03_v0199_result.md` and
+`docs/generic_pipeline_continuation_20261009.md` before the next change.
+
+All 36,032 EDP, 36,032 RLMB and 109,191 odometry messages decoded against
+the embedded Protobuf schemas. All 103,409 inspected selected chunks have
+validated nonzero CRCs; 12,834 other indexed chunks were skipped. Receipt,
+raw/registration/predecessor/schema lineage and source fingerprint reconcile.
+No private raw verification was repeated in the agent environment. This is
+complete selected-indexed-stream decoding, not whole-file certification,
+H100 eligibility, numeric residuals, causal features or independent outings.
+
+Do not repeat the successful pilot registration/inventory/decode check, move
+the registered raw file, rerun the old deferred readiness step or delete raw
+bytes. Next freeze a narrow bounded schema/geometry-readiness consumer contract
+for generic EDP/RLMB/odometry inputs; reuse existing scientific arithmetic and
+report separate geometry, topology, causal-feature and sequence attrition.
+Decoding all EDP sources does not remove the old SENSOR acceptance rule.
+An all-topology population/reference/target amendment is still separate;
+the pose/foresight proposal stays draft. Both flow modes remain synthetic-only.
+No numeric exporter, real fit, role assignment or raw-retirement gate is opened.
+
+## Historical checkpoint: 2026-10-08 decoder prepared
 
 The v0.19.9 selected-stream decode check is implemented locally on merged
 PR #31 (`05e0c71`). Read `docs/generic_recording_decode_check_v0199.md` and
