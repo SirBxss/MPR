@@ -5,7 +5,10 @@
 PR #33 is merged and the new development recording's selected decode is
 complete. Read [the handoff](development_recording_decode_followup_20261013.md)
 and [review draft](generic_recording_readiness_v01910_draft.md).
-Apply/test/push instructions are in the delivered bundle README; this patch
+a1 at PR #34 head `88b889a` has NO-GO; [a2 resolves its five blockers](generic_recording_readiness_v01910_a2_review.md)
+for focused delta review, with new-head CI still required. Apply/test/push
+instructions are in the delivered correction README, supplied for review;
+apply it to the same PR #34 branch, not main. This patch
 adds no scientific CLI command. Do not rerun accepted private stages or old
 deferred readiness. After focused contract GO, implement/test/review/CI and
 merge before issuing one new counts-only private command with fresh paths.

@@ -6,7 +6,10 @@ inventory and selected decoding. H100 support, causal features, usable
 sequences and actual topology fractions remain unassessed. Read the
 [`new handoff`](docs/development_recording_decode_followup_20261013.md) and
 [`bounded scientific readiness draft`](docs/generic_recording_readiness_v01910_draft.md).
-The draft needs focused review before implementation; no new command,
+a1 received NO-GO with five documentation blockers; the
+[`a2 amendment record`](docs/generic_recording_readiness_v01910_a2_review.md)
+records their proposed resolutions and verified a1 CI. Focused delta GO and
+new-head CI are pending in the same PR #34. No new command,
 numeric archive, real fit, data migration or raw deletion is implemented.
 
 **Historical checkpoint (2026-10-09):** PR #32 is merged as `85cd9d6`; Claude GO

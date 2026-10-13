@@ -1,7 +1,10 @@
 # Bounded generic scientific readiness: review draft
 
 Date: 2026-10-13. Status: **DRAFT FOR FOCUSED CONTRACT REVIEW**.
-Proposed revision: `v0.19.10-bounded-recording-readiness-2026-10-13-a1`.
+Proposed revision: `v0.19.10-bounded-recording-readiness-2026-10-13-a2`.
+a2 addresses the five blockers in the independent review of PR #34 at
+`88b889af642837d00c477edbadea7b3dbbc4a4c9`; a1 has NO-GO and is superseded.
+Read [the amendment record](generic_recording_readiness_v01910_a2_review.md).
 This documentation does not implement a command or authorize a private run.
 Read [the continuation](generic_pipeline_continuation_20261009.md),
 [the decoder contract](generic_recording_decode_check_v0199.md),
@@ -34,142 +37,306 @@ The fixed six-feature order is `speed_mps`,
 `estimated_mean_abs_curvature_per_m`, `estimated_curvature_delta_per_m`,
 `confidence_near_mean`, `confidence_middle_mean`, `confidence_far_mean`.
 Reuse existing 50 ms speed arithmetic, odometry interpolation limits and
-recorded log/publish-time causality checks. Never substitute future samples,
+recorded log-time causality checks. Publish times remain evidence only;
+there is no publish-time admission gate. Never substitute future samples,
 reference geometry, residuals or reference quality as prediction inputs.
 Recorded-time eligibility is not proof of physical input availability.
 
 ## Inputs, identity and descriptor compatibility
 
 Require one valid immutable v0.19.6 registration, its exact source specification,
-the complete v0.19.8 inventory and complete v0.19.9 decode report. All batch,
+the complete v0.19.8 inventory and complete v0.19.9 decode report. Batch,
 recording order, raw SHA/size, registration/specification/inventory digests,
 selected topics and advertised channel/schema versions must reconcile.
-Predecessors are strict JSON with duplicate/nonfinite values rejected and
-a 64 MiB byte cap per report. Preserve their bytes; do not amend in place.
-Historical runtime versions remain recorded evidence rather than a requirement
-that the new runtime equal the old runtime.
+Predecessors are strict JSON: duplicate/nonfinite values rejected, 64 MiB
+per report. Preserve their bytes. Historical package versions are evidence,
+not a requirement that new version strings equal old ones.
 
 Select exactly `/adp/estimated_drive_paths`, `/adp/road_lane_map_based` and
-`/adp/odometry`. Every actual selected channel/schema version is validated.
-Embedded Protobuf decoding proves serialization compatibility only. Bind
-scientific fields by the existing reviewed descriptor rules, including field
-numbers/types/presence, enum meanings, coordinate validity and reference
-segment-ID compatibility. Root type names or a previously observed hash alone
-do not prove scientific compatibility. A compatible descriptor variation may
-reuse existing binding; new unsupported semantics require a reviewed amendment.
+`/adp/odometry`. Before opening/hashing raw bytes, validate this selection,
+all predecessor identities/counts, dependencies and advertised container and
+scientific budgets against both preserved reports. Exceeding the EDP/RLMB/
+odometry scientific caps is exit 2 with `scientific_advertised_topic_limit`;
+inconsistent topic/count evidence is exit 2 with `readiness_predecessor_mismatch`.
+No output directory/report is created by any exit-2 path, even in a batch.
 
-Freshly hash each registered raw file once, from an already opened descriptor,
-and verify size and descriptor/path state before and after hashing. Use that
-same verified descriptor for bounded fresh summary parsing and selected decoding.
-Neither a predecessor hash nor successful decoding substitutes for this check.
-Recheck raw descriptor/path state and all metadata/predecessor bytes before
-publication, including earlier files in a multi-recording batch. On identity
-mutation, invalidate affected observations rather than publishing stale counts.
+Freshly hash each registered file once from an opened descriptor; check size
+and descriptor/path state before/after hashing. Reuse the same verified
+descriptor for fresh bounded summary and selected decoding. Before payload
+processing, compare the complete fresh inventory object with the preserved
+recording's v0.19.8 `inventory` using canonical strict-JSON equality that
+preserves integer/Boolean distinctions. Difference is fatal exit 2, no report,
+`readiness_preserved_inventory_mismatch`, matching the v0.19.9 drift policy.
+
+Before any message payload enters a scientific converter, classify **every
+selected channel/schema version**, using its embedded descriptor/type. A
+zero-valued instance may expose the descriptor; it is not a synthetic payload
+or evidence that message values are valid. Serialization and scientific
+binding are separate decisions. Descriptor binding is independent of whether
+any actual row passes ego/error/geometry qualifiers.
+
+### Exact scientific binding policy (B1)
+
+For EDP, preserve `estimate_descriptor_support` and the reviewed
+[v0.17.1 amendment](independent_outing_schema_v2_amendment.md) verbatim:
+
+- Legacy v1 uses the existing structural binding: Boolean, singular field 8
+  `model_parameters_optional_flag` and singular int64 field 7 `index_0`, plus
+  all existing generation-dependent required bindings. Actual flag presence/
+  true value is a per-message qualifier, not a descriptor decision.
+- Flag-absent candidate v2 requires the exact root message's **file descriptor**
+  SHA-256 `dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4`,
+  the flag's absence, int64 field 7 and the existing required bindings.
+- Recompute that identity from `message.DESCRIPTOR.file.serialized_pb`, or
+  the same descriptor on its resolved type before message processing. An MCAP
+  `FileDescriptorSet` hash or caller-supplied audit hash is a different identity.
+  A changed MCAP schema-record hash alone does not decide this generation.
+- Any other flag-absent descriptor is unsupported. Do not replace the exact
+  allowlist with structural similarity. A relaxation is a separate evidence
+  record and reviewed amendment, not implementation discretion.
+
+For RLMB, preserve the existing `Adp.Perception.Road`/Protobuf binding and the
+structural alternatives consumed by `io.mcap.road_frame_from_message` and
+`ordered_ego_lane_from_road_frame` at merged PR #33. Bind declared descriptor
+paths before testing values: the first declared alias in each existing alias
+tuple wins; underscore aliases and existing direct-path/boundary-midpoint
+alternatives remain permitted. Required lane-segment/ID bindings and at least
+one complete existing geometry-reconstruction descriptor path must resolve.
+Optional metadata or an unused alternative need not exist; empty repeated
+values, invalid flags/ranges and nonfinite coordinates on a bound path remain
+data failures. Preserve current integer segment-ID handling, including int64/
+uint64, without borrowing the separate sensor-lane adapter's constraints.
+Do not accept a new alias or field conversion by root name alone.
+
+For odometry, use the existing `Adp.OdometryState`/Protobuf identity, singular
+integer `timestamp` and numeric `x_position`, `y_position`, `yaw_angle`
+bindings consumed by `_OdometryStore`. A missing/incompatible declared field
+is unsupported binding; a bound field with invalid values is message poison.
+Either makes condition availability unavailable under B2; it does not suppress
+otherwise complete EDP/RLMB geometry.
+
+The following are **binding failures**, excluded from the row cascade:
+`estimate_schema_or_encoding_mismatch`, `map_schema_or_encoding_mismatch`,
+`estimate_descriptor_missing`, `unsupported_estimate_descriptor_generation`,
+`candidate_v2_descriptor_contract_mismatch`,
+`legacy_index_0_descriptor_contract_mismatch`, `schema_bindings_incomplete`,
+and their `estimate_`-prefixed conversion forms. A reference descriptor that
+cannot resolve the existing required paths is also binding-unsupported.
+An unexpected late binding failure, despite descriptor precheck, nulls the
+recording's readiness; it is never converted to a genuine-zero data result.
+
+One unsupported EDP **or** RLMB version makes the whole recording scientifically
+inconclusive: no supported-version subset, no complete-prefix counts. Record
+`scientific_binding_unsupported_estimate_descriptor` or
+`scientific_binding_unsupported_reference_descriptor`; if both apply, estimate
+has precedence. Finish container verification without the scientific sink
+so a complete, reconciled `stream_integrity` can be retained. Container failure
+instead remains the execution first cause. This deliberately differs from the
+old v0.19.6 per-message zero-support accounting; historical outputs are unchanged.
+Per-version binding observations preserve the descriptor cause separately.
+
+### Fresh decoding and late mutation (B5)
+
+After all selected streams decode, require exact type-preserving canonical
+JSON equality of the fresh `stream_integrity` with the preserved v0.19.9
+recording's `decode_check`: all channel/schema/topic counts, CRC coverage,
+chunk/index counts/order and processed payload bytes. It is an oracle for
+identical bytes/topics, not merely a lineage label. Difference gives fatal
+exit 2, no batch report, `readiness_preserved_decode_mismatch`; discard staged
+scientific observations and owned scratch. Do not compare new runtime versions,
+timings or the new scientific fields to predecessor fields.
+
+Recheck raw descriptor/path state and exact registration/specification and
+both predecessor bytes before publication, including earlier batch files.
+Late mutation detected by these identity rechecks gives exit 3 and affected
+recording invalidation, with both stream/scientific observations null. Use
+static labels `file_changed_before_report_publish`,
+`registration_changed_before_report_publish`,
+`preserved_inventory_changed_before_report_publish`, and
+`preserved_decode_changed_before_report_publish`. A raw change during processing
+uses `file_changed_during_readiness`. Preserve the first cause and append later
+distinct invalidations in **detection order**, matching v0.19.9. If fresh-value
+comparison already caused exit 2, no later successor report is written.
 
 ## Reader and scientific consumer ownership
 
-`io.recording_decode_check` remains the bounded container owner. Add a narrowly
-defined optional scientific sink only after contract review: payloads reach
-the sink after decompression, CRC and Protobuf checks. The default decoder
-result, historical wrappers, CLI behavior and output bytes remain unchanged.
-`io.recording_ingestion` and existing domain converters own scientific binding
-and disk-backed scalar/geometry/odometry staging; workflows own evidence,
-resources, complete/null publication and static safe failure labels.
+`io.recording_decode_check` remains the bounded container owner. Add a narrow
+optional scientific sink after review: messages reach it after decompression,
+CRC and Protobuf checks. Historical defaults/output shapes remain unchanged.
+`io.recording_ingestion` and domain converters own scientific staging/arithmetic;
+workflows own evidence, resources, safe failure labels and publication.
+Never fall back to `SeekingReader.get_summary()` or old whole-summary readiness.
 
-Never fall back to `SeekingReader.get_summary()` or the old whole-summary
-readiness route. No retained collection of decoded message objects, full
-MCAP payloads or unbounded geometry arrays. Keep only budgeted descriptors,
-one bounded chunk/message, bounded scalar aggregates and temporary databases.
-Use a stable disk-backed timestamp/order index for matching; avoid an O(N*M)
-scan. The existing timestamp arithmetic is the oracle for synthetic parity.
+Reuse `mutual_nearest_timestamp_pairs` **verbatim**: its O(N log N) scalar
+matching is bounded by 100,000 EDP and 100,000 RLMB records. Allowed in-memory
+structures are these per-role integer/None timestamp lists and matcher indexes,
+bounded `PairDiagnostics` scalar delta lists and at most 100,000 candidate
+scalar/feature rows. Their aggregate memory remains subject to the 4 GiB process
+cap; no assumption about a particular Python-object byte size replaces that cap.
+No retained list of decoded messages, chunk payloads or path/geometry arrays.
+Per-row geometry/odometry is disk-staged; only one bounded chunk/message and
+budgeted descriptors/path conversion workspaces may be live at once.
+
+Original storage order means **ascending indexed chunk byte offset, then stored
+record order within each chunk**. Estimate/reference positions and clock
+summaries use that order; the matcher preserves its existing timestamp-sorted
+pair enumeration/ties. Neither chronology nor sequence gaps are repaired.
 
 ## Pairing, attrition and sequences
 
-Compute mutual-nearest unique pairing from the full valid original EDP/RLMB
-source timestamp streams before geometry, qualifier or topology filtering.
-Reuse existing integer timestamp handling, missing/duplicate behavior and tie
-breaking. Pairing has **no maximum time-delta gate**; do not borrow the 50 ms
-speed interval or sensor-lane structural audit's separate matching threshold.
-Report source/log chronology in original storage order without repairing resets.
-Source, log, publish and physical geometry epochs are distinct evidence.
+Compute mutual-nearest unique pairing on the full original EDP/RLMB timestamp
+streams before message qualifiers, geometry or topology filtering. Reuse the
+existing missing/duplicate/tie handling and integer timestamps. There is no
+maximum delta gate. Neither the 50 ms speed interval nor a sensor-lane audit's
+separate match threshold is a pairing limit. Source/log/publish/physical geometry
+epochs remain different evidence. Clock summaries observe original storage order.
 
-In addition to inherited diagnostics, publish an exclusive EDP-row rejection
-cascade in this fixed order:
+The exclusive cascade now follows `_count_geometry`/`_h100_geometry` evaluation
+order. It is a partition of first failures, not a new scientific selection rule:
 
-| Stage | Predicate required to survive |
+| Stage | Exact attribution |
 |---|---|
-| `source_time` | Valid estimate source timestamp |
-| `unique_pair` | Unique mutual-nearest counterpart from the full streams |
-| `estimate_qualifier` | Existing reviewed ego/error/selection qualifiers |
-| `estimate_geometry` | Existing finite estimate geometry and native support |
-| `reference_geometry` | Existing unambiguous finite reference reconstruction |
-| `anchor` | Existing reviewed spatial alignment and at-most-1-m anchor |
-| `common_h100` | Full common 21-station support without extrapolation |
-| `sensor_admission` | Existing SENSOR-only admission rule |
-| `complete_conditions` | All six current/past, recorded-time-valid inputs |
+| `source_time` | Matcher `missing_time_first_positions`; label `estimate_source_timestamp_missing` |
+| `unique_pair` | Valid-time unmatched EDP positions; label `no_unique_mutual_nearest_pair` |
+| `estimate_qualifier` | `estimate_not_attempted_estimator_unavailable`, `estimate_model_structure_invalid`, `estimate_model_flag_not_true` |
+| `estimate_geometry` | Remaining existing `estimate_*` conversion/spline/curve/path data codes, plus `estimate_geometry_not_ready`; binding codes are excluded |
+| `reference_geometry` | Existing `map_*` data/reconstruction codes, plus `map_geometry_not_ready`; binding codes are excluded |
+| `common_h100` | Every existing `h100_*` failure, including footpoint projection and estimate/reference coverage failures |
+| `anchor` | Exactly `anchor_distance_exceeds_1m_or_invalid`, tested only after H100 coverage passes |
+| `sensor_admission` | Anchored H100 pairs failing existing SENSOR admission; label `not_sensor_topology` |
+| `complete_conditions` | One primary condition failure per rejected candidate as defined below |
 
-Each stage rejects a row only once, at its first failing stage. This is a
-reporting cascade, not permission to change pairing or scientific evaluation
-order. Independently report all-source native/geometric support by the exact
-observed topology label. Unknown/other labels remain explicit. Historical
-diagnostics may contain overlapping counts; do not present those as additive
-exclusive attrition. No pooled batch population or independent-outing count
-is inferred from technical recordings.
+The prefixes above mean the static labels emitted by the **pinned existing
+converters**, not arbitrary exception text or future labels. An unclassified
+code/impossible state gives null readiness, `scientific_attrition_unclassified_failure`.
+Do not silently place it into a catch-all data bucket. Rich estimator sub-state
+labels remain in inherited diagnostics; this cascade keeps the existing collapsed
+qualifier labels, so the requested partition is exact rather than relabelled.
 
-Maintain separate sequence summaries for SENSOR H100 geometry candidates and
-their complete-condition subset. Reuse `domain.exploratory_residuals.sequence_layout`
-and `domain.recording_ingestion.summarize_support`: recording boundaries,
-original estimate/pair-index gaps, nonpositive source-time steps, resets and
-gaps over 200 ms break sequences. Do not bridge rejected/missing rows or
-recordings, and do not discard singleton frames from frame denominators.
-Report frame/sequence/transition counts, maximum frame count/duration,
-length histogram and start-reason counts using the existing exact shapes.
-These are candidate support counts, not constructed residual-vector counts
-or v0.17 eligible physical outings.
+First input is `counts.estimate_message_count`. Source-time rejected equals
+`timestamp_pairing_counts.missing_time_first_positions`. Unique-pair rejected
+equals `unmatched_first_positions - missing_time_first_positions`; its remaining
+equals `timestamp_pairing_counts.pairs`. Use those count fields' existing names;
+do not subtract ambiguous positions twice. No optional ambiguity split is added.
+
+Stages `estimate_qualifier` through `anchor` partition the paired rows' existing
+`counts.pair_failure_counts` by the table above, retaining each existing label.
+They need not equal all-stream `conversion_failure_counts`, which also includes
+unpaired rows. `common_h100` remaining equals `h100_pair_count`; `anchor`
+remaining equals `anchored_h100_pair_count`. SENSOR input is the latter;
+its remaining equals `sensor_anchored_h100_pair_count` and geometry support
+frame count. All-source anchored topology counts remain independent diagnostics;
+unknown/other sources stay explicit and are never admitted as SENSOR.
+
+For available odometry, attribute the **first** code in `_scan_stream`'s existing
+per-candidate emission order: optional `estimate_features_*` first, then the
+existing `speed_failures` tuple. That tuple is either its one bracket/geometry
+exception code, or `speed_uses_future_source_sample` followed by
+`speed_log_time_unavailable`/`speed_input_logged_after_estimate` in `checked_speed`
+order. Do not sort per-row codes before choosing the primary cause. The inherited
+`condition_failure_counts` still counts **all** emitted codes and is non-exclusive.
+With globally unavailable odometry, B2 instead assigns the global unavailable
+label to every candidate in this last stage; inherited overlapping feature
+failures remain visible separately. This explicit reporting priority prevents
+odometry unavailability from masquerading as a measured zero-condition yield.
+
+Maintain separate SENSOR H100 and complete-condition support summaries, using
+`sequence_layout`/`summarize_support` unchanged. Recording boundaries, original
+estimate/pair-index gaps, resets/nonpositive source steps and gaps over 200 ms
+break sequences; missing/rejected rows are never bridged. Retain singletons in
+frame/sequence denominators (zero transitions). Exact histogram/start-reason/
+maximum duration shapes remain inherited. No physical outing or residual-vector
+count follows from these candidate support summaries.
 
 ## Fixed engineering budgets
 
-Inherit all v0.19.8 summary and v0.19.9 container ceilings. No CLI override,
-automatic retry, truncation presented as complete, or cap relaxation.
+Inherit v0.19.8/v0.19.9 container ceilings, with no override/retry/fallback.
+The following choices freeze B4, rather than leaving configuration alternatives:
 
 | Budget | Fixed value |
 |---|---:|
-| Summary bytes / one record / parsed text | 1 GiB / 128 MiB / 16 MiB |
+| Summary bytes / record bytes / parsed text | 1 GiB / 128 MiB / 16 MiB |
 | Records per summary section / summary timer | 2,000,000 / 300 cooperative s |
 | Scientific EDP / RLMB / odometry messages | 100,000 / 100,000 / 1,000,000 |
-| Container messages per topic / per recording | 1,000,000 / 2,000,000 |
-| Selected channels / schema versions / descriptors | 256 / 64 / 16 MiB total |
+| Container messages per topic / recording | 1,000,000 / 2,000,000 |
+| Selected channels / schemas / descriptor bytes | 256 / 64 / 16 MiB total |
 | Selected chunk record / decoded chunk / Zstd window | 128 MiB each |
-| Cumulative selected payload processed | 8 GiB |
-| Index database / scientific databases combined | 512 MiB / 8 GiB |
-| Total temporary database allocation | At most 8.5 GiB |
-| SQLite page cache | 8 MiB per database connection |
-| Process address space / minimum MemAvailable | At most 4 GiB / at least 6 GiB |
-| Minimum free scratch at each checkpoint | 10 GiB |
-| Scientific processing per recording | 1,800 cooperative s |
+| Selected payload bytes processed | 8 GiB |
+| Index database / one scientific database | 512 MiB / 8 GiB |
+| Total database-file allocation | 8.5 GiB |
+| SQLite page cache / process address space | 8 MiB per connection / 4 GiB |
+| Minimum MemAvailable | 6 GiB |
+| **Initial free scratch, before each raw hash** | **18.5 GiB = 19,864,223,744 bytes** |
+| Free scratch floor during processing | 10 GiB |
+| Combined processing after fresh summary | 1,800 cooperative s |
 
-Scientific processing includes index staging, decoding, binding, matching,
-geometry, feature checks and sequence aggregation. Its timer excludes raw
-hashing and the separately timed fresh summary. Checks occur before each phase,
-every 1,024 staged indexes/scientific rows, every 128 selected chunks, and before
-publication, including each phase's first checkpoint. Cooperative timers are
-not hard deadlines for a stalled native call. Check scientific topic budgets
-against advertised counts before payload processing and against actual counts
-during processing. Budget excess yields inconclusive observations, not zero.
+Initial scratch below 18.5 GiB gives `insufficient_initial_scratch_space`,
+exit 2, before hashing or output creation. During processing, below 10 GiB
+gives `scratch_free_below_runtime_floor`, exit 3 with inconclusive recording.
+These are fixed preflight versus runtime policies, not approximate guidance.
+Check memory/scratch before each phase, every 1,024 staged indexes/scientific
+rows, every 128 selected chunks and before publication, including first checkpoints.
+Actual message counts are checked during decoding despite the early advertised
+checks. Runtime resource excess never means genuine zero support.
 
-Enforce database growth including SQLite journal/WAL sidecars, or disable
-unbounded sidecars through a justified bounded configuration. The 10 GiB floor
-must remain free while databases grow: merely starting with 10 GiB is not
-enough to sustain their maximum allocation. Up to roughly 18.5 GiB initially
-free could be needed for the full temporary budget plus that floor; this is
-engineering headroom, not a revised scientific rule. Clean only owned temporary
-files in `finally`; raw/source/report artifacts are never cleanup targets.
+Use exactly two disposable database files in an owned recording scratch
+directory: index at most 512 MiB, and all geometry/inputs/odometry staging in
+one scientific DB at most 8 GiB. Every connection must set and verify
+`journal_mode=OFF`, `synchronous=OFF`, `temp_store=MEMORY`, `mmap_size=0`,
+4,096-byte page size and at most 8 MiB page cache. Bound main files with their
+page limits and measured allocated bytes; enforce the combined 8.5 GiB ceiling.
+No WAL or rollback journals and **no `temp_store=FILE`** are permitted in this
+new consumer. SQLite sort/temp structures instead count toward the process
+address-space cap; allocation failure gives inconclusive `memory_limit`.
+If the runtime cannot honor these pragmas, fail dependency preflight before
+hashing with `readiness_sqlite_configuration_unsupported`.
+
+This is a deliberate engineering change from the historical scientific DB's
+default rollback journal/FILE temp store; historical consumers remain unchanged.
+Disposable DBs are never reused or resumed after failure/crash, so journal-free
+crash recovery is not needed. Any unexpected on-disk sidecar/temp file is charged
+to the same total allocation, stops processing with `readiness_unexpected_scratch_file`
+and nulls readiness; do not ignore it or continue with a different configuration.
+Cleanup deletes only files inside the owned temporary directory in `finally`.
+Raw/source/report/catalogue paths are never cleanup targets.
+
+The 300 s fresh-summary timer and unbounded raw-hash phase are separate. Start
+one 1,800 s deadline immediately after fresh summary equality, before descriptor
+binding. It covers binding, index staging, selected decoding/scientific sink,
+matching, geometry, feature checks and sequence aggregation. The new reader
+invocation shares this absolute deadline; it must not reset a second 1,800 s
+timer. Its default standalone decoder deadline remains unchanged. Timeout is
+inconclusive `readiness_processing_time_limit`; unfinished full-stream science
+is null. Cooperative checks are not hard deadlines for stalled native calls.
+
+`execution_limits` is the exact v0.19.9 key/value map (including its 1,800 s
+decode limit), plus these exact fields; its decode deadline and the new processing
+deadline are the same deadline in this consumer:
+
+```json
+{
+  "maximum_summary_bytes": 1073741824,
+  "maximum_summary_record_bytes": 134217728,
+  "maximum_parsed_summary_text_bytes": 16777216,
+  "maximum_summary_records_per_section": 2000000,
+  "maximum_summary_seconds": 300,
+  "maximum_scientific_messages_by_topic": {
+    "/adp/estimated_drive_paths": 100000,
+    "/adp/road_lane_map_based": 100000,
+    "/adp/odometry": 1000000
+  },
+  "maximum_scientific_database_bytes": 8589934592,
+  "maximum_combined_database_bytes": 9126805504,
+  "sqlite_page_cache_bytes": 8388608,
+  "minimum_initial_scratch_free_bytes": 19864223744,
+  "maximum_processing_seconds_per_recording": 1800
+}
+```
 
 ## Proposed output and publication states
 
-Write one strict JSON artifact `bounded_recording_readiness.json`, atomically
-as the completion marker in a new output directory. Maximum encoded size is
-64 MiB. The exact top-level keys are:
+Atomically write one strict JSON `bounded_recording_readiness.json` in a new
+output directory as the completion marker, at most 64 MiB. Top-level keys remain:
 
 ```text
 contract_revision, purpose, batch_id, status,
@@ -185,36 +352,42 @@ raw_cache_deletion_authorized, runtime_versions, runtime_source_sha256,
 execution_limits, resources_at_start, recordings, interpretation
 ```
 
-`purpose` is `development_only_bounded_recording_readiness`. Revision is the
-proposed a1 above. `reader_implementation` remains
-`v0.19.9-disk-index-selected-chunks-a1`; `scientific_adapter_revision` is the a1
-revision. Selected topics are the lexically sorted three-topic list above;
-selected CRC validation is true. Independent-outing count is null. All listed
-role/lock/fit/export/physical-proof/reference-proof/deletion booleans are false.
-The all-recordings recorded-input causality flag is true only when all scientific
-checks completed; it may be true with zero complete-feature candidates and
-does not mean every inspected input was eligible. Runtime/resource shapes are
-inherited from v0.19.9; execution limits contain every fixed ceiling above with
-explicit byte/message/second units. Count integers are nonnegative, not booleans;
-hash fields are lowercase 64-hex strings. No additional keys are accepted.
+Purpose is `development_only_bounded_recording_readiness`; contract and
+scientific-adapter revisions are a2 above. Reader remains
+`v0.19.9-disk-index-selected-chunks-a1`; selected topics are the sorted three
+topics and CRC validation true. Independent-outing count is null. All role/
+lock/fit/export/physical-proof/reference-proof/deletion booleans remain false.
+Runtime/resource shapes inherit v0.19.9; limits are frozen above. Counts are
+nonnegative integers, not booleans; hashes lowercase 64-hex; no extra keys.
 
 Each recording has exactly:
 
 ```text
 recording_id, raw_sha256, size_bytes, source_declaration_status,
 status, failure_code, invalidation_codes, reader_failure_context,
-stream_integrity, readiness
+binding_observations, stream_integrity, readiness,
+condition_availability, recorded_input_causality_checked, execution_observations
 ```
 
-Identity/source-declaration fields inherit registration/v0.19.9 shapes.
-`stream_integrity` is the exact v0.19.9 `decode_check` object or null, retaining
-per-channel/schema advertised-versus-decoded counts and exact selected CRC
-coverage. `reader_failure_context` is the existing safe v0.19.9 context or null;
-never export exception text, raw paths, coordinates, literal source IDs or a
-positive decoded prefix as completed observations. Invalidation labels are
-static and sorted. A recording has status `complete` or `inconclusive`.
+Identity/source fields inherit registration/v0.19.9. `stream_integrity` is
+exactly the old `decode_check` shape or null. `reader_failure_context` is the
+existing safe v0.19.9 chunk context or null, not arbitrary exception text.
+Static invalidation labels retain detection order and first-cause precedence.
 
-Complete `readiness` has exactly these keys:
+`binding_observations` is null until all selected descriptors are classified;
+otherwise an array sorted by `(topic, channel_id)`, one item per channel/schema
+version with exactly `topic`, `role`, `channel_id`, `schema_id`,
+`message_file_descriptor_sha256`, `binding_status`, `binding_failure_code`.
+Role is `estimate`, `reference` or `odometry`; status `supported`/`unsupported`;
+file-descriptor SHA is 64-hex or null if unavailable. Supported cause is null.
+Unsupported EDP cause is its existing descriptor/schema code (unprefixed
+generation codes); unsupported reference is `map_schema_or_encoding_mismatch`
+or `reference_descriptor_fields_unsupported`; unsupported odometry is
+`odometry_schema_or_encoding_mismatch` or `odometry_descriptor_fields_unsupported`.
+This is descriptor evidence, not decoded-prefix science. Identity mutation
+nulls it; container failure may retain it only on verified unchanged bytes.
+
+Complete `readiness` has exactly:
 
 ```text
 counts, diagnostics, odometry, source_clock_order, log_clock_order,
@@ -222,47 +395,105 @@ sensor_geometry_support, complete_condition_support,
 condition_failure_counts, exclusive_attrition
 ```
 
-The first eight values inherit the exact existing readiness/domain shapes and
-meanings at merged PR #33 (`12ddee6a4c855ed522378fa9742aef993a4bcb5f`), documented
-in [output contracts](output_contracts.md#v0196-generic-development-recording-readiness).
-Source clocks retain original storage-order estimate/reference statistics;
-log clocks cover all three selected topics, matching existing shapes.
-support histograms and condition/static failure maps remain sorted.
+The first eight values retain existing shapes/meanings at merged PR #33;
+see [output contracts](output_contracts.md#v0196-generic-development-recording-readiness).
+Source clocks cover estimate/reference, log clocks all three selected topics.
+Their exact decimal endpoints and schema/source evidence are **private reviewer
+evidence**, never public Git or meeting text. No numeric conditions/residuals,
+coordinates, literal raw paths/session IDs or row tables are exported.
+
 `exclusive_attrition` has exactly `decoded_estimate_message_count`, `stages`,
-`complete_condition_frame_count`. `stages` is a nine-element array in the
-fixed cascade order; each entry has exactly `stage`, `input_count`,
-`rejected_count`, `remaining_count`, `failure_code_counts`. Each rejection map
-uses static scientific labels and sums to `rejected_count`; input minus rejected
-equals remaining. The next input equals the previous remaining. First input
-equals decoded EDP count; last remaining equals complete-condition frame count.
-Sensor-admission input equals all-source anchored H100 candidates; its remaining
-equals SENSOR geometry frame count. Counts must reconcile with inherited
-diagnostics and both support summaries; overlapping diagnostics remain separate.
+`complete_condition_frame_count`. Stages are the nine entries in the a2 table,
+each with exactly `stage`, `input_count`, `rejected_count`, `remaining_count`,
+`failure_code_counts`. Input minus rejected equals remaining; rejection-map
+sum equals rejected; next input equals previous remaining. First input equals
+decoded EDP count; last remaining equals complete-condition frame count.
+All intermediate equalities and paired-failure partitions in B3 are mandatory.
+Overlapping inherited condition/conversion diagnostics are not additive stages.
 
-Unsupported EDP/RLMB scientific binding, incomplete streams, resource limits or
-scientific execution errors make `readiness` null. A completely reconciled
-stream may retain `stream_integrity` if only subsequent scientific processing
-fails. Interrupted decoding makes both null. Raw/registration/predecessor
-identity invalidation nulls both. Never publish completed-prefix readiness.
-The first cause remains visible; invalidation adds separate evidence without
-masking it. Completed other recordings may remain in an inconclusive batch,
-but no pooled counts or consumable partial numeric archive is created.
+### Explicit odometry-unavailable state (B2)
 
-Preserve the existing odometry failure semantics: a fully decoded odometry
-stream with an unsupported scientific binding or poisoned geometry can leave
-completed estimate/reference geometry observable while condition availability
-is reported as unavailable through the existing odometry/condition shapes.
-This is not a completed zero-residual finding, nor permission to invent speed.
-Container corruption or an incomplete odometry stream still invalidates the
-whole scientific readiness result.
+For fully decoded, CRC-checked, count-reconciled streams, odometry is globally
+unavailable if any selected odometry descriptor is unsupported, any message is
+invalid/schema-or-encoding-mismatched, its `_OdometryStore.schema_counts` has
+more than one identity, or the stream is empty. Identical duplicate timestamps
+and audited conflicts are handled by the existing store: duplicates/conflicts
+alone are not new whole-stream poison rules.
 
-Batch status is complete only if all recording scientific processing and
-identity/publication checks completed. Exit 0 means complete, including genuine
-zero support; exit 3 means a preserved inconclusive report; exit 2 is preflight,
-input/dependency failure without a report. A partial/interrupted write is not a
-completion marker. No report is a numeric archive, fit, split or deletion gate.
+Publish recording `status: complete`, `failure_code: null`, complete stream
+integrity and **retained geometry/readiness**. Set `condition_availability` to
+`unavailable_odometry`, `recorded_input_causality_checked` to false. If all other
+recordings complete, batch status is complete and exit code **0**, but its
+all-recordings recorded-input causality flag is **false**. The exact availability
+enum and false flag distinguish this from genuine zero-condition data.
+
+Retain the existing odometry `failure_counts`/`schema_counts` and all inherited
+non-exclusive condition failure counts. For unsupported descriptor binding,
+count affected messages under existing `odometry_schema_or_encoding_mismatch`
+if identity/encoding differs, otherwise `odometry_invalid_message`; binding
+observations retain the specific descriptor cause. Multiple schema identities
+can poison availability even with empty `failure_counts`. In the exclusive last
+stage, attribute **every** SENSOR H100 row to
+`odometry_stream_invalid_or_schema_changed` (or `odometry_stream_empty` for empty
+stream), irrespective of overlapping estimate-feature failures. Therefore the
+complete-condition support summary has zero frames/sequences/transitions, but
+those zeros mean unavailable under this explicit state, not measured zero yield.
+Even with no SENSOR H100 candidates, unavailable status remains explicit.
+
+With fully processed usable odometry, set `condition_availability` to
+`available_for_checks` and the per-recording causality flag true. Individual
+bracket/estimate/log-time failures are then measured rejection counts and may
+produce genuine zero complete-feature support. This flag says the recorded
+source/log-time checks were performed, not that all rows passed or physical
+availability was proven. Publish time never gates either population.
+
+### Complete, inconclusive and fatal outcomes
+
+| Outcome | Recording state / readiness | Availability / causality flag | Batch exit |
+|---|---|---|---|
+| Complete supported science, including measured zero | Complete; readiness retained | Available for checks / true | 0 if all complete |
+| Complete E/R with globally unavailable odometry | Complete; geometry/readiness retained | Unavailable odometry / false | 0 if all complete |
+| Unsupported EDP/RLMB version | Inconclusive; readiness null; reconciled stream retained | Not assessed / false | 3 |
+| Incomplete selected stream | Inconclusive; stream and readiness null | Not assessed / false | 3 |
+| Scientific failure after reconciled decoding | Inconclusive; readiness null; stream retained | Not assessed / false | 3 |
+| Identity mutation at late recheck | Inconclusive; both null, binding observations null | Not assessed / false | 3 |
+| Input/preflight/dependency or fresh-oracle mismatch | No report, including earlier batch rows | No published state | 2 |
+
+`condition_availability` enum values are exactly `available_for_checks`,
+`unavailable_odometry`, `not_assessed`; never null. The all-recordings causality
+flag is the conjunction of complete state **and** per-recording flags, not
+merely `batch.status == complete`. No incomplete science is represented by
+positive prefix counts or by zero. A complete container observation can survive
+a later scientific failure, but not an unfinished selected stream or identity
+invalidation. Completed other recordings may remain in an inconclusive batch;
+there is no pooled population or consumable partial archive.
+
+`execution_observations` has exactly `elapsed_seconds` and
+`peak_resident_memory_bytes`. Elapsed map keys are exactly `raw_hash`,
+`fresh_summary`, `descriptor_binding`, `selected_decode`, `scientific_finalize`;
+each is a finite nonnegative number or null if not entered/measured. Selected
+decode includes its scientific sink work; finalize includes subsequent matching/
+geometry/features/sequences, so stages do not overlap. RSS is nonnegative integer
+bytes or null if unavailable and is sampled at the resource checkpoints, not
+claimed as an exact continuous peak. Partial timing is execution evidence only.
+No claim about private pilot processing duration or cap adequacy exists yet.
+
+A partial/interrupted write is not a completion marker. No status opens a
+numeric archive, fit, role assignment, reference proof or deletion gate.
 
 ## Required implementation evidence after contract GO
+
+Test B1 per-version binding independently of message qualifiers: supported v1,
+exact v2, new flag-absent descriptors, incomplete bindings, mixed supported/
+unsupported E/R versions, MCAP-schema versus root-file hashes and late binding
+failure. Test B2 poison/schema multiplicity even when there are zero candidates,
+both condition-availability populations and their exact status/exit/flags.
+Test B3's coverage-before-anchor double-failure cases and all endpoint/partition
+equalities; first-emitted condition cause and global odometry override.
+Test B4 initial 18.5-GiB versus runtime 10-GiB boundaries, disposable journal-free
+MEMORY temp pragmas, unexpected sidecars, address-space exhaustion and cleanup.
+Test B5 exact type-preserving fresh-summary/decode equality, mismatch exit 2
+without output and late identity mutation/detection-order invalidations.
 
 Test synthetic parity with existing descriptor bindings, timestamp ties/missing
 clocks/uint64 extremes, pairing before filtering, lane-map/unknown provenance,
@@ -273,7 +504,7 @@ stream nulling, record/pair gap/reset and singleton sequence behavior.
 
 Test same-descriptor and metadata mutation handling, no repeated hashing or
 whole-summary fallback, nonzero/zero CRC coverage, actual-versus-advertised
-limits, timer/database/sidecar floors, temp cleanup and first-cause retention.
+limits, shared timer/database/sidecar floors, temp cleanup and first-cause retention.
 Exercise a large synthetic index under constrained memory and compare old
 wrappers/default decoder outputs to unchanged baselines. Keep old tests passing.
 Use Python 3.10/3.12 CI and exact pushed-head implementation review.

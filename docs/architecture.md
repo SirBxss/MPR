@@ -1,7 +1,11 @@
 # Project architecture
 
 The 2026-10-13 [bounded scientific consumer draft](generic_recording_readiness_v01910_draft.md)
-is documentation only. Container parsing/CRCs/count reconciliation stay in
+is documentation only. [a2](generic_recording_readiness_v01910_a2_review.md)
+adds stream-level binding, explicit odometry-unavailable publication, fixed
+disposable SQLite configuration and exact predecessor-oracle comparisons.
+The original a1 NO-GO is not acceptance; delta review precedes implementation.
+Container parsing/CRCs/count reconciliation stay in
 the reviewed disk-index I/O; existing descriptor/geometry/causal domain rules
 are reused through budgeted scientific staging. Workflows own fresh single-hash
 identity checks, resources and complete/null publication. Historical decoder

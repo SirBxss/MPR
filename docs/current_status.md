@@ -1,6 +1,26 @@
 # Current project status
 
-## Current 2026-10-13: PR #33 merged; new decode complete; bounded contract drafted
+Last updated: 2026-10-13. This is the first file a new agent should read after
+`AGENTS.md`. Update it whenever implementation, review, merge state, or the
+critical path changes.
+
+## Current 2026-10-13: PR #34 NO-GO; a2 contract correction prepared
+
+PR #34 remains open at reviewed head
+`88b889af642837d00c477edbadea7b3dbbc4a4c9`, tree
+`5bc290a127ed67142c9b722f3c200af242a493b4`. Claude returned NO-GO with five
+contract blockers. The a2 draft and
+[amendment record](generic_recording_readiness_v01910_a2_review.md) propose
+explicit per-version binding, retained geometry with unavailable odometry,
+coverage-before-anchor cascade, initial/runtime scratch policy and exact
+fresh-versus-preserved equality/exit semantics. This is documentation only;
+new-head delta GO and CI are pending on the same PR before merge/implementation.
+
+Codex independently verified a1 Actions run `38399401770`: both Python 3.10/
+3.12 jobs pass, each 650 run/648 pass/two unchanged skips. Logs checked out
+temporary merge `4a1f3330b65fb210c5a25bca5dd94995d3b1b530`, parents `12ddee6`
+and `88b889a`, with exactly the reviewed tree. Those passes resolve CI access
+uncertainty; they do not override NO-GO or claim CI for this correction.
 
 Main is `12ddee6a4c855ed522378fa9742aef993a4bcb5f`, tree
 `83015ba8a3103fc1e6a7616a88308f412f4be2cf`. PR #33 head `0bfdb88` has the
@@ -27,10 +47,6 @@ or reviewed successor, not edits to immutable registration. Job/interval/
 session IDs differ; job count is not independent-drive count. Acquire later
 files incrementally after pilot yield is known, with honest session evidence.
 The checkpoints below are historical evidence.
-
-Last updated: 2026-10-13. This is the first file a new agent should read after
-`AGENTS.md`. Update it whenever implementation, review, merge state, or the
-critical path changes.
 
 ## Historical 2026-10-09: PR #32 merged; registered pilot selected streams decode completely
 

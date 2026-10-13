@@ -31,6 +31,9 @@ overwrite source declarations in an immutable registration.
 
 The immediate next artifact is
 [the bounded scientific readiness draft](generic_recording_readiness_v01910_draft.md).
+The initial a1 at PR #34 head `88b889a` has NO-GO; a2 supersedes it and
+requires focused delta review/CI. Read
+[the correction and exact CI record](generic_recording_readiness_v01910_a2_review.md).
 It connects the existing scientific arithmetic to the reviewed disk-index
 reader without changing SENSOR admission, six causal inputs, pairing, geometry
 or sequence boundaries. This is a draft for focused review, not implemented

@@ -11,7 +11,12 @@ audit, not public Git. Geometry, SENSOR fraction, H100/features/sequences and
 physical-session independence remain unassessed. Preserve registered paths
 and all old evidence; no repeated accepted scans, raw migration or deletion.
 
-The new contract is DRAFT FOR FOCUSED REVIEW, not an implemented command.
+PR #34 a1 at `88b889a` received NO-GO with five contract blockers. Read
+`docs/generic_recording_readiness_v01910_a2_review.md`; a2 proposes explicit
+per-version binding, odometry unavailability, coverage-before-anchor attrition,
+18.5-GiB initial scratch and fresh-oracle drift policies. a1 CI is independently
+verified; the amendment needs new-head delta GO/CI in the same PR.
+The a2 contract is DRAFT FOR FOCUSED REVIEW, not an implemented command.
 Contract GO precedes implementation/test/review/CI; merge precedes one new
 private counts-only run. Reuse the disk-index reader and existing scientific
 rules. Numeric export/controller/catalogue/retirement and real-model evaluation
