@@ -1,5 +1,11 @@
 # Selected-stream decoding check on registered MCAPs
 
+**2026-10-09 checkpoint:** this design is implemented and reviewed; PR #32
+merged as `85cd9d6` and the one authorized pilot run completed, exit 0.
+Read `recording_decode_check_batch03_v0199_result.md` for accepted real evidence
+and `generic_pipeline_continuation_20261009.md` for the remaining pipeline.
+The pre-run design/evidence below is historical; do not repeat its pilot run.
+
 Date: 2026-10-08. Candidate revision:
 `v0.19.9-selected-stream-decode-check-2026-10-08-a1`.
 Base: merged PR #31, `05e0c71f93f8133204f6b5577f5ca69662f647fc`.

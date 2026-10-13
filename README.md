@@ -1,6 +1,18 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-08):** PR #31 is merged as `05e0c71` and the
+**Current checkpoint (2026-10-09):** PR #32 is merged as `85cd9d6`; Claude GO
+and Python 3.10/3.12 CI passed. The one authorized pilot decode check completed,
+exit 0: **36,032 EDP, 36,032 RLMB and 109,191 odometry messages** decoded and
+reconciled, with all 103,409 inspected selected-chunk CRCs validated. Read the
+[`accepted result`](docs/recording_decode_check_batch03_v0199_result.md) and
+[`generic-pipeline continuation`](docs/generic_pipeline_continuation_20261009.md).
+Reusable registration/inventory/selected decoding now work on this supported
+30 GB file; a generic numeric residual exporter and raw retirement are unfinished.
+H100 pairs/features/sequences are unassessed, not zero. Do not repeat the
+completed pilot commands. Next review the narrow bounded semantic/geometry
+contract; no target/topology/reference adoption, real fit or deletion follows.
+
+**Historical checkpoint (2026-10-08, decoder prepared):** PR #31 is merged as `05e0c71` and the
 pilot's metadata inventory completed with exit 0. The next generic stage,
 `recording_ingestion decode-check`, is prepared for implementation review:
 explicit selected Protobuf streams, disk-backed index ordering, selected

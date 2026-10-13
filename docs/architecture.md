@@ -1,5 +1,14 @@
 # Project architecture
 
+The 2026-10-09 accepted v0.19.9 pilot result establishes complete selected
+decoding with the bounded disk-index reader on one registered 30 GB MCAP.
+Generic semantic/H100 readiness, numeric residual/condition export and raw
+retirement are separate remaining consumers, not decoder side effects. Reuse
+the reviewed bounded I/O and existing geometry/causal arithmetic under a new
+consumer contract; do not route the large file back through whole-summary
+retention or guess scientific compatibility from embedded Protobuf decoding.
+See `generic_pipeline_continuation_20261009.md`.
+
 The v0.19.9 generic decoder uses `io.recording_decode_check` for explicit
 Protobuf selection, bounded embedded descriptors, temporary SQLite scalar
 index ordering, selected decompression/CRC/count checks and safe context.

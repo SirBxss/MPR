@@ -1,17 +1,35 @@
 # Thesis modeling plan
 
-The v0.19.9 generic selected-stream decoder is infrastructure only: successful
-byte decoding/count reconciliation does not adopt all-topology EDP, an
-independent reference or a new training population. Review its real result
-before semantic extraction and target/session/causal decisions. Both flow
-modes remain synthetic-only; no new or legacy/new combined fit follows from
-the metadata inventory or this decoder. See `generic_recording_decode_check_v0199.md`.
+The v0.19.9 generic selected-stream decoder has one accepted complete private
+result on merged PR #32, `85cd9d6`: 36,032 EDP, 36,032 RLMB and 109,191
+odometry messages, with selected CRC/count/identity reconciliation. This is
+infrastructure evidence, not all-topology adoption or a residual training set.
+Read `recording_decode_check_batch03_v0199_result.md` and
+`generic_pipeline_continuation_20261009.md`. Both flow modes remain synthetic-only;
+no new-only or legacy/new combined fit follows from this result.
 
 MPR is the canonical thesis implementation. LEEM is retained only as a source
 of implementation ideas and historical evidence; its model code and results
 are not the thesis execution path.
 
-## Current development decision: 2026-10-08
+## Current development decision: 2026-10-09
+
+Selected decoding now completes; freeze the narrow generic semantic/geometry
+readiness consumer before a new implementation/private run. Reuse existing
+arithmetic, enforce common H100 coverage/origin/frame/epoch/no-extrapolation
+rules, and distinguish geometric candidates from old SENSOR admission,
+complete causal conditions and contiguous sequences. Numeric archives and
+matched-population model comparisons follow separate reviewed steps.
+
+The existing inclusive 8--12-outing plan and seven-new-outing minimum are
+engineering planning gates, not a statistical power result or a guarantee for
+flow training. The v0.17 cohort also excludes mixed/SENSOR-ineligible outings;
+it cannot be silently reused as an all-topology cohort. Any population change
+needs a reviewed amendment before role assignment or new target export.
+Data-volume estimates in the continuation document are scheduling/storage
+examples only. Do not choose a stopping point from untouched final results.
+
+## Historical development decision: 2026-10-08
 
 Resume generic intake infrastructure with registered-file metadata inventory.
 Read `generic_recording_inventory_v0198.md` and
