@@ -33,7 +33,11 @@ The immediate next artifact is
 [the bounded scientific readiness draft](generic_recording_readiness_v01910_draft.md).
 The initial a1 at PR #34 head `88b889a` has NO-GO; a2 supersedes it and
 requires focused delta review/CI. Read
-[the correction and exact CI record](generic_recording_readiness_v01910_a2_review.md).
+[the a2 correction record](generic_recording_readiness_v01910_a2_review.md).
+a2 at `8d5c19e` now has NO-GO only for R1; a3 supplies complete consumer
+bindings and keeps accepted B2–B5/generation rules fixed. Read
+[the a3 status/CI record](generic_recording_readiness_v01910_a3_review.md) and
+[public application runbook](generic_recording_readiness_contract_runbook_v01910.md).
 It connects the existing scientific arithmetic to the reviewed disk-index
 reader without changing SENSOR admission, six causal inputs, pairing, geometry
 or sequence boundaries. This is a draft for focused review, not implemented

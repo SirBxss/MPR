@@ -7,8 +7,10 @@ H100/causal support, source fractions and session independence remain unknown.
 Review [the bounded readiness draft](generic_recording_readiness_v01910_draft.md)
 before connecting the disk-index reader to the existing scientific arithmetic.
 PR #34 a1 has five documentation blockers, corrected prospectively in
-[a2](generic_recording_readiness_v01910_a2_review.md); delta GO and new-head CI
-remain pending. Preserve the exact v0.17.1 EDP generation rule: a changed
+[a2](generic_recording_readiness_v01910_a2_review.md). The a2 review accepts
+B2–B5 and the generation rule, but leaves R1 NO-GO; the narrow
+[a3 consumer-binding correction](generic_recording_readiness_v01910_a3_review.md)
+needs focused GO and new-head CI. Preserve the exact v0.17.1 EDP generation rule: a changed
 flag-absent root-file descriptor needs a separate reviewed amendment.
 The SENSOR population, signed 21-station target, original timestamp pairing,
 six causal features and sequence/reset rules remain fixed. This draft opens

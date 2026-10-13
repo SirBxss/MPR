@@ -8,8 +8,12 @@ sequences and actual topology fractions remain unassessed. Read the
 [`bounded scientific readiness draft`](docs/generic_recording_readiness_v01910_draft.md).
 a1 received NO-GO with five documentation blockers; the
 [`a2 amendment record`](docs/generic_recording_readiness_v01910_a2_review.md)
-records their proposed resolutions and verified a1 CI. Focused delta GO and
-new-head CI are pending in the same PR #34. No new command,
+records their proposed resolutions and Codex-verified a1 CI. The a2 review
+accepted B2–B5 and EDP generation, but has NO-GO for consumer-required bindings.
+Read the [`a3 R1 correction`](docs/generic_recording_readiness_v01910_a3_review.md)
+and [`public apply/test/push runbook`](docs/generic_recording_readiness_contract_runbook_v01910.md).
+a2 CI is Codex-verified; a3 focused GO and new-head CI remain pending in PR #34.
+No new command,
 numeric archive, real fit, data migration or raw deletion is implemented.
 
 **Historical checkpoint (2026-10-09):** PR #32 is merged as `85cd9d6`; Claude GO

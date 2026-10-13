@@ -14,9 +14,15 @@ and all old evidence; no repeated accepted scans, raw migration or deletion.
 PR #34 a1 at `88b889a` received NO-GO with five contract blockers. Read
 `docs/generic_recording_readiness_v01910_a2_review.md`; a2 proposes explicit
 per-version binding, odometry unavailability, coverage-before-anchor attrition,
-18.5-GiB initial scratch and fresh-oracle drift policies. a1 CI is independently
-verified; the amendment needs new-head delta GO/CI in the same PR.
-The a2 contract is DRAFT FOR FOCUSED REVIEW, not an implemented command.
+18.5-GiB initial scratch and fresh-oracle drift policies. a1 CI is
+Codex-verified; the initial amendment needed new-head delta GO/CI in the same PR.
+a2 at `8d5c19e` received NO-GO only for R1; B2–B5 and EDP generation were
+accepted. Read `docs/generic_recording_readiness_v01910_a3_review.md` and the
+public `docs/generic_recording_readiness_contract_runbook_v01910.md`.
+a3 requires complete consumer clock/topology/ego/direct-path/nested bindings;
+it does not alter accepted a2 policies. a2 CI is Codex-verified at run
+`38409957807`; a3 focused R1/runbook GO and new-head CI remain pending.
+The a3 contract is DRAFT FOR FOCUSED REVIEW, not an implemented command.
 Contract GO precedes implementation/test/review/CI; merge precedes one new
 private counts-only run. Reuse the disk-index reader and existing scientific
 rules. Numeric export/controller/catalogue/retirement and real-model evaluation

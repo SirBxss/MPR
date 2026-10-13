@@ -4,7 +4,12 @@ The 2026-10-13 [bounded scientific consumer draft](generic_recording_readiness_v
 is documentation only. [a2](generic_recording_readiness_v01910_a2_review.md)
 adds stream-level binding, explicit odometry-unavailable publication, fixed
 disposable SQLite configuration and exact predecessor-oracle comparisons.
-The original a1 NO-GO is not acceptance; delta review precedes implementation.
+The original a1 NO-GO is not acceptance. a2 accepted B2–B5/generation but has
+one R1 binding blocker; [a3](generic_recording_readiness_v01910_a3_review.md)
+completes clock/topology/ego/direct geometry and declared nested-path checks.
+The pinned reference consumer requires direct drive-path geometry, so boundary
+midpoints cannot substitute. Historical converters remain unchanged; the new
+per-version precheck is a separate proposed consumer boundary.
 Container parsing/CRCs/count reconciliation stay in
 the reviewed disk-index I/O; existing descriptor/geometry/causal domain rules
 are reused through budgeted scientific staging. Workflows own fresh single-hash

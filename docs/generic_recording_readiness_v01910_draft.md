@@ -1,10 +1,13 @@
 # Bounded generic scientific readiness: review draft
 
 Date: 2026-10-13. Status: **DRAFT FOR FOCUSED CONTRACT REVIEW**.
-Proposed revision: `v0.19.10-bounded-recording-readiness-2026-10-13-a2`.
-a2 addresses the five blockers in the independent review of PR #34 at
-`88b889af642837d00c477edbadea7b3dbbc4a4c9`; a1 has NO-GO and is superseded.
-Read [the amendment record](generic_recording_readiness_v01910_a2_review.md).
+Proposed revision: `v0.19.10-bounded-recording-readiness-2026-10-13-a3`.
+a3 addresses only residual R1 from the a2 review at PR #34 head
+`8d5c19e05b037a25f94e1a99e55ee9a5afd6cb9a`. a2 has NO-GO; its B2–B5 and
+EDP generation policy were accepted, and remain fixed here. Read
+[the a3 amendment record](generic_recording_readiness_v01910_a3_review.md) and
+[public application runbook](generic_recording_readiness_contract_runbook_v01910.md).
+The [a2 record](generic_recording_readiness_v01910_a2_review.md) is historical.
 This documentation does not implement a command or authorize a private run.
 Read [the continuation](generic_pipeline_continuation_20261009.md),
 [the decoder contract](generic_recording_decode_check_v0199.md),
@@ -95,18 +98,170 @@ For EDP, preserve `estimate_descriptor_support` and the reviewed
   allowlist with structural similarity. A relaxation is a separate evidence
   record and reviewed amendment, not implementation discretion.
 
-For RLMB, preserve the existing `Adp.Perception.Road`/Protobuf binding and the
-structural alternatives consumed by `io.mcap.road_frame_from_message` and
-`ordered_ego_lane_from_road_frame` at merged PR #33. Bind declared descriptor
-paths before testing values: the first declared alias in each existing alias
-tuple wins; underscore aliases and existing direct-path/boundary-midpoint
-alternatives remain permitted. Required lane-segment/ID bindings and at least
-one complete existing geometry-reconstruction descriptor path must resolve.
-Optional metadata or an unused alternative need not exist; empty repeated
-values, invalid flags/ranges and nonfinite coordinates on a bound path remain
-data failures. Preserve current integer segment-ID handling, including int64/
-uint64, without borrowing the separate sensor-lane adapter's constraints.
-Do not accept a new alias or field conversion by root name alone.
+### Consumer-required bindings (R1; additional to generation)
+
+The pinned consumer is `iter_geometry_records` → `road_frame_from_message` →
+`ordered_ego_lane_from_road_frame`, together with the existing EDP converter.
+Generation support alone is insufficient. Apply these descriptor checks to
+**every** selected E/R channel/schema version after generation/required-generation
+bindings and before payload science. Historical converters/output accounting
+remain unchanged; this new consumer's stream-level decision is separate.
+
+Use only the existing alias tuples below, in their existing order. A descriptor
+lookup resolves the first **declared** alias; an incompatible first declaration
+cannot be bypassed for a later compatible alias. For `_get_present_attr` runtime
+selectors, preserve their first-declared-**and-present** behaviour and validate
+every declared candidate that could be selected. Do not force an absent first
+alias's default over a present later alias. Likewise, preserve value-dependent
+direct-clock-to-header fallback. This adds no new alias or value coercion.
+
+Here, an integer scalar is singular Protobuf `int32`, `int64`, `uint32`, `uint64`,
+`sint32`, `sint64`, `fixed32`, `fixed64`, `sfixed32` or `sfixed64`; numeric also
+allows singular `float`/`double`. Boolean, enum, string and bytes are not numeric
+geometry/time/index bindings merely because Python can coerce some values.
+Ego flags separately allow Boolean or integer scalars, retaining the helper's
+per-message acceptance of integer 0/1 only. A singular enum flag is also
+compatible when its declared numbers include 1, since the pinned helper sees
+Protobuf enum values as integers; it still accepts only 0/1, without inventing
+symbol meanings. An enum flag incapable of true is not a complete ego route.
+Repeated/message cardinalities are
+explicit below, not inferred from zero-valued instances.
+
+**Source time, required for both EDP and RLMB:** follow `_source_time_ns` order:
+
+1. Direct aliases `time_stamp`, `time_stamp_`, `timestamp`, `timestamp_`.
+2. If no direct value converts, `header`, `header_` → `stamp`, `stamp_`.
+3. A timestamp value type must be an integer scalar or a singular message
+   declaring integer `seconds`, `secs` or `sec` (first declared). Fractional
+   aliases are optional, but any selected declaration must be integer:
+   `fractional_seconds`, `fractional_seconds_`, `nanoseconds`, `nanos`, `nsecs`,
+   `nanosec`, in that order. Absence keeps the existing zero fractional default.
+
+At least one complete direct or header/stamp descriptor path is required.
+Each declared candidate clock/header/stamp path that the helpers can select
+must be complete and compatibly typed; a malformed declared fallback is not
+hidden by another complete path. Absent optional routes remain absent.
+No seconds alias, wrong cardinality/type or a header path missing stamp is a
+binding failure. On supported paths, absent values, negative source time and
+other invalid **values** keep the existing missing-time/data semantics.
+Source time is pre-extracted before reference geometry conversion: a bound RLMB
+row that fails geometry still participates in full-stream timestamp pairing.
+
+**EDP, additionally:** `topology_source` must be declared as a singular enum
+whose type contains `ROAD_TOPOLOGY_SOURCE_SENSOR_TOPOLOGY`. The symbol's presence
+is descriptor evidence; field presence/current enum value remains per-message
+provenance and SENSOR admission. These time/topology checks do **not** change
+`estimate_descriptor_support` or the exact v1/v2 generation decision above.
+A generation-supported descriptor missing these consumer-required paths has
+`binding_status: unsupported`, `binding_failure_code:
+estimate_descriptor_fields_unsupported`, and recording first cause
+`scientific_binding_unsupported_estimate_descriptor`.
+
+The generation-required fields must also resolve to their existing consuming
+types/cardinalities: repeated-message `drive_paths`, singular-message
+`model_parameters`, singular enum `role` containing `LANE_ROLE_KEEP_LANE` and
+singular enum `error` containing `DRIVE_PATH_ERROR_NO_ERROR`, numeric initial
+spline scalars and repeated numeric spline arrays. Keep the exact field-8/
+field-7 generation rules above. A field merely existing in `missing_required`
+is not proof that its consumed shape or required qualifier symbol is usable.
+These are consumer-binding checks after the unchanged generation decision,
+with the same `estimate_descriptor_fields_unsupported` cause. Declared
+`drive_path_confidences` must retain its repeated numeric shape; its absence
+keeps the existing estimate-feature unavailability accounting and does not
+make a geometric descriptor unbound solely for missing optional confidence.
+
+**RLMB, required for this consumer:**
+
+| Entry | Required descriptor path and types |
+|---|---|
+| Topic/root/encoding | Existing `Adp.Perception.Road`/Protobuf identity |
+| Clock | Complete source-time path defined above |
+| Segments | Repeated message `lane_segments` or `lane_segments_`; each element declares integer scalar `id` or `id_` |
+| Ego designation | At least one existing route: root integer ego-ID scalar, root repeated integer ego indices, or segment ego flag compatible with the pinned 0/1 helper |
+| Direct vertices | Repeated message `polyline_vertex_pool` or `polyline_vertex_pool_`; each element declares numeric `x`/`x_` and `y`/`y_`, or singular distributed-numeric messages as defined below |
+| Direct range | Segment singular message `drive_path_range` or `drive_path_range_`, declaring integer scalar `start`/`start_` and `size`/`size_` |
+
+Root ego-ID aliases, in order, are `ego_lane_segment_id`,
+`ego_lane_segment_id_`, `ego_lane_id`, `ego_lane_id_`, `host_lane_segment_id`,
+`host_lane_segment_id_`, `current_lane_segment_id`, `current_lane_segment_id_`.
+Root ego-index aliases are `ego_lane_segment_indices`,
+`ego_lane_segment_indices_`. Segment flag aliases are `is_ego_lane`,
+`is_ego_lane_`, `ego_lane`, `ego_lane_`, `is_host_lane`, `is_host_lane_`,
+`is_ego`, `is_ego_`, `is_current_lane`, `is_current_lane_`.
+Validate declared selectable routes, retaining existing presence and value
+precedence: root ego ID, then nonempty ego indices, then segment flag.
+Unfilled IDs/flags, nonunique ego choice and out-of-range indices are data
+failures after successful binding, not permission to guess an ego segment.
+
+`select_unique_ego_drive_path` and successor traversal require
+`geometry_source == "drive_path"`. **Boundary-midpoint geometry is not an
+admissible alternative for this consumer.** A boundary-only descriptor is
+unsupported even if `road_frame_from_message` could construct
+`paired_boundaries`. A descriptor with complete direct bindings may still have
+per-message invalid/absent direct geometry; boundary fallback stays in the
+unchanged parser but never becomes an admitted reference path.
+
+`successor_lane_segment_indices`/`successor_lane_segment_indices_` remain
+**optional**, because one explicit ego drive-path segment can already cover H100.
+If declared they must be repeated integers. Absence preserves existing
+`terminal_segment_no_successor` when coverage is short; no chain is invented
+and H100 coverage is still checked. The matching predecessor-index aliases
+are also optional repeated integers when declared.
+
+**Partial declarations and optional entries:** every selected entry that the
+pinned converter can read, including an optional nonempty geometry pool or
+range, must have complete nested bindings with compatible types. An unused
+alternative cannot hide a malformed entry that is still read. This is a
+descriptor rule independent of whether the current messages populate it.
+Unconditional `_get_attr` ignores aliases dominated by an earlier declaration;
+only actually selectable declarations need validation. Presence-based selectors
+can select later aliases, so all their declared candidates must be checked.
+
+- Coordinate `x`/`x_`, `y`/`y_` may be numeric scalars or singular messages
+  declaring numeric scalar `mean`/`mean_`. Optional `invalid_flags`/
+  `invalid_flags_` must be integer if declared. Invalid flags or nonfinite
+  numeric values are data, not binding defects.
+- Optional `boundary_vertex_pool`/`boundary_vertex_pool_` is repeated message
+  with the same complete x/y coordinate paths if declared, even when direct
+  geometry is complete. Missing y or a distributed coordinate's mean fails
+  binding; it must not become `map_RoadMessageError` data accounting.
+- Optional `lane_boundary_pool`/`lane_boundary_pool_` is repeated message.
+  Its declared `geometry`/`geometry_` range is a singular message with integer
+  start/size. Segment `left_lane_boundary_ranges`/underscore and
+  `right_lane_boundary_ranges`/underscore, if declared, are singular containers;
+  each declared `camera_based`/underscore, `map_based`/underscore or
+  `artificial`/underscore child is the same complete integer range message.
+  Undeclared optional children stay absent; any declared range missing size
+  is unsupported even if another range or the direct path is complete.
+- Optional vertex `heading`/`heading_`, `curvature`/`curvature_`, if declared,
+  has the same numeric/distributed-numeric shape. Optional root
+  `polyline_arc_length_pool`/underscore is repeated numeric scalars.
+  Their bound value/presence failures retain existing fallback/data behaviour.
+- Presence-checked primitive quality/road metadata can remain absent or
+  unavailable under existing `_primitive` behaviour. No new quality threshold,
+  compulsory heading/curvature/arc pool, predecessor link or boundary pool is
+  introduced. These do not substitute for the required direct/clock/ego paths.
+
+Any unmet RLMB consumer binding gives `binding_status: unsupported`,
+`binding_failure_code: reference_descriptor_fields_unsupported` and recording
+first cause `scientific_binding_unsupported_reference_descriptor`. The existing
+schema/encoding mismatch code is retained when that identity fails instead.
+Generation failure precedes missing generation-required bindings, which precede
+the additional EDP consumer checks; do not relabel a known generation failure
+as the new generic EDP descriptor cause.
+
+**Late binding versus data:** RLMB's pinned converter collapses missing-field
+and value errors into generic `map_RoadMessageError`/`map_TypeError`/
+`map_ValueError`. Do not infer late binding from those labels or exception text.
+The per-version descriptor precheck must be complete for all paths above;
+the required structural fixtures below prove its completeness. Keep the RLMB
+converter unchanged. After a complete precheck, those generic conversion labels
+remain data rejections. An explicit descriptor/schema recheck failure instead
+uses the reference unsupported recording cause and descriptor observation.
+For EDP's distinguishable existing binding codes, an unexpected late binding
+failure nulls the whole recording with the estimate unsupported recording
+cause, `binding_status: unsupported`, and the existing descriptor code retained
+as `binding_failure_code`. It never becomes a genuine-zero cascade result.
 
 For odometry, use the existing `Adp.OdometryState`/Protobuf identity, singular
 integer `timestamp` and numeric `x_position`, `y_position`, `yaw_angle`
@@ -122,8 +277,9 @@ The following are **binding failures**, excluded from the row cascade:
 `legacy_index_0_descriptor_contract_mismatch`, `schema_bindings_incomplete`,
 and their `estimate_`-prefixed conversion forms. A reference descriptor that
 cannot resolve the existing required paths is also binding-unsupported.
-An unexpected late binding failure, despite descriptor precheck, nulls the
-recording's readiness; it is never converted to a genuine-zero data result.
+Apply the role-specific late-binding/data rule in R1 above. The recording
+causes are the corresponding `scientific_binding_unsupported_*_descriptor`
+codes, with descriptor causes retained separately.
 
 One unsupported EDP **or** RLMB version makes the whole recording scientifically
 inconclusive: no supported-version subset, no complete-prefix counts. Record
@@ -353,7 +509,7 @@ execution_limits, resources_at_start, recordings, interpretation
 ```
 
 Purpose is `development_only_bounded_recording_readiness`; contract and
-scientific-adapter revisions are a2 above. Reader remains
+scientific-adapter revisions are a3 above. Reader remains
 `v0.19.9-disk-index-selected-chunks-a1`; selected topics are the sorted three
 topics and CRC validation true. Independent-outing count is null. All role/
 lock/fit/export/physical-proof/reference-proof/deletion booleans remain false.
@@ -381,7 +537,8 @@ version with exactly `topic`, `role`, `channel_id`, `schema_id`,
 Role is `estimate`, `reference` or `odometry`; status `supported`/`unsupported`;
 file-descriptor SHA is 64-hex or null if unavailable. Supported cause is null.
 Unsupported EDP cause is its existing descriptor/schema code (unprefixed
-generation codes); unsupported reference is `map_schema_or_encoding_mismatch`
+generation codes), or `estimate_descriptor_fields_unsupported` for the new
+consumer-required paths; unsupported reference is `map_schema_or_encoding_mismatch`
 or `reference_descriptor_fields_unsupported`; unsupported odometry is
 `odometry_schema_or_encoding_mismatch` or `odometry_descriptor_fields_unsupported`.
 This is descriptor evidence, not decoded-prefix science. Identity mutation
@@ -403,7 +560,7 @@ evidence**, never public Git or meeting text. No numeric conditions/residuals,
 coordinates, literal raw paths/session IDs or row tables are exported.
 
 `exclusive_attrition` has exactly `decoded_estimate_message_count`, `stages`,
-`complete_condition_frame_count`. Stages are the nine entries in the a2 table,
+`complete_condition_frame_count`. Stages are the nine entries in the fixed cascade table,
 each with exactly `stage`, `input_count`, `rejected_count`, `remaining_count`,
 `failure_code_counts`. Input minus rejected equals remaining; rejection-map
 sum equals rejected; next input equals previous remaining. First input equals
@@ -456,6 +613,7 @@ availability was proven. Publish time never gates either population.
 | Unsupported EDP/RLMB version | Inconclusive; readiness null; reconciled stream retained | Not assessed / false | 3 |
 | Incomplete selected stream | Inconclusive; stream and readiness null | Not assessed / false | 3 |
 | Scientific failure after reconciled decoding | Inconclusive; readiness null; stream retained | Not assessed / false | 3 |
+| Unexpected scratch file (`readiness_unexpected_scratch_file`) | Inconclusive; readiness null; stream retained only if complete/reconciled | Not assessed / false | 3 |
 | Identity mutation at late recheck | Inconclusive; both null, binding observations null | Not assessed / false | 3 |
 | Input/preflight/dependency or fresh-oracle mismatch | No report, including earlier batch rows | No published state | 2 |
 
@@ -482,6 +640,32 @@ A partial/interrupted write is not a completion marker. No status opens a
 numeric archive, fit, role assignment, reference proof or deletion gate.
 
 ## Required implementation evidence after contract GO
+
+R1 fixtures must prove boundary-only RLMB unsupported; missing reference clock
+or timestamp message without seconds unsupported; absent ego designation
+unsupported; noninteger segment ID unsupported; vertex without y, distributed
+coordinate without numeric mean, and range without size unsupported even with
+another complete path. Include malformed declared optional boundary entries,
+wrong repeated/singular cardinality, incompatible first aliases, and valid
+presence-based later aliases with the first absent. Supported direct single-
+segment H100 without successors must remain possible, while short paths retain
+terminal/coverage failures without invented continuation.
+
+For EDP, missing clock/topology field or enum without the SENSOR symbol is
+consumer-binding-unsupported **without changing v1/v2 generation classification**.
+Include generation-supported role/error enums missing the qualifier symbols,
+and wrong consuming field cardinalities/types, under the same consumer cause.
+A fully bound descriptor with all-invalid/absent **values** still publishes
+complete measured-zero geometry under unchanged data rules. Test missing reference
+geometry retaining pre-extracted time for full-stream pairing. Assert historical
+v0.19.6/v0.17 accounting/output bytes remain unchanged.
+
+At maximum scientific budgets (1,000,000 odometry and 100,000 EDP/RLMB each),
+one implementation test/benchmark must measure the new MEMORY-temp SQLite/
+scalar-matcher staging under the 4 GiB address-space cap, including sort/index
+work. Report checkpoint RSS/virtual memory and success or explicit memory-limit
+failure; do not claim headroom from a small fixture. This is required future
+execution evidence, not an a3 private run or a raised budget.
 
 Test B1 per-version binding independently of message qualifiers: supported v1,
 exact v2, new flag-absent descriptors, incomplete bindings, mixed supported/

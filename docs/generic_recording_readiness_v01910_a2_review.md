@@ -1,6 +1,9 @@
 # PR #34 a2 contract amendment and review handoff
 
-Date: 2026-10-13. Status: **DRAFT; focused delta GO pending**.
+Date: 2026-10-13. **Historical a2 proposal:** its review at `8d5c19e`
+accepted B2–B5 and EDP generation, but returned NO-GO for R1 consumer bindings.
+[a3 supersedes this proposal](generic_recording_readiness_v01910_a3_review.md);
+focused R1/runbook delta GO and a3 CI remain pending.
 No scientific implementation or private execution is added.
 
 Claude reviewed a1 at `88b889af642837d00c477edbadea7b3dbbc4a4c9`, tree
