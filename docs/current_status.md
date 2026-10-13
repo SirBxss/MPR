@@ -1,10 +1,38 @@
 # Current project status
 
-Last updated: 2026-10-09. This is the first file a new agent should read after
+## Current 2026-10-13: PR #33 merged; new decode complete; bounded contract drafted
+
+Main is `12ddee6a4c855ed522378fa9742aef993a4bcb5f`, tree
+`83015ba8a3103fc1e6a7616a88308f412f4be2cf`. PR #33 head `0bfdb88` has the
+same tree. One new development recording has complete registration/inventory/
+selected-decode evidence, reconciled with the returned receipt/predecessor
+and owner terminal hash checks. Exact recording identifiers, data counts,
+paths and hashes remain in the private delivered audit. No private raw bytes
+were rescanned by the agent. Decoding is serialization/container evidence;
+it does not establish scientific descriptor compatibility or all-SENSOR yield.
+
+Read [the complete handoff](development_recording_decode_followup_20261013.md)
+and [the bounded consumer draft](generic_recording_readiness_v01910_draft.md).
+Next is focused contract review, then implementation/test/review/CI, merge
+and one new versioned counts-only private run. The draft preserves original
+full-stream pairing, SENSOR admission, 21 stations/no extrapolation, six
+causal inputs and sequence boundaries; it adds explicit complete/null and
+exclusive attrition reporting. It is not implemented or private-run permission.
+
+Keep the registered raw path and all old reports unchanged. Do not repeat
+completed scans or the old deferred readiness command. No generic numeric
+export, source/session catalogue controller, real fit, role lock or raw
+retirement is implemented. Later source metadata needs a private supplement
+or reviewed successor, not edits to immutable registration. Job/interval/
+session IDs differ; job count is not independent-drive count. Acquire later
+files incrementally after pilot yield is known, with honest session evidence.
+The checkpoints below are historical evidence.
+
+Last updated: 2026-10-13. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current: PR #32 merged; registered pilot selected streams decode completely
+## Historical 2026-10-09: PR #32 merged; registered pilot selected streams decode completely
 
 PR #32 is merged as `85cd9d6fef920bd8f347c471c14f520835ef2b24`, tree
 `1d6b997bb7ff26e10d3172cc47a4dad9293f1c48`. Claude's supplied review gives GO

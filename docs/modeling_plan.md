@@ -1,5 +1,18 @@
 # Thesis modeling plan
 
+## Current development decision: 2026-10-13
+
+The new development recording passes selected decoding, while geometry,
+H100/causal support, source fractions and session independence remain unknown.
+Review [the bounded readiness draft](generic_recording_readiness_v01910_draft.md)
+before connecting the disk-index reader to the existing scientific arithmetic.
+The SENSOR population, signed 21-station target, original timestamp pairing,
+six causal features and sequence/reset rules remain fixed. This draft opens
+no all-topology training, numeric export, real flow fit or final-data gate.
+RLMB disagreement remains a pseudo-reference target, not physical ground truth.
+See [the staged handoff](development_recording_decode_followup_20261013.md)
+for generic export, private catalogue and exact-byte retirement prerequisites.
+
 The v0.19.9 generic selected-stream decoder has one accepted complete private
 result on merged PR #32, `85cd9d6`: 36,032 EDP, 36,032 RLMB and 109,191
 odometry messages, with selected CRC/count/identity reconciliation. This is
@@ -12,7 +25,7 @@ MPR is the canonical thesis implementation. LEEM is retained only as a source
 of implementation ideas and historical evidence; its model code and results
 are not the thesis execution path.
 
-## Current development decision: 2026-10-09
+## Historical development decision: 2026-10-09
 
 Selected decoding now completes; freeze the narrow generic semantic/geometry
 readiness consumer before a new implementation/private run. Reuse existing

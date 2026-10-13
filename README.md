@@ -1,6 +1,15 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-09):** PR #32 is merged as `85cd9d6`; Claude GO
+**Current checkpoint (2026-10-13):** PR #33 is merged at `12ddee6a`.
+A separately returned new development recording completed registration,
+inventory and selected decoding. H100 support, causal features, usable
+sequences and actual topology fractions remain unassessed. Read the
+[`new handoff`](docs/development_recording_decode_followup_20261013.md) and
+[`bounded scientific readiness draft`](docs/generic_recording_readiness_v01910_draft.md).
+The draft needs focused review before implementation; no new command,
+numeric archive, real fit, data migration or raw deletion is implemented.
+
+**Historical checkpoint (2026-10-09):** PR #32 is merged as `85cd9d6`; Claude GO
 and Python 3.10/3.12 CI passed. The one authorized pilot decode check completed,
 exit 0: **36,032 EDP, 36,032 RLMB and 109,191 odometry messages** decoded and
 reconciled, with all 103,409 inspected selected-chunk CRCs validated. Read the

@@ -1,5 +1,14 @@
 # Project architecture
 
+The 2026-10-13 [bounded scientific consumer draft](generic_recording_readiness_v01910_draft.md)
+is documentation only. Container parsing/CRCs/count reconciliation stay in
+the reviewed disk-index I/O; existing descriptor/geometry/causal domain rules
+are reused through budgeted scientific staging. Workflows own fresh single-hash
+identity checks, resources and complete/null publication. Historical decoder
+defaults and old consumers must retain behavior. Catalogue/controller,
+generic numeric archives and raw retirement remain later components; see
+[the handoff](development_recording_decode_followup_20261013.md).
+
 The 2026-10-09 accepted v0.19.9 pilot result establishes complete selected
 decoding with the bounded disk-index reader on one registered 30 GB MCAP.
 Generic semantic/H100 readiness, numeric residual/condition export and raw

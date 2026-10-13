@@ -1,5 +1,23 @@
 # MPR agent instructions
 
+## Current checkpoint: 2026-10-13 new development decode and bounded contract draft
+
+PR #33 is merged at `12ddee6a4c855ed522378fa9742aef993a4bcb5f`.
+Read `docs/development_recording_decode_followup_20261013.md` and
+`docs/generic_recording_readiness_v01910_draft.md` after the standard start
+instructions below. A new development recording completed registration,
+inventory and selected decoding; exact private evidence is in the delivered
+audit, not public Git. Geometry, SENSOR fraction, H100/features/sequences and
+physical-session independence remain unassessed. Preserve registered paths
+and all old evidence; no repeated accepted scans, raw migration or deletion.
+
+The new contract is DRAFT FOR FOCUSED REVIEW, not an implemented command.
+Contract GO precedes implementation/test/review/CI; merge precedes one new
+private counts-only run. Reuse the disk-index reader and existing scientific
+rules. Numeric export/controller/catalogue/retirement and real-model evaluation
+are later consumers. Keep flow modes synthetic-only and scientific admission
+unchanged. The 2026-10-09 checkpoint below is historical.
+
 These instructions apply to the complete repository. MPR is the canonical
 implementation for the thesis; LEEM is historical reference material only.
 
@@ -28,7 +46,7 @@ implementation for the thesis; LEEM is historical reference material only.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
-## Current checkpoint: 2026-10-09 accepted pilot decode result
+## Historical checkpoint: 2026-10-09 accepted pilot decode result
 
 PR #32 is merged as `85cd9d6fef920bd8f347c471c14f520835ef2b24`, tree
 `1d6b997bb7ff26e10d3172cc47a4dad9293f1c48`. Claude GO/zero blockers covered
