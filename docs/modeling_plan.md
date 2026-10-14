@@ -1,6 +1,6 @@
 # Thesis modeling plan
 
-## Current development decision: 2026-10-13
+## Current development decision: 2026-10-14
 
 The new development recording passes selected decoding, while geometry,
 H100/causal support, source fractions and session independence remain unknown.
@@ -10,7 +10,11 @@ PR #34 a1 has five documentation blockers, corrected prospectively in
 [a2](generic_recording_readiness_v01910_a2_review.md). The a2 review accepts
 B2–B5 and the generation rule, but leaves R1 NO-GO; the narrow
 [a3 consumer-binding correction](generic_recording_readiness_v01910_a3_review.md)
-needs focused GO and new-head CI. Preserve the exact v0.17.1 EDP generation rule: a changed
+has a3 NO-GO only for R1-C. [a4](generic_recording_readiness_v01910_a4_review.md)
+requires the confidence declaration used by three fixed causal features; missing
+binding is unsupported, while empty/invalid bound values remain measured data.
+a3 CI is verified; focused a4 GO and new-head CI are pending.
+Preserve the exact v0.17.1 EDP generation rule: a changed
 flag-absent root-file descriptor needs a separate reviewed amendment.
 The SENSOR population, signed 21-station target, original timestamp pairing,
 six causal features and sequence/reset rules remain fixed. This draft opens

@@ -1,11 +1,12 @@
 # Bounded generic scientific readiness: review draft
 
-Date: 2026-10-13. Status: **DRAFT FOR FOCUSED CONTRACT REVIEW**.
-Proposed revision: `v0.19.10-bounded-recording-readiness-2026-10-13-a3`.
-a3 addresses only residual R1 from the a2 review at PR #34 head
-`8d5c19e05b037a25f94e1a99e55ee9a5afd6cb9a`. a2 has NO-GO; its B2–B5 and
-EDP generation policy were accepted, and remain fixed here. Read
-[the a3 amendment record](generic_recording_readiness_v01910_a3_review.md) and
+Date: 2026-10-14. Status: **DRAFT FOR FOCUSED CONTRACT REVIEW**.
+Proposed revision: `v0.19.10-bounded-recording-readiness-2026-10-14-a4`.
+a3 at PR #34 head `1548382fe8c6b5dcc228441ac82ec16ed0e1fb2f` has NO-GO
+only for R1-C (missing confidence declaration). a4 corrects that consumer
+binding and clarifies map fields; accepted a2 B2–B5, EDP generation and other
+a3 bindings remain fixed. Read
+[the a4 evaluation](generic_recording_readiness_v01910_a4_review.md) and
 [public application runbook](generic_recording_readiness_contract_runbook_v01910.md).
 The [a2 record](generic_recording_readiness_v01910_a2_review.md) is historical.
 This documentation does not implement a command or authorize a private run.
@@ -125,7 +126,9 @@ compatible when its declared numbers include 1, since the pinned helper sees
 Protobuf enum values as integers; it still accepts only 0/1, without inventing
 symbol meanings. An enum flag incapable of true is not a complete ego route.
 Repeated/message cardinalities are
-explicit below, not inferred from zero-valued instances.
+explicit below, not inferred from zero-valued instances. A Protobuf map field
+(`map_entry` on its entry message) never satisfies a repeated-message binding;
+the pinned converters iterate elements, whereas map iteration yields keys.
 
 **Source time, required for both EDP and RLMB:** follow `_source_time_ns` order:
 
@@ -165,10 +168,22 @@ spline scalars and repeated numeric spline arrays. Keep the exact field-8/
 field-7 generation rules above. A field merely existing in `missing_required`
 is not proof that its consumed shape or required qualifier symbol is usable.
 These are consumer-binding checks after the unchanged generation decision,
-with the same `estimate_descriptor_fields_unsupported` cause. Declared
-`drive_path_confidences` must retain its repeated numeric shape; its absence
-keeps the existing estimate-feature unavailability accounting and does not
-make a geometric descriptor unbound solely for missing optional confidence.
+with the same `estimate_descriptor_fields_unsupported` cause.
+
+`drive_path_confidences` is consumer-required on each `drive_paths` element:
+it must be a declared repeated numeric scalar field (float, double or an integer
+type defined above). Absence or incompatible declaration is unsupported binding,
+with `estimate_descriptor_fields_unsupported` and recording cause
+`scientific_binding_unsupported_estimate_descriptor`. Apply the accepted
+whole-recording inconclusive/exit-3 rule: readiness null,
+`condition_availability: not_assessed`, causality false; retain reconciled
+stream integrity. This is a condition-input binding requirement; it does not
+claim that geometric paths are intrinsically invalid or change EDP generation.
+With a bound field, empty/nonfinite/out-of-range values or insufficient bucket
+coverage keep existing `estimate_features_*` data failures. With otherwise
+supported streams and usable odometry, such rejections may yield complete,
+`available_for_checks`, causality true and measured zero complete-condition
+support. Do not classify a missing declaration as measured zero yield.
 
 **RLMB, required for this consumer:**
 
@@ -655,6 +670,15 @@ For EDP, missing clock/topology field or enum without the SENSOR symbol is
 consumer-binding-unsupported **without changing v1/v2 generation classification**.
 Include generation-supported role/error enums missing the qualifier symbols,
 and wrong consuming field cardinalities/types, under the same consumer cause.
+An EDP descriptor without `drive_path_confidences`, or with an incompatible
+declaration, must be inconclusive/unsupported with null readiness, retained
+reconciled stream integrity, `not_assessed`, false causality and exit 3.
+Contrast a declared repeated numeric field with all empty or out-of-range
+confidence values: with other bindings supported and usable odometry, retain
+complete geometry and publish `available_for_checks`, true causality, measured
+zero complete-condition frames/sequences/transitions and existing feature
+failure codes. Include a supported valid-confidence control and reject map
+fields where repeated messages are required.
 A fully bound descriptor with all-invalid/absent **values** still publishes
 complete measured-zero geometry under unchanged data rules. Test missing reference
 geometry retaining pre-extracted time for full-stream pairing. Assert historical

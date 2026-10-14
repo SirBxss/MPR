@@ -1,6 +1,6 @@
 # Supported commands
 
-## Current 2026-10-13: bounded readiness contract is draft only
+## Current 2026-10-14: bounded readiness contract is draft only
 
 PR #33 is merged and the new development recording's selected decode is
 complete. Read [the handoff](development_recording_decode_followup_20261013.md)
@@ -9,7 +9,10 @@ a1 had five blockers; a2 at `8d5c19e` now has NO-GO only for R1. Read
 [the a3 correction record](generic_recording_readiness_v01910_a3_review.md).
 The complete [canonical application runbook](generic_recording_readiness_contract_runbook_v01910.md)
 is now public in this PR and identical to the delivered README. Apply/test/push
-the a3 correction on the same PR #34 branch, not main. This patch
+the a4 correction on exact a3 head `1548382` in the same PR #34 branch. Read
+[the R1-C evaluation](generic_recording_readiness_v01910_a4_review.md):
+a3 has NO-GO for absent confidence binding; a3 CI is verified, a4 GO/CI pending.
+The commands select the correct branch even when starting on main. This patch
 adds no scientific CLI command. Do not rerun accepted private stages or old
 deferred readiness. After focused contract GO, implement/test/review/CI and
 merge before issuing one new counts-only private command with fresh paths.

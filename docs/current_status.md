@@ -1,32 +1,32 @@
 # Current project status
 
-Last updated: 2026-10-13. This is the first file a new agent should read after
+Last updated: 2026-10-14. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-13: PR #34 a2 NO-GO only for R1; a3 prepared
+## Current 2026-10-14: PR #34 a3 NO-GO only for R1-C; a4 proposed
 
-PR #34 remains open at a2 head
-`8d5c19e05b037a25f94e1a99e55ee9a5afd6cb9a`, tree
-`40315385eb39d20366d78d5778ae3bab51bde30c`. Claude's a2 review accepts B2–B5
-and the EDP generation rule, with NO-GO only for R1 consumer-required bindings.
-[a3](generic_recording_readiness_v01910_a3_review.md) completes source-time,
-EDP topology/SENSOR enum, RLMB explicit ego/direct drive-path and nested-field
-bindings. Optional successor absence preserves single-segment/terminal semantics.
-No accepted policy or scientific arithmetic is reopened; no code is implemented.
-The draft remains unaccepted pending focused R1/runbook GO and a3 CI.
+PR #34 is open/unmerged at a3 `1548382fe8c6b5dcc228441ac82ec16ed0e1fb2f`,
+tree `32bd20b8c5f6acb88c4115c58091e9d55ef97fd1`, parent a2 `8d5c19e`.
+Claude accepts the a3 R1 paths/runbook, but retains one blocker: a descriptor
+without confidence inputs cannot publish measured zero complete-feature yield.
+Read [the independent evaluation and a4 proposal](generic_recording_readiness_v01910_a4_review.md).
+a4 makes confidence a required consumer binding; empty/invalid values on a
+bound field remain data. It clarifies maps and hardens the public runbook.
+No accepted generation/B2–B5 policy, source code or historical report changes.
 
-The [complete public runbook](generic_recording_readiness_contract_runbook_v01910.md)
-now contains the exact delivered README application/push text, fixing the recurring
-O11 review gap. Owner applies the next numbered correction to exact a2 head in
-the same PR branch, tests and pushes normally. No new PR, reset or force push.
+Codex verified [a3 CI run 38427830200](https://github.com/SirBxss/MPR/actions/runs/38427830200).
+Python 3.10 job `115401787259` and Python 3.12 job `115401786707` each ran
+650 tests/648 passes/two skips. Both logs checked out merge
+`6a2dc0b74b28beadaffdbcdee0610778bbef3b53`, parents `12ddee6` + `1548382`,
+tree equal to the a3 tree above. This resolves the reviewer's CI-access limit,
+not R1-C NO-GO or a4 CI. Earlier reviews/CI remain historical, not acceptance.
 
-Codex verified a2 Actions run `38409957807`: Python 3.10 job `115339336541`
-and Python 3.12 job `115339337152` each ran 650 tests/648 passes/two skips.
-Both logs checked out `9f6e5acf7337a1f1dd5346994f2531e128e6e9ef`, parents
-`12ddee6` + `8d5c19e`, tree equal to the reviewed a2 head. That resolves the
-reviewer's CI-access limit, not R1 NO-GO or new a3 CI. Historical a1 NO-GO/CI
-is retained in the a2 amendment record; do not retroactively mark either accepted.
+Apply/test/push the a4 numbered correction on exact a3 in the same PR branch
+using [the canonical runbook](generic_recording_readiness_contract_runbook_v01910.md),
+identical to the delivered README. No new PR/reset/force push. Focused a4
+R1-C/runbook GO and new-head CI remain pending; no implementation or private
+scientific run is authorized by this documentation correction.
 
 Main is `12ddee6a4c855ed522378fa9742aef993a4bcb5f`, tree
 `83015ba8a3103fc1e6a7616a88308f412f4be2cf`. PR #33 head `0bfdb88` has the

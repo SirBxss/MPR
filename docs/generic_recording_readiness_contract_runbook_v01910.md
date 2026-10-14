@@ -1,59 +1,62 @@
-# PR #34 a3: canonical application and review runbook
+# PR #34 a4: canonical application and review runbook
 
-Date: 2026-10-13. These are the complete delivered README commands, public
+Date: 2026-10-14. These are the complete delivered README commands, public
 so the reviewer can inspect them in this PR. This document implements no
-scientific CLI. a2 has NO-GO only for R1; a3 is a proposed documentation correction.
-Read [the amendment record](generic_recording_readiness_v01910_a3_review.md) and
+scientific CLI. a3 has NO-GO only for R1-C; a4 is a proposed documentation correction.
+Read [the amendment record](generic_recording_readiness_v01910_a4_review.md) and
 [the binding draft](generic_recording_readiness_v01910_draft.md).
 
 ## 1. Scope and review state
 
-The correction completes EDP/RLMB consumer-required descriptor paths, requires
-explicit RLMB ego direct-drive-path geometry and classifies malformed declared
-entries before payload science. EDP generation and a2 B2–B5 policies stay fixed.
+The correction requires the confidence declaration used by three fixed causal
+features: missing binding is unsupported; invalid values on a bound field remain
+data. It excludes maps from repeated-message bindings and hardens these commands.
+EDP generation, other accepted a3 bindings and a2 B2–B5 policies stay fixed.
 No implementation, private run, numeric export, real fit or raw retirement.
 
-Codex verified [a2 CI](https://github.com/SirBxss/MPR/actions/runs/38409957807):
-Python 3.10/3.12 each 650 run/648 pass/two skips, both checking merge `9f6e5ac`
-(parents `12ddee6` + `8d5c19e`, exact reviewed tree). That is not a3 CI or GO.
+Codex verified [a3 CI](https://github.com/SirBxss/MPR/actions/runs/38427830200):
+Python 3.10/3.12 each 650 run/648 pass/two skips, both checking merge `6a2dc0b`
+(parents `12ddee6` + `1548382`, exact reviewed tree). That is not a4 CI or GO.
 Apply this bundle to the **same PR #34 branch**, not main. Preserve prior inputs
 and results. Only the numbered Markdown patch enters Git; review/delivery files
 and result ZIPs stay outside Git.
 
 ## 2. Apply and test
 
-Save `mpr_pr34_bounded_readiness_contract_a3.zip` in `~/Downloads/MPR/`.
+Save `mpr_pr34_bounded_readiness_contract_a4.zip` in `~/Downloads/MPR/`.
 The bundle's checksum manifest covers its numbered patch, exact base and expected
 tree. Snapshot-specific tree/patch hashes are not hard-coded in this runbook:
 they would depend on the runbook's own committed bytes. The block validates
-that metadata, exact PR parent, clean state and documentation-only boundaries.
-It reuses an extracted bundle or already applied matching correction, selects
-the PR branch and stops on unrelated changes without resetting them.
+that metadata, exact PR parent, clean state and exact allowed Markdown paths.
+It compares the downloaded ZIP manifest with any extracted directory before
+reuse, accepts an already applied correction before or after a fast-forward,
+selects the PR branch and stops on unrelated changes without resetting them.
 
 ```bash
 (
   set -euo pipefail
   mpr_downloads="$HOME/Downloads/MPR"
-  mpr_zip="$mpr_downloads/mpr_pr34_bounded_readiness_contract_a3.zip"
-  mpr_bundle="$mpr_downloads/mpr_pr34_bounded_readiness_contract_a3"
+  mpr_zip="$mpr_downloads/mpr_pr34_bounded_readiness_contract_a4.zip"
+  mpr_bundle="$mpr_downloads/mpr_pr34_bounded_readiness_contract_a4"
   mpr_repo="$HOME/PycharmProjects/MPR"
   mpr_branch="docs/v0.19.10-bounded-readiness-contract"
-  mpr_base="8d5c19e05b037a25f94e1a99e55ee9a5afd6cb9a"
+  mpr_base="1548382fe8c6b5dcc228441ac82ec16ed0e1fb2f"
   mpr_tree=""
   fail() { printf 'Stop: %s\n' "$1" >&2; exit 1; }
   [[ -d "$mpr_repo/.git" ]] || fail "repository directory is missing"
   [[ -f "$mpr_repo/.venv/bin/activate" ]] || fail "virtual environment is missing"
+  [[ -f "$mpr_zip" && ! -L "$mpr_zip" ]] || fail "downloaded ZIP is missing or a symlink"
   if [[ ! -e "$mpr_bundle" ]]; then
-    [[ -f "$mpr_zip" && ! -L "$mpr_zip" ]] || fail "downloaded ZIP is missing or a symlink"
     unzip "$mpr_zip" -d "$mpr_downloads"
   fi
   [[ -d "$mpr_bundle" && ! -L "$mpr_bundle" ]] || fail "bundle directory is invalid"
+  unzip -p "$mpr_zip" mpr_pr34_bounded_readiness_contract_a4/SHA256SUMS | cmp -s - "$mpr_bundle/SHA256SUMS" || fail "ZIP and extracted manifests differ; preserve both copies"
   cd "$mpr_bundle"
   sha256sum -c SHA256SUMS
   [[ "$(cat BASE_COMMIT.txt)" == "$mpr_base" ]] || fail "bundle base differs"
   mpr_tree="$(cat EXPECTED_TREE.txt)"
   [[ "$mpr_tree" =~ ^[0-9a-f]{40}$ ]] || fail "bundle expected tree is invalid"
-  [[ -f patches/0001-complete-consumer-required-binding-contract.patch ]] || fail "numbered correction patch is missing"
+  [[ -f patches/0001-require-confidence-binding-and-harden-runbook.patch ]] || fail "numbered correction patch is missing"
   cd "$mpr_repo"
   [[ -z "$(git status --porcelain)" ]] || fail "preserve or commit existing changes first"
   git fetch origin
@@ -62,17 +65,27 @@ the PR branch and stops on unrelated changes without resetting them.
   else
     git switch --track -c "$mpr_branch" "origin/$mpr_branch"
   fi
-  if [[ "$(git rev-parse HEAD^{tree})" == "$mpr_tree" && "$(git rev-parse HEAD^)" == "$mpr_base" ]]; then
+  mpr_matches() {
+    [[ "$(git rev-parse HEAD^{tree})" == "$mpr_tree" && "$(git rev-parse HEAD^)" == "$mpr_base" ]]
+  }
+  if mpr_matches; then
     printf 'Matching correction already applied; verifying it again.\n'
   else
     git pull --ff-only origin "$mpr_branch"
-    [[ "$(git rev-parse HEAD)" == "$mpr_base" ]] || fail "PR branch differs from the reviewed head; preserve the output"
-    git am "$mpr_bundle/patches/0001-complete-consumer-required-binding-contract.patch"
+    if mpr_matches; then
+      printf 'Matching correction obtained by fast-forward; verifying it.\n'
+    else
+      [[ "$(git rev-parse HEAD)" == "$mpr_base" ]] || fail "PR branch differs from the reviewed head; preserve the output"
+      git am "$mpr_bundle/patches/0001-require-confidence-binding-and-harden-runbook.patch"
+    fi
   fi
   [[ "$(git rev-parse HEAD^{tree})" == "$mpr_tree" ]] || fail "corrected tree differs"
   [[ "$(git rev-parse HEAD^)" == "$mpr_base" ]] || fail "corrected parent differs"
   while IFS= read -r mpr_changed; do
-    [[ "$mpr_changed" == *.md ]] || fail "correction changes a non-Markdown file"
+    case "$mpr_changed" in
+      AGENTS.md|README.md|docs/architecture.md|docs/commands.md|docs/current_status.md|docs/modeling_plan.md|docs/development_recording_decode_followup_20261013.md|docs/generic_recording_readiness_v01910_draft.md|docs/generic_recording_readiness_contract_runbook_v01910.md|docs/generic_recording_readiness_v01910_a4_review.md) ;;
+      *) fail "correction changes an unapproved path: $mpr_changed" ;;
+    esac
   done < <(git diff --name-only "$mpr_base" HEAD)
   git diff --quiet "$mpr_base" HEAD -- src tests config scripts examples .github pyproject.toml docs/output_contracts.md docs/generic_recording_ingestion_v0196.md docs/generic_recording_decode_check_v0199.md docs/independent_outing_schema_v2_amendment.md || fail "scientific code or historical contract changed"
   source .venv/bin/activate
@@ -91,7 +104,11 @@ PYTHON
 )
 ```
 
-If anything stops, preserve the output and changes; do not reset or force push.
+If anything stops, preserve the output and changes. If `git am` specifically
+reports patch application failure, run `git am --abort` from the repository to
+restore the pre-apply state, then return the failure output. For a ZIP/extracted
+manifest mismatch, preserve/rename the extracted folder before trying the
+intended ZIP again. Do not reset or force push.
 
 ## 3. Push to the same PR
 
@@ -103,11 +120,14 @@ branch even if you returned to main between steps.
   set -euo pipefail
   cd "$HOME/PycharmProjects/MPR"
   mpr_branch="docs/v0.19.10-bounded-readiness-contract"
-  mpr_base="8d5c19e05b037a25f94e1a99e55ee9a5afd6cb9a"
-  mpr_bundle="$HOME/Downloads/MPR/mpr_pr34_bounded_readiness_contract_a3"
+  mpr_base="1548382fe8c6b5dcc228441ac82ec16ed0e1fb2f"
+  mpr_bundle="$HOME/Downloads/MPR/mpr_pr34_bounded_readiness_contract_a4"
+  mpr_zip="$HOME/Downloads/MPR/mpr_pr34_bounded_readiness_contract_a4.zip"
   mpr_tree=""
   fail() { printf 'Stop: %s\n' "$1" >&2; exit 1; }
   [[ -d "$mpr_bundle" && ! -L "$mpr_bundle" ]] || fail "apply and test section 2 first"
+  [[ -f "$mpr_zip" && ! -L "$mpr_zip" ]] || fail "downloaded ZIP is missing or a symlink"
+  unzip -p "$mpr_zip" mpr_pr34_bounded_readiness_contract_a4/SHA256SUMS | cmp -s - "$mpr_bundle/SHA256SUMS" || fail "ZIP and extracted manifests differ; preserve both copies"
   (cd "$mpr_bundle" && sha256sum -c SHA256SUMS)
   [[ "$(cat "$mpr_bundle/BASE_COMMIT.txt")" == "$mpr_base" ]] || fail "bundle base differs"
   mpr_tree="$(cat "$mpr_bundle/EXPECTED_TREE.txt")"
@@ -123,11 +143,11 @@ branch even if you returned to main between steps.
 
 This updates [PR #34](https://github.com/SirBxss/MPR/pull/34); do not open another
 PR. Use the delivered PR_DESCRIPTION.md to update its description. Give Claude
-the delivered CLAUDE_REREVIEW_PROMPT.md, the original a2 review and the PR link.
+the delivered CLAUDE_REREVIEW_PROMPT.md, the original a3 review and the PR link.
 The full application text is now in this public runbook; a separate README
 attachment is optional because the delivered README has identical contents.
 Include the new exact head from `git rev-parse HEAD` and its Actions run link.
-Focused R1/runbook delta GO and new-head Python 3.10/3.12 CI precede merge or
+Focused R1-C/map-clarification/runbook delta GO and new-head Python 3.10/3.12 CI precede merge or
 implementation. Return the review and PR link for independent verification.
 
 ## 4. Implementation remains after contract acceptance

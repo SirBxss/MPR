@@ -38,6 +38,11 @@ a2 at `8d5c19e` now has NO-GO only for R1; a3 supplies complete consumer
 bindings and keeps accepted B2–B5/generation rules fixed. Read
 [the a3 status/CI record](generic_recording_readiness_v01910_a3_review.md) and
 [public application runbook](generic_recording_readiness_contract_runbook_v01910.md).
+a3 at `1548382` received NO-GO only for missing confidence binding (R1-C),
+with its Python 3.10/3.12 CI now verified. Read
+[the a4 evaluation](generic_recording_readiness_v01910_a4_review.md); a4 remains
+proposed pending focused GO/new-head CI. Missing confidence declarations give
+unsupported binding; bound invalid confidence values stay data failures.
 It connects the existing scientific arithmetic to the reviewed disk-index
 reader without changing SENSOR admission, six causal inputs, pairing, geometry
 or sequence boundaries. This is a draft for focused review, not implemented

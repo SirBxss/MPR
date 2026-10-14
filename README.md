@@ -1,6 +1,6 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-13):** PR #33 is merged at `12ddee6a`.
+**Current checkpoint (2026-10-14):** PR #33 is merged at `12ddee6a`.
 A separately returned new development recording completed registration,
 inventory and selected decoding. H100 support, causal features, usable
 sequences and actual topology fractions remain unassessed. Read the
@@ -12,7 +12,11 @@ records their proposed resolutions and Codex-verified a1 CI. The a2 review
 accepted B2–B5 and EDP generation, but has NO-GO for consumer-required bindings.
 Read the [`a3 R1 correction`](docs/generic_recording_readiness_v01910_a3_review.md)
 and [`public apply/test/push runbook`](docs/generic_recording_readiness_contract_runbook_v01910.md).
-a2 CI is Codex-verified; a3 focused GO and new-head CI remain pending in PR #34.
+a3 at `1548382` received NO-GO only for R1-C (missing confidence declaration);
+its Python 3.10/3.12 CI is Codex-verified. Read the
+[`a4 evaluation and correction`](docs/generic_recording_readiness_v01910_a4_review.md).
+a4 requires confidence binding, preserves invalid-value data accounting and
+hardens the same-PR runbook. Focused a4 GO and new-head CI remain pending.
 No new command,
 numeric archive, real fit, data migration or raw deletion is implemented.
 

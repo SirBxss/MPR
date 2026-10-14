@@ -21,8 +21,16 @@ accepted. Read `docs/generic_recording_readiness_v01910_a3_review.md` and the
 public `docs/generic_recording_readiness_contract_runbook_v01910.md`.
 a3 requires complete consumer clock/topology/ego/direct-path/nested bindings;
 it does not alter accepted a2 policies. a2 CI is Codex-verified at run
-`38409957807`; a3 focused R1/runbook GO and new-head CI remain pending.
-The a3 contract is DRAFT FOR FOCUSED REVIEW, not an implemented command.
+`38409957807`; a3 at `1548382` now has NO-GO only for R1-C: absent confidence declarations
+must not be measured zero condition yield. a3 CI is Codex-verified at run
+`38427830200`, both Python 3.10/3.12 jobs 650 run/648 pass/two skips, checkout
+merge `6a2dc0b` with the exact a3 tree. Read
+`docs/generic_recording_readiness_v01910_a4_review.md` for the independent
+evaluation and narrow a4 proposal. a4 requires the confidence input binding,
+keeps bound invalid values as data, excludes map entries from repeated-message
+bindings and hardens the same-PR runbook. Accepted generation/B2–B5 stay fixed.
+The a4 contract is DRAFT FOR FOCUSED REVIEW; a4 GO and new-head CI are pending.
+No new binding gate or scientific command is implemented.
 Contract GO precedes implementation/test/review/CI; merge precedes one new
 private counts-only run. Reuse the disk-index reader and existing scientific
 rules. Numeric export/controller/catalogue/retirement and real-model evaluation
