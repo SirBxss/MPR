@@ -19,7 +19,7 @@ from .recording_readiness_resources import scientific_failure
 
 TOPIC_ROLES = {"/adp/estimated_drive_paths":"estimate", "/adp/road_lane_map_based":"reference", "/adp/odometry":"odometry"}
 TOPIC_LIMITS = {topic:1_000_000 if role=="odometry" else 100_000 for topic,role in TOPIC_ROLES.items()}
-REVISION = "v0.19.10-bounded-recording-readiness-2026-10-14-a4"
+REVISION = "v0.19.11-bounded-recording-readiness-2026-10-15-a1"
 
 
 class _BoundedOdometryStore(_OdometryStore):

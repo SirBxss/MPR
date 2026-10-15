@@ -68,7 +68,9 @@ def messages(*, times=(T,T+100_000_000), confidence=.5, confidence_count=40, mut
                 setattr(value,"time_stamp",time)
         if "topology_source" in estimate.DESCRIPTOR.fields_by_name:
             estimate.topology_source=topology
-        path=estimate.drive_paths.add(error=1,role=1,model_parameters_optional_flag=True)
+        path=estimate.drive_paths.add(error=1,role=1)
+        if "model_parameters_optional_flag" in path.DESCRIPTOR.fields_by_name:
+            path.model_parameters_optional_flag=True
         path.model_parameters.segment_starts.extend([-5.,0.,120.]);path.model_parameters.curvature_change.extend([0.,0.])
         ambiguous=ambiguous_reference and i==0
         if ambiguous:

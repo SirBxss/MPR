@@ -40,6 +40,11 @@ ESTIMATE_DESCRIPTOR_IDENTITY_SOURCE = (
 ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256 = (
     "dbfcc4ac6cfb9314dadb860fac9864644a8fe3b9e445270e20621438cf30abf4"
 )
+# v0.19.11: this second exact schema uses the same v2 presence rules.
+# This is a schema compatibility identity, not a recording or payload identity.
+ADDITIONAL_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256 = (
+    "604f854d430cf394693b4fe8944b8bbd12d10959e33935e716d65955a0b2ab9a"
+)
 LEGACY_ESTIMATE_FILE_DESCRIPTOR_REFERENCE_SHA256 = (
     "f6ae6e61378ea6d3a07d6d7128b232db55d1e00e49c4fd9cd3708c4acea6992f"
 )
@@ -947,7 +952,10 @@ def estimate_descriptor_support(message: Any) -> EstimateDescriptorSupport:
         )
     bindings = _joint_audit_bindings(descriptor)
     descriptor_sha256 = _schema_fingerprint(descriptor)
-    if descriptor_sha256 == ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256:
+    if descriptor_sha256 in (
+        ALLOWED_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256,
+        ADDITIONAL_FLAG_ABSENT_ESTIMATE_FILE_DESCRIPTOR_SHA256,
+    ):
         generation: EstimateDescriptorGeneration = "candidate_v2"
         flag_required = False
         generation_failure = (

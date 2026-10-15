@@ -1,5 +1,12 @@
 # Project architecture
 
+The proposed [v0.19.11 amendment](edp_descriptor_compatibility_v01911.md) changes
+only exact membership in the shared EDP generation classifier and the bounded
+scientific revision string. It preserves all presence, binding, arithmetic,
+reader and workflow layers. The actual descriptor conformance is verified;
+private science is still unknown. Focused policy/code GO and CI are pending.
+The implementation chronology below is historical.
+
 The 2026-10-15 [bounded implementation](generic_bounded_readiness_v01910.md)
 extends the disk-index decoder with an optional scientific sink, a shared absolute
 deadline and caller-owned index connection; defaults remain unchanged. Domain
@@ -7,7 +14,8 @@ bindings classify each selected version before payload science. Incremental I/O
 stages geometry/inputs/odometry on disk and reuses old matcher/feature finalizers.
 Workflows reconcile immutable predecessors, one raw hash, fresh oracles, resource
 budgets, late identities and atomic complete/null publication. Contract a4 merged
-as PR #34 at `0f2950e`; implementation GO/new-head CI are pending. Catalogue,
+as PR #34 at `0f2950e`; implementation GO and exact-head CI are verified; PR #35 merged at `4cf0af3`.
+The one fresh private counts-only pilot is issued and results are pending. Catalogue,
 generic numeric export/validation and exact-byte retirement remain later consumers.
 
 The 2026-10-13 [bounded scientific consumer draft](generic_recording_readiness_v01910_draft.md)

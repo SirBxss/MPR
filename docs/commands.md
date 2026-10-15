@@ -1,6 +1,18 @@
 # Supported commands
 
-## Current 2026-10-15: bounded readiness implementation
+The proposed [v0.19.11 exact-variant change](edp_descriptor_compatibility_v01911.md)
+keeps `bounded-readiness` arguments unchanged. Review/test/push its implementation
+before a new private successor; no private command is issued by this candidate.
+The following post-merge v0.19.10 pilot returned unsupported EDP generation and
+must be preserved, not repeated.
+
+PR #35 is merged at `4cf0af3`. The current owner action is the one fresh
+counts-only pilot in the [post-merge handoff](generic_bounded_readiness_pilot_runbook_v01910.md),
+using privately pinned predecessors and the existing `bounded-readiness` CLI.
+No original implementation patch or new PR is needed for that run. Results are
+pending; accepted predecessors and raw paths stay unchanged.
+
+## Historical 2026-10-15: bounded readiness implementation
 
 PR #34's accepted contract is merged at `0f2950e`. The new subcommand is
 `python -m lane_residuals.cli.recording_ingestion bounded-readiness`.
