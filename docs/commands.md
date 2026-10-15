@@ -1,6 +1,22 @@
 # Supported commands
 
-## Current 2026-10-14: bounded readiness contract is draft only
+## Current 2026-10-15: bounded readiness implementation
+
+PR #34's accepted contract is merged at `0f2950e`. The new subcommand is
+`python -m lane_residuals.cli.recording_ingestion bounded-readiness`.
+Read [its required arguments and publication rules](generic_bounded_readiness_v01910.md)
+and [the data-completion handoff](generic_pipeline_data_completion_20261015.md).
+It requires exact registration, complete preserved inventory/decode reports,
+explicit EDP/RLMB/odometry topics, existing scratch and a fresh output directory.
+It uses the disk-index reader and produces only `bounded_recording_readiness.json`.
+The old `audit` command is not the successor for these large registered files.
+
+Exact implementation review, new-head Python 3.10/3.12 CI and merge remain
+required before the private pilot. No completed private scan is repeated now.
+The owner runbook supplied with the patch covers applying/testing/pushing a new
+implementation branch. The old contract runbook below is historical.
+
+## Historical 2026-10-14: bounded readiness contract is draft only
 
 PR #33 is merged and the new development recording's selected decode is
 complete. Read [the handoff](development_recording_decode_followup_20261013.md)

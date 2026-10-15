@@ -4,6 +4,17 @@ Date: 2026-10-13. This is public-safe stage tracking. Exact new-recording IDs,
 paths, hashes, counts and RaaS acquisition notes remain in the private delivered
 audit; do not copy that audit or result ZIPs into Git.
 
+## Current 2026-10-15 continuation
+
+Contract PR #34 a4 has GO and is merged at `0f2950e`. The bounded implementation
+is prepared; read [its implementation record](generic_bounded_readiness_v01910.md)
+and [the current data-completion handoff](generic_pipeline_data_completion_20261015.md).
+Exact implementation review/new-head CI/merge precede the one fresh counts-only
+pilot. Actual new-recording geometry/feature/sequence yield remains unknown.
+The old draft-review stopping point below is historical. Preserve all private
+paths, receipts, old failed reports and successful stages; no migration,
+repeated completed scan, numeric export, real fit or raw retirement is added.
+
 ## Repository and accepted evidence
 
 PR #33 is merged as `12ddee6a4c855ed522378fa9742aef993a4bcb5f`, tree

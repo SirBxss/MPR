@@ -1,0 +1,43 @@
+{
+  "checkpoints": [
+    {
+      "phase": "odometry_staged",
+      "process_resident_memory_bytes": 41504768,
+      "process_virtual_memory_bytes": 145526784
+    },
+    {
+      "phase": "geometry_inputs_and_sort_staged",
+      "process_resident_memory_bytes": 48353280,
+      "process_virtual_memory_bytes": 151375872
+    },
+    {
+      "phase": "matching_and_features_complete",
+      "process_resident_memory_bytes": 170684416,
+      "process_virtual_memory_bytes": 273657856
+    }
+  ],
+  "complete_condition_frames": 100000,
+  "complete_condition_transitions": 99999,
+  "elapsed_seconds": 207.27900063800007,
+  "estimate_message_count": 100000,
+  "execution_observations": {
+    "elapsed_seconds": {
+      "descriptor_binding": null,
+      "fresh_summary": null,
+      "raw_hash": null,
+      "scientific_finalize": 192.91882982900006,
+      "selected_decode": 14.360288065999612
+    },
+    "peak_resident_memory_bytes": 224976896
+  },
+  "failure_code": null,
+  "maximum_sampled_database_allocation_bytes": 989831168,
+  "mcap_payload_decoding_exercised": false,
+  "odometry_message_count": 1000000,
+  "process_address_space_soft_limit_bytes": 4294967296,
+  "reference_message_count": 100000,
+  "schema_conversion_exercised": false,
+  "sensor_geometry_frames": 100000,
+  "status": "complete",
+  "synthetic_only": true
+}

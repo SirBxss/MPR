@@ -174,8 +174,17 @@ def _scan_stream(messages: Iterable[Any], db: sqlite3.Connection, expected_count
     if len(candidates) != counts["sensor_anchored_h100_pair_count"]:
         raise RecordingReadError("candidate_identity_count_mismatch")
     # All original observations agree before any residual value is calculated.
+    return _finish_conditions(db, odometry, counts, details, candidates,
+                              expected_counts=expected_counts, expected_diagnostics=expected_diagnostics,
+                              compute_residuals=compute_residuals)
+
+
+def _finish_conditions(db, odometry, counts, details, candidates, *, expected_counts=None, expected_diagnostics=None,
+                       compute_residuals=False, checkpoint=lambda: None):
     rows = []
-    for pair_index, pair in candidates:
+    for candidate_position, (pair_index, pair) in enumerate(candidates):
+        if candidate_position % 1024 == 0:
+            checkpoint()
         row = db.execute("SELECT time,log,publish,features,failure FROM estimate_inputs WHERE position=?", (pair.first_position,)).fetchone()
         if row is None:
             raise RecordingReadError("candidate_input_identity_missing")

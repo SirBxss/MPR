@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from contextlib import closing
+from contextlib import closing, nullcontext
 import hashlib
 from io import BytesIO
 import json
@@ -180,7 +180,7 @@ def _selection(inventory, topics):
     return channels, schemas, selected, totals
 
 
-def _decoders(stream, groups, selected, schemas, deadline):
+def _decoders(stream, groups, selected, schemas, deadline, descriptor_observer=None):
     from mcap.records import Schema
     from mcap_protobuf.decoder import DecoderFactory
     needed = {row["schema_id"] for row in selected.values()}
@@ -199,10 +199,13 @@ def _decoders(stream, groups, selected, schemas, deadline):
         if (name != expected["name"] or encoding != expected["encoding"] or length != expected["data_size_bytes"] or
                 hashlib.sha256(data).hexdigest() != expected["data_sha256"]):
             _fail("decode_embedded_schema_changed")
-        decoder = factory.decoder_for("protobuf", Schema(id=key, name=name, encoding=encoding, data=data))
+        schema = Schema(id=key, name=name, encoding=encoding, data=data)
+        decoder = factory.decoder_for("protobuf", schema)
         if decoder is None:
             _fail("decode_selected_schema_unsupported")
         decoders[key] = decoder
+        if descriptor_observer is not None:
+            descriptor_observer(schema, decoder(b""))
         del fields, data, raw
     if set(decoders) != needed:
         _fail("decode_embedded_schema_missing")
@@ -261,7 +264,7 @@ def _support_record(opcode, raw, selected, schemas):
             _fail("decode_in_chunk_channel_disagrees_with_summary")
 
 
-def _messages(data, channels, schemas, selected, decoders, counts, deadline, state):
+def _messages(data, channels, schemas, selected, decoders, counts, deadline, state, scientific_sink=None):
     position, records = 0, 0
     while position < len(data):
         if records % 256 == 0:
@@ -289,7 +292,6 @@ def _messages(data, channels, schemas, selected, decoders, counts, deadline, sta
                 message = decoders[selected[key]["schema_id"]](payload)
                 if not message.IsInitialized():
                     _fail("decode_protobuf_required_fields_missing")
-                del message, payload
                 counts[key] += 1
                 state["decoded_selected_message_count"] += 1
                 state["selected_payload_bytes_processed"] += size - 22
@@ -297,6 +299,10 @@ def _messages(data, channels, schemas, selected, decoders, counts, deadline, sta
                     _fail("decode_channel_count_exceeds_advertised")
                 if state["decoded_selected_message_count"] > MAX_TOTAL_MESSAGES:
                     _fail("decode_actual_message_budget_exceeded")
+                if scientific_sink is not None:
+                    _, _, log_time, publish_time = struct.unpack_from("<HIQQ", data, position)
+                    scientific_sink.consume(key, log_time, publish_time, message)
+                del message, payload
                 state.update(phase="chunk_records", channel_id=None, schema_id=None)
         position = end
 
@@ -328,7 +334,8 @@ def _decompress(chunk):
     return data
 
 
-def check_decoding(stream, size, inventory, topics, scratch, resource_check=lambda: None):
+def check_decoding(stream, size, inventory, topics, scratch, resource_check=lambda: None, *,
+                   scientific_sink=None, processing_deadline=None, index_connection=None):
     """Process selected indexed streams; complete return or safe failure context.
 
     No SeekingReader, whole index list, decoded-message retention, timestamps
@@ -337,20 +344,27 @@ def check_decoding(stream, size, inventory, topics, scratch, resource_check=lamb
     state = {"phase": "selection", "indexed_chunk_ordinal": None, "chunk_start_offset_bytes": None,
         "completed_selected_chunk_count": 0, "decoded_selected_message_count": 0,
         "selected_payload_bytes_processed": 0, "channel_id": None, "schema_id": None, "compression": None}
-    deadline = time.monotonic() + MAX_DECODE_SECONDS
+    deadline = time.monotonic() + MAX_DECODE_SECONDS if processing_deadline is None else processing_deadline
     try:
         topics = selected_topics(topics)
         channels, schemas, selected, expected_topics = _selection(inventory, topics)
+        if scientific_sink is not None:
+            scientific_sink.configure(selected)
         state["phase"] = "schema_load"
         groups = _groups(stream, size, deadline)
-        decoders = _decoders(stream, groups, selected, schemas, deadline)
+        if scientific_sink is None:
+            decoders = _decoders(stream, groups, selected, schemas, deadline)
+        else:
+            decoders = _decoders(stream, groups, selected, schemas, deadline, scientific_sink.register_schema)
+            scientific_sink.bindings_complete()
         state["phase"] = "index_staging"
-        with TemporaryDirectory(prefix="mpr-decode-index-", dir=scratch) as temporary:
-            database = Path(temporary)/"index.sqlite"
-            with closing(sqlite3.connect(database)) as db:
-                for pragma in ("page_size=4096", "cache_size=-8192", "journal_mode=OFF", "synchronous=OFF", "temp_store=FILE",
-                               f"max_page_count={MAX_INDEX_BYTES // 4096}"):
-                    db.execute("PRAGMA " + pragma)
+        with (TemporaryDirectory(prefix="mpr-decode-index-", dir=scratch) if index_connection is None else nullcontext(None)) as temporary:
+            database = None if temporary is None else Path(temporary)/"index.sqlite"
+            with (closing(sqlite3.connect(database)) if index_connection is None else nullcontext(index_connection)) as db:
+                if index_connection is None:
+                    for pragma in ("page_size=4096", "cache_size=-8192", "journal_mode=OFF", "synchronous=OFF", "temp_store=FILE",
+                                   f"max_page_count={MAX_INDEX_BYTES // 4096}"):
+                        db.execute("PRAGMA " + pragma)
                 indexed, ordered = _stage_indexes(stream, groups, selected, deadline, db, resource_check)
                 if indexed != inventory["chunk_index_summary"]["indexed_chunk_count"]:
                     _fail("decode_index_count_disagrees_with_inventory")
@@ -389,7 +403,7 @@ def check_decoding(stream, size, inventory, topics, scratch, resource_check=lamb
                     else:
                         unavailable += 1
                     state["phase"] = "chunk_records"
-                    _messages(data, channels, schemas, selected, decoders, counts, deadline, state)
+                    _messages(data, channels, schemas, selected, decoders, counts, deadline, state, scientific_sink)
                     del data
                     state["completed_selected_chunk_count"] += 1
                 state["phase"] = "count_reconciliation"

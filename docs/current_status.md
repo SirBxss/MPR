@@ -1,10 +1,43 @@
 # Current project status
 
-Last updated: 2026-10-14. This is the first file a new agent should read after
+Last updated: 2026-10-15. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-14: PR #34 a3 NO-GO only for R1-C; a4 proposed
+## Current 2026-10-15: contract merged; bounded implementation prepared
+
+PR #34 is merged at `0f2950e2b76b823fabea0b67309b268afe205806`, accepted
+a4 tree `4100debbc422558b0a049a96aaa7a97f340d7064`. Claude's a4 review gives
+GO/zero blockers at `5fc0318`. Codex inspected a4 CI run `38697721107`, jobs
+`116298149356` (3.10) and `116298149498` (3.12): each 650 run, 648 pass/two
+skips, checkout `1546a96` with parents `12ddee6` + `5fc0318` and the exact
+accepted tree. This closes the contract gate; it is not implementation CI.
+
+[The implementation](generic_bounded_readiness_v01910.md) is prepared on that
+merge. It exposes `recording_ingestion bounded-readiness`, enforces all-version
+bindings before payload science and reports complete/null, odometry availability
+and exclusive attrition under fixed resources. New-head implementation review
+and Python 3.10/3.12 CI are pending. Use a new implementation PR, not PR #34.
+After its merge, issue one fresh counts-only private pilot; no private scientific
+result exists yet. The agent has not reopened or rescanned private raw bytes.
+
+The maximum-budget synthetic staging benchmark completes under 4 GiB with
+1,000,000 odometry/100,000 EDP/100,000 RLMB, 100,000 complete-condition rows,
+99,999 transitions and 224,976,896-byte sampled peak RSS. It measures staging/
+matching/features, not Protobuf conversion or private MCAP speed. Failed
+workspace-temp observations and the isolated success are documented separately.
+Local release-suite/delivery evidence is in the bundle and implementation record.
+
+Read [the data-completion handoff](generic_pipeline_data_completion_20261015.md).
+Use measured pilot density, causal-feature yield and continuous support before
+bulk acquisition. Next generic numeric export/validation and evidenced physical
+session/split gates precede real fits. A private catalogue preserves source state
+after future verified retirement; empty directories are insufficient provenance.
+Keep current raw paths and all old reports unchanged. No numeric export,
+collection-wide download, role assignment, real fit or raw deletion is added.
+The checkpoint below records the state before the returned a4 GO and merge.
+
+## Historical 2026-10-14: PR #34 a3 NO-GO only for R1-C; a4 proposed
 
 PR #34 is open/unmerged at a3 `1548382fe8c6b5dcc228441ac82ec16ed0e1fb2f`,
 tree `32bd20b8c5f6acb88c4115c58091e9d55ef97fd1`, parent a2 `8d5c19e`.
