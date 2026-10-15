@@ -141,6 +141,8 @@ def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection,
     staging = GeometryStaging(connection, diagnostics)
     for record in records:
         staging.add(record)
+    # Release the last decoded payload/path before scalar matching begins.
+    record = None
     return staging.finish(on_sensor_pair=on_sensor_pair)
 
 

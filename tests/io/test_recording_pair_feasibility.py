@@ -93,7 +93,13 @@ class RecordingPairIoTests(unittest.TestCase):
                 references.extend((weakref.ref(payload), weakref.ref(geometry)))
                 yield estimate(i, i, geometry, decoded=payload)
                 largest_live = max(largest_live, sum(ref() is not None for ref in references))
-        result = count(records())
+        from lane_residuals.io import recording_pair_feasibility as staging
+        original_finish = staging._count_staged_geometry
+        def finish(*args, **kwargs):
+            self.assertEqual(sum(ref() is not None for ref in references), 0)
+            return original_finish(*args, **kwargs)
+        with patch.object(staging, "_count_staged_geometry", side_effect=finish):
+            result = count(records())
         self.assertEqual(result["estimate_message_count"], 1500)
         self.assertLessEqual(largest_live, 4)
         self.assertEqual(sum(ref() is not None for ref in references), 0)

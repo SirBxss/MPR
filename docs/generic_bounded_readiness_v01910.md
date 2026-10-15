@@ -1,6 +1,9 @@
 # v0.19.10 bounded scientific readiness implementation
 
-Date: 2026-10-15. Status: **local implementation; exact pushed-head review and CI pending**.
+Date: 2026-10-15. Status: **PR #35 B-1 confirmed; same-PR a2 correction prepared**.
+Read [the independent review evaluation](generic_bounded_readiness_v01910_a2_review.md)
+and the updated same-PR runbook. Original-head CI is verified; a2 GO/new-head CI
+remain pending before merge and the one fresh private pilot.
 The accepted contract is [a4](generic_recording_readiness_v01910_draft.md),
 revision `v0.19.10-bounded-recording-readiness-2026-10-14-a4`. Its historical
 draft header records its pre-review state. PR #34 is merged at

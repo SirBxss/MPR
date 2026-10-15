@@ -1,6 +1,11 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-15):** PR #34 contract a4 is accepted and merged
+**Current checkpoint (2026-10-15):** PR #35 has one confirmed review blocker;
+[the a2 correction](docs/generic_bounded_readiness_v01910_a2_review.md) and
+[same-PR runbook](docs/generic_bounded_readiness_runbook_v01910.md) are prepared.
+Old-head CI is verified; a2 GO/new-head CI precede merge and one private pilot.
+
+**Historical implementation checkpoint (2026-10-15):** PR #34 contract a4 is accepted and merged
 at `0f2950e`. The separately prepared bounded readiness implementation adds
 `recording_ingestion bounded-readiness` for counts-only descriptor/H100/SENSOR/
 causal-input/sequence assessment using the disk-index reader. Read the

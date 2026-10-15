@@ -33,6 +33,19 @@ def inspect(raw):
 
 
 class BoundedScienceTests(unittest.TestCase):
+    def test_ambiguous_projection_is_common_h100_attrition_and_other_pair_survives(self):
+        result=inspect(recording(ambiguous_reference=True))
+        self.assertIsNone(result["failure_code"])
+        self.assertEqual(result["integrity"]["decoded_selected_message_count"],8)
+        readiness=result["readiness"]
+        code="h100_reference_alignment_projection_ambiguous"
+        self.assertEqual(readiness["counts"]["pair_failure_counts"],{code:1})
+        stage=readiness["exclusive_attrition"]["stages"][5]
+        self.assertEqual(stage,{"stage":"common_h100","input_count":2,"rejected_count":1,
+            "remaining_count":1,"failure_code_counts":{code:1}})
+        self.assertEqual(readiness["sensor_geometry_support"]["frame_count"],1)
+        self.assertEqual(readiness["complete_condition_support"]["frame_count"],1)
+
     def test_real_compressions_equal_old_counts_features_and_default_decoder_bytes(self):
         for compression in ("NONE","ZSTD","LZ4"):
             raw=recording(compression=compression)

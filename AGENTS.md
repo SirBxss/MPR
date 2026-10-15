@@ -1,6 +1,25 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-15 bounded readiness implementation prepared
+## Current checkpoint: 2026-10-15 PR #35 a2 correction prepared
+
+PR #35 is open at reviewed `b11459adea73452f02b10f5acba8cf6f99f4473e`,
+tree `16acf58fa565650c6a2ee1a3fd5bcec4ef9e28b0`. Claude's NO-GO B-1 is
+confirmed: an existing ambiguous projection label was omitted from attrition.
+Read `docs/generic_bounded_readiness_v01910_a2_review.md`. The a2 correction
+adds that static code, coverage and real-MCAP regressions, releases the final
+streamed record before matching, and replaces the canonical runbook with a
+retry-safe delta on the same PR. Accepted a4 science/resources stay fixed.
+
+Codex verified original-head CI run `38725711604`, jobs `116390925161`/`116390925521`:
+Python 3.10/3.12 each 700 run/698 pass/two skips, checkout `14c7e3e`, parents
+`0f2950e` + `b11459a`, exact reviewed tree. This does not cover a2. Use the
+canonical runbook; focused a2 GO/new-head CI/merge precede one fresh counts-only
+private pilot. No private descriptor/yield, numeric export or real fit exists
+here. Keep raw paths, registrations and all old evidence unchanged; no repeat
+accepted scans, bulk acquisition or deletion. The earlier checkpoints below
+are historical; PR #34 is already merged and must not be reapplied.
+
+## Historical checkpoint: 2026-10-15 bounded readiness implementation prepared
 
 PR #34 is merged at `0f2950e2b76b823fabea0b67309b268afe205806`, tree
 `4100debbc422558b0a049a96aaa7a97f340d7064`. Claude gives contract GO at

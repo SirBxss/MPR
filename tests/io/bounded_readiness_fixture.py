@@ -58,7 +58,7 @@ def classes(mutate=None):
                  ("Adp.Perception.EstimatedDrivePaths","Adp.Perception.Road","Adp.OdometryState"))
 
 
-def messages(*, times=(T,T+100_000_000), confidence=.5, confidence_count=40, mutate=None, invalid_geometry=False, no_odometry=False, invalid_odometry=False, topology=1, reference_length=120., reference_offset=.5):
+def messages(*, times=(T,T+100_000_000), confidence=.5, confidence_count=40, mutate=None, invalid_geometry=False, no_odometry=False, invalid_odometry=False, topology=1, reference_length=120., reference_offset=.5, ambiguous_reference=False):
     E,R,O=classes(mutate);result=[]
     for i,time in enumerate(times):
         estimate=E();road=R()
@@ -70,6 +70,9 @@ def messages(*, times=(T,T+100_000_000), confidence=.5, confidence_count=40, mut
             estimate.topology_source=topology
         path=estimate.drive_paths.add(error=1,role=1,model_parameters_optional_flag=True)
         path.model_parameters.segment_starts.extend([-5.,0.,120.]);path.model_parameters.curvature_change.extend([0.,0.])
+        ambiguous=ambiguous_reference and i==0
+        if ambiguous:
+            path.model_parameters.x_0=60.
         field=path.DESCRIPTOR.fields_by_name.get("drive_path_confidences")
         if field is not None:
             values=[] if confidence is None else [confidence]*confidence_count
@@ -77,19 +80,20 @@ def messages(*, times=(T,T+100_000_000), confidence=.5, confidence_count=40, mut
                 getattr(path,"drive_path_confidences").extend(values)
             elif field.type in (1,2,3,4,5,6,7,13,15,16,17,18):
                 path.drive_path_confidences=confidence or 0
+        vertices=((-1.,0.),(10.,0.),(20.,-2.),(150.,-2.),(150.,2.),(20.,2.)) if ambiguous else ((-1.,reference_offset),(reference_length,reference_offset))
         if "polyline_vertex_pool" in road.DESCRIPTOR.fields_by_name:
-            for x in (-1.,reference_length):
+            for x,y in vertices:
                 point=road.polyline_vertex_pool.add()
                 if point.DESCRIPTOR.fields_by_name.get("x") is not None and point.DESCRIPTOR.fields_by_name["x"].type!=11:
                     point.x=float("nan") if invalid_geometry else x
                 if "y" in point.DESCRIPTOR.fields_by_name:
-                    point.y=reference_offset
+                    point.y=y
         lane=road.lane_segments.add(id=1)
         if "is_ego_lane" in lane.DESCRIPTOR.fields_by_name:
             lane.is_ego_lane=True
         if "drive_path_range" in lane.DESCRIPTOR.fields_by_name:
             if "size" in lane.drive_path_range.DESCRIPTOR.fields_by_name:
-                lane.drive_path_range.size=2
+                lane.drive_path_range.size=len(vertices)
         result.extend((estimate,road))
         if not no_odometry:
             for timestamp,x in ((max(0,time-50_000_000),float(i)),(time,float(i)+.5)):

@@ -78,6 +78,20 @@ class BoundedWorkflowTests(unittest.TestCase):
             with self.assertRaises(ValueError):workflow.run_bounded_readiness(self.args)
             hasher.assert_not_called()
 
+    def test_ambiguous_projection_publishes_complete_report_with_measured_attrition(self):
+        self.prepare(ambiguous_reference=True)
+        report,status=workflow.run_bounded_readiness(self.args)
+        self.assertEqual(status,0)
+        self.assertEqual(report["status"],"complete")
+        row=report["recordings"][0]
+        self.assertEqual(row["status"],"complete")
+        self.assertIsNone(row["failure_code"])
+        self.assertEqual(row["stream_integrity"],self.decode["recordings"][0]["decode_check"])
+        stage=row["readiness"]["exclusive_attrition"]["stages"][5]
+        self.assertEqual(stage["failure_code_counts"],{"h100_reference_alignment_projection_ambiguous":1})
+        self.assertEqual(row["readiness"]["complete_condition_support"]["frame_count"],1)
+        self.assertEqual(json.loads((self.args.output_directory/workflow.REPORT_NAME).read_text()),report)
+
     def test_missing_confidence_exit_three_retains_stream_and_poison_exit_zero(self):
         self.prepare(mutate=remove_field("DrivePath","drive_path_confidences"))
         report,status=workflow.run_bounded_readiness(self.args);row=report["recordings"][0]

@@ -73,6 +73,7 @@ PINNED_DATA_CODES = frozenset((
     'pairing_stations_not_increasing',
     'position_discretization_not_converged',
     'quadrature_not_converged',
+    'reference_alignment_projection_ambiguous',
     'sampled_arc_length_not_converged',
     'sampled_length_exceeds_support',
     'sampling_crosses_unknown_interval',
