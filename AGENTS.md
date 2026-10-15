@@ -1,5 +1,42 @@
 # MPR agent instructions
 
+## Current checkpoint: 2026-10-13 new development decode and bounded contract draft
+
+PR #33 is merged at `12ddee6a4c855ed522378fa9742aef993a4bcb5f`.
+Read `docs/development_recording_decode_followup_20261013.md` and
+`docs/generic_recording_readiness_v01910_draft.md` after the standard start
+instructions below. A new development recording completed registration,
+inventory and selected decoding; exact private evidence is in the delivered
+audit, not public Git. Geometry, SENSOR fraction, H100/features/sequences and
+physical-session independence remain unassessed. Preserve registered paths
+and all old evidence; no repeated accepted scans, raw migration or deletion.
+
+PR #34 a1 at `88b889a` received NO-GO with five contract blockers. Read
+`docs/generic_recording_readiness_v01910_a2_review.md`; a2 proposes explicit
+per-version binding, odometry unavailability, coverage-before-anchor attrition,
+18.5-GiB initial scratch and fresh-oracle drift policies. a1 CI is
+Codex-verified; the initial amendment needed new-head delta GO/CI in the same PR.
+a2 at `8d5c19e` received NO-GO only for R1; B2–B5 and EDP generation were
+accepted. Read `docs/generic_recording_readiness_v01910_a3_review.md` and the
+public `docs/generic_recording_readiness_contract_runbook_v01910.md`.
+a3 requires complete consumer clock/topology/ego/direct-path/nested bindings;
+it does not alter accepted a2 policies. a2 CI is Codex-verified at run
+`38409957807`; a3 at `1548382` now has NO-GO only for R1-C: absent confidence declarations
+must not be measured zero condition yield. a3 CI is Codex-verified at run
+`38427830200`, both Python 3.10/3.12 jobs 650 run/648 pass/two skips, checkout
+merge `6a2dc0b` with the exact a3 tree. Read
+`docs/generic_recording_readiness_v01910_a4_review.md` for the independent
+evaluation and narrow a4 proposal. a4 requires the confidence input binding,
+keeps bound invalid values as data, excludes map entries from repeated-message
+bindings and hardens the same-PR runbook. Accepted generation/B2–B5 stay fixed.
+The a4 contract is DRAFT FOR FOCUSED REVIEW; a4 GO and new-head CI are pending.
+No new binding gate or scientific command is implemented.
+Contract GO precedes implementation/test/review/CI; merge precedes one new
+private counts-only run. Reuse the disk-index reader and existing scientific
+rules. Numeric export/controller/catalogue/retirement and real-model evaluation
+are later consumers. Keep flow modes synthetic-only and scientific admission
+unchanged. The 2026-10-09 checkpoint below is historical.
+
 These instructions apply to the complete repository. MPR is the canonical
 implementation for the thesis; LEEM is historical reference material only.
 
@@ -28,7 +65,7 @@ implementation for the thesis; LEEM is historical reference material only.
 3. Inspect `git status --short`, the current branch, and recent commits.
 4. Preserve unrelated user changes and previously reviewed artifacts.
 
-## Current checkpoint: 2026-10-09 accepted pilot decode result
+## Historical checkpoint: 2026-10-09 accepted pilot decode result
 
 PR #32 is merged as `85cd9d6fef920bd8f347c471c14f520835ef2b24`, tree
 `1d6b997bb7ff26e10d3172cc47a4dad9293f1c48`. Claude GO/zero blockers covered

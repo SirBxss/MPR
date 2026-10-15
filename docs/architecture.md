@@ -1,5 +1,29 @@
 # Project architecture
 
+The 2026-10-13 [bounded scientific consumer draft](generic_recording_readiness_v01910_draft.md)
+is documentation only. [a2](generic_recording_readiness_v01910_a2_review.md)
+adds stream-level binding, explicit odometry-unavailable publication, fixed
+disposable SQLite configuration and exact predecessor-oracle comparisons.
+The original a1 NO-GO is not acceptance. a2 accepted B2–B5/generation but has
+one R1 binding blocker; [a3](generic_recording_readiness_v01910_a3_review.md)
+completes clock/topology/ego/direct geometry and declared nested-path checks.
+The pinned reference consumer requires direct drive-path geometry, so boundary
+midpoints cannot substitute. Historical converters remain unchanged; the new
+per-version precheck is a separate proposed consumer boundary.
+[a4](generic_recording_readiness_v01910_a4_review.md) resolves the remaining
+R1-C: confidence is required for this six-feature consumer, so absent or
+incompatible declarations use the accepted unsupported-estimate null/exit-3
+outcome; invalid values on a bound field remain data. Repeated-message bindings
+exclude Protobuf maps. This adds no new scientific arithmetic or availability
+state. a3 CI is verified; focused a4 GO/CI remain pending.
+Container parsing/CRCs/count reconciliation stay in
+the reviewed disk-index I/O; existing descriptor/geometry/causal domain rules
+are reused through budgeted scientific staging. Workflows own fresh single-hash
+identity checks, resources and complete/null publication. Historical decoder
+defaults and old consumers must retain behavior. Catalogue/controller,
+generic numeric archives and raw retirement remain later components; see
+[the handoff](development_recording_decode_followup_20261013.md).
+
 The 2026-10-09 accepted v0.19.9 pilot result establishes complete selected
 decoding with the bounded disk-index reader on one registered 30 GB MCAP.
 Generic semantic/H100 readiness, numeric residual/condition export and raw

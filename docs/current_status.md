@@ -1,10 +1,60 @@
 # Current project status
 
-Last updated: 2026-10-09. This is the first file a new agent should read after
+Last updated: 2026-10-14. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current: PR #32 merged; registered pilot selected streams decode completely
+## Current 2026-10-14: PR #34 a3 NO-GO only for R1-C; a4 proposed
+
+PR #34 is open/unmerged at a3 `1548382fe8c6b5dcc228441ac82ec16ed0e1fb2f`,
+tree `32bd20b8c5f6acb88c4115c58091e9d55ef97fd1`, parent a2 `8d5c19e`.
+Claude accepts the a3 R1 paths/runbook, but retains one blocker: a descriptor
+without confidence inputs cannot publish measured zero complete-feature yield.
+Read [the independent evaluation and a4 proposal](generic_recording_readiness_v01910_a4_review.md).
+a4 makes confidence a required consumer binding; empty/invalid values on a
+bound field remain data. It clarifies maps and hardens the public runbook.
+No accepted generation/B2–B5 policy, source code or historical report changes.
+
+Codex verified [a3 CI run 38427830200](https://github.com/SirBxss/MPR/actions/runs/38427830200).
+Python 3.10 job `115401787259` and Python 3.12 job `115401786707` each ran
+650 tests/648 passes/two skips. Both logs checked out merge
+`6a2dc0b74b28beadaffdbcdee0610778bbef3b53`, parents `12ddee6` + `1548382`,
+tree equal to the a3 tree above. This resolves the reviewer's CI-access limit,
+not R1-C NO-GO or a4 CI. Earlier reviews/CI remain historical, not acceptance.
+
+Apply/test/push the a4 numbered correction on exact a3 in the same PR branch
+using [the canonical runbook](generic_recording_readiness_contract_runbook_v01910.md),
+identical to the delivered README. No new PR/reset/force push. Focused a4
+R1-C/runbook GO and new-head CI remain pending; no implementation or private
+scientific run is authorized by this documentation correction.
+
+Main is `12ddee6a4c855ed522378fa9742aef993a4bcb5f`, tree
+`83015ba8a3103fc1e6a7616a88308f412f4be2cf`. PR #33 head `0bfdb88` has the
+same tree. One new development recording has complete registration/inventory/
+selected-decode evidence, reconciled with the returned receipt/predecessor
+and owner terminal hash checks. Exact recording identifiers, data counts,
+paths and hashes remain in the private delivered audit. No private raw bytes
+were rescanned by the agent. Decoding is serialization/container evidence;
+it does not establish scientific descriptor compatibility or all-SENSOR yield.
+
+Read [the complete handoff](development_recording_decode_followup_20261013.md)
+and [the bounded consumer draft](generic_recording_readiness_v01910_draft.md).
+Next is focused contract review, then implementation/test/review/CI, merge
+and one new versioned counts-only private run. The draft preserves original
+full-stream pairing, SENSOR admission, 21 stations/no extrapolation, six
+causal inputs and sequence boundaries; it adds explicit complete/null and
+exclusive attrition reporting. It is not implemented or private-run permission.
+
+Keep the registered raw path and all old reports unchanged. Do not repeat
+completed scans or the old deferred readiness command. No generic numeric
+export, source/session catalogue controller, real fit, role lock or raw
+retirement is implemented. Later source metadata needs a private supplement
+or reviewed successor, not edits to immutable registration. Job/interval/
+session IDs differ; job count is not independent-drive count. Acquire later
+files incrementally after pilot yield is known, with honest session evidence.
+The checkpoints below are historical evidence.
+
+## Historical 2026-10-09: PR #32 merged; registered pilot selected streams decode completely
 
 PR #32 is merged as `85cd9d6fef920bd8f347c471c14f520835ef2b24`, tree
 `1d6b997bb7ff26e10d3172cc47a4dad9293f1c48`. Claude's supplied review gives GO
