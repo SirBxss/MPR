@@ -117,41 +117,65 @@ def _unpack_path(payload: bytes | None) -> EgoRelativePath | None:
     return EgoRelativePath(**values)
 
 
+class GeometryStaging:
+    """Incremental disk staging shared by old and bounded consumers."""
+    def __init__(self, connection, diagnostics=None):
+        self.connection, self.diagnostics = connection, diagnostics
+        self.times = {"estimate": [], "reference": []}
+        self.topology_counts, self.conversion_failures, self.descriptor_counts = Counter(), Counter(), Counter()
+
+    def add(self, record):
+        _stage_geometry_record(record, self.connection, self.times, self.topology_counts,
+                               self.conversion_failures, self.descriptor_counts, self.diagnostics)
+
+    def finish(self, *, on_sensor_pair=None, checkpoint=lambda: None):
+        self.connection.commit()
+        return _count_staged_geometry(self.connection, self.times, self.topology_counts,
+                                     self.conversion_failures, self.descriptor_counts, self.diagnostics,
+                                     on_sensor_pair=on_sensor_pair, checkpoint=checkpoint)
+
+
 def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection,
                     diagnostics: PairDiagnostics | None = None, *,
                     on_sensor_pair: Callable[[int, Any], None] | None = None) -> dict[str, Any]:
-    times: dict[str, list[int | None]] = {"estimate": [], "reference": []}
-    topology_counts: Counter[str] = Counter()
-    conversion_failures: Counter[str] = Counter()
-    descriptor_counts: Counter[str] = Counter()
-    # Only scalar timestamp streams survive this pass. Reconstructed paths go
-    # to a private temporary SQLite file, with a bounded page cache.
+    staging = GeometryStaging(connection, diagnostics)
     for record in records:
-        role = "estimate" if isinstance(record, _DecodedEstimate) else "reference"
-        if len(times[role]) >= MAX_MESSAGES_PER_TOPIC:
-            raise ResourceLimitError("decoded_topic_count_exceeds_resource_limit")
-        index = len(times[role])
-        times[role].append(record.source_time_ns)
-        frame = record.frame if role == "estimate" else None
-        topology = "UNAVAILABLE_ENUM_VALUE" if frame is None else frame.topology_source
-        if role == "estimate":
-            topology_counts[topology] += 1
-            if record.descriptor_file_sha256 is not None:
-                descriptor_counts[record.descriptor_file_sha256] += 1
-        if record.failure_code is not None:
-            conversion_failures[record.failure_code] += 1
-        metadata_values = {"topology": topology, "failure": record.failure_code,
-                           "estimator_available": bool(frame is not None and
-                               frame.estimator_state == "available_no_error")}
-        if diagnostics is not None and role == "reference":
-            metadata_values["reference_failure_detail"] = record.failure_detail
-            diagnostics.reference(record.failure_detail, dict(record.segment_failure_counts))
-        metadata = json.dumps(metadata_values)
-        connection.execute("INSERT INTO geometry VALUES (?, ?, ?, ?)",
-                           (role, index, metadata, _pack_path(record.path)))
-        # Avoid retaining the final decoded message during the pairing pass.
-        del record, frame
-    connection.commit()
+        staging.add(record)
+    # Release the last decoded payload/path before scalar matching begins.
+    record = None
+    return staging.finish(on_sensor_pair=on_sensor_pair)
+
+
+def _stage_geometry_record(record, connection, times, topology_counts, conversion_failures, descriptor_counts, diagnostics):
+    role = "estimate" if isinstance(record, _DecodedEstimate) else "reference"
+    if len(times[role]) >= MAX_MESSAGES_PER_TOPIC:
+        raise ResourceLimitError("decoded_topic_count_exceeds_resource_limit")
+    index = len(times[role])
+    times[role].append(record.source_time_ns)
+    frame = record.frame if role == "estimate" else None
+    topology = "UNAVAILABLE_ENUM_VALUE" if frame is None else frame.topology_source
+    if role == "estimate":
+        topology_counts[topology] += 1
+        if record.descriptor_file_sha256 is not None:
+            descriptor_counts[record.descriptor_file_sha256] += 1
+    if record.failure_code is not None:
+        conversion_failures[record.failure_code] += 1
+    metadata_values = {"topology": topology, "failure": record.failure_code,
+                       "estimator_available": bool(frame is not None and
+                           frame.estimator_state == "available_no_error")}
+    if diagnostics is not None and role == "reference":
+        metadata_values["reference_failure_detail"] = record.failure_detail
+        diagnostics.reference(record.failure_detail, dict(record.segment_failure_counts))
+    metadata = json.dumps(metadata_values)
+    connection.execute("INSERT INTO geometry VALUES (?, ?, ?, ?)",
+                       (role, index, metadata, _pack_path(record.path)))
+    # Avoid retaining the final decoded message during the pairing pass.
+    del record, frame
+
+
+def _count_staged_geometry(connection, times, topology_counts, conversion_failures, descriptor_counts, diagnostics,
+                           *, on_sensor_pair=None, checkpoint=lambda: None):
+    checkpoint()
     pairing = mutual_nearest_timestamp_pairs(times["estimate"], times["reference"])
     counts = {"h100_pair_count": 0, "anchored_h100_pair_count": 0,
               "sensor_anchored_h100_pair_count": 0}
@@ -164,7 +188,10 @@ def _count_geometry(records: Iterable[Any], connection: sqlite3.Connection,
             (role, position)).fetchone()
         return json.loads(metadata), _unpack_path(geometry)
 
+    checkpoint()
     for pair_index, pair in enumerate(pairing.pairs):
+        if pair_index % 1024 == 0:
+            checkpoint()
         estimate_info, estimate = read("estimate", pair.first_position)
         reference_info, reference = read("reference", pair.second_position)
         failure = None

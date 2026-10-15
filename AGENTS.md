@@ -1,5 +1,50 @@
 # MPR agent instructions
 
+## Current checkpoint: 2026-10-15 PR #35 a2 correction prepared
+
+PR #35 is open at reviewed `b11459adea73452f02b10f5acba8cf6f99f4473e`,
+tree `16acf58fa565650c6a2ee1a3fd5bcec4ef9e28b0`. Claude's NO-GO B-1 is
+confirmed: an existing ambiguous projection label was omitted from attrition.
+Read `docs/generic_bounded_readiness_v01910_a2_review.md`. The a2 correction
+adds that static code, coverage and real-MCAP regressions, releases the final
+streamed record before matching, and replaces the canonical runbook with a
+retry-safe delta on the same PR. Accepted a4 science/resources stay fixed.
+
+Codex verified original-head CI run `38725711604`, jobs `116390925161`/`116390925521`:
+Python 3.10/3.12 each 700 run/698 pass/two skips, checkout `14c7e3e`, parents
+`0f2950e` + `b11459a`, exact reviewed tree. This does not cover a2. Use the
+canonical runbook; focused a2 GO/new-head CI/merge precede one fresh counts-only
+private pilot. No private descriptor/yield, numeric export or real fit exists
+here. Keep raw paths, registrations and all old evidence unchanged; no repeat
+accepted scans, bulk acquisition or deletion. The earlier checkpoints below
+are historical; PR #34 is already merged and must not be reapplied.
+
+## Historical checkpoint: 2026-10-15 bounded readiness implementation prepared
+
+PR #34 is merged at `0f2950e2b76b823fabea0b67309b268afe205806`, tree
+`4100debbc422558b0a049a96aaa7a97f340d7064`. Claude gives contract GO at
+`5fc0318`; Codex verified a4 CI run `38697721107`, Python 3.10/3.12 jobs
+`116298149356`/`116298149498`, each 650 run/648 pass/two skips, checkout
+merge `1546a96` with the exact accepted tree. Do not reapply the contract patch.
+
+Read `docs/generic_bounded_readiness_v01910.md` and
+`docs/generic_pipeline_data_completion_20261015.md`. The new
+`recording_ingestion bounded-readiness` implementation uses the disk-index
+reader's optional sink, descriptor gates, disk staging and unchanged scientific
+arithmetic. The contract's generation/B2–B5 policies remain fixed. Exact pushed-
+head implementation GO and Python 3.10/3.12 CI are pending. Merge that
+implementation before issuing one new counts-only private pilot command.
+The actual private descriptors/yield remain unverified in the agent environment.
+
+The local test and synthetic maximum-budget evidence are in the implementation
+record and bundle. Numeric export/strict validation is the next data consumer
+after reviewed readiness evidence. Acquire additional sessions incrementally
+from measured geometry/feature/sequence yield. Keep registered raw paths,
+registrations, successful reports and prior failed evidence unchanged. No
+repeated successful scans, data migration, whole-collection download, real fit,
+outing-role lock or raw deletion is opened. Flow modes remain synthetic-only.
+The 2026-10-13 checkpoint below is historical.
+
 ## Current checkpoint: 2026-10-13 new development decode and bounded contract draft
 
 PR #33 is merged at `12ddee6a4c855ed522378fa9742aef993a4bcb5f`.

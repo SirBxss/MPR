@@ -1,5 +1,15 @@
 # Project architecture
 
+The 2026-10-15 [bounded implementation](generic_bounded_readiness_v01910.md)
+extends the disk-index decoder with an optional scientific sink, a shared absolute
+deadline and caller-owned index connection; defaults remain unchanged. Domain
+bindings classify each selected version before payload science. Incremental I/O
+stages geometry/inputs/odometry on disk and reuses old matcher/feature finalizers.
+Workflows reconcile immutable predecessors, one raw hash, fresh oracles, resource
+budgets, late identities and atomic complete/null publication. Contract a4 merged
+as PR #34 at `0f2950e`; implementation GO/new-head CI are pending. Catalogue,
+generic numeric export/validation and exact-byte retirement remain later consumers.
+
 The 2026-10-13 [bounded scientific consumer draft](generic_recording_readiness_v01910_draft.md)
 is documentation only. [a2](generic_recording_readiness_v01910_a2_review.md)
 adds stream-level binding, explicit odometry-unavailable publication, fixed

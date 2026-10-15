@@ -1,6 +1,19 @@
 # Thesis modeling plan
 
-## Current development decision: 2026-10-14
+## Current development decision: 2026-10-15
+
+Contract PR #34 a4 is accepted and merged at `0f2950e`. The bounded counts-only
+[implementation](generic_bounded_readiness_v01910.md) is prepared, with exact
+implementation review/CI/merge still required before a new private pilot.
+Geometry/H100 yield, complete causal rows, sequence lengths and actual source
+fractions in the new recording remain unknown. Use those measured yields for
+incremental acquisition, then generic numeric export/strict archive validation.
+Preserve all scientific rules, matched-cohort/split and independent-outing gates;
+no real fit or physical ground-truth claim follows from the implementation.
+Both flow modes remain synthetic-only. Read
+[the data-completion handoff](generic_pipeline_data_completion_20261015.md).
+
+## Historical development decision: 2026-10-14
 
 The new development recording passes selected decoding, while geometry,
 H100/causal support, source fractions and session independence remain unknown.

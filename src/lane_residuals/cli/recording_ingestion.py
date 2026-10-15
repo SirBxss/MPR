@@ -22,6 +22,9 @@ def _bounded_run(arguments):
         if arguments.command == "decode-check":
             from ..workflows.recording_decode_check import run_decode_check
             return run_decode_check(arguments)
+        if arguments.command == "bounded-readiness":
+            from ..workflows.bounded_recording_readiness import run_bounded_readiness
+            return run_bounded_readiness(arguments)
         from ..workflows.recording_ingestion import run_prepare, run_readiness, run_registration
         return {"prepare": run_prepare, "register": run_registration, "audit": run_readiness}[arguments.command](arguments)
     finally:
@@ -54,7 +57,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     audit.add_argument("--scratch-directory", required=True, type=Path)
     audit.add_argument("--preserved-readiness-report", type=Path,
                        help="Preserve and reconcile an inconclusive ZstdError predecessor for a reviewed successor audit.")
-    for command in (prepare, registration, inventory, decode, audit):
+    bounded = subparsers.add_parser("bounded-readiness", help="Count bounded EDP/RLMB H100, causal-input and recording-local support against preserved inventory/decode evidence; no numeric export.")
+    bounded.add_argument("--registration-directory", required=True, type=Path)
+    bounded.add_argument("--scratch-directory", required=True, type=Path)
+    bounded.add_argument("--preserved-inventory-report", required=True, type=Path)
+    bounded.add_argument("--preserved-decode-report", required=True, type=Path)
+    bounded.add_argument("--topic", action="append", required=True, help="Repeat the exact EDP, RLMB and odometry topics; no automatic selection.")
+    for command in (prepare, registration, inventory, decode, audit, bounded):
         if command is not prepare:
             command.add_argument("--output-directory", required=True, type=Path)
         command.add_argument("--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO")
@@ -64,14 +73,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         _, status = _bounded_run(arguments)
         return status
     except MemoryError:
-        logging.error("memory_limit; no completed %s", arguments.command if arguments.command in ("inventory", "decode-check") else "audit")
+        logging.error("memory_limit; no completed %s", arguments.command if arguments.command in ("inventory", "decode-check", "bounded-readiness") else "audit")
         return 2
     except (OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as error:
         # Never print decoder exceptions, raw paths, source locators or payloads.
         from ..domain.recording_ingestion import RecordingIngestionError
         code = error.code if isinstance(error, RecordingIngestionError) else type(error).__name__
         logging.error("%s; no completed %s (see the runbook and preserve existing outputs)",
-                      code, arguments.command if arguments.command in ("inventory", "decode-check") else "audit")
+                      code, arguments.command if arguments.command in ("inventory", "decode-check", "bounded-readiness") else "audit")
         return 2
 
 
