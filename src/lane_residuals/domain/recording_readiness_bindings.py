@@ -152,7 +152,7 @@ def _estimate(descriptor):
     _field(path, ("drive_path_confidences",), types=NUMERIC, repeated=True)
 
 
-def classify(message, role, schema_name, encoding):
+def classify(message, role, schema_name, encoding, *, allow_bounded_v01911_edp=False):
     """Return (root-file SHA, static failure or None), without reading values."""
     descriptor = getattr(message, "DESCRIPTOR", None)
     digest = None if descriptor is None else hashlib.sha256(descriptor.file.serialized_pb).hexdigest()
@@ -160,7 +160,9 @@ def classify(message, role, schema_name, encoding):
     if schema_name != ROOTS[role] or encoding != "protobuf" or (descriptor is not None and descriptor.full_name != ROOTS[role]):
         return digest, mismatch
     if role == "estimate":
-        support = estimate_descriptor_support(message)
+        support = estimate_descriptor_support(
+            message, allow_bounded_v01911_edp=allow_bounded_v01911_edp,
+        )
         if not support.supported:
             return digest, support.failure_code
         if support.missing_required_fields:

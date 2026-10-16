@@ -1,5 +1,16 @@
 # Project architecture
 
+The [v0.19.11 a2 amendment](edp_descriptor_compatibility_v01911.md) keeps the
+historical classifier default unchanged. A keyword-only default-false Boolean
+is forwarded by the frame converter, readiness bindings and geometry iterator;
+only the bounded sink enables the second fixed root, at descriptor and geometry
+checks. These five existing source paths preserve arithmetic, historical import
+graphs, workflows/lineage, reader and resources. Actual interface 2.3 custom
+options and descriptor conformance are verified; private science is unknown.
+Focused a2 policy/code GO and new-head CI are pending. Read the
+[review evaluation](edp_descriptor_compatibility_a2_review_20261016.md).
+The implementation chronology below is historical.
+
 The 2026-10-15 [bounded implementation](generic_bounded_readiness_v01910.md)
 extends the disk-index decoder with an optional scientific sink, a shared absolute
 deadline and caller-owned index connection; defaults remain unchanged. Domain
@@ -7,7 +18,8 @@ bindings classify each selected version before payload science. Incremental I/O
 stages geometry/inputs/odometry on disk and reuses old matcher/feature finalizers.
 Workflows reconcile immutable predecessors, one raw hash, fresh oracles, resource
 budgets, late identities and atomic complete/null publication. Contract a4 merged
-as PR #34 at `0f2950e`; implementation GO/new-head CI are pending. Catalogue,
+as PR #34 at `0f2950e`; implementation GO and exact-head CI are verified; PR #35 merged at `4cf0af3`.
+The one fresh private counts-only pilot is issued and results are pending. Catalogue,
 generic numeric export/validation and exact-byte retirement remain later consumers.
 
 The 2026-10-13 [bounded scientific consumer draft](generic_recording_readiness_v01910_draft.md)

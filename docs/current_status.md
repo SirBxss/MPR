@@ -1,10 +1,129 @@
 # Current project status
 
-Last updated: 2026-10-15. This is the first file a new agent should read after
+Last updated: 2026-10-16. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-15: PR #35 B-1 confirmed; a2 correction prepared
+## Current 2026-10-16 PR #36 a2 correction prepared
+
+Claude's B-1 evidence/semantic gap and B-2 historical gate-provenance defect
+are confirmed. Read `edp_descriptor_compatibility_a2_review_20261016.md` and the
+revised amendment. The actual binary export's custom options declare interface
+2.3 and required model parameters, retaining the major version of the reviewed
+2.2 source trace. The amendment now exposes exact declarations/defaults/options,
+an explicit version-policy assumption and its limits. The private reproducer
+checks extension decoding and conformance; no new private data scan was needed.
+
+A2 scopes the second exact root to bounded readiness through a default-false
+Boolean in five existing source files. Historical consumers keep the original
+pin/default and cannot silently admit this root under old lock lineage.
+The old workflows, outputs, verifier, reader, arithmetic and resource policy
+remain unchanged. Apply/test/push a delta on existing PR #36 at `132e2e5`;
+attach the actual a2 ZIP, head and new CI link for focused B-1/B-2 review.
+A1 CI logs verify 713 run/711 passed/two skips on its exact merge tree; new-head
+CI and focused GO are pending. Real scientific yield remains unknown.
+
+After GO/CI/merge, issue one fresh versioned counts-only successor using the
+same successful predecessors and preserving the failed report digest. Measured
+yield then informs numeric export/strict validation and incremental evidenced
+sessions before model training. Preserve raw and all earlier outputs; no
+repeated accepted scans, migration, bulk acquisition, real fit or retirement.
+The checkpoints below are historical.
+
+## Historical 2026-10-15 exact EDP variant amendment/implementation proposed
+
+The descriptor-only follow-up identifies a flag-absent EDP root outside the
+single previously approved v2 entry. Its consumed geometry/index/confidence,
+clock/topology/qualifier bindings are complete. Root bytes match embedded and
+owner/local message-owned identities. Read
+`docs/edp_descriptor_compatibility_v01911.md`.
+The candidate adds one exact second entry under unchanged v2 presence rules,
+retains the old pin and structural legacy behavior, and versions bounded reports
+as v0.19.11 with the same keys. Unknown roots remain unsupported. This is a
+proposed policy and implementation requiring focused amendment/code GO and
+exact-head CI before merge or a new private scientific command.
+
+Base is merged PR #35 `4cf0af3`, tree `f435f2b`. Local conformance uses the actual
+exported descriptors and synthetic values, plus native synthetic MCAP tests;
+no private recorded payload or raw MCAP was read here. Private scientific yield
+is still unknown. Do not rerun the v0.19.10 attempt or accepted predecessors,
+move/delete raw, bulk-download, lock roles or fit models. The next private
+successor needs a fresh v0.19.11 directory and a receipt retaining the old
+inconclusive report digest after acceptance/CI/merge. Numeric export/strict
+validation follows measured yield. Earlier checkpoints below are historical.
+
+## Historical 2026-10-15 fresh pilot inconclusive; EDP generation unsupported
+
+The owner returned the authorized post-merge pilot. Exit 3 is
+`scientific_binding_unsupported_estimate_descriptor`, with per-version cause
+`unsupported_estimate_descriptor_generation`. Read
+`docs/new_development_readiness_result_20261015.md`. Source/receipt/predecessor
+lineage reconcile; fresh selected decoding/counts/CRCs equal preserved evidence.
+RLMB and odometry bindings pass. EDP's scientific descriptor generation is not
+recognized; geometry/feature/sequence yield remains unknown, not measured zero.
+No private raw was read by the agent and no corpus/model/retirement gate closes.
+
+Next is the privately delivered descriptor-only export using the merged metadata
+reader and a summary/footer read guard. Preserve this attempt, raw paths and old
+reports. Do not rerun readiness or accepted prerequisites, blindly whitelist the
+new hash, relax generation/science gates, download the collection, fit real models
+or delete raw. Inspect actual declarations and semantics before a minimal tested
+compatibility proposal/review/CI/merge and one separately versioned successor.
+The earlier pilot-issued/acceptance checkpoints below are historical.
+
+## Historical 2026-10-15 PR #35 merged; one fresh pilot issued
+
+PR #35 is merged on main at `4cf0af37ffad05e34b632571ec271485d6de50c3`,
+parents `0f2950e` + `ec624a2`, tree
+`f435f2bf8e26d1e3dc114bb50b10b7ff4cc83501`. This is the exact accepted a2
+implementation tree. Claude GO/zero blockers and authenticated a2 CI run
+`38735467617` are verified: Python 3.10/3.12 each 703 run/701 pass/two skips,
+checkout test merge `1e708b1` with that tree. That test merge is distinct from
+actual main merge `4cf0af3`. Read
+`docs/generic_bounded_readiness_pilot_runbook_v01910.md`.
+
+The owner authorized one fresh counts-only pilot on the already registered
+new development recording. Its private launcher checks exact source and
+preserved JSON hashes, uses local `/var/tmp` scratch, keeps one-attempt receipts
+and packages complete/inconclusive evidence without changing raw or earlier
+reports. Real synthetic merged-CLI complete/inconclusive runs and failure
+checks passed; actual preserved reports passed metadata-only predecessor
+validation using reconciled identities. No private raw was opened here.
+The pilot command is issued, not executed or accepted in the agent environment.
+Await the owner's result ZIP before claiming scientific yield or implementing
+its evidence-dependent successor. Do not automatically retry, repeat accepted
+predecessors, migrate raw, bulk-download, fit real models or delete raw data.
+
+Next: assess descriptor/H100/SENSOR/causal-feature/sequence yield, then generic
+numeric export plus strict archive validation. Preserve the existing science,
+model gates, exact lineage and evidenced physical-session/split requirements.
+The owner is manually screening for EDP SENSOR/RLMB across reportedly distinct
+drives; retain odometry and session evidence, and keep valid large disagreements.
+This documentation draft is for the next implementation; it is not a patch the
+owner must apply before this pilot. The owner launcher pins the reviewed merged
+release. Earlier checkpoints below are historical.
+
+## Historical 2026-10-15: PR #35 ready for owner merge; private yield still unknown
+
+Claude gives focused GO/zero blockers at `ec624a2`, tree
+`f435f2bf8e26d1e3dc114bb50b10b7ff4cc83501`. Codex verified a2 CI run
+`38735467617`, jobs `116423531939`/`116423531658`: Python 3.10/3.12 each
+703 run/701 pass/two skips on merge `1e708b1` with the exact reviewed tree.
+All delivered ZIP bytes/patch/base/tree/runbook checks also pass. PR #35
+is open/unmerged; no new code correction is required. Read
+`docs/recording_readiness_pr35_a2_acceptance_20261015.md`. This local checkpoint
+is reserved for the next implementation, not a new PR #35 patch requirement.
+
+Next: owner merge, verify actual main identity, one fresh counts-only private
+pilot using unchanged predecessors/local scratch, then reviewed numeric export/
+strict archive validation. The owner is manually screening for RLMB and SENSOR
+EDP across reportedly distinct drives; retain acquisition/session evidence and
+odometry, without inferring yield, independence or splits from job counts.
+Existing raw paths/reports, scientific rules and model/data gates stay fixed.
+No repeated completed scans, bulk acquisition, real fit or raw deletion follows.
+The earlier checkpoints below are historical.
+
+## Historical 2026-10-15: PR #35 B-1 confirmed; a2 correction prepared
 
 PR #35 is open/unmerged at reviewed `b11459a`, tree
 `16acf58fa565650c6a2ee1a3fd5bcec4ef9e28b0`, on merged PR #34 `0f2950e`.

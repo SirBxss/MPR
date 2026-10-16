@@ -19,7 +19,7 @@ from .recording_readiness_resources import scientific_failure
 
 TOPIC_ROLES = {"/adp/estimated_drive_paths":"estimate", "/adp/road_lane_map_based":"reference", "/adp/odometry":"odometry"}
 TOPIC_LIMITS = {topic:1_000_000 if role=="odometry" else 100_000 for topic,role in TOPIC_ROLES.items()}
-REVISION = "v0.19.10-bounded-recording-readiness-2026-10-14-a4"
+REVISION = "v0.19.11-bounded-recording-readiness-2026-10-16-a2"
 
 
 class _BoundedOdometryStore(_OdometryStore):
@@ -57,7 +57,7 @@ class ScientificSink:
             if channel["schema_id"] != schema.id:
                 continue
             role = TOPIC_ROLES[channel["topic"]]
-            digest, cause = classify(empty_message, role, schema.name, channel["message_encoding"])
+            digest, cause = classify(empty_message, role, schema.name, channel["message_encoding"], allow_bounded_v01911_edp=True)
             self._bindings[key] = {"topic":channel["topic"], "role":role, "channel_id":key, "schema_id":schema.id,
                 "message_file_descriptor_sha256":digest, "binding_status":"supported" if cause is None else "unsupported", "binding_failure_code":cause}
         self.workspace.checkpoint()
@@ -107,7 +107,7 @@ class ScientificSink:
         message = SimpleNamespace(log_time=log_time, publish_time=publish_time)
         self._logs[topic].add(log_time)
         if getattr(decoded, "DESCRIPTOR", None) is not self._descriptors[schema.id]:
-            digest, cause = classify(decoded, role, schema.name, channel.message_encoding)
+            digest, cause = classify(decoded, role, schema.name, channel.message_encoding, allow_bounded_v01911_edp=True)
             if cause is not None or digest != binding["message_file_descriptor_sha256"]:
                 self._unsupported(binding, cause or role+"_descriptor_fields_unsupported")
                 if role != "odometry":
@@ -124,7 +124,7 @@ class ScientificSink:
                 self.odometry.add(schema, channel, message, decoded)
             return
         position = len(self.geometry.times[role])
-        record = next(iter_geometry_records(((schema,channel,message,decoded),), collect_reference_diagnostics=True))
+        record = next(iter_geometry_records(((schema,channel,message,decoded),), collect_reference_diagnostics=True, allow_bounded_v01911_edp=True))
         record = replace(record, message_index=position)
         if isinstance(record, _DecodedEstimate) and record.frame is not None:
             record = replace(record, frame=replace(record.frame, message_index=position))

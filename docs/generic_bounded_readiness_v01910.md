@@ -1,9 +1,14 @@
 # v0.19.10 bounded scientific readiness implementation
 
-Date: 2026-10-15. Status: **PR #35 B-1 confirmed; same-PR a2 correction prepared**.
-Read [the independent review evaluation](generic_bounded_readiness_v01910_a2_review.md)
-and the updated same-PR runbook. Original-head CI is verified; a2 GO/new-head CI
-remain pending before merge and the one fresh private pilot.
+Date: 2026-10-15. The v0.19.10 pilot returned unsupported EDP generation;
+read its [result](new_development_readiness_result_20261015.md) and the proposed
+[v0.19.11 exact-variant amendment](edp_descriptor_compatibility_v01911.md).
+The implementation description below records the historical v0.19.10 release.
+Historical status: **PR #35 merged; one fresh private counts-only pilot issued**.
+Main merge `4cf0af3` has accepted a2 tree `f435f2b`; focused a2 GO and exact-
+head Python 3.10/3.12 CI are verified (703 run/two skips each). Read the
+[post-merge pilot handoff](generic_bounded_readiness_pilot_runbook_v01910.md).
+Private pilot results remain pending; no numeric archive or real fit follows yet.
 The accepted contract is [a4](generic_recording_readiness_v01910_draft.md),
 revision `v0.19.10-bounded-recording-readiness-2026-10-14-a4`. Its historical
 draft header records its pre-review state. PR #34 is merged at

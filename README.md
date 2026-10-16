@@ -1,6 +1,34 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-15):** PR #35 has one confirmed review blocker;
+**Current checkpoint (2026-10-16):** PR #36 received NO-GO for evidence and
+historical-consumer scope. The [a2 correction and evaluation](docs/edp_descriptor_compatibility_a2_review_20261016.md)
+decodes actual interface 2.3 custom options, records the explicit compatibility
+argument and restricts the second root to bounded readiness. Historical locks
+retain their original policy. Apply a2 on the same PR; attach its actual ZIP
+for focused review and new-head CI. Yield and training readiness remain unknown.
+
+**Historical checkpoint (2026-10-15):** The descriptor follow-up supports a proposed
+[exact EDP compatibility amendment and implementation](docs/edp_descriptor_compatibility_v01911.md).
+It adds one fixed flag-absent schema under unchanged v2 rules and versions
+bounded reports as v0.19.11. Focused amendment/code GO and new-head CI precede
+merge and one new private successor. Actual new-data yield is still unknown.
+
+**Historical checkpoint (2026-10-15):** The fresh bounded pilot returned exit 3
+for an unsupported EDP descriptor generation. Selected decoding/CRCs and
+RLMB/odometry bindings pass; scientific yield is unknown. Read the
+[result and descriptor-only follow-up](docs/new_development_readiness_result_20261015.md).
+Preserve the attempt and raw; inspect schema declarations before any compatibility
+change or new scientific run.
+
+**Historical checkpoint (2026-10-15):** PR #35 is merged at `4cf0af3`, exact
+reviewed a2 tree. One fresh counts-only private pilot is authorized and its
+verified owner launcher is delivered. Results are pending; read the
+[post-merge pilot handoff](docs/generic_bounded_readiness_pilot_runbook_v01910.md).
+Next is measured yield, generic numeric export/strict validation, then evidenced
+sessions/splits and existing gates before real training. Preserve all raw paths
+and prior reports. This local documentation checkpoint is for the next change.
+
+**Historical checkpoint (2026-10-15):** PR #35 has one confirmed review blocker;
 [the a2 correction](docs/generic_bounded_readiness_v01910_a2_review.md) and
 [same-PR runbook](docs/generic_bounded_readiness_runbook_v01910.md) are prepared.
 Old-head CI is verified; a2 GO/new-head CI precede merge and one private pilot.

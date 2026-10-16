@@ -1,10 +1,33 @@
 # Thesis modeling plan
 
-## Current development decision: 2026-10-15
+## Current development decision: 2026-10-16 bounded-only EDP compatibility
+
+PR #36 a1's historical scope and evidence gaps require the
+[a2 correction](edp_descriptor_compatibility_a2_review_20261016.md).
+The binary descriptor's custom options identify interface 2.3; the amendment
+states the same-major semantic assumption explicitly. Only bounded readiness
+can admit the second fixed root; historical locks retain the old default.
+Focused review/new-head CI/merge precede one fresh pilot. Measured yield then
+supports numeric export/strict validation and incremental evidenced sessions
+before training. Data already downloaded is not yet a validated training archive.
+Targets, six causal inputs, cohorts/splits and all existing model gates stay fixed.
+
+## Historical development decision: 2026-10-15 exact EDP compatibility
+
+The v0.19.10 pilot decoded completely but stopped at unsupported EDP generation.
+Descriptor evidence supports a proposed second exact flag-absent schema under
+unchanged v2 availability/validity rules; read the
+[v0.19.11 amendment](edp_descriptor_compatibility_v01911.md). This is a software
+compatibility proposal, not a target/population/feature change. Actual geometry,
+conditions and sequence yield remain unknown. Amendment/code GO, exact-head CI
+and merge precede a fresh versioned private successor. Real-model and independent-
+session/split gates remain fixed; both flow modes remain synthetic-only.
+
+## Historical development decision: 2026-10-15
 
 Contract PR #34 a4 is accepted and merged at `0f2950e`. The bounded counts-only
-[implementation](generic_bounded_readiness_v01910.md) is prepared, with exact
-implementation review/CI/merge still required before a new private pilot.
+[implementation](generic_bounded_readiness_v01910.md) is merged as PR #35 at `4cf0af3`, with exact implementation GO/CI verified.
+One fresh private counts-only pilot is issued; results remain pending.
 Geometry/H100 yield, complete causal rows, sequence lengths and actual source
 fractions in the new recording remain unknown. Use those measured yields for
 incremental acquisition, then generic numeric export/strict archive validation.
