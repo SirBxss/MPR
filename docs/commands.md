@@ -1,5 +1,14 @@
 # Supported commands
 
+Current checkpoint (2026-10-16): the fresh v0.19.11 pilot has returned
+[complete](new_development_readiness_result_20261016.md). Do not rerun it or its
+accepted predecessors. The [v0.19.12 contract](generic_numeric_export_v01912_contract.md)
+is documentation only: `export-residuals` and the generic validator described
+there are proposed entry points, not implemented commands. The next owner
+operation is the [contract patch/review runbook](generic_numeric_export_contract_runbook_v01912.md).
+No private MCAP command is issued by this closure. Earlier instructions below
+are historical and do not reopen completed stages.
+
 PR #36 a2 is a correction on the existing feature branch. Use the
 [canonical apply/test/push runbook](edp_descriptor_compatibility_runbook_v01911.md),
 then attach the actual ZIP for focused B-1/B-2 review/new-head CI. No new CLI

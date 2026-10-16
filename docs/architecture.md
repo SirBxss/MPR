@@ -1,5 +1,15 @@
 # Project architecture
 
+Current checkpoint (2026-10-16): merged PR #36's fresh counts-only result is
+[complete and reconciled](new_development_readiness_result_20261016.md).
+The [v0.19.12 numeric contract](generic_numeric_export_v01912_contract.md) is a
+new documentation-only proposal. It adds no code or entry point. Its next
+implementation reuses the bounded reader/staging and unchanged arithmetic,
+then adds a separately versioned archive and standalone validator; historical
+batch02 consumers and default schema behavior remain fixed. Review the new
+consumer's schema policy explicitly rather than extending bounded-only GO.
+The readiness pilot must not be repeated. Historical descriptions follow.
+
 The [v0.19.11 a2 amendment](edp_descriptor_compatibility_v01911.md) keeps the
 historical classifier default unchanged. A keyword-only default-false Boolean
 is forwarded by the frame converter, readiness bindings and geometry iterator;

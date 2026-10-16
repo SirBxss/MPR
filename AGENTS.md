@@ -1,6 +1,34 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-16 PR #36 merged; fresh successor issued
+## Current checkpoint: 2026-10-16 successor reconciled; numeric contract proposed
+
+The authorized v0.19.11 pilot returned complete. Read
+`docs/new_development_readiness_result_20261016.md` and the proposed
+`docs/generic_numeric_export_v01912_contract.md`. Exact ZIP/manifest, source
+fingerprint, receipt, predecessor bytes and science accounting reconcile in
+56 private checks. All EDP is SENSOR, with nonzero H100 geometry but much
+smaller, fragmented complete-feature support. It does not meet the existing
+per-outing frame gate; physical sessions remain unproved. Exact measured
+counts/raw paths/hashes/clocks stay in the private evidence bundle, not Git.
+
+Main remains merged `7e4a06b`, tree `c9600a0`; this branch changes documentation
+only. No numeric exporter or validator is implemented by this candidate.
+The v0.19.12 contract explicitly proposes numeric-consumer schema admission,
+readiness parity, geometry/condition populations, U48 identifiers, strict
+standalone validation and bounded atomic publication. Focused contract review
+is next; then implement exporter/validator together, review/test/merge and issue
+one separately versioned export. Do not inherit bounded-only schema GO silently.
+Retain the interface-version assumption and real-fit/cohort/split gates.
+
+Do not rerun the completed readiness/registration/inventory/decode, erase old
+data, move registered raw, bulk-download or fit real models. No private command
+is issued here. Use a small prospective development selection with session
+provenance for later incremental acquisition; SENSOR/topics alone do not prove
+H100 or causal support. Preserve bracket evidence in the exporter instead of
+another diagnostic scan. Generic evidenced sessions/splits and approved model
+integration follow validated archives. Earlier checkpoints are historical.
+
+## Historical checkpoint: 2026-10-16 PR #36 merged; fresh successor issued
 
 Actual main merge is `7e4a06bbcd8443529f806108d7d84f33714d1a16`, parents
 `4cf0af3`/`03a9d77`, accepted tree `c9600a0`. Amendment/code GO and exact-tree

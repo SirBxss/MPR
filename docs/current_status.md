@@ -4,7 +4,39 @@ Last updated: 2026-10-16. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-16 PR #36 merged; one fresh pilot issued
+## Current 2026-10-16 completed pilot; numeric-consumer contract proposed
+
+The fresh v0.19.11 pilot is complete and reconciled. Read
+[new result and interpretation](new_development_readiness_result_20261016.md).
+All eleven ZIP members/CRCs/manifest, executed launcher, actual main/tree,
+independently rebuilt runtime fingerprint, unchanged predecessor bytes and
+exclusive attrition/sequence arithmetic pass 56 checks. Main remains `7e4a06b`,
+tree `c9600a0`. Private measured identities/counts/clocks remain outside Git.
+
+The exact schema correction works. All EDP is SENSOR and there is real anchored
+H100 geometry, but reference eligibility/H100 coverage leave low yield and
+future-source speed rejection fragments the much smaller complete-feature
+subset. No residual vectors or numeric feature archive exists for this recording.
+Source/session declarations remain unavailable, no new outing is admitted, and
+this recording alone is below the existing per-outing frame gate. Do not claim
+data corruption, a timestamp defect, collection-wide yield or training readiness.
+
+This documentation-only branch proposes the
+[v0.19.12 numeric-export/strict-validation contract](generic_numeric_export_v01912_contract.md).
+Review its explicit schema policy and output/validation/resource boundary,
+then implement raw-to-archive and standalone validation together. No production
+code, CLI or private command is added now. The bounded-only policy is not general
+numeric authorization. Preserve the same-major interface assumption, target,
+features and all session/split/model gates. Both flows remain synthetic-only.
+
+Do not rerun completed stages or relocate/delete current raw/old data. No bulk
+acquisition is justified by one low-yield pilot. Future small development
+selections need truthful physical-session evidence plus H100/reference/causal
+support screening. Numeric archives/validation precede generic cohort/split
+integration, real fits and separately justified cache retirement. Earlier
+checkpoints are historical.
+
+## Historical 2026-10-16 PR #36 merged; one fresh pilot issued
 
 Actual main `7e4a06b`, parents `4cf0af3`/`03a9d77`, has accepted tree `c9600a0`.
 Review GO and both exact-tree 718-test CI logs are verified. The owner requested

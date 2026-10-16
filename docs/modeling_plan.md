@@ -1,6 +1,24 @@
 # Thesis modeling plan
 
-## Current development decision: 2026-10-16 merged compatibility; measure yield
+## Current development decision: 2026-10-16 measured support; numeric export next
+
+The authorized successor completed and its private result is
+[reconciled](new_development_readiness_result_20261016.md). SENSOR-only topology
+now yields H100 geometry and a smaller fragmented complete-feature subset;
+this recording does not meet the existing per-outing frame gate. No numeric
+archive, evidenced session or model admission follows. Preserve the failed
+predecessor and completed successor without another counts-only scan.
+
+Review the separate [v0.19.12 numeric-consumer contract](generic_numeric_export_v01912_contract.md),
+then implement exporter and strict validator together on the bounded reader.
+This branch is documentation only. Preserve the signed H100 target, causal
+six-feature definition, no-imputation rule, separate populations/sequences,
+explicit schema policy and interface-version assumption. Generic evidenced
+cohort/split lineage and model integration remain after archive validation;
+both flows remain synthetic-only. Acquisition is incremental and prospective,
+not a bulk download or selection for favorable residual/model outcomes.
+
+## Historical development decision: 2026-10-16 merged compatibility; measure yield
 
 PR #36 is accepted and merged at `7e4a06b`, tree `c9600a0`. The privately
 delivered [fresh successor](generic_bounded_readiness_pilot_runbook_v01911.md)

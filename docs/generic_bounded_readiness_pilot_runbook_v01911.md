@@ -1,5 +1,11 @@
 # Post-merge v0.19.11 readiness successor and data-completion handoff
 
+Current status: the authorized successor has returned complete and is
+[reconciled](new_development_readiness_result_20261016.md). This runbook records
+the issued attempt; do not repeat it. The next proposal is
+[generic numeric export/validation](generic_numeric_export_v01912_contract.md).
+The awaiting-result instructions below are historical.
+
 Date: 2026-10-16. PR #36 is merged at
 `7e4a06bbcd8443529f806108d7d84f33714d1a16`, parents `4cf0af3` and `03a9d77`,
 tree `c9600a05e0436393099496689c19b6149dc0154f`. This is the exact accepted
