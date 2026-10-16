@@ -1,6 +1,30 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-16 PR #36 a2 correction prepared
+## Current checkpoint: 2026-10-16 PR #36 a2 GO and CI verified
+
+Claude gives focused amendment/code GO with zero blockers at `03a9d77`, tree
+`c9600a05e0436393099496689c19b6149dc0154f`, parent `132e2e5`. Codex verified
+both CI logs in run `38904914991`: Python 3.10.22/3.12.15 each 718 run,
+716 passed/two skips, checkout test merge `07a6a4c`, parents `4cf0af3` plus
+`03a9d77`, exact accepted tree. Actual ZIP bytes/private evidence were reviewed.
+Read `docs/edp_descriptor_compatibility_a2_acceptance_20261016.md`.
+
+PR #36 is open/unmerged at the check. No further code correction or mandatory
+documentation patch is needed; this local checkpoint is reserved for the next
+implementation. Owner merge and actual-main identity verification precede one
+fresh versioned counts-only successor using unchanged successful predecessors,
+local scratch and the failed-report digest. Do not rerun old attempts/scans,
+move/delete raw, bulk-acquire, assign roles or fit real models yet.
+
+Private yield remains unknown. The version-policy assumption remains explicit;
+carry it into later export/model review and attempt a source/changelog trace
+before real fits. Optional qualifier/age/cut-off diagnostics must not silently
+filter data or change the six features. After measured readiness, proceed to
+reviewed generic numeric export/strict validation and incremental evidenced
+sessions/splits. The exporter does not inherit bounded-only schema admission
+without an explicit reviewed consumer policy. Earlier checkpoints are historical.
+
+## Historical checkpoint: 2026-10-16 PR #36 a2 correction prepared
 
 PR #36 at `132e2e5` has Claude NO-GO for missing semantic/evidence review and
 historical shared-classifier admission. Both findings are valid. Read

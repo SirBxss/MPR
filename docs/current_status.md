@@ -4,7 +4,29 @@ Last updated: 2026-10-16. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-16 PR #36 a2 correction prepared
+## Current 2026-10-16 PR #36 a2 accepted; owner merge next
+
+Focused Claude GO closes B-1/B-2 at `03a9d77`, tree `c9600a0`, parent `132e2e5`.
+Codex verified new-head CI run `38904914991` using decoded logs: Python
+3.10.22/3.12.15 each 718 run/716 passed/two skips, checkout `07a6a4c` with that
+exact accepted tree and parents `4cf0af3`/`03a9d77`. Review and delivered bytes
+agree. Read `edp_descriptor_compatibility_a2_acceptance_20261016.md`.
+
+No new code correction or documentation patch is required before owner merge;
+this local checkpoint is reserved for the next implementation. Verify actual
+main after merge, then issue one fresh versioned counts-only successor with
+unchanged registration/inventory/decode inputs and the failed-report digest.
+Scientific yield remains unknown. No old rerun/overwrite, raw relocation or
+deletion, bulk acquisition, role assignment or real fit follows from this GO.
+
+After measured yield: reviewed numeric export/strict validation, incremental
+evidenced sessions/splits, then model gates. Keep the interface-version-policy
+assumption explicit and attempt a 2.2-to-2.3 source trace before real fits.
+Qualifier/age/cut-off diagnostics are optional future counts, not new filters
+or features. The bounded-only policy does not silently authorize other consumers.
+The checkpoints below are historical.
+
+## Historical 2026-10-16 PR #36 a2 correction prepared
 
 Claude's B-1 evidence/semantic gap and B-2 historical gate-provenance defect
 are confirmed. Read `edp_descriptor_compatibility_a2_review_20261016.md` and the
