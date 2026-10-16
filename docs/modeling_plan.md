@@ -1,6 +1,18 @@
 # Thesis modeling plan
 
-## Current development decision: 2026-10-15 exact EDP compatibility
+## Current development decision: 2026-10-16 bounded-only EDP compatibility
+
+PR #36 a1's historical scope and evidence gaps require the
+[a2 correction](edp_descriptor_compatibility_a2_review_20261016.md).
+The binary descriptor's custom options identify interface 2.3; the amendment
+states the same-major semantic assumption explicitly. Only bounded readiness
+can admit the second fixed root; historical locks retain the old default.
+Focused review/new-head CI/merge precede one fresh pilot. Measured yield then
+supports numeric export/strict validation and incremental evidenced sessions
+before training. Data already downloaded is not yet a validated training archive.
+Targets, six causal inputs, cohorts/splits and all existing model gates stay fixed.
+
+## Historical development decision: 2026-10-15 exact EDP compatibility
 
 The v0.19.10 pilot decoded completely but stopped at unsupported EDP generation.
 Descriptor evidence supports a proposed second exact flag-absent schema under

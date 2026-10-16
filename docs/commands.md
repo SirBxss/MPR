@@ -1,5 +1,12 @@
 # Supported commands
 
+PR #36 a2 is a correction on the existing feature branch. Use the
+[canonical apply/test/push runbook](edp_descriptor_compatibility_runbook_v01911.md),
+then attach the actual ZIP for focused B-1/B-2 review/new-head CI. No new CLI
+argument is added: the internal default-false schema policy is enabled only
+by bounded readiness. Historical cohort commands retain their original policy.
+No private scientific command is issued until acceptance and merge.
+
 The proposed [v0.19.11 exact-variant change](edp_descriptor_compatibility_v01911.md)
 keeps `bounded-readiness` arguments unchanged. Review/test/push its implementation
 before a new private successor; no private command is issued by this candidate.

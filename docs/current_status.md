@@ -1,10 +1,36 @@
 # Current project status
 
-Last updated: 2026-10-15. This is the first file a new agent should read after
+Last updated: 2026-10-16. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-15 exact EDP variant amendment/implementation proposed
+## Current 2026-10-16 PR #36 a2 correction prepared
+
+Claude's B-1 evidence/semantic gap and B-2 historical gate-provenance defect
+are confirmed. Read `edp_descriptor_compatibility_a2_review_20261016.md` and the
+revised amendment. The actual binary export's custom options declare interface
+2.3 and required model parameters, retaining the major version of the reviewed
+2.2 source trace. The amendment now exposes exact declarations/defaults/options,
+an explicit version-policy assumption and its limits. The private reproducer
+checks extension decoding and conformance; no new private data scan was needed.
+
+A2 scopes the second exact root to bounded readiness through a default-false
+Boolean in five existing source files. Historical consumers keep the original
+pin/default and cannot silently admit this root under old lock lineage.
+The old workflows, outputs, verifier, reader, arithmetic and resource policy
+remain unchanged. Apply/test/push a delta on existing PR #36 at `132e2e5`;
+attach the actual a2 ZIP, head and new CI link for focused B-1/B-2 review.
+A1 CI logs verify 713 run/711 passed/two skips on its exact merge tree; new-head
+CI and focused GO are pending. Real scientific yield remains unknown.
+
+After GO/CI/merge, issue one fresh versioned counts-only successor using the
+same successful predecessors and preserving the failed report digest. Measured
+yield then informs numeric export/strict validation and incremental evidenced
+sessions before model training. Preserve raw and all earlier outputs; no
+repeated accepted scans, migration, bulk acquisition, real fit or retirement.
+The checkpoints below are historical.
+
+## Historical 2026-10-15 exact EDP variant amendment/implementation proposed
 
 The descriptor-only follow-up identifies a flag-absent EDP root outside the
 single previously approved v2 entry. Its consumed geometry/index/confidence,

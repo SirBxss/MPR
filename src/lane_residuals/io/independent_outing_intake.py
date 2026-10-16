@@ -149,11 +149,13 @@ def iter_geometry_records(
     messages: Iterable[tuple[Any, Any, Any, Any]],
     *,
     collect_reference_diagnostics: bool = False,
+    allow_bounded_v01911_edp: bool = False,
 ) -> Iterator[_DecodedEstimate | _DecodedReference]:
     """Reconstruct selected records without retaining the preceding geometry.
 
     The caller controls MCAP iteration order and owns complete-stream failure
     handling. Conversion, schema and timestamp rules match the legacy intake.
+    Only bounded readiness opts into the additional exact v0.19.11 EDP root.
     """
 
     if collect_reference_diagnostics:
@@ -175,7 +177,7 @@ def iter_geometry_records(
             index = estimate_count
             estimate_count += 1
             descriptor_file_sha256 = estimate_descriptor_support(
-                decoded
+                decoded, allow_bounded_v01911_edp=allow_bounded_v01911_edp,
             ).descriptor_file_sha256
             frame: EstimatedFrameAudit | None = None
             curve: SplineCurve | None = None
@@ -194,6 +196,7 @@ def iter_geometry_records(
                         log_time_ns=log_time,
                         publish_time_ns=publish_time,
                         require_sensor_topology=False,
+                        allow_bounded_v01911_edp=allow_bounded_v01911_edp,
                     )
                     source_time = frame.source_time_ns
                     if not frame.candidate_ready or frame.candidate is None:

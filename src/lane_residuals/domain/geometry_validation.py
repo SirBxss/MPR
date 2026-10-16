@@ -440,12 +440,14 @@ def estimated_frame_from_message(
     schema_fingerprint: str | None = None,
     payload_fingerprint: str | None = None,
     require_sensor_topology: bool = True,
+    allow_bounded_v01911_edp: bool = False,
 ) -> EstimatedFrameAudit:
     """Extract one estimate message without substituting another lane.
 
     ``require_sensor_topology=False`` is reserved for outcome-blind topology
     auditing: it permits geometry validation before the topology gate is
     applied separately. Existing callers retain the strict sensor-only default.
+    The additional v0.19.11 root is reserved for the explicit bounded policy.
     """
 
     if type(require_sensor_topology) is not bool:
@@ -458,7 +460,9 @@ def estimated_frame_from_message(
             "estimated path message has no Protobuf descriptor",
         )
     bindings = _joint_audit_bindings(descriptor)
-    descriptor_support = estimate_descriptor_support(message)
+    descriptor_support = estimate_descriptor_support(
+        message, allow_bounded_v01911_edp=allow_bounded_v01911_edp,
+    )
     missing = descriptor_support.missing_required_fields
     source_time_ns = _source_time(message)
     topology_source = "UNAVAILABLE_ENUM_VALUE"

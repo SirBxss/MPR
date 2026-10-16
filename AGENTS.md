@@ -1,6 +1,30 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-15 exact EDP variant amendment/implementation proposed
+## Current checkpoint: 2026-10-16 PR #36 a2 correction prepared
+
+PR #36 at `132e2e5` has Claude NO-GO for missing semantic/evidence review and
+historical shared-classifier admission. Both findings are valid. Read
+`docs/edp_descriptor_compatibility_a2_review_20261016.md`, the revised amendment
+and canonical runbook. Extension-aware parsing of the actual export reveals
+major 2/minor 3, required model parameters and no optional/validity wrapper.
+The amendment records the exact fields, implicit defaults and an explicit
+same-major-version compatibility argument, with its producer/version-policy
+assumption. Do not claim a deployed-source trace or exhaustive old/new diff.
+
+A2 restores the original historical default and threads the fixed second-root
+policy through five source paths; only bounded readiness opts in. Its actual
+historical technical-inspector regression cannot admit the second root. Old
+workflows/lineage/verifier/contracts and all science/resources stay fixed.
+Update existing PR #36, attaching the actual private evidence ZIP to Claude.
+Focused B-1/B-2 GO and new-head CI remain pending; a1 CI logs are verified at
+713 run/711 passed/two skips but do not cover a2. No remote write was performed.
+
+After acceptance/merge: one new versioned pilot, measured yield, numeric
+export/strict validation, then evidenced sessions/splits and model gates.
+No repeat accepted scans, old-attempt overwrite, raw move/deletion or real fit.
+The checkpoints below are historical.
+
+## Historical checkpoint: 2026-10-15 exact EDP variant amendment/implementation proposed
 
 The descriptor-only follow-up identifies a flag-absent EDP root outside the
 single previously approved v2 entry. Its consumed geometry/index/confidence,

@@ -1,6 +1,13 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-15):** The descriptor follow-up supports a proposed
+**Current checkpoint (2026-10-16):** PR #36 received NO-GO for evidence and
+historical-consumer scope. The [a2 correction and evaluation](docs/edp_descriptor_compatibility_a2_review_20261016.md)
+decodes actual interface 2.3 custom options, records the explicit compatibility
+argument and restricts the second root to bounded readiness. Historical locks
+retain their original policy. Apply a2 on the same PR; attach its actual ZIP
+for focused review and new-head CI. Yield and training readiness remain unknown.
+
+**Historical checkpoint (2026-10-15):** The descriptor follow-up supports a proposed
 [exact EDP compatibility amendment and implementation](docs/edp_descriptor_compatibility_v01911.md).
 It adds one fixed flag-absent schema under unchanged v2 rules and versions
 bounded reports as v0.19.11. Focused amendment/code GO and new-head CI precede

@@ -1,10 +1,14 @@
 # Project architecture
 
-The proposed [v0.19.11 amendment](edp_descriptor_compatibility_v01911.md) changes
-only exact membership in the shared EDP generation classifier and the bounded
-scientific revision string. It preserves all presence, binding, arithmetic,
-reader and workflow layers. The actual descriptor conformance is verified;
-private science is still unknown. Focused policy/code GO and CI are pending.
+The [v0.19.11 a2 amendment](edp_descriptor_compatibility_v01911.md) keeps the
+historical classifier default unchanged. A keyword-only default-false Boolean
+is forwarded by the frame converter, readiness bindings and geometry iterator;
+only the bounded sink enables the second fixed root, at descriptor and geometry
+checks. These five existing source paths preserve arithmetic, historical import
+graphs, workflows/lineage, reader and resources. Actual interface 2.3 custom
+options and descriptor conformance are verified; private science is unknown.
+Focused a2 policy/code GO and new-head CI are pending. Read the
+[review evaluation](edp_descriptor_compatibility_a2_review_20261016.md).
 The implementation chronology below is historical.
 
 The 2026-10-15 [bounded implementation](generic_bounded_readiness_v01910.md)
