@@ -1,6 +1,31 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-16 PR #36 a2 GO and CI verified
+## Current checkpoint: 2026-10-16 PR #36 merged; fresh successor issued
+
+Actual main merge is `7e4a06bbcd8443529f806108d7d84f33714d1a16`, parents
+`4cf0af3`/`03a9d77`, accepted tree `c9600a0`. Amendment/code GO and exact-tree
+CI (718 run/716 passed/two skips per Python 3.10/3.12) are verified. Read
+`docs/generic_bounded_readiness_pilot_runbook_v01911.md`. The owner authorized
+the next step. A privately pinned one-attempt v0.19.11 launcher is delivered;
+it reuses registration/inventory/decode and retains the old failed report's
+digest/snapshot. No new source patch is required before the pilot.
+
+Real synthetic old-4cf failure and merged-CLI complete/null successors validate
+the launcher, receipts, immutable inputs and failure/repeat guards without
+mocking science/resources/Git. Real private metadata also reconciles. No private
+raw was opened and no actual successor result exists here yet. Await the new
+result ZIP before claiming yield or running another attempt.
+
+Next: measured yield, generic numeric exporter/strict validator, incremental
+evidenced sessions/frozen splits, then model gates. Numeric export/validation
+is the main remaining code block. Keep the bounded-only schema policy explicit
+at later consumer review, preserve the six features and version-policy
+assumption, and do not infer outings from jobs/GB. No old rerun/overwrite,
+registered raw relocation/deletion, bulk acquisition or real fit is authorized.
+This documentation checkpoint is reserved for the next implementation; earlier
+checkpoints below are historical.
+
+## Historical checkpoint: 2026-10-16 PR #36 a2 GO and CI verified
 
 Claude gives focused amendment/code GO with zero blockers at `03a9d77`, tree
 `c9600a05e0436393099496689c19b6149dc0154f`, parent `132e2e5`. Codex verified

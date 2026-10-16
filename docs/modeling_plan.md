@@ -1,6 +1,18 @@
 # Thesis modeling plan
 
-## Current development decision: 2026-10-16 bounded-only EDP compatibility
+## Current development decision: 2026-10-16 merged compatibility; measure yield
+
+PR #36 is accepted and merged at `7e4a06b`, tree `c9600a0`. The privately
+delivered [fresh successor](generic_bounded_readiness_pilot_runbook_v01911.md)
+is the next owner action; actual scientific yield remains unknown until its
+result returns. Then finish generic numeric export/strict validation and
+incremental evidenced sessions/frozen splits before real model fits. Preserve
+fixed targets, features, geometry and all scientific/model gates. The bounded-
+only schema policy and interface-version assumption need explicit treatment
+at the numeric-consumer/model gates. No new raw download is needed to run this
+pilot, and full acquisition/cache automation must not delay the core data path.
+
+## Historical development decision: 2026-10-16 bounded-only EDP compatibility
 
 PR #36 a1's historical scope and evidence gaps require the
 [a2 correction](edp_descriptor_compatibility_a2_review_20261016.md).

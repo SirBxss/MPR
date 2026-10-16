@@ -4,7 +4,29 @@ Last updated: 2026-10-16. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-16 PR #36 a2 accepted; owner merge next
+## Current 2026-10-16 PR #36 merged; one fresh pilot issued
+
+Actual main `7e4a06b`, parents `4cf0af3`/`03a9d77`, has accepted tree `c9600a0`.
+Review GO and both exact-tree 718-test CI logs are verified. The owner requested
+the next step; a private one-attempt v0.19.11 successor launcher is delivered.
+Read `generic_bounded_readiness_pilot_runbook_v01911.md`. No code correction or
+documentation patch is required before running it. It uses unchanged successful
+predecessors and retains the failed v0.19.10 report digest and snapshot.
+
+Native synthetic complete/null runs through the real merged CLI and genuine
+old-source failure evidence passed launcher/receipt/immutability/guard checks.
+All real private metadata reconciles without raw access. The owner has not yet
+returned this successor result. Useful geometry/features/sequences are unknown;
+do not rerun or overwrite old attempts/scans or automatically start another.
+
+The main next software work is reviewed generic numeric export/strict archive
+validation, using measured yield and the existing arithmetic. Then process
+evidenced sessions incrementally, freeze common splits and satisfy model gates.
+Catalogue/cache automation follows validated outputs and retrieval evidence;
+preserve registered raw paths and all prior artifacts. No real fit or raw
+retirement follows from this pilot command alone. Earlier checkpoints are historical.
+
+## Historical 2026-10-16 PR #36 a2 accepted; owner merge next
 
 Focused Claude GO closes B-1/B-2 at `03a9d77`, tree `c9600a0`, parent `132e2e5`.
 Codex verified new-head CI run `38904914991` using decoded logs: Python
