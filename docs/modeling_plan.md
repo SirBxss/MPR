@@ -1,6 +1,23 @@
 # Thesis modeling plan
 
-## Current development decision: 2026-10-17 close contract gaps; use newer data
+## Current development decision: 2026-10-17 explicit opt-in; preserve failure semantics
+
+The [a3 correction](generic_numeric_export_v01912_a3_review.md) closes the real
+numeric opt-in gap without a new scientific target, feature or speed rule.
+The pipeline purpose label is not a role/exposure declaration. Explicit owner
+selection reserves linked outings for development; completed export separately
+records actual numeric publication. Preserve both facts for future split exclusion.
+Observer extraction failures can be contained, while storage/resource/real-sink
+failures invalidate execution. Static admission checks are regression guards,
+backed by unchanged source pins and runtime conformance, not a formal proof.
+
+Next: focused a3 GO/new-head CI/merge, then exporter and validator together.
+Newer qualified development data may be selected with its own predecessors and
+authorization after code acceptance; the old pilot is an engineering option,
+not a required quality hurdle. Preserve all existing model, split, causality,
+confidence-assumption and retrieval gates. No real fit is enabled by this delta.
+
+## Historical development decision: 2026-10-17 close contract gaps; use newer data
 
 The [a2 contract correction](generic_numeric_export_v01912_a2_review.md) addresses
 all three a1 blockers on PR #37 without scientific code changes. Next is focused

@@ -1,5 +1,14 @@
 # Supported commands
 
+Current 2026-10-17: update **existing PR #37** with the a3 documentation patch
+using the [canonical runbook](generic_numeric_export_contract_runbook_v01912.md),
+starting at owner a2 head `cc5acdb`. The branch is explicitly selected. Do not
+reapply a1/a2 or create a new PR. The future exporter/validator authorization
+arguments are contract proposals, not implemented commands. No authorization
+file or private raw scan is needed during this correction. Existing source,
+registration and successful reports remain immutable. Earlier instructions
+are historical.
+
 Current 2026-10-17: update **existing PR #37** with one a2 documentation patch
 using the [canonical runbook](generic_numeric_export_contract_runbook_v01912.md).
 The branch must be selected at reviewed head `4c99b7b` before applying; the

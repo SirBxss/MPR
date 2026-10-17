@@ -1,5 +1,15 @@
 # Project architecture
 
+The 2026-10-17 [a3 contract](generic_numeric_export_v01912_contract.md) remains
+documentation only. Its future exporter has a mandatory separate authorization
+input; the old source/registration schema is unchanged. Observer containment
+applies only to ordinary scalar extraction/selection/alignment failures, with
+sink-owned positions and exact clock checks. Storage/resource/real-sink failures
+remain fatal to the batch. Full admission-use/definition/file pins supplement
+runtime tests. Authorization reserves development use; complete export separately
+records exposure. Read [the independent review](generic_numeric_export_v01912_a3_review.md).
+Earlier descriptions are historical.
+
 The 2026-10-17 [a2 contract](generic_numeric_export_v01912_contract.md) is still
 documentation only. The proposed numeric workflow delegates all binding,
 classification and conversion to the unchanged v0.19.11 sink, with observational

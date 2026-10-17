@@ -1,6 +1,39 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-17 PR #37 a2 contract correction prepared
+## Current checkpoint: 2026-10-17 a2 review verified; a3 correction prepared
+
+PR #37 is open at owner a2 `cc5acdb`, tree `a1f4c0c`, parent `4c99b7b`; main
+remains `7e4a06b`. Read `docs/generic_numeric_export_v01912_a3_review.md`.
+The review's R-1 is valid: mandatory v0.19.6 purpose cannot discriminate numeric
+opt-in. C-3/C-4 are supported, with two qualifications: authorization is intent,
+not actual exposure; containment must not swallow storage/resource/real-sink
+failures. Disposable source/selector/SQLite checks independently reproduce the
+gaps. A3 adds exact separate owner-supplied authorization and digest, distinguishes
+permanent development reservation from complete-export exposure, pins the full
+seven-use/four-definition/five-file admission surface, and specifies observer
+position/time/selection/failure handling. This is documentation only; source,
+tests and CI remain unchanged. No production exporter/validator exists yet.
+
+Codex verified authenticated a2 CI logs in run `39018949854`: Python 3.10.22
+and 3.12.15 each 718 run/716 pass/two skips, checkout `c60a337`, parents main
+`7e4a06b` plus `cc5acdb`, accepted a2 tree. The live PR has four commits and a
+nonempty description; do not keep asking the owner to fill an empty one.
+A3 is one fifth documentation commit on the same PR. Use its canonical runbook,
+focused R-1/C-3/C-4 delta GO and new-head CI/merge, then implement exporter and
+standalone validator together. No new private authorization or raw command is
+needed during this documentation correction.
+
+The owner has newer manually screened data; the old pilot remains an engineering
+option, not a collection-wide yield estimate or mandatory quality hurdle.
+Once the code path is reviewed/merged, an appropriately authorized newer
+recording with its own complete predecessors may be used. Preserve unreserved,
+unexposed final candidates and source/session uncertainty. Authorizations and
+complete exports exclude all linked outings from future final draws, but neither
+admits an outing or assigns train/validation roles. No old counts-only rerun,
+model fit, raw move/deletion or bulk-export opt-in follows. Earlier checkpoints
+are historical.
+
+## Historical checkpoint: 2026-10-17 PR #37 a2 contract correction prepared
 
 PR #37 is open at reviewed owner head `4c99b7b`, tree `1a7fc6d`, on main
 `7e4a06b`. Claude's a1 NO-GO has three valid contract gaps and two minor

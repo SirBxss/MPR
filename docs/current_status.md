@@ -4,7 +4,39 @@ Last updated: 2026-10-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-17 PR #37 a2 correction; newer data next
+## Current 2026-10-17 a3 review correction, with independent qualifications
+
+The a2 review at owner `cc5acdb`/`a1f4c0c` has one supported blocker: the generic
+`purpose: development_only` is universal and is not a deliberate numeric-export
+opt-in. Read [the independent evaluation](generic_numeric_export_v01912_a3_review.md).
+The full AST test and observer alignment improvements are valid too. However,
+authorization is intent/reservation rather than proof of execution, and ordinary
+observer errors must be separated from storage/resource/real-sink failures.
+Disposable counterexamples verify those distinctions without private raw.
+
+A3 is a documentation-only fifth commit on existing PR #37. It adds an exact
+owner-supplied exposure-authorization input with expected digest/raw-set and
+lineage checks, permanent-reservation semantics separate from numeric exposure,
+complete admission-surface pins, and precise observer rules. No production
+exporter, validator, old-data diagnostic or new private command is added.
+Follow the [same-PR runbook](generic_numeric_export_contract_runbook_v01912.md).
+A3 focused delta GO and new-head CI remain pending; implementation follows.
+
+Authenticated a2 CI logs are now independently verified: run `39018949854`,
+Python 3.10.22/3.12.15 each 718 run, 716 pass, two skips, checkout `c60a337`,
+parents `7e4a06b`/`cc5acdb`, exact a2 tree. Shorter job duration did not omit tests.
+The current PR has four commits and a supplied description; the stale-page
+observation in Claude's review is no longer an open housekeeping issue.
+
+The newer manually screened data is the next collection to assess after the
+code is ready. The old pilot can remain an engineering regression, without
+forcing its yield to improve first. Keep prospective final candidates outside
+numeric authorization/export. Generic validated archives, exposure-aware
+session/split integration and model consumers remain before real fits. Both
+flows are synthetic-only. Retain raw/current outputs and old data pending
+validated durable outputs and tested retrieval. Earlier records are historical.
+
+## Historical 2026-10-17 PR #37 a2 correction; newer data next
 
 Claude's a1 review of `4c99b7b`/`1a7fc6d` is NO-GO for three contract gaps.
 Read [the full evaluation](generic_numeric_export_v01912_a2_review.md).
