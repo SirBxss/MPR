@@ -25,6 +25,9 @@ def _bounded_run(arguments):
         if arguments.command == "bounded-readiness":
             from ..workflows.bounded_recording_readiness import run_bounded_readiness
             return run_bounded_readiness(arguments)
+        if arguments.command == "export-residuals":
+            from ..workflows.numeric_export import run_export
+            return run_export(arguments)
         from ..workflows.recording_ingestion import run_prepare, run_readiness, run_registration
         return {"prepare": run_prepare, "register": run_registration, "audit": run_readiness}[arguments.command](arguments)
     finally:
@@ -32,7 +35,7 @@ def _bounded_run(arguments):
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Development-only MCAP registration, inventory, selected-stream decoding and EDP/RLMB/input readiness; no residual export or fit.")
+    parser = argparse.ArgumentParser(description="Development-only MCAP registration, inventory, decoding, readiness and explicitly authorized numeric export; no model fit.")
     subparsers = parser.add_subparsers(dest="command", required=True)
     prepare = subparsers.add_parser("prepare", help="Create a one-recording development declaration with unknown evidence set to null.")
     prepare.add_argument("--mcap-file", required=True, type=Path)
@@ -63,7 +66,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     bounded.add_argument("--preserved-inventory-report", required=True, type=Path)
     bounded.add_argument("--preserved-decode-report", required=True, type=Path)
     bounded.add_argument("--topic", action="append", required=True, help="Repeat the exact EDP, RLMB and odometry topics; no automatic selection.")
-    for command in (prepare, registration, inventory, decode, audit, bounded):
+    numeric = subparsers.add_parser("export-residuals", help="Export one explicitly reserved development batch against complete preserved readiness; no model admission.")
+    from .numeric_archive import add_lineage_arguments
+    add_lineage_arguments(numeric)
+    numeric.add_argument("--scratch-directory", required=True, type=Path)
+    for command in (prepare, registration, inventory, decode, audit, bounded, numeric):
         if command is not prepare:
             command.add_argument("--output-directory", required=True, type=Path)
         command.add_argument("--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO")

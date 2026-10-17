@@ -1,5 +1,15 @@
 # Supported commands
 
+Current 2026-10-17: PR #37 is merged as `acf8c0f`, accepted tree `7e41163`.
+The [numeric implementation](generic_numeric_export_v01912_implementation.md)
+adds `recording_ingestion export-residuals` and
+`python -m lane_residuals.cli.numeric_archive`. Both expose `--help` without
+raw access. Implementation code GO, exact-head CI and merge precede live
+numeric use. No authorization file is auto-created. Follow the
+[newer-data handoff](generic_numeric_export_new_data_runbook_v01912.md) for one
+selected newer recording; existing successful old stages are not repeated.
+Earlier command checkpoints are historical.
+
 Current 2026-10-17: update **existing PR #37** with the a3 documentation patch
 using the [canonical runbook](generic_numeric_export_contract_runbook_v01912.md),
 starting at owner a2 head `cc5acdb`. The branch is explicitly selected. Do not
