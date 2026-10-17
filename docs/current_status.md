@@ -4,7 +4,31 @@ Last updated: 2026-10-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-17 numeric implementation candidate after PR #37 merge
+## Current 2026-10-17 PR #38 review correction and newer-data pilot
+
+Read [the independently checked review](numeric_export_pr38_a2_review_20261017.md).
+Both required a1 defects were reproduced; one same-PR a2 code correction fixes
+release-stable validator lineage and receipt containment, plus optional robustness
+and numerical regressions. Focused delta GO, new-head CI and owner merge remain.
+Local Python 3.12.14 checks pass: compileall, 70 focused tests and full
+788 run/786 passed/two unchanged skips (13 added regressions).
+A1 authenticated CI is verified: run `39052189376`, Python 3.10.22/3.12.15,
+775 run/773 passed/two skips, merge `79ea2c8`, exact owner `76aa06c` tree.
+
+The private discovery has 33 IDs: 32 unverified files, 54.42 GB total, one absent.
+Select the smallest newer file (486,691,631 bytes) by cost, excluding the old
+completed pilot. The separately delivered one-attempt counts-only launcher uses
+already merged main `acf8c0f`; it can run during numeric delta review. It creates
+new truthful predecessors and retains complete/inconclusive receipts/ZIP without
+authorizing numeric exposure. No private new-data yield is measured here.
+
+Validated numeric archives are the next data milestone. Generic catalog/session/
+reservation-aware splits and model integration remain before approved real fits;
+acquisition/retirement automation follows validated compact outputs and retrieval.
+Use actual feature/sequence support and evidenced outings to size acquisition.
+No old reruns, bulk export, raw deletion or real training occurred.
+
+## Historical 2026-10-17 numeric implementation candidate after PR #37 merge
 
 Main merge `acf8c0f` has accepted tree `7e41163`, parents `7e4a06b`/`54ccf6d`.
 The a3 contract GO and authenticated CI run `39023501143` are verified: both

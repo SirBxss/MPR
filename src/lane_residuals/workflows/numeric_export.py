@@ -71,6 +71,14 @@ def _digest(path, maximum, checkpoint):
     return hashlib.sha256(raw).hexdigest()
 
 
+def _sync_directory(path):
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_CLOEXEC", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def _summary(context, rows, candidates, start_resources, complete):
     for row in rows:
         row["outcome_exposure"] = dict(policy.EXPOSURE) if complete else None
@@ -191,11 +199,8 @@ def _publish(output, scratch, context, rows, candidates, start_resources, raw_st
             storage_check()
             os.replace(staging/policy.SUMMARY, output/policy.SUMMARY)
             installed[output/policy.SUMMARY] = file_state(output/policy.SUMMARY)
-            descriptor = os.open(output, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-            try:
-                os.fsync(descriptor)
-            finally:
-                os.close(descriptor)
+            _sync_directory(output)
+            _sync_directory(output.parent)
             return summary, 0 if complete else 3
     except BaseException:
         if owned_output:
@@ -284,6 +289,8 @@ def run_export(arguments):
             try:
                 _write_json(temporary, summary, policy.MAX_SUMMARY_BYTES, lambda: _checkpoint(publication_deadline))
                 os.replace(temporary, output/policy.SUMMARY)
+                _sync_directory(output)
+                _sync_directory(output.parent)
             except BaseException as marker_error:
                 temporary.unlink(missing_ok=True)
                 if not list(output.iterdir()):
@@ -297,13 +304,17 @@ def run_export(arguments):
 
 
 def run_validation(arguments):
-    from ..io.numeric_archive import validate_archive
+    from ..io.numeric_archive import read_pinned_summary, validate_archive
     deadline = time.monotonic()+policy.PUBLICATION_SECONDS
     checkpoint = lambda: _checkpoint(deadline)
     receipt = _new_output(arguments.validation_receipt)
     directory = arguments.export_directory.expanduser().absolute()
-    policy.require(not receipt.is_symlink() and not receipt.resolve().is_relative_to(directory), "numeric_receipt_outside_export_required")
-    context = load_inputs(arguments, checkpoint)
+    canonical_directory = directory.resolve(strict=True)
+    policy.require(not receipt.is_symlink() and not receipt.resolve().is_relative_to(canonical_directory) and
+        not receipt.parent.resolve(strict=True).is_relative_to(canonical_directory), "numeric_receipt_outside_export_required")
+    # Retain the original path: direct directory symlinks remain invalid.
+    pinned = read_pinned_summary(directory, arguments.expected_summary_sha256, checkpoint=checkpoint)
+    context = load_inputs(arguments, checkpoint, export_source_sha256=pinned["runtime_source_sha256"])
     policy.require(not receipt.resolve().is_relative_to(context.registration_directory), "numeric_receipt_overlaps_registration")
     for identity in context.registration["recordings"]:
         policy.require(receipt.resolve() != Path(identity["canonical_path_private"]), "numeric_receipt_overlaps_raw")
@@ -317,7 +328,7 @@ def run_validation(arguments):
         "conditioned_profile_count": len(arrays["conditions"]), "raw_opened": False, "model_admission_authorized": False,
         "raw_cache_deletion_authorized": False}
     checkpoint()
-    temporary = None
+    temporary, installed_receipt = None, None
     try:
         with tempfile.NamedTemporaryFile(prefix=".numeric-validation-", dir=receipt.parent, delete=False) as stream:
             temporary = Path(stream.name)
@@ -332,6 +343,12 @@ def run_validation(arguments):
             equal(_digest(directory/name, maximum, checkpoint), expected, "numeric_artifact_changed_before_receipt")
         # Hard-link installation refuses an output that appeared during validation.
         os.link(temporary, receipt)
+        installed_receipt = file_state(temporary)
+        _sync_directory(receipt.parent)
+    except BaseException:
+        if installed_receipt is not None and bounded._same_file(receipt, installed_receipt):
+            receipt.unlink()
+        raise
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)

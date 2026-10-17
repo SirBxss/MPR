@@ -287,14 +287,26 @@ def _zip_storage(raw, archive, infos, checkpoint):
     require(archive.start_dir+central_bytes == len(raw)-22)
 
 
-def validate_archive(directory, expected_summary_sha256, context, *, checkpoint=lambda: None):
-    """Open metadata/NPZ only; context is validated without raw-path access."""
+def read_pinned_summary(directory, expected_summary_sha256, *, checkpoint=lambda: None):
+    """Establish the caller's bounded summary pin before trusting its producer."""
     directory = Path(directory).expanduser().absolute()
     require(directory.is_dir() and not directory.is_symlink() and {p.name for p in directory.iterdir()} == {policy.SUMMARY, policy.AUDIT, policy.ARCHIVE})
     policy.digest(expected_summary_sha256)
     summary, summary_hash, _ = read_json(directory/policy.SUMMARY, checkpoint=checkpoint)
     equal(summary_hash, expected_summary_sha256, "numeric_summary_digest_mismatch")
     keys(summary, policy.SUMMARY_FIELDS)
+    equal({k: summary[k] for k in ("contract_revision", "scientific_policy_revision", "purpose", "status")},
+        {"contract_revision": policy.REVISION, "scientific_policy_revision": policy.REVISION, "purpose": policy.PURPOSE, "status": "complete"})
+    policy.digest(summary["runtime_source_sha256"])
+    policy.digest(summary["preserved_readiness_runtime_source_sha256"])
+    return summary
+
+
+def validate_archive(directory, expected_summary_sha256, context, *, checkpoint=lambda: None):
+    """Open metadata/NPZ only; context is validated without raw-path access."""
+    directory = Path(directory).expanduser().absolute()
+    summary = read_pinned_summary(directory, expected_summary_sha256, checkpoint=checkpoint)
+    summary_hash = expected_summary_sha256
     expected = {"contract_revision": policy.REVISION, "scientific_policy_revision": policy.REVISION, "purpose": policy.PURPOSE,
         "status": "complete", "failure_code": None, "batch_id": context.registration["batch_id"],
         "registration_sha256": context.registration_hash, "source_specification_sha256": context.registration["source_specification_sha256"],

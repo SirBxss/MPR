@@ -112,3 +112,19 @@ Local verification completed on Python 3.12.14: compileall and diff checks pass;
 the full suite runs 775 tests, 773 passing with the same two expected skips,
 in 87.545 seconds. The 57 focused tests pass separately. These results do not
 replace new-head hosted CI or focused implementation review.
+
+## PR #38 a2 correction: release-stable validation and publication checks
+
+Read [the independent review evaluation](numeric_export_pr38_a2_review_20261017.md).
+The raw-free validator consumes the producer fingerprint only after checking the
+caller's bounded strict summary pin. Readiness must use the fixed accepted
+v0.19.11 source or that producer. The exporter's own-release rule is unchanged.
+The accepted case is derived from these existing fingerprints, prioritizing the
+fixed accepted source; no frozen schema field is added. The validator's own
+fingerprint is separately retained in its receipt and must remain unchanged
+throughout validation, as must the exporter's source throughout publication.
+Canonical receipt containment is checked before temporary creation, without
+hiding a forbidden direct archive-directory symlink. Nonblocking regular-file
+metadata checks and parent-directory durability checks are included. The five
+scientific source pins, schema policy, features, target, resource caps, authorization
+semantics and historical consumers are unchanged. The delta still needs review/CI.

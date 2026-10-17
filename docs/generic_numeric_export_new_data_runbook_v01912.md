@@ -103,3 +103,23 @@ Automated retirement is not implemented here. It requires durable validated
 outputs and tested exact-byte retrieval, then a separately reviewed/authorized
 lifecycle action. AWS access alone does not prove retrievability. Preserve old
 data and current raw paths until those conditions hold.
+
+## 2026-10-17 discovery received; one newer counts-only pilot can start now
+
+The private snapshot contains 33 IDs, 32 present files totaling 54.42 GB, and
+one absent raw. These are download identities, not independent outings. The
+old pilot is among the present files. The smallest present newer file is
+486,691,631 bytes; select it by cost, with no residual-based screening.
+Exact identity/path and a one-attempt launcher are in the private a2 delivery.
+It uses already accepted main `acf8c0f`/source `069e109…`, so counts-only work
+can proceed while the PR #38 numeric correction is reviewed. No a2 code patch
+is needed to execute that existing merged counts-only path. Return its result
+ZIP, including nonzero/inconclusive outcomes; do not rerun or remove evidence.
+
+Use the bundle README's separate pilot command after the patch/review actions
+as convenient; it explicitly selects the pinned merged main. If main has changed,
+the command stops for a source-identity reconciliation, not for a repeated scan.
+Newer readiness may be used by the accepted exporter under its fixed accepted
+v0.19.11 source case. No numeric authorization is created by the pilot. Keep the
+whole remaining pool outside bulk export, and record actual physical-session
+links when available. There is no justified requirement to download all 700 GB.

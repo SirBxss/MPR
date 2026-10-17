@@ -1,5 +1,13 @@
 # Supported commands
 
+Current 2026-10-17: the [PR #38 a2 correction](numeric_export_pr38_a2_review_20261017.md)
+fixes the confirmed validator producer-source and canonical receipt-containment
+issues, with robustness/regression additions. Frozen science/schemas and model
+gates are unchanged. Delta review/new-head CI/merge precede numeric use. A
+private newer-file counts-only launcher uses already merged main during review;
+no new-data yield or numeric authorization follows from discovery. Earlier dated
+preparation instructions below are historical.
+
 Current 2026-10-17: PR #37 is merged as `acf8c0f`, accepted tree `7e41163`.
 The [numeric implementation](generic_numeric_export_v01912_implementation.md)
 adds `recording_ingestion export-residuals` and

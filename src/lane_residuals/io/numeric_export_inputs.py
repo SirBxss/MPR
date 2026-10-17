@@ -54,7 +54,9 @@ def read_bytes(path, maximum, checkpoint=lambda: None):
     """Bound allocation before opening a regular nonsymlink metadata file."""
     path = Path(path).expanduser().absolute()
     require(not path.is_symlink(), "numeric_regular_nonsymlink_file_required")
-    fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    # Nonblocking open lets fstat reject a FIFO without waiting for its writer.
+    fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) |
+        getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_CLOEXEC", 0))
     with os.fdopen(fd, "rb") as stream:
         before = file_state(stream=stream)
         require(before[2] <= maximum, "numeric_input_size_limit")
@@ -266,12 +268,21 @@ class Inputs:
                 require(state == before and hashlib.sha256(raw).hexdigest() == expected, "numeric_inputs_changed_before_publication")
             directory = self.registration_directory
             require({p.name for p in directory.iterdir()} == {REGISTRATION_NAME, SPECIFICATION_NAME}, "numeric_inputs_changed_before_publication")
+            checkpoint()
+            equal(_runtime(include_compression=True)["runtime_source_sha256"], self.runtime["runtime_source_sha256"],
+                "numeric_runtime_source_changed")
+            checkpoint()
         except OSError:
             require(False, "numeric_inputs_changed_before_publication")
 
 
-def load_inputs(arguments, checkpoint=lambda: None):
-    """All metadata and authorization validation precedes raw access or output."""
+def load_inputs(arguments, checkpoint=lambda: None, *, export_source_sha256=None):
+    """Validate metadata before raw access; validation uses a hash-pinned producer.
+
+    The exporter leaves export_source_sha256 unset (its own release). Only the
+    standalone validator supplies the producer read from its pinned summary.
+    This is not a user-configurable readiness-source allowlist.
+    """
     spec, registration, reg_hash = _registration(arguments.registration_directory, checkpoint)
     topics = bounded.decoder.selected_topics(arguments.topic)
     equal(topics, sorted(TOPIC_LIMITS), "numeric_explicit_three_topics_required")
@@ -321,7 +332,9 @@ def load_inputs(arguments, checkpoint=lambda: None):
     require(ready["resources_at_start"]["mem_available_bytes"] >= limits["minimum_mem_available_bytes"])
     require(ready["resources_at_start"]["scratch_free_bytes"] >= limits["minimum_initial_scratch_free_bytes"])
     runtime = _runtime(include_compression=True)
-    require(ready["runtime_source_sha256"] in (policy.ACCEPTED_READINESS_SOURCE, runtime["runtime_source_sha256"]), "numeric_readiness_source_not_accepted")
+    producer = runtime["runtime_source_sha256"] if export_source_sha256 is None else export_source_sha256
+    policy.digest(producer)
+    require(ready["runtime_source_sha256"] in (policy.ACCEPTED_READINESS_SOURCE, producer), "numeric_readiness_source_not_accepted")
     require(type(ready["recordings"]) is list and len(ready["recordings"]) == len(registration["recordings"]))
     for row, identity, declaration, inventory, decode in zip(ready["recordings"], registration["recordings"], spec["recordings"], inventories, decodes):
         keys(row, INHERITED_FIELDS)

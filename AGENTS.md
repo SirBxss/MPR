@@ -1,6 +1,41 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-17 PR #37 merged; numeric implementation candidate
+## Current checkpoint: 2026-10-17 PR #38 a1 review verified; a2 correction prepared
+
+PR #38 is open at owner `76aa06c`, tree `6dbf979`, on main `acf8c0f`.
+Read `docs/numeric_export_pr38_a2_review_20261017.md`. Claude B-1 and M-1
+were independently reproduced on a1. The same-PR correction uses a bounded
+hash-pinned producer summary for validator readiness-source acceptance and
+canonical pre-temporary receipt containment, preserving direct-symlink rejection.
+O-1 through O-6 are also addressed: FIFO handling, late own-source checks,
+parent fsync, documented source case, clean bundles and numerical regressions.
+Scientific source pins/arithmetic/admission and frozen artifact schemas stay fixed.
+Local Python 3.12.14 checks pass: compileall, 70 focused tests and full
+788 run/786 passed/two unchanged skips (13 added regressions).
+
+Authenticated a1 CI logs are verified: run `39052189376`, checkout merge
+`79ea2c8`, parents `acf8c0f`/`76aa06c`, exact reviewed tree. Python
+3.10.22/3.12.15 each 775 run/773 passed/two skips. This is not a2 CI.
+Apply one corrective patch to the existing PR branch, focused delta GO and
+new-head CI, then owner merge. No external write or private numeric run occurred.
+
+The owner supplied stat-only discovery: 33 source IDs, 32 present files
+54.42 GB total (including the old pilot), one absent. No raw hashes, session
+proof, numeric authorization or roles follow. A fixed private one-attempt
+counts-only launcher selects the smallest newer file by processing cost and
+uses already accepted main `acf8c0f`/source `069e109…`; it can run during
+PR #38 review. Preserve its ZIP and every attempt; do not rerun old successes.
+No private newer-data result exists here yet. Exact identities remain private.
+
+Next: newer readiness plus accepted numeric export/standalone validation,
+then durable catalog with reservation/exposure/session links and generic
+cohort/split/model-consumer integration. Both flow modes stay synthetic-only
+until real-fit gates. Keep confidence-width/version assumptions explicit.
+No raw move/deletion, bulk numeric opt-in or training is authorized by this
+correction. Earlier checkpoints are historical. Deliver tested patches/README
+ZIP; the owner pushes/reviews/merges.
+
+## Historical checkpoint: 2026-10-17 PR #37 merged; numeric implementation candidate
 
 Actual main is `acf8c0f3f8257ba24ef43e713df28ca2c2184bb1`, parents
 `7e4a06b`/`54ccf6d`, accepted tree `7e41163`. Claude a3 contract GO and both

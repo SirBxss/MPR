@@ -1,13 +1,17 @@
 """Real synthetic MCAP export/validator conformance; no private recordings."""
 
 import argparse
+from collections import Counter
 from copy import deepcopy
 import hashlib
 import io
 import json
+import math
 import os
 from pathlib import Path
 import sqlite3
+import subprocess
+import sys
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -16,7 +20,7 @@ import numpy as np
 
 from lane_residuals.domain import numeric_export as policy
 from lane_residuals.domain.geometry_validation import GeometryValidationError
-from lane_residuals.io import numeric_archive, numeric_residuals
+from lane_residuals.io import numeric_archive, numeric_residuals, numeric_export_inputs
 from lane_residuals.io.numeric_export_inputs import load_inputs
 from lane_residuals.workflows import bounded_recording_readiness as bounded
 from lane_residuals.workflows import numeric_export as workflow
@@ -226,6 +230,162 @@ class NumericExportTests(unittest.TestCase):
         args.expected_summary_sha256 = "0"*64
         with self.assertRaises(ValueError):workflow.run_validation(args)
         self.assertFalse(args.validation_receipt.exists())
+
+    def test_later_validator_release_accepts_pinned_producer_readiness(self):
+        self.prepare();self.export();self.assertEqual(self.status, 0, self.report)
+        runtime = {**workflow._runtime(include_compression=True), "runtime_source_sha256": "a"*64}
+        self.fixture.raw.unlink()
+        with patch.object(numeric_export_inputs, "_runtime", return_value=runtime), patch.object(workflow, "_runtime", return_value=runtime):
+            receipt, status = workflow.run_validation(self.validation_arguments())
+        self.assertEqual(status, 0)
+        self.assertEqual(receipt["runtime_source_sha256"], "a"*64)
+        self.assertNotEqual(self.report["runtime_source_sha256"], receipt["runtime_source_sha256"])
+
+    def test_validator_rejects_third_readiness_source_even_when_lineage_repinned(self):
+        self.prepare();self.export();self.assertEqual(self.status, 0, self.report)
+        self.mutate_predecessor({**self.ready, "runtime_source_sha256": "b"*64})
+        path = self.arguments.output_directory/policy.SUMMARY
+        summary = json.loads(path.read_text())
+        summary.update(preserved_readiness_runtime_source_sha256="b"*64,
+            preserved_readiness_report_sha256=self.arguments.expected_readiness_sha256,
+            exposure_authorization_sha256=self.arguments.expected_exposure_authorization_sha256)
+        path.write_text(json.dumps(summary))
+        with self.assertRaisesRegex(ValueError, "numeric_readiness_source_not_accepted"):
+            workflow.run_validation(self.validation_arguments())
+
+    def test_validator_rejects_producer_different_from_nonlegacy_readiness(self):
+        self.prepare();self.export();self.assertEqual(self.status, 0, self.report)
+        path = self.arguments.output_directory/policy.SUMMARY
+        summary = json.loads(path.read_text());summary["runtime_source_sha256"] = "c"*64
+        path.write_text(json.dumps(summary))
+        with self.assertRaisesRegex(ValueError, "numeric_readiness_source_not_accepted"):
+            workflow.run_validation(self.validation_arguments())
+
+    def test_accepted_legacy_readiness_validates_on_a_later_release(self):
+        self.prepare()
+        self.mutate_predecessor({**self.ready, "runtime_source_sha256": policy.ACCEPTED_READINESS_SOURCE})
+        self.export();self.assertEqual(self.status, 0, self.report)
+        runtime = {**workflow._runtime(include_compression=True), "runtime_source_sha256": "a"*64}
+        with patch.object(numeric_export_inputs, "_runtime", return_value=runtime), patch.object(workflow, "_runtime", return_value=runtime):
+            self.assertEqual(workflow.run_validation(self.validation_arguments())[1], 0)
+
+    def test_receipt_inside_archive_through_parent_alias_never_creates_a_temporary(self):
+        self.prepare();self.export();self.assertEqual(self.status, 0, self.report)
+        alias = self.root/"parent-alias";alias.symlink_to(self.root, target_is_directory=True)
+        args = self.validation_arguments();args.export_directory = alias/"numeric"
+        args.validation_receipt = self.arguments.output_directory/"receipt.json"
+        before = {p.name: p.read_bytes() for p in self.arguments.output_directory.iterdir()}
+        with patch.object(workflow.tempfile, "NamedTemporaryFile", side_effect=AssertionError("must reject before any temporary")):
+            with self.assertRaisesRegex(ValueError, "numeric_receipt_outside_export_required"):
+                workflow.run_validation(args)
+        self.assertEqual(before, {p.name: p.read_bytes() for p in self.arguments.output_directory.iterdir()})
+
+    def test_receipt_outside_archive_through_parent_alias_succeeds(self):
+        self.prepare();self.export();self.assertEqual(self.status, 0, self.report)
+        alias = self.root/"parent-alias";alias.symlink_to(self.root, target_is_directory=True)
+        args = self.validation_arguments();args.export_directory = alias/"numeric"
+        args.validation_receipt = alias/"receipt.json"
+        self.assertEqual(workflow.run_validation(args)[1], 0)
+
+    @unittest.skipUnless(hasattr(os, "mkfifo"), "FIFO requires POSIX")
+    def test_fifo_metadata_rejected_without_waiting_for_a_writer(self):
+        fifo = self.root/"authorization.fifo";os.mkfifo(fifo)
+        script = ("from pathlib import Path; import sys; "
+            "from lane_residuals.io.numeric_export_inputs import read_bytes; "
+            "read_bytes(Path(sys.argv[1]), 65536)")
+        result = subprocess.run([sys.executable, "-c", script, str(fifo)],
+            capture_output=True, text=True, timeout=10)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("regular_mcap_file_required", result.stderr)
+
+    def test_source_change_during_export_invalidates_before_complete_marker(self):
+        self.prepare()
+        runtime = workflow._runtime(include_compression=True)
+        changed = False
+        original = workflow.collect_candidates
+        def collect(*args, **kw):
+            nonlocal changed
+            result = original(*args, **kw);changed = True
+            return result
+        def running(**kw):
+            return {**runtime, "runtime_source_sha256": "d"*64} if changed else runtime
+        with patch.object(workflow, "collect_candidates", side_effect=collect), patch.object(numeric_export_inputs, "_runtime", side_effect=running):
+            self.export()
+        self.assert_inconclusive()
+        self.assertEqual(self.report["failure_code"], "numeric_runtime_source_changed")
+
+    def test_source_change_during_validation_never_installs_receipt(self):
+        self.prepare();self.export();self.assertEqual(self.status, 0, self.report)
+        runtime = workflow._runtime(include_compression=True)
+        changed = False
+        original = workflow._write_json
+        def write(*args, **kw):
+            nonlocal changed
+            result = original(*args, **kw);changed = True
+            return result
+        def running(**kw):
+            return {**runtime, "runtime_source_sha256": "d"*64} if changed else runtime
+        args = self.validation_arguments()
+        with patch.object(workflow, "_write_json", side_effect=write), patch.object(numeric_export_inputs, "_runtime", side_effect=running):
+            with self.assertRaisesRegex(ValueError, "numeric_runtime_source_changed"):
+                workflow.run_validation(args)
+        self.assertFalse(args.validation_receipt.exists())
+        self.assertFalse(list(self.root.glob(".numeric-validation-*")))
+
+    def test_output_and_receipt_parent_entries_are_synced(self):
+        self.prepare()
+        with patch.object(workflow, "_sync_directory", wraps=workflow._sync_directory) as sync:
+            self.export();self.assertEqual(self.status, 0, self.report)
+            self.assertEqual([c.args[0] for c in sync.call_args_list], [self.arguments.output_directory, self.root])
+            sync.reset_mock()
+            self.assertEqual(workflow.run_validation(self.validation_arguments())[1], 0)
+            self.assertEqual([c.args[0] for c in sync.call_args_list], [self.root])
+
+    def test_failed_receipt_parent_sync_removes_only_its_own_receipt(self):
+        self.prepare();self.export();self.assertEqual(self.status, 0, self.report)
+        args = self.validation_arguments()
+        before = {p.name: p.read_bytes() for p in args.export_directory.iterdir()}
+        with patch.object(workflow, "_sync_directory", side_effect=OSError("synthetic fsync failure")):
+            with self.assertRaises(OSError):workflow.run_validation(args)
+        self.assertFalse(args.validation_receipt.exists())
+        self.assertFalse(list(self.root.glob(".numeric-validation-*")))
+        self.assertEqual(before, {p.name: p.read_bytes() for p in args.export_directory.iterdir()})
+
+    def test_translated_rotated_paths_preserve_signed_normal_residuals(self):
+        original = synthetic.messages
+        def transformed(**options):
+            values = original(**options)
+            c, s = math.cos(.3), math.sin(.3)
+            roads = 0
+            for value in values:
+                if value.DESCRIPTOR.full_name.endswith("EstimatedDrivePaths"):
+                    model = value.drive_paths[0].model_parameters
+                    model.x_0, model.y_0, model.theta_0 = 2., -1., .3
+                elif value.DESCRIPTOR.full_name.endswith("Road"):
+                    offset = (-.7, .4)[roads];roads += 1
+                    for point in value.polyline_vertex_pool:
+                        x = point.x
+                        point.x, point.y = 2.+c*x-s*offset, -1.+s*x+c*offset
+            return values
+        with patch.object(synthetic, "messages", side_effect=transformed):self.prepare()
+        self.export();self.assertEqual(self.status, 0, self.report)
+        with np.load(self.arguments.output_directory/policy.ARCHIVE, allow_pickle=False) as arrays:
+            np.testing.assert_allclose(arrays["residuals_m"], np.array([[.7]*21, [-.4]*21]), atol=1e-12)
+            np.testing.assert_allclose(arrays["conditions"], [[10., 0., 0., .5, .5, .5]]*2, atol=1e-12)
+        self.assertEqual(workflow.run_validation(self.validation_arguments())[1], 0)
+
+    def test_mixed_descriptor_versions_with_messages_preserve_per_version_audit(self):
+        def variant(file, _):file.name = "another_synthetic_version.proto"
+        E, R, _ = synthetic.classes(variant)
+        extra = synthetic.messages(times=(synthetic.T+200_000_000, synthetic.T+300_000_000), mutate=variant)
+        self.prepare(extra_streams=((synthetic.TOPICS[0], E, [v for v in extra if v.DESCRIPTOR.full_name == E.DESCRIPTOR.full_name]),
+            (synthetic.TOPICS[1], R, [v for v in extra if v.DESCRIPTOR.full_name == R.DESCRIPTOR.full_name])))
+        self.export();self.assertEqual(self.status, 0, self.report)
+        audit = json.loads((self.arguments.output_directory/policy.AUDIT).read_text())
+        roots = [row["estimate_file_descriptor_sha256"] for row in audit["rows"]]
+        self.assertEqual(sorted(Counter(roots).values()), [2, 2])
+        self.assertEqual(self.report["support"]["geometric_profile_count"], 4)
+        self.assertEqual(workflow.run_validation(self.validation_arguments())[1], 0)
 
     def test_changed_audit_with_coherent_artifact_rehash_still_fails_semantics(self):
         self.prepare();self.export();self.assertEqual(self.status, 0, self.report)
