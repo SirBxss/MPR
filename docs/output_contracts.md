@@ -1,6 +1,14 @@
 # v0.4.5 output contracts
 
-## Proposed v0.19.12 generic development numeric archive
+## v0.19.12 generic development numeric archive implementation candidate
+
+PR #37's a3 specification is accepted and merged. The
+[implementation candidate](generic_numeric_export_v01912_implementation.md)
+now supplies its exporter and standalone validator with the exact a3 revisions
+and schemas below. Code review/new-head CI remain pending. Historical batch02
+archives and model acceptance remain unchanged. No private new numeric result
+or model admission is claimed. The next paragraph describes the accepted
+documentation-stage contract historically.
 
 The [separate review contract](generic_numeric_export_v01912_contract.md)
 specifies readiness-parity checks, explicit numeric-consumer schema admission,

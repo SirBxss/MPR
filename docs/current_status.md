@@ -4,7 +4,31 @@ Last updated: 2026-10-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-17 a3 review correction, with independent qualifications
+## Current 2026-10-17 numeric implementation candidate after PR #37 merge
+
+Main merge `acf8c0f` has accepted tree `7e41163`, parents `7e4a06b`/`54ccf6d`.
+The a3 contract GO and authenticated CI run `39023501143` are verified: both
+Python 3.10.22 and 3.12.15 ran 718 tests with 716 passes/two skips on test
+merge `17c5105`, whose tree equals the reviewed head. No extra contract patch
+is needed. This is prior CI, not acceptance of the new code.
+
+The [implementation candidate](generic_numeric_export_v01912_implementation.md)
+adds numeric export and a standalone raw-free strict validator together.
+Five scientific source files/defaults are pinned unchanged; U48 arrays,
+independent support reconstruction, explicit reservation and complete-publication
+markers, bounded publication and late lineage/identity checks are implemented.
+The 57 focused synthetic tests pass. Local full required checks pass on Python
+3.12.14: 775 run/773 passed/two expected skips in 87.545 seconds, with compileall,
+diff and local file-link checks passing. Focused code GO/new-head CI precede a
+private export. No newer-data result exists here yet.
+
+The [newer-data handoff](generic_numeric_export_new_data_runbook_v01912.md)
+starts with a metadata-only Home listing and one selected newer recording's
+own successful predecessors. The old pilot is not a mandatory quality hurdle.
+Generic catalog/session/split/model integration and raw-retirement/controller
+work remain. No raw movement/deletion, real fit or remote mutation occurred.
+
+## Historical 2026-10-17 a3 review correction, with independent qualifications
 
 The a2 review at owner `cc5acdb`/`a1f4c0c` has one supported blocker: the generic
 `purpose: development_only` is universal and is not a deliberate numeric-export

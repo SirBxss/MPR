@@ -1,6 +1,39 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-17 a2 review verified; a3 correction prepared
+## Current checkpoint: 2026-10-17 PR #37 merged; numeric implementation candidate
+
+Actual main is `acf8c0f3f8257ba24ef43e713df28ca2c2184bb1`, parents
+`7e4a06b`/`54ccf6d`, accepted tree `7e41163`. Claude a3 contract GO and both
+authenticated a3 CI logs are verified: run `39023501143`, test merge `17c5105`,
+Python 3.10.22/3.12.15 each 718 run/716 passed/two skips. PR #37 is merged;
+do not reapply contract patches or request another documentation amendment.
+
+The owner authorizes implementation and prompt use of newer data. Read
+`docs/generic_numeric_export_v01912_implementation.md` and
+`docs/generic_numeric_export_new_data_runbook_v01912.md`. Exporter and strict
+standalone raw-free validator are implemented together as a code review
+candidate. The five shared scientific files, default admission, reader,
+geometry/features and resource caps remain unchanged. Only the new consumer
+publishes U48 generic arrays with explicit authorization/reservation/exposure
+and exact lineage. Local synthetic checks do not establish new-data yield.
+Focused implementation GO, new-head CI and merge precede a live numeric run.
+
+Newer Home source-ID folders each contain `output.mcap`, according to the owner.
+Use one selected newer file with its own truthful registration/inventory/decode/
+readiness; a metadata-only directory listing is useful immediately. Source IDs
+are locators, not proved physical outings. Keep paths stable and unknown
+provenance null. No old counts-only rerun or bulk numeric opt-in. The old pilot
+is optional engineering evidence and must not forecast the newer collection.
+
+Next: reconcile one newer counts-only selection, accepted code to validated
+numeric archives, then generic catalog/session/cohort/split and model-consumer
+integration. Preserve adopted authorization records even after failed/unrun
+exports and propagate exclusions to later outing/alias links before final draws.
+Both flow modes remain synthetic-only until real-fit gates. No raw relocation,
+retirement/deletion or external GitHub write was performed or authorized here.
+Deliver tested numbered patches/README ZIP; the owner pushes and requests review.
+
+## Historical checkpoint: 2026-10-17 a2 review verified; a3 correction prepared
 
 PR #37 is open at owner a2 `cc5acdb`, tree `a1f4c0c`, parent `4c99b7b`; main
 remains `7e4a06b`. Read `docs/generic_numeric_export_v01912_a3_review.md`.
