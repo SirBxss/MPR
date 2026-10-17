@@ -1,6 +1,36 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-16 successor reconciled; numeric contract proposed
+## Current checkpoint: 2026-10-17 PR #37 a2 contract correction prepared
+
+PR #37 is open at reviewed owner head `4c99b7b`, tree `1a7fc6d`, on main
+`7e4a06b`. Claude's a1 NO-GO has three valid contract gaps and two minor
+corrections. Read `docs/generic_numeric_export_v01912_a2_review.md` and the a2
+contract. This same-PR fourth documentation commit specifies unchanged-sink
+composition with no new True opt-in, permanent outcome-exposure exclusion,
+separate unconfirmed 5 m confidence semantics with root/length/native-end audit,
+exact six-field support and closed residual-failure handling. Symmetric log
+validation also retains minimum used log time. Source/tests/CI stay unchanged.
+No exporter, validator or private command is implemented/issued by this delta.
+
+Codex independently fetched a1 CI logs: run `38931021309`, Python 3.10.22 and
+3.12.15 each 718 run/716 pass/two skips, checkout test merge `4991060`, parents
+`7e4a06b`/`4c99b7b`, reviewed tree. This is not a2 CI. Apply one corrective patch
+to the existing PR branch using the canonical runbook, then focused a2 delta GO
+and new-head CI/merge. Next implement exporter and standalone validator together
+with the reviewed contract, then code review/CI/merge and versioned numeric runs.
+
+The owner has newer, reportedly better manually screened data beyond the old
+pilot. Keep that pilot as an engineering fixture; its yield is not a collection-
+wide forecast or a requirement to improve before newer data is checked. Do not
+repeat old successful counts-only stages. After the generic path is ready,
+check a small declared-development selection from the newer set; new files need
+new truthful registration/reports. Preserve prospective final candidates from
+numeric exposure. Complete exports permanently exclude all linked physical
+outings from final testing. Reviewed generic cohort/split/model integration
+follows validated archives. Preserve raw paths/attempts and old data pending
+validated durable outputs and tested retrieval. Earlier checkpoints are historical.
+
+## Historical checkpoint: 2026-10-16 successor reconciled; numeric contract proposed
 
 The authorized v0.19.11 pilot returned complete. Read
 `docs/new_development_readiness_result_20261016.md` and the proposed

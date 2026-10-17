@@ -1,10 +1,43 @@
 # Current project status
 
-Last updated: 2026-10-16. This is the first file a new agent should read after
+Last updated: 2026-10-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-16 completed pilot; numeric-consumer contract proposed
+## Current 2026-10-17 PR #37 a2 correction; newer data next
+
+Claude's a1 review of `4c99b7b`/`1a7fc6d` is NO-GO for three contract gaps.
+Read [the full evaluation](generic_numeric_export_v01912_a2_review.md).
+A2 resolves the sink-admission mechanism, permanent development exposure and
+unconfirmed confidence-bucket semantics, plus exact support/failure schemas.
+It adds symmetric audit validation with minimum used log and same-device checks.
+This is documentation only, one fourth commit on existing PR #37. No production
+code or private command is added. Main remains `7e4a06b`; do not reapply PR #36.
+
+Verified authenticated a1 CI logs cover run `38931021309`, test merge `4991060`,
+exact reviewed tree: Python 3.10.22/3.12.15 each 718 run, 716 pass, two skips.
+A2 focused delta GO and its new-head CI remain pending. Use the updated
+[same-PR runbook](generic_numeric_export_contract_runbook_v01912.md), then
+implement exporter and independent validator together as the next code block.
+
+The old pilot is not the newest dataset. The owner reports more and better
+manually screened drives. Their usable support is unmeasured here; do not use
+old-pilot attrition as a forecast or demand it improve before progressing.
+The existing pilot remains a useful engineering case. After implementation
+review/CI/merge, process a small declared-development selection from the newer
+set through the generic path, with new per-file metadata and measured support.
+Do not rerun the old completed counts-only attempt or its successful predecessors.
+
+Complete numeric export permanently marks each raw identity and linked physical
+outing development-only, so reserve untouched final candidates for the reviewed
+future split path. Confidence remains an explicit unconfirmed 5 m assumption
+until source-traced; geometric consistency cannot prove bucket semantics.
+Validated archives and reviewed generic session/cohort/split/model integration
+precede real fits. Both flows remain synthetic-only. Preserve old data and
+registered raw pending durable validation and tested retrieval. Earlier records
+are historical.
+
+## Historical 2026-10-16 completed pilot; numeric-consumer contract proposed
 
 The fresh v0.19.11 pilot is complete and reconciled. Read
 [new result and interpretation](new_development_readiness_result_20261016.md).

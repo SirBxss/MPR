@@ -1,5 +1,15 @@
 # Project architecture
 
+The 2026-10-17 [a2 contract](generic_numeric_export_v01912_contract.md) is still
+documentation only. The proposed numeric workflow delegates all binding,
+classification and conversion to the unchanged v0.19.11 sink, with observational
+scalar staging and a diagnostics-free second SQLite pass after readiness parity.
+A separate strict validator checks the new archive, semantic assumptions and
+permanent outcome-exposure markers. No new opt-in call or shared signature,
+reader/science/feature revision, model path or CI change is implemented here.
+Read [the review evaluation](generic_numeric_export_v01912_a2_review.md).
+Earlier architectural notes below are historical.
+
 Current checkpoint (2026-10-16): merged PR #36's fresh counts-only result is
 [complete and reconciled](new_development_readiness_result_20261016.md).
 The [v0.19.12 numeric contract](generic_numeric_export_v01912_contract.md) is a

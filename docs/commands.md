@@ -1,5 +1,15 @@
 # Supported commands
 
+Current 2026-10-17: update **existing PR #37** with one a2 documentation patch
+using the [canonical runbook](generic_numeric_export_contract_runbook_v01912.md).
+The branch must be selected at reviewed head `4c99b7b` before applying; the
+runbook handles main/existing-feature starts. Do not reapply the three a1
+patches or open a new PR. `export-residuals` and the generic validator remain
+unimplemented proposals. No new private-data command is issued. After the
+reviewed generic path is implemented, newer declared-development recordings
+receive their own registration/readiness/export lineage; the old completed
+pilot is not rerun for another diagnostic. Earlier instructions are historical.
+
 Current checkpoint (2026-10-16): the fresh v0.19.11 pilot has returned
 [complete](new_development_readiness_result_20261016.md). Do not rerun it or its
 accepted predecessors. The [v0.19.12 contract](generic_numeric_export_v01912_contract.md)

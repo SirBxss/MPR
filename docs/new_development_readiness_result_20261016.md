@@ -1,5 +1,14 @@
 # Completed new-development bounded readiness: 2026-10-16
 
+2026-10-17 clarification: this is a historical engineering pilot, **not the
+owner's latest data**. The owner reports more and better manually screened
+drives; their support is unmeasured here. The next generic implementation
+should check a small declared-development selection from that newer set.
+Do not extrapolate this pilot's losses or require it to improve. The
+[a2 numeric contract](generic_numeric_export_v01912_contract.md) also records
+permanent development-only exposure for complete numeric exports and linked
+outings, plus the separate unconfirmed confidence-bucket assumption.
+
 Status: **returned complete result reconciled; numeric export not implemented**.
 This supersedes the awaiting-result checkpoint in the
 [v0.19.11 pilot handoff](generic_bounded_readiness_pilot_runbook_v01911.md).

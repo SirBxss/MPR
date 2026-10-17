@@ -1,6 +1,23 @@
 # Thesis modeling plan
 
-## Current development decision: 2026-10-16 measured support; numeric export next
+## Current development decision: 2026-10-17 close contract gaps; use newer data
+
+The [a2 contract correction](generic_numeric_export_v01912_a2_review.md) addresses
+all three a1 blockers on PR #37 without scientific code changes. Next is focused
+a2 GO/new-head CI/merge, then exporter and strict validator implemented together.
+The owner reports newer, better manually screened drives; the old pilot remains
+an engineering case and its yield must not be generalized. After the generic
+path is ready, assess a small declared-development subset of that newer set.
+Do not require another old-pilot scan or improved old-pilot counts.
+
+Numeric exposure permanently excludes linked physical outings from later final
+testing. Retain an untouched prospective pool for the reviewed generic split
+consumer. Five-metre confidence buckets are a separate unconfirmed assumption,
+carried by root and observational audit, never validated from vector length
+alone. All fixed target/features, causality, model/split and retrieval gates
+remain; both flows are still synthetic-only. No private command is issued here.
+
+## Historical development decision: 2026-10-16 measured support; numeric export next
 
 The authorized successor completed and its private result is
 [reconciled](new_development_readiness_result_20261016.md). SENSOR-only topology
