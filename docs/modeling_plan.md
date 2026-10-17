@@ -1,6 +1,70 @@
 # Thesis modeling plan
 
-## Current development decision: 2026-10-16 bounded-only EDP compatibility
+## Current development decision: 2026-10-17 explicit opt-in; preserve failure semantics
+
+The [a3 correction](generic_numeric_export_v01912_a3_review.md) closes the real
+numeric opt-in gap without a new scientific target, feature or speed rule.
+The pipeline purpose label is not a role/exposure declaration. Explicit owner
+selection reserves linked outings for development; completed export separately
+records actual numeric publication. Preserve both facts for future split exclusion.
+Observer extraction failures can be contained, while storage/resource/real-sink
+failures invalidate execution. Static admission checks are regression guards,
+backed by unchanged source pins and runtime conformance, not a formal proof.
+
+Next: focused a3 GO/new-head CI/merge, then exporter and validator together.
+Newer qualified development data may be selected with its own predecessors and
+authorization after code acceptance; the old pilot is an engineering option,
+not a required quality hurdle. Preserve all existing model, split, causality,
+confidence-assumption and retrieval gates. No real fit is enabled by this delta.
+
+## Historical development decision: 2026-10-17 close contract gaps; use newer data
+
+The [a2 contract correction](generic_numeric_export_v01912_a2_review.md) addresses
+all three a1 blockers on PR #37 without scientific code changes. Next is focused
+a2 GO/new-head CI/merge, then exporter and strict validator implemented together.
+The owner reports newer, better manually screened drives; the old pilot remains
+an engineering case and its yield must not be generalized. After the generic
+path is ready, assess a small declared-development subset of that newer set.
+Do not require another old-pilot scan or improved old-pilot counts.
+
+Numeric exposure permanently excludes linked physical outings from later final
+testing. Retain an untouched prospective pool for the reviewed generic split
+consumer. Five-metre confidence buckets are a separate unconfirmed assumption,
+carried by root and observational audit, never validated from vector length
+alone. All fixed target/features, causality, model/split and retrieval gates
+remain; both flows are still synthetic-only. No private command is issued here.
+
+## Historical development decision: 2026-10-16 measured support; numeric export next
+
+The authorized successor completed and its private result is
+[reconciled](new_development_readiness_result_20261016.md). SENSOR-only topology
+now yields H100 geometry and a smaller fragmented complete-feature subset;
+this recording does not meet the existing per-outing frame gate. No numeric
+archive, evidenced session or model admission follows. Preserve the failed
+predecessor and completed successor without another counts-only scan.
+
+Review the separate [v0.19.12 numeric-consumer contract](generic_numeric_export_v01912_contract.md),
+then implement exporter and strict validator together on the bounded reader.
+This branch is documentation only. Preserve the signed H100 target, causal
+six-feature definition, no-imputation rule, separate populations/sequences,
+explicit schema policy and interface-version assumption. Generic evidenced
+cohort/split lineage and model integration remain after archive validation;
+both flows remain synthetic-only. Acquisition is incremental and prospective,
+not a bulk download or selection for favorable residual/model outcomes.
+
+## Historical development decision: 2026-10-16 merged compatibility; measure yield
+
+PR #36 is accepted and merged at `7e4a06b`, tree `c9600a0`. The privately
+delivered [fresh successor](generic_bounded_readiness_pilot_runbook_v01911.md)
+is the next owner action; actual scientific yield remains unknown until its
+result returns. Then finish generic numeric export/strict validation and
+incremental evidenced sessions/frozen splits before real model fits. Preserve
+fixed targets, features, geometry and all scientific/model gates. The bounded-
+only schema policy and interface-version assumption need explicit treatment
+at the numeric-consumer/model gates. No new raw download is needed to run this
+pilot, and full acquisition/cache automation must not delay the core data path.
+
+## Historical development decision: 2026-10-16 bounded-only EDP compatibility
 
 PR #36 a1's historical scope and evidence gaps require the
 [a2 correction](edp_descriptor_compatibility_a2_review_20261016.md).

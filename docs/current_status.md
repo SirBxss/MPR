@@ -1,10 +1,151 @@
 # Current project status
 
-Last updated: 2026-10-16. This is the first file a new agent should read after
+Last updated: 2026-10-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-16 PR #36 a2 correction prepared
+## Current 2026-10-17 a3 review correction, with independent qualifications
+
+The a2 review at owner `cc5acdb`/`a1f4c0c` has one supported blocker: the generic
+`purpose: development_only` is universal and is not a deliberate numeric-export
+opt-in. Read [the independent evaluation](generic_numeric_export_v01912_a3_review.md).
+The full AST test and observer alignment improvements are valid too. However,
+authorization is intent/reservation rather than proof of execution, and ordinary
+observer errors must be separated from storage/resource/real-sink failures.
+Disposable counterexamples verify those distinctions without private raw.
+
+A3 is a documentation-only fifth commit on existing PR #37. It adds an exact
+owner-supplied exposure-authorization input with expected digest/raw-set and
+lineage checks, permanent-reservation semantics separate from numeric exposure,
+complete admission-surface pins, and precise observer rules. No production
+exporter, validator, old-data diagnostic or new private command is added.
+Follow the [same-PR runbook](generic_numeric_export_contract_runbook_v01912.md).
+A3 focused delta GO and new-head CI remain pending; implementation follows.
+
+Authenticated a2 CI logs are now independently verified: run `39018949854`,
+Python 3.10.22/3.12.15 each 718 run, 716 pass, two skips, checkout `c60a337`,
+parents `7e4a06b`/`cc5acdb`, exact a2 tree. Shorter job duration did not omit tests.
+The current PR has four commits and a supplied description; the stale-page
+observation in Claude's review is no longer an open housekeeping issue.
+
+The newer manually screened data is the next collection to assess after the
+code is ready. The old pilot can remain an engineering regression, without
+forcing its yield to improve first. Keep prospective final candidates outside
+numeric authorization/export. Generic validated archives, exposure-aware
+session/split integration and model consumers remain before real fits. Both
+flows are synthetic-only. Retain raw/current outputs and old data pending
+validated durable outputs and tested retrieval. Earlier records are historical.
+
+## Historical 2026-10-17 PR #37 a2 correction; newer data next
+
+Claude's a1 review of `4c99b7b`/`1a7fc6d` is NO-GO for three contract gaps.
+Read [the full evaluation](generic_numeric_export_v01912_a2_review.md).
+A2 resolves the sink-admission mechanism, permanent development exposure and
+unconfirmed confidence-bucket semantics, plus exact support/failure schemas.
+It adds symmetric audit validation with minimum used log and same-device checks.
+This is documentation only, one fourth commit on existing PR #37. No production
+code or private command is added. Main remains `7e4a06b`; do not reapply PR #36.
+
+Verified authenticated a1 CI logs cover run `38931021309`, test merge `4991060`,
+exact reviewed tree: Python 3.10.22/3.12.15 each 718 run, 716 pass, two skips.
+A2 focused delta GO and its new-head CI remain pending. Use the updated
+[same-PR runbook](generic_numeric_export_contract_runbook_v01912.md), then
+implement exporter and independent validator together as the next code block.
+
+The old pilot is not the newest dataset. The owner reports more and better
+manually screened drives. Their usable support is unmeasured here; do not use
+old-pilot attrition as a forecast or demand it improve before progressing.
+The existing pilot remains a useful engineering case. After implementation
+review/CI/merge, process a small declared-development selection from the newer
+set through the generic path, with new per-file metadata and measured support.
+Do not rerun the old completed counts-only attempt or its successful predecessors.
+
+Complete numeric export permanently marks each raw identity and linked physical
+outing development-only, so reserve untouched final candidates for the reviewed
+future split path. Confidence remains an explicit unconfirmed 5 m assumption
+until source-traced; geometric consistency cannot prove bucket semantics.
+Validated archives and reviewed generic session/cohort/split/model integration
+precede real fits. Both flows remain synthetic-only. Preserve old data and
+registered raw pending durable validation and tested retrieval. Earlier records
+are historical.
+
+## Historical 2026-10-16 completed pilot; numeric-consumer contract proposed
+
+The fresh v0.19.11 pilot is complete and reconciled. Read
+[new result and interpretation](new_development_readiness_result_20261016.md).
+All eleven ZIP members/CRCs/manifest, executed launcher, actual main/tree,
+independently rebuilt runtime fingerprint, unchanged predecessor bytes and
+exclusive attrition/sequence arithmetic pass 56 checks. Main remains `7e4a06b`,
+tree `c9600a0`. Private measured identities/counts/clocks remain outside Git.
+
+The exact schema correction works. All EDP is SENSOR and there is real anchored
+H100 geometry, but reference eligibility/H100 coverage leave low yield and
+future-source speed rejection fragments the much smaller complete-feature
+subset. No residual vectors or numeric feature archive exists for this recording.
+Source/session declarations remain unavailable, no new outing is admitted, and
+this recording alone is below the existing per-outing frame gate. Do not claim
+data corruption, a timestamp defect, collection-wide yield or training readiness.
+
+This documentation-only branch proposes the
+[v0.19.12 numeric-export/strict-validation contract](generic_numeric_export_v01912_contract.md).
+Review its explicit schema policy and output/validation/resource boundary,
+then implement raw-to-archive and standalone validation together. No production
+code, CLI or private command is added now. The bounded-only policy is not general
+numeric authorization. Preserve the same-major interface assumption, target,
+features and all session/split/model gates. Both flows remain synthetic-only.
+
+Do not rerun completed stages or relocate/delete current raw/old data. No bulk
+acquisition is justified by one low-yield pilot. Future small development
+selections need truthful physical-session evidence plus H100/reference/causal
+support screening. Numeric archives/validation precede generic cohort/split
+integration, real fits and separately justified cache retirement. Earlier
+checkpoints are historical.
+
+## Historical 2026-10-16 PR #36 merged; one fresh pilot issued
+
+Actual main `7e4a06b`, parents `4cf0af3`/`03a9d77`, has accepted tree `c9600a0`.
+Review GO and both exact-tree 718-test CI logs are verified. The owner requested
+the next step; a private one-attempt v0.19.11 successor launcher is delivered.
+Read `generic_bounded_readiness_pilot_runbook_v01911.md`. No code correction or
+documentation patch is required before running it. It uses unchanged successful
+predecessors and retains the failed v0.19.10 report digest and snapshot.
+
+Native synthetic complete/null runs through the real merged CLI and genuine
+old-source failure evidence passed launcher/receipt/immutability/guard checks.
+All real private metadata reconciles without raw access. The owner has not yet
+returned this successor result. Useful geometry/features/sequences are unknown;
+do not rerun or overwrite old attempts/scans or automatically start another.
+
+The main next software work is reviewed generic numeric export/strict archive
+validation, using measured yield and the existing arithmetic. Then process
+evidenced sessions incrementally, freeze common splits and satisfy model gates.
+Catalogue/cache automation follows validated outputs and retrieval evidence;
+preserve registered raw paths and all prior artifacts. No real fit or raw
+retirement follows from this pilot command alone. Earlier checkpoints are historical.
+
+## Historical 2026-10-16 PR #36 a2 accepted; owner merge next
+
+Focused Claude GO closes B-1/B-2 at `03a9d77`, tree `c9600a0`, parent `132e2e5`.
+Codex verified new-head CI run `38904914991` using decoded logs: Python
+3.10.22/3.12.15 each 718 run/716 passed/two skips, checkout `07a6a4c` with that
+exact accepted tree and parents `4cf0af3`/`03a9d77`. Review and delivered bytes
+agree. Read `edp_descriptor_compatibility_a2_acceptance_20261016.md`.
+
+No new code correction or documentation patch is required before owner merge;
+this local checkpoint is reserved for the next implementation. Verify actual
+main after merge, then issue one fresh versioned counts-only successor with
+unchanged registration/inventory/decode inputs and the failed-report digest.
+Scientific yield remains unknown. No old rerun/overwrite, raw relocation or
+deletion, bulk acquisition, role assignment or real fit follows from this GO.
+
+After measured yield: reviewed numeric export/strict validation, incremental
+evidenced sessions/splits, then model gates. Keep the interface-version-policy
+assumption explicit and attempt a 2.2-to-2.3 source trace before real fits.
+Qualifier/age/cut-off diagnostics are optional future counts, not new filters
+or features. The bounded-only policy does not silently authorize other consumers.
+The checkpoints below are historical.
+
+## Historical 2026-10-16 PR #36 a2 correction prepared
 
 Claude's B-1 evidence/semantic gap and B-2 historical gate-provenance defect
 are confirmed. Read `edp_descriptor_compatibility_a2_review_20261016.md` and the

@@ -1,5 +1,19 @@
 # v0.4.5 output contracts
 
+## Proposed v0.19.12 generic development numeric archive
+
+The [separate review contract](generic_numeric_export_v01912_contract.md)
+specifies readiness-parity checks, explicit numeric-consumer schema admission,
+three-file publication, geometry/complete-feature subsets, U48 technical IDs,
+strict raw-free validation, permanent development-exposure markers, explicit
+unconfirmed confidence-bucket provenance and bounded failure behavior. A2
+fixes the six-field export support shape and residual-code set. A3 adds a
+separate explicit authorization input/digest, distinguishes reservation from
+actual exposure, and defines complete admission/observer checks. It is documentation
+only; no exporter/validator CLI or new numeric artifact exists yet. The pinned
+v0.19.2 archive and all historical contracts below remain unchanged. See the
+[completed counts-only result](new_development_readiness_result_20261016.md).
+
 ## v0.19.9 registered-file selected-stream decoding check
 
 Binding candidate: `generic_recording_decode_check_v0199.md`. A fresh output

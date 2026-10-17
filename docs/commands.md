@@ -1,5 +1,33 @@
 # Supported commands
 
+Current 2026-10-17: update **existing PR #37** with the a3 documentation patch
+using the [canonical runbook](generic_numeric_export_contract_runbook_v01912.md),
+starting at owner a2 head `cc5acdb`. The branch is explicitly selected. Do not
+reapply a1/a2 or create a new PR. The future exporter/validator authorization
+arguments are contract proposals, not implemented commands. No authorization
+file or private raw scan is needed during this correction. Existing source,
+registration and successful reports remain immutable. Earlier instructions
+are historical.
+
+Current 2026-10-17: update **existing PR #37** with one a2 documentation patch
+using the [canonical runbook](generic_numeric_export_contract_runbook_v01912.md).
+The branch must be selected at reviewed head `4c99b7b` before applying; the
+runbook handles main/existing-feature starts. Do not reapply the three a1
+patches or open a new PR. `export-residuals` and the generic validator remain
+unimplemented proposals. No new private-data command is issued. After the
+reviewed generic path is implemented, newer declared-development recordings
+receive their own registration/readiness/export lineage; the old completed
+pilot is not rerun for another diagnostic. Earlier instructions are historical.
+
+Current checkpoint (2026-10-16): the fresh v0.19.11 pilot has returned
+[complete](new_development_readiness_result_20261016.md). Do not rerun it or its
+accepted predecessors. The [v0.19.12 contract](generic_numeric_export_v01912_contract.md)
+is documentation only: `export-residuals` and the generic validator described
+there are proposed entry points, not implemented commands. The next owner
+operation is the [contract patch/review runbook](generic_numeric_export_contract_runbook_v01912.md).
+No private MCAP command is issued by this closure. Earlier instructions below
+are historical and do not reopen completed stages.
+
 PR #36 a2 is a correction on the existing feature branch. Use the
 [canonical apply/test/push runbook](edp_descriptor_compatibility_runbook_v01911.md),
 then attach the actual ZIP for focused B-1/B-2 review/new-head CI. No new CLI

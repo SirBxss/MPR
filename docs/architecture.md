@@ -1,5 +1,35 @@
 # Project architecture
 
+The 2026-10-17 [a3 contract](generic_numeric_export_v01912_contract.md) remains
+documentation only. Its future exporter has a mandatory separate authorization
+input; the old source/registration schema is unchanged. Observer containment
+applies only to ordinary scalar extraction/selection/alignment failures, with
+sink-owned positions and exact clock checks. Storage/resource/real-sink failures
+remain fatal to the batch. Full admission-use/definition/file pins supplement
+runtime tests. Authorization reserves development use; complete export separately
+records exposure. Read [the independent review](generic_numeric_export_v01912_a3_review.md).
+Earlier descriptions are historical.
+
+The 2026-10-17 [a2 contract](generic_numeric_export_v01912_contract.md) is still
+documentation only. The proposed numeric workflow delegates all binding,
+classification and conversion to the unchanged v0.19.11 sink, with observational
+scalar staging and a diagnostics-free second SQLite pass after readiness parity.
+A separate strict validator checks the new archive, semantic assumptions and
+permanent outcome-exposure markers. No new opt-in call or shared signature,
+reader/science/feature revision, model path or CI change is implemented here.
+Read [the review evaluation](generic_numeric_export_v01912_a2_review.md).
+Earlier architectural notes below are historical.
+
+Current checkpoint (2026-10-16): merged PR #36's fresh counts-only result is
+[complete and reconciled](new_development_readiness_result_20261016.md).
+The [v0.19.12 numeric contract](generic_numeric_export_v01912_contract.md) is a
+new documentation-only proposal. It adds no code or entry point. Its next
+implementation reuses the bounded reader/staging and unchanged arithmetic,
+then adds a separately versioned archive and standalone validator; historical
+batch02 consumers and default schema behavior remain fixed. Review the new
+consumer's schema policy explicitly rather than extending bounded-only GO.
+The readiness pilot must not be repeated. Historical descriptions follow.
+
 The [v0.19.11 a2 amendment](edp_descriptor_compatibility_v01911.md) keeps the
 historical classifier default unchanged. A keyword-only default-false Boolean
 is forwarded by the frame converter, readiness bindings and geometry iterator;
