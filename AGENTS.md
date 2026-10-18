@@ -1,6 +1,44 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-18 PR #38 merged; newer numeric pilot validated
+## Current checkpoint: 2026-10-18 generic registry/reader implemented; full collection screen prepared
+
+PR #38 and the owner documentation checkpoint remain the accepted baseline:
+main merge `734876b`, owner `789b858`, full tree `b8c7e979`, runtime `45f1f96…`.
+Additional returned numeric archives pass strict raw-free validation, exact
+predecessor/source/auth/summary pins, matched-row and reset-boundary audits.
+Private counts, clocks, source/raw identities and receipts stay in the private
+review bundle. No private raw geometry was recomputed here. Complete feature
+support remains short; source-future odometry exclusions with log/publish ties
+are evidence for a timing-contract review, not permission to remove a guard.
+
+Read `docs/generic_artifact_registry_v01913.md`. The new implementation creates
+immutable private content-addressed snapshots; replays evidence rather than
+trusting editable index rows; retains adopted authorizations for failed/unrun
+exports; propagates exclusions through session/alias and unresolved links; and
+loads exact generic matched rows/resets through the strict standalone validator.
+Default loading is raw-free. Optional cache observation is stat-only. Existing
+source declarations retain unknowns. Historical consumers/science are unchanged.
+No role, outing admission, final candidate, model fit or raw retirement is granted.
+
+The owner requests investigation of the whole remaining downloaded collection.
+A separate pinned sequential counts-only controller uses a frozen accepted
+backend. It can run during this code review without new numeric authorization,
+source drift or repeating completed attempts. Preserve each complete, duplicate,
+inconclusive and interrupted result; do not mistake all-attempted for all-eligible.
+Newly added downloads need a new discovery, not edits to an issued fixed list.
+
+Local Python 3.12.14 verification passes: compileall, 26 focused tests, full
+814 run/812 passed/two unchanged skips and actual raw-free archive acceptance.
+Focused code review and exact pushed-head Python 3.10/3.12 CI precede merge and
+operational use of the new registry. Then reconcile the collection screen and
+physical outing evidence, review the timing/feature task if needed, implement
+the reservation-aware cohort/split gate, freeze matched rows/folds and satisfy
+existing real-fit/flow scope gates. Both flows remain synthetic-only. Do not
+rerun old successes, bulk opt in the collection, move/delete raw or use GB as a
+training-sufficiency forecast. The consolidated checkpoint belongs in this code
+PR; no new documentation-only prerequisite is introduced.
+
+## Historical checkpoint: 2026-10-18 PR #38 merged; newer numeric pilot validated
 
 Actual main merge is `734876b87a04e63948924dd46abc07834bb09546`, accepted
 tree `f7a371542f36b4eeeaafefa1330e60f37129c4b2`, reviewed head `9ae6b8b`.

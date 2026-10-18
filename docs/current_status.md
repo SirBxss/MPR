@@ -4,7 +4,42 @@ Last updated: 2026-10-18. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-18 merged numeric export verified on newer data
+## Current 2026-10-18 registry/reader candidate and full counts-only collection screen
+
+The accepted baseline remains merged PR #38 plus the owner's already applied
+numeric-pilot documentation checkpoint. Additional generic numeric archives
+have now passed independent strict raw-free validation and exact original
+lineage, finite-array, complete-subset and reset-boundary checks. Measured
+counts and identities remain private. No raw rerun or new fit occurred.
+
+The [v0.19.13 registry/reader](generic_artifact_registry_v01913.md) is implemented
+as a code-review candidate. Immutable snapshots retain original evidence,
+authorizations/reservations even for failed/unrun exports, publication states,
+raw locators, session uncertainty and optional stat-only cache observations.
+Replay rejects an edited index and uses the actual producer-bound strict
+archive validator. Dataset views retain exact geometry/matched populations and
+all original reset boundaries, reject duplicate raw and session conflicts, and
+have no model-admission path. Historical readers, science and fit gates stay fixed.
+
+A separate private controller is prepared for the owner's explicit request to
+screen all remaining Home recordings, counts only, on a frozen accepted backend.
+It does not need this candidate merged, does not expose numeric outcomes and
+can coexist with code review. No result from that new collection screen has
+been received yet. Preserve partial/inconclusive results and untouched final
+candidates. Do not infer outings from RAAS IDs or directories.
+
+Local Python 3.12.14 checks pass: compileall, 26 focused tests and full
+814 run/812 passed/two expected skips, plus actual raw-free archive acceptance.
+No new collection result or model result is implied by those checks.
+
+Next: code GO/exact-head CI/merge, reconcile collection support/session evidence,
+review the source-relative speed/prediction-epoch issue if needed, then the
+reservation-aware cohort/split and existing real-fit gates. Tied log/publish
+timestamps do not establish actual availability. Both flows remain synthetic-only;
+no raw deletion or whole-collection numeric opt-in is authorized. Earlier dated
+checkpoints below are historical.
+
+## Historical 2026-10-18 merged numeric export verified on newer data
 
 PR #38 is merged at `734876b`, accepted tree `f7a3715`, reviewed head `9ae6b8b`.
 A2 focused GO and authenticated CI run `39116939748` cover the accepted tree:

@@ -1,5 +1,8 @@
 # Thesis modeling plan
 
+Current 2026-10-18: the [generic registry/reader candidate](generic_artifact_registry_v01913.md) closes archive integration at engineering scope only. Counts-only assessment of the remaining downloaded collection uses the accepted frozen backend. The reviewed independent-outing, matched-row, temporal-support and real-fit/flow scope gates are unchanged.
+
+
 Current 2026-10-17: the [PR #38 a2 correction](numeric_export_pr38_a2_review_20261017.md)
 fixes the confirmed validator producer-source and canonical receipt-containment
 issues, with robustness/regression additions. Frozen science/schemas and model

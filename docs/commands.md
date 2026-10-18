@@ -1,5 +1,8 @@
 # Supported commands
 
+The v0.19.13 registry import/verify commands and private manifest schema are in [generic_artifact_registry_v01913.md](generic_artifact_registry_v01913.md). They publish engineering evidence only; no raw decode, role assignment, model fit or deletion.
+
+
 Current 2026-10-17: the [PR #38 a2 correction](numeric_export_pr38_a2_review_20261017.md)
 fixes the confirmed validator producer-source and canonical receipt-containment
 issues, with robustness/regression additions. Frozen science/schemas and model
