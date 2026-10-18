@@ -1,6 +1,22 @@
 # v0.4.5 output contracts
 
-## Proposed v0.19.12 generic development numeric archive
+Current 2026-10-17: the [PR #38 a2 correction](numeric_export_pr38_a2_review_20261017.md)
+fixes the confirmed validator producer-source and canonical receipt-containment
+issues, with robustness/regression additions. Frozen science/schemas and model
+gates are unchanged. Delta review/new-head CI/merge precede numeric use. A
+private newer-file counts-only launcher uses already merged main during review;
+no new-data yield or numeric authorization follows from discovery. Earlier dated
+preparation instructions below are historical.
+
+## v0.19.12 generic development numeric archive implementation candidate
+
+PR #37's a3 specification is accepted and merged. The
+[implementation candidate](generic_numeric_export_v01912_implementation.md)
+now supplies its exporter and standalone validator with the exact a3 revisions
+and schemas below. Code review/new-head CI remain pending. Historical batch02
+archives and model acceptance remain unchanged. No private new numeric result
+or model admission is claimed. The next paragraph describes the accepted
+documentation-stage contract historically.
 
 The [separate review contract](generic_numeric_export_v01912_contract.md)
 specifies readiness-parity checks, explicit numeric-consumer schema admission,

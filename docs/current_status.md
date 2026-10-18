@@ -4,7 +4,55 @@ Last updated: 2026-10-17. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-17 a3 review correction, with independent qualifications
+## Current 2026-10-17 PR #38 review correction and newer-data pilot
+
+Read [the independently checked review](numeric_export_pr38_a2_review_20261017.md).
+Both required a1 defects were reproduced; one same-PR a2 code correction fixes
+release-stable validator lineage and receipt containment, plus optional robustness
+and numerical regressions. Focused delta GO, new-head CI and owner merge remain.
+Local Python 3.12.14 checks pass: compileall, 70 focused tests and full
+788 run/786 passed/two unchanged skips (13 added regressions).
+A1 authenticated CI is verified: run `39052189376`, Python 3.10.22/3.12.15,
+775 run/773 passed/two skips, merge `79ea2c8`, exact owner `76aa06c` tree.
+
+The private discovery has 33 IDs: 32 unverified files, 54.42 GB total, one absent.
+Select the smallest newer file (486,691,631 bytes) by cost, excluding the old
+completed pilot. The separately delivered one-attempt counts-only launcher uses
+already merged main `acf8c0f`; it can run during numeric delta review. It creates
+new truthful predecessors and retains complete/inconclusive receipts/ZIP without
+authorizing numeric exposure. No private new-data yield is measured here.
+
+Validated numeric archives are the next data milestone. Generic catalog/session/
+reservation-aware splits and model integration remain before approved real fits;
+acquisition/retirement automation follows validated compact outputs and retrieval.
+Use actual feature/sequence support and evidenced outings to size acquisition.
+No old reruns, bulk export, raw deletion or real training occurred.
+
+## Historical 2026-10-17 numeric implementation candidate after PR #37 merge
+
+Main merge `acf8c0f` has accepted tree `7e41163`, parents `7e4a06b`/`54ccf6d`.
+The a3 contract GO and authenticated CI run `39023501143` are verified: both
+Python 3.10.22 and 3.12.15 ran 718 tests with 716 passes/two skips on test
+merge `17c5105`, whose tree equals the reviewed head. No extra contract patch
+is needed. This is prior CI, not acceptance of the new code.
+
+The [implementation candidate](generic_numeric_export_v01912_implementation.md)
+adds numeric export and a standalone raw-free strict validator together.
+Five scientific source files/defaults are pinned unchanged; U48 arrays,
+independent support reconstruction, explicit reservation and complete-publication
+markers, bounded publication and late lineage/identity checks are implemented.
+The 57 focused synthetic tests pass. Local full required checks pass on Python
+3.12.14: 775 run/773 passed/two expected skips in 87.545 seconds, with compileall,
+diff and local file-link checks passing. Focused code GO/new-head CI precede a
+private export. No newer-data result exists here yet.
+
+The [newer-data handoff](generic_numeric_export_new_data_runbook_v01912.md)
+starts with a metadata-only Home listing and one selected newer recording's
+own successful predecessors. The old pilot is not a mandatory quality hurdle.
+Generic catalog/session/split/model integration and raw-retirement/controller
+work remain. No raw movement/deletion, real fit or remote mutation occurred.
+
+## Historical 2026-10-17 a3 review correction, with independent qualifications
 
 The a2 review at owner `cc5acdb`/`a1f4c0c` has one supported blocker: the generic
 `purpose: development_only` is universal and is not a deliberate numeric-export

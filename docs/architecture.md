@@ -1,5 +1,22 @@
 # Project architecture
 
+Current 2026-10-17: the [PR #38 a2 correction](numeric_export_pr38_a2_review_20261017.md)
+fixes the confirmed validator producer-source and canonical receipt-containment
+issues, with robustness/regression additions. Frozen science/schemas and model
+gates are unchanged. Delta review/new-head CI/merge precede numeric use. A
+private newer-file counts-only launcher uses already merged main during review;
+no new-data yield or numeric authorization follows from discovery. Earlier dated
+preparation instructions below are historical.
+
+Current 2026-10-17: the [v0.19.12 implementation candidate](generic_numeric_export_v01912_implementation.md)
+adds a separate numeric I/O/workflow/validator boundary around the unchanged
+scientific sink. Scalar observation uses its existing bounded database;
+raw-free validation has its own sequence reconstruction and preallocation
+ZIP/NPY checks. Workflow code owns exact predecessor equality, explicit
+authorization, bounded atomic publication and late identity checks. Existing
+science/default consumers and the five scientific files are unchanged.
+Focused code GO/new-head CI are pending. Earlier notes are historical.
+
 The 2026-10-17 [a3 contract](generic_numeric_export_v01912_contract.md) remains
 documentation only. Its future exporter has a mandatory separate authorization
 input; the old source/registration schema is unchanged. Observer containment

@@ -1,5 +1,23 @@
 # Thesis modeling plan
 
+Current 2026-10-17: the [PR #38 a2 correction](numeric_export_pr38_a2_review_20261017.md)
+fixes the confirmed validator producer-source and canonical receipt-containment
+issues, with robustness/regression additions. Frozen science/schemas and model
+gates are unchanged. Delta review/new-head CI/merge precede numeric use. A
+private newer-file counts-only launcher uses already merged main during review;
+no new-data yield or numeric authorization follows from discovery. Earlier dated
+preparation instructions below are historical.
+
+Current 2026-10-17: PR #37's contract is merged; the
+[numeric implementation candidate](generic_numeric_export_v01912_implementation.md)
+is the next code review. It adds no model/training path or scientific feature.
+After accepted code and one newer development export/validation, implement
+generic physical-session/cohort/split lineage and model archive integration.
+Retain permanent reservations/exposure exclusions, matched-row comparisons,
+fold-local transforms and sequence resets. Both flow modes remain synthetic-only
+until the existing real-fit gate is met. More promising newer data can be checked
+without improving or rerunning the old pilot. Earlier decisions are historical.
+
 ## Current development decision: 2026-10-17 explicit opt-in; preserve failure semantics
 
 The [a3 correction](generic_numeric_export_v01912_a3_review.md) closes the real
