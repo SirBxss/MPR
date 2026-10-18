@@ -1,6 +1,44 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-17 PR #38 a1 review verified; a2 correction prepared
+## Current checkpoint: 2026-10-18 PR #38 merged; newer numeric pilot validated
+
+Actual main merge is `734876b87a04e63948924dd46abc07834bb09546`, accepted
+tree `f7a371542f36b4eeeaafefa1330e60f37129c4b2`, reviewed head `9ae6b8b`.
+The a2 GO and authenticated CI run `39116939748` are verified: Python
+3.10.22/3.12.15 each 788 run/786 passed/two unchanged skips on test merge
+`aae7501`, the same accepted tree. Read
+`docs/newer_numeric_export_result_20261018.md`. Do not reapply PR #38 or
+the earlier deferred acceptance/counts checkpoint; this supersedes that draft.
+
+The selected newer recording's counts-only result and authorized numeric export
+are complete. Original ZIP/manifests, delivered launcher/input pins, all preserved
+predecessor bytes, exact merged source, adopted authorization and summary pin
+reconcile. The merged raw-free validator independently passes, and a separate
+205-check artifact audit confirms finite H100 residuals, complete-feature row
+mapping, exact readiness parity and recording-local gap-aware sequence support.
+There are no residual-construction failures. Private measured counts/values,
+raw identities/paths/clocks and authorization bytes remain in the private review
+bundle. No raw MCAP was opened or geometry recomputed in the agent environment.
+
+This closes the raw-to-validated-numeric milestone for one technical recording,
+not the full collection or training gates. Complete-feature support is smaller
+and fragmented; physical-session/retrieval evidence remains unknown. Reservation
+and actual complete-publication exposure both persist and exclude linked outings
+from future final-test draws. Confidence width and same-major compatibility stay
+explicit assumptions, not source-confirmed semantics or physical validation.
+
+Next implement the generic private artifact/reservation/session registry and
+read-only dataset adapter described in
+`docs/generic_archive_integration_next_20261018.md`. Keep population mappings,
+reset boundaries, matched comparisons and unchanged scientific/model gates.
+Screen a small prospective selection of already downloaded longer recordings
+with evidenced drive identity; preserve untouched final candidates. Do not size
+acquisition from GB, filenames or this pilot's yield. Both flows stay synthetic-
+only until existing fit gates. No rerun, raw relocation/deletion or bulk numeric
+opt-in is needed. This consolidated documentation patch is reserved for the next
+implementation, not a new prerequisite or separate mandatory review cycle.
+
+## Historical checkpoint: 2026-10-17 PR #38 a1 review verified; a2 correction prepared
 
 PR #38 is open at owner `76aa06c`, tree `6dbf979`, on main `acf8c0f`.
 Read `docs/numeric_export_pr38_a2_review_20261017.md`. Claude B-1 and M-1

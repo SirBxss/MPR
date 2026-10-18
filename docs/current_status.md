@@ -1,10 +1,42 @@
 # Current project status
 
-Last updated: 2026-10-17. This is the first file a new agent should read after
+Last updated: 2026-10-18. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-17 PR #38 review correction and newer-data pilot
+## Current 2026-10-18 merged numeric export verified on newer data
+
+PR #38 is merged at `734876b`, accepted tree `f7a3715`, reviewed head `9ae6b8b`.
+A2 focused GO and authenticated CI run `39116939748` cover the accepted tree:
+Python 3.10.22/3.12.15 each 788 run/786 passed/two expected skips. The owner
+ran the separately authorized newer numeric export on that actual merge.
+Read [the result checkpoint](newer_numeric_export_result_20261018.md).
+
+The raw-to-validated-numeric milestone succeeds for this technical recording.
+The returned ZIP, exact predecessors, launcher/pins, source, four adopted
+attestations and summary pin reconcile. Independent merged-source raw-free
+validation completes; 205 supplemental artifact checks confirm finite residuals,
+complete-feature mapping, exact readiness parity and independent sequence bounds.
+No residual-construction attrition occurs. The private bundle retains exact
+numeric results and identities; they do not belong in public Git. No private
+raw was read in this review, so it does not independently recompute geometry.
+
+The complete-feature subset remains fragmented. Physical outing identity,
+retrieval evidence, cohort/split and model admission are not established by
+successfully publishing an archive. This recording and all linked outings are
+permanently development-only; final candidates must remain unreserved/unexposed.
+Confidence-width and producer-compatibility assumptions remain explicit.
+
+Next is [generic registry and archive integration](generic_archive_integration_next_20261018.md),
+then incremental counts-only screening of already available longer, evidenced
+drives and the unchanged cohort/split/fit gates. Preserve distinct geometry and
+complete-feature populations, exact mappings, reset boundaries and matched
+comparison rows. Both flows stay synthetic-only. No successful pilot rerun,
+raw move/deletion, bulk acquisition or model fit is called for. This consolidated
+checkpoint replaces the earlier deferred patch and is reserved for the next
+implementation; applying it is not a new data-processing prerequisite.
+
+## Historical 2026-10-17 PR #38 review correction and newer-data pilot
 
 Read [the independently checked review](numeric_export_pr38_a2_review_20261017.md).
 Both required a1 defects were reproduced; one same-PR a2 code correction fixes
