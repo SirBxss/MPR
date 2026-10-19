@@ -1,5 +1,8 @@
 # v0.4.5 output contracts
 
+The [v0.19.13 registry](generic_artifact_registry_v01913.md) publishes a new private snapshot containing exactly `registry.json` plus `objects/`. The index is replayed from pinned evidence, keeps reservations/exposure/session uncertainty and grants no model or retirement admission. Existing numeric artifacts stay unchanged.
+
+
 Current 2026-10-17: the [PR #38 a2 correction](numeric_export_pr38_a2_review_20261017.md)
 fixes the confirmed validator producer-source and canonical receipt-containment
 issues, with robustness/regression additions. Frozen science/schemas and model

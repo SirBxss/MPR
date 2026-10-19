@@ -1,6 +1,114 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-17 PR #38 a1 review verified; a2 correction prepared
+## Current checkpoint: 2026-10-19 PR #39 corrective review
+
+PR #39 is open at owner head `83fdd54`, tree `12791e0`, with main `734876b`.
+Read `docs/artifact_registry_pr39_a2_review_20261019.md`. Both Claude blockers
+were reproduced. The same-PR a2 delta adds conservative shared-locator raw links
+and a durable reviewed-producer tuple, never automatic own-release acceptance.
+It also preserves contradictory declarations, fixed dataset flags, explicit
+session unknowns, failed-export authorization evidence, pre-side-effect path
+checks, private replay temporaries and late source/durable-marker checks.
+Scientific files, numeric schemas/arithmetic, timing guards and raw limits stay
+unchanged. Do not reapply the original docs/implementation or create a new PR.
+Local Python 3.12.14/MCAP 1.5 passes compileall, 45 focused tests and full
+833 run/831 passed/two unchanged skips; fresh raw-free acceptance reconciles
+existing numeric archives plus the returned collection metadata under fixed caps.
+
+Authenticated original-head CI logs confirm Python 3.10/3.12 each 814 tests with
+two skips, on merge `45e5b80` with the reviewed tree. That is not corrective-head
+CI. Require focused a2 review and new-head CI before owner merge. Refresh the
+private registry-build helper's exact tree/runtime/input pins for this delta;
+the earlier helper is stale and must not be bypassed.
+
+The whole fixed collection has now been attempted. Completed counts-only reports
+and preserved resource-inconclusive reports reconcile; no numeric export or fit
+follows. Exact private yields/identities remain in the private final review ZIP.
+Do not resume completed sealed attempts. Recover only the failed readiness work
+through a separately reviewed successor, preserving every predecessor/attempt.
+New numeric processing must use a compatible frozen reviewed producer; current
+integration source does not accept older same-producer readiness for exporting.
+Keep physical-drive evidence, reservations, timing interpretation, cohort/splits
+and existing real-fit/flow gates explicit. No raw relocation/deletion or bulk
+numeric opt-in is authorized. Earlier checkpoints are historical.
+
+## Historical checkpoint: 2026-10-18 generic registry/reader implemented; full collection screen prepared
+
+PR #38 and the owner documentation checkpoint remain the accepted baseline:
+main merge `734876b`, owner `789b858`, full tree `b8c7e979`, runtime `45f1f96…`.
+Additional returned numeric archives pass strict raw-free validation, exact
+predecessor/source/auth/summary pins, matched-row and reset-boundary audits.
+Private counts, clocks, source/raw identities and receipts stay in the private
+review bundle. No private raw geometry was recomputed here. Complete feature
+support remains short; source-future odometry exclusions with log/publish ties
+are evidence for a timing-contract review, not permission to remove a guard.
+
+Read `docs/generic_artifact_registry_v01913.md`. The new implementation creates
+immutable private content-addressed snapshots; replays evidence rather than
+trusting editable index rows; retains adopted authorizations for failed/unrun
+exports; propagates exclusions through session/alias and unresolved links; and
+loads exact generic matched rows/resets through the strict standalone validator.
+Default loading is raw-free. Optional cache observation is stat-only. Existing
+source declarations retain unknowns. Historical consumers/science are unchanged.
+No role, outing admission, final candidate, model fit or raw retirement is granted.
+
+The owner requests investigation of the whole remaining downloaded collection.
+A separate pinned sequential counts-only controller uses a frozen accepted
+backend. It can run during this code review without new numeric authorization,
+source drift or repeating completed attempts. Preserve each complete, duplicate,
+inconclusive and interrupted result; do not mistake all-attempted for all-eligible.
+Newly added downloads need a new discovery, not edits to an issued fixed list.
+
+Local Python 3.12.14 verification passes: compileall, 26 focused tests, full
+814 run/812 passed/two unchanged skips and actual raw-free archive acceptance.
+Focused code review and exact pushed-head Python 3.10/3.12 CI precede merge and
+operational use of the new registry. Then reconcile the collection screen and
+physical outing evidence, review the timing/feature task if needed, implement
+the reservation-aware cohort/split gate, freeze matched rows/folds and satisfy
+existing real-fit/flow scope gates. Both flows remain synthetic-only. Do not
+rerun old successes, bulk opt in the collection, move/delete raw or use GB as a
+training-sufficiency forecast. The consolidated checkpoint belongs in this code
+PR; no new documentation-only prerequisite is introduced.
+
+## Historical checkpoint: 2026-10-18 PR #38 merged; newer numeric pilot validated
+
+Actual main merge is `734876b87a04e63948924dd46abc07834bb09546`, accepted
+tree `f7a371542f36b4eeeaafefa1330e60f37129c4b2`, reviewed head `9ae6b8b`.
+The a2 GO and authenticated CI run `39116939748` are verified: Python
+3.10.22/3.12.15 each 788 run/786 passed/two unchanged skips on test merge
+`aae7501`, the same accepted tree. Read
+`docs/newer_numeric_export_result_20261018.md`. Do not reapply PR #38 or
+the earlier deferred acceptance/counts checkpoint; this supersedes that draft.
+
+The selected newer recording's counts-only result and authorized numeric export
+are complete. Original ZIP/manifests, delivered launcher/input pins, all preserved
+predecessor bytes, exact merged source, adopted authorization and summary pin
+reconcile. The merged raw-free validator independently passes, and a separate
+205-check artifact audit confirms finite H100 residuals, complete-feature row
+mapping, exact readiness parity and recording-local gap-aware sequence support.
+There are no residual-construction failures. Private measured counts/values,
+raw identities/paths/clocks and authorization bytes remain in the private review
+bundle. No raw MCAP was opened or geometry recomputed in the agent environment.
+
+This closes the raw-to-validated-numeric milestone for one technical recording,
+not the full collection or training gates. Complete-feature support is smaller
+and fragmented; physical-session/retrieval evidence remains unknown. Reservation
+and actual complete-publication exposure both persist and exclude linked outings
+from future final-test draws. Confidence width and same-major compatibility stay
+explicit assumptions, not source-confirmed semantics or physical validation.
+
+Next implement the generic private artifact/reservation/session registry and
+read-only dataset adapter described in
+`docs/generic_archive_integration_next_20261018.md`. Keep population mappings,
+reset boundaries, matched comparisons and unchanged scientific/model gates.
+Screen a small prospective selection of already downloaded longer recordings
+with evidenced drive identity; preserve untouched final candidates. Do not size
+acquisition from GB, filenames or this pilot's yield. Both flows stay synthetic-
+only until existing fit gates. No rerun, raw relocation/deletion or bulk numeric
+opt-in is needed. This consolidated documentation patch is reserved for the next
+implementation, not a new prerequisite or separate mandatory review cycle.
+
+## Historical checkpoint: 2026-10-17 PR #38 a1 review verified; a2 correction prepared
 
 PR #38 is open at owner `76aa06c`, tree `6dbf979`, on main `acf8c0f`.
 Read `docs/numeric_export_pr38_a2_review_20261017.md`. Claude B-1 and M-1
