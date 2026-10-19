@@ -1,5 +1,12 @@
 # Project architecture
 
+The [v0.19.14 cohort candidate](generic_cohort_v01914.md) adds
+`domain.generic_cohort` for owner evidence, identity components, unchanged support
+and exposure-aware selection; `io.generic_cohort` for pinned metadata, durable
+cohort replay and snapshot-bound development views; and `cli.generic_cohort`
+for create/verify. No scientific arithmetic or model is changed. Admission remains
+false and future descendant archive integration is explicitly separate.
+
 The [v0.19.13 candidate](generic_artifact_registry_v01913.md) adds a pure reservation/session graph policy, content-addressed private snapshot I/O, a strict raw-free dataset adapter and a small import/verify CLI. It changes no raw science, historical consumer or model. Original evidence outranks cached rows; complete-feature mappings and resets remain exact. Code review/CI/merge precede operational use.
 
 

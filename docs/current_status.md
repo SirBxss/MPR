@@ -4,7 +4,38 @@ Last updated: 2026-10-19. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-19 PR #39 a2 correction and completed collection attempts
+## Current 2026-10-19 owner-declared generic cohort implementation candidate
+
+PR #39 is merged at `183825a`, tree `56b624d`, reviewed head `5b1be94`.
+Authenticated a2 CI `39245286754` tested merge `3bf327e` with that tree;
+Python 3.10.22/3.12.15 each ran 833 tests, 831 passed and two expected skips.
+The selected new numeric export and two separately recovered readiness reports
+are independently accepted within scope. Exact lineage, frozen source, strict
+raw-free validation, matched rows/resets and immutable parent chains pass.
+Private measured support, identities and markers stay in the review bundle.
+
+The owner now declares folder/source IDs to represent different drives. The
+[generic cohort candidate](generic_cohort_v01914.md) retains this as owner-declared
+physical membership with independent verification explicitly false. It checks
+unchanged eligibility rather than equating all declared files with eligible
+outings. Old source declarations, possible links and permanent exclusions survive.
+Its prospective final draw ranks only still-unexposed eligible outings.
+
+The implementation adds conservative cross-raw contradictions/duplicate-component
+checks, immutable cohort publication/replay and an initial snapshot-bound matched
+development data/fold interface. No scaling or fitting occurs. Additional numeric
+exports, a later descendant-registry model adapter, real-fit authorization,
+flow scope/history/solver decisions and final evaluation remain separate gates.
+Timing, confidence-width and producer assumptions remain explicit.
+
+Next: focused review, exact-head CI, owner merge, then one pinned metadata-only
+helper to append recovered reports/session claims and create the cohort lock.
+No owner raw processing, successful-stage repeat, additional acquisition, consent
+manufacture or deletion is needed. This is the ordinary implementation checkpoint,
+not a new documentation-only prerequisite. The private acceptance proposal is
+not an accepted operational owner lock.
+
+## Historical 2026-10-19 PR #39 a2 correction and completed collection attempts
 
 PR #39 remains open at owner `83fdd54`, tree `12791e0`, on main `734876b`.
 Both independent review blockers were reproduced and corrected in the same PR:

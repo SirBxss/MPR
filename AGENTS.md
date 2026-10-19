@@ -1,6 +1,35 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-19 PR #39 corrective review
+## Current checkpoint: 2026-10-19 owner-declared generic cohort candidate
+
+PR #39 is merged at main `183825a`, tree `56b624d`, reviewed head `5b1be94`.
+Authenticated a2 CI `39245286754` tests merge `3bf327e` with that same tree;
+Python 3.10.22/3.12.15 each ran 833 tests, 831 passed and two expected skips.
+The selected batch07 numeric return and both readiness-recovery successors pass
+independent exact-lineage/raw-free validation. Private support/markers remain in
+the delivered review. Do not rerun either task or reapply PR #39.
+
+The owner explicitly declares existing folder/source IDs to represent separate
+drives. Record this as `owner_declared_not_independently_verified`; IDs label
+sessions while SHA-256 identifies bytes. Do not invent acquisition UTC or claim
+independent verification. Preserve old null declarations and possible links.
+
+Read `docs/generic_cohort_v01914.md`. The candidate implements pinned owner
+evidence, unchanged support gates, cross-raw identity/possible-component checks,
+an exposure-aware prospective final draw, immutable cohort replay and an initial
+snapshot-bound matched development data/fold view. First-successful-lock binding,
+all reservations and original resets remain. No old training CLI is rewired;
+model-admission flags remain false and both flows remain synthetic-only. Later
+exports need a reviewed descendant-registry model adapter.
+
+The private helper appends recovered reports and owner-confirmed session claims
+to the latest registry and creates a separate cohort lock, only after focused GO,
+exact pushed-head CI and owner merge. It performs no raw scan, numeric opt-in,
+fit, raw move or deletion. Agent-workspace commands in the earlier review ZIP
+were not owner commands; use only the new delivery's explicit owner instructions.
+Earlier inconsistent checkpoints below are historical.
+
+## Historical checkpoint: 2026-10-19 PR #39 corrective review
 
 PR #39 is open at owner head `83fdd54`, tree `12791e0`, with main `734876b`.
 Read `docs/artifact_registry_pr39_a2_review_20261019.md`. Both Claude blockers
