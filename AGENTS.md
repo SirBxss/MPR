@@ -1,6 +1,38 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-18 generic registry/reader implemented; full collection screen prepared
+## Current checkpoint: 2026-10-19 PR #39 corrective review
+
+PR #39 is open at owner head `83fdd54`, tree `12791e0`, with main `734876b`.
+Read `docs/artifact_registry_pr39_a2_review_20261019.md`. Both Claude blockers
+were reproduced. The same-PR a2 delta adds conservative shared-locator raw links
+and a durable reviewed-producer tuple, never automatic own-release acceptance.
+It also preserves contradictory declarations, fixed dataset flags, explicit
+session unknowns, failed-export authorization evidence, pre-side-effect path
+checks, private replay temporaries and late source/durable-marker checks.
+Scientific files, numeric schemas/arithmetic, timing guards and raw limits stay
+unchanged. Do not reapply the original docs/implementation or create a new PR.
+Local Python 3.12.14/MCAP 1.5 passes compileall, 45 focused tests and full
+833 run/831 passed/two unchanged skips; fresh raw-free acceptance reconciles
+existing numeric archives plus the returned collection metadata under fixed caps.
+
+Authenticated original-head CI logs confirm Python 3.10/3.12 each 814 tests with
+two skips, on merge `45e5b80` with the reviewed tree. That is not corrective-head
+CI. Require focused a2 review and new-head CI before owner merge. Refresh the
+private registry-build helper's exact tree/runtime/input pins for this delta;
+the earlier helper is stale and must not be bypassed.
+
+The whole fixed collection has now been attempted. Completed counts-only reports
+and preserved resource-inconclusive reports reconcile; no numeric export or fit
+follows. Exact private yields/identities remain in the private final review ZIP.
+Do not resume completed sealed attempts. Recover only the failed readiness work
+through a separately reviewed successor, preserving every predecessor/attempt.
+New numeric processing must use a compatible frozen reviewed producer; current
+integration source does not accept older same-producer readiness for exporting.
+Keep physical-drive evidence, reservations, timing interpretation, cohort/splits
+and existing real-fit/flow gates explicit. No raw relocation/deletion or bulk
+numeric opt-in is authorized. Earlier checkpoints are historical.
+
+## Historical checkpoint: 2026-10-18 generic registry/reader implemented; full collection screen prepared
 
 PR #38 and the owner documentation checkpoint remain the accepted baseline:
 main merge `734876b`, owner `789b858`, full tree `b8c7e979`, runtime `45f1f96…`.

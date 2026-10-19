@@ -1,10 +1,37 @@
 # Current project status
 
-Last updated: 2026-10-18. This is the first file a new agent should read after
+Last updated: 2026-10-19. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-18 registry/reader candidate and full counts-only collection screen
+## Current 2026-10-19 PR #39 a2 correction and completed collection attempts
+
+PR #39 remains open at owner `83fdd54`, tree `12791e0`, on main `734876b`.
+Both independent review blockers were reproduced and corrected in the same PR:
+download aliases now propagate conservative exclusion without inventing session
+identity, and persisted datasets require a durable reviewed producer tuple.
+Read [the full evaluation](artifact_registry_pr39_a2_review_20261019.md) for the
+additional local robustness fixes, verification and private handoff changes.
+Original-head authenticated CI confirms both matrix jobs ran 814 tests with two
+skips at merge `45e5b80`; corrected-head review/CI remain required before merge.
+
+The owner has completed all fixed collection screening attempts after freeing
+RAM. New work completed; earlier memory-inconclusive attempts remain preserved.
+The final returned ZIP and all previous evidence reconcile. Exact support and
+private identities belong in the private final-counts review, not public Git.
+The data materially improves H100/complete-frame support, but complete-condition
+sequences remain short and drive independence is not inferred from download IDs.
+
+Next: apply the one a2 delta on the existing PR branch, tests, focused review,
+new-head CI and owner merge; use the refreshed private helper to import the
+existing adopted archives. Do not use its earlier tree/runtime pins or rerun
+successful readiness. A later separately reviewed handoff must recover failed
+readiness and select authorized new development exports on a compatible frozen
+producer. Then finish session/reservation-aware cohort/splits, matched comparison
+rows and existing real-fit gates. Both flows remain synthetic-only. No raw move,
+deletion, broad consent change or extra data download is required by this fix.
+
+## Historical 2026-10-18 registry/reader candidate and full counts-only collection screen
 
 The accepted baseline remains merged PR #38 plus the owner's already applied
 numeric-pilot documentation checkpoint. Additional generic numeric archives

@@ -1,6 +1,6 @@
 """Content-addressed, self-contained private snapshots of immutable evidence."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -13,7 +13,8 @@ import time
 
 from ..domain import artifact_registry as policy, numeric_export as numeric
 from .numeric_export_inputs import _registration, read_bytes, read_json, canonical, equal
-from .generic_dataset import load_generic_archive
+from .generic_dataset import load_generic_archive, _frozen
+from ..workflows.recording_ingestion import _runtime
 
 require, keys, digest = policy.require, policy.keys, policy.digest
 REGISTRATION_FILES = {"registration.json", "source_specification.json"}
@@ -82,8 +83,12 @@ class ObjectStore:
         return h
 
     def add(self, path, expected=None):
-        path = Path(path).expanduser().absolute()
-        require(str(path) not in self.raw_paths and not path.name.endswith((".mcap", ".mcap.zst")), "registry_raw_payload_input_forbidden")
+        path = Path(os.path.abspath(Path(path).expanduser()))
+        require(str(path) not in self.raw_paths and not path.name.lower().endswith((".mcap", ".mcap.zst")), "registry_raw_payload_input_forbidden")
+        require(not path.is_symlink(), "registry_metadata_symlink_forbidden")
+        # Resolve only the candidate's parent; never resolve/stat the registered
+        # raw endpoint. This also catches aliases through a symlinked directory.
+        require(str(path.parent.resolve()/path.name) not in self.raw_paths, "registry_raw_payload_input_forbidden")
         raw, state = read_bytes(path, policy.MAX_OBJECT_BYTES)
         h = self.watch(path, raw, state)
         if expected is not None:
@@ -130,10 +135,37 @@ def original_receipt(receipt, summary, summary_pin):
         "registry_validation_runtime_missing")
 
 
-def replay(events, objects, checkpoint=lambda: None):
+def inconclusive_attempt(summary, registration, reg_pin):
+    """Retain a failed attempt as reservation evidence, never as a dataset."""
+    keys(summary, numeric.SUMMARY_FIELDS)
+    require(summary["contract_revision"] == numeric.REVISION and summary["scientific_policy_revision"] == numeric.REVISION and
+        summary["purpose"] == numeric.PURPOSE and summary["status"] == "inconclusive", "registry_numeric_attempt_invalid")
+    require(type(summary["failure_code"]) is str and bool(summary["failure_code"]), "registry_numeric_attempt_invalid")
+    require(summary["registration_sha256"] == reg_pin and summary["source_specification_sha256"] == registration["source_specification_sha256"],
+        "registry_numeric_attempt_identity")
+    require(all(summary[k] is False for k in ("roles_assigned", "cohort_lock_created", "model_fitted", "standardizers_fitted",
+        "residuals_exported", "numeric_conditions_exported", "physical_input_availability_proven", "reference_independence_proven",
+        "raw_cache_deletion_authorized")), "registry_numeric_attempt_scope")
+    require(summary["independent_outing_count"] is None and summary["artifacts_sha256"] == {} and
+        all(summary[k] is None for k in ("pre_residual_candidate_count", "pre_residual_complete_condition_count",
+            "condition_failure_counts", "residual_failure_counts", "support")), "registry_numeric_attempt_scope")
+    for key in ("runtime_source_sha256", "preserved_readiness_runtime_source_sha256", "preserved_inventory_report_sha256",
+            "preserved_decode_report_sha256", "preserved_readiness_report_sha256", "exposure_authorization_sha256"):
+        digest(summary[key])
+    require(type(summary["technical_recording_count"]) is int and type(summary["recordings"]) is list and
+        len(summary["recordings"]) == summary["technical_recording_count"] == len(registration["recordings"]),
+        "registry_numeric_attempt_recordings")
+    for row, identity in zip(summary["recordings"], registration["recordings"]):
+        keys(row, numeric.RECORDING_FIELDS)
+        equal({k:row[k] for k in ("recording_id", "raw_sha256", "size_bytes")},
+            {k:identity[k] for k in ("recording_id", "raw_sha256", "size_bytes")}, "registry_numeric_attempt_identity")
+        require(row["outcome_exposure"] is None, "registry_numeric_attempt_scope")
+
+
+def replay(events, objects, checkpoint=lambda: None, *, temporary_parent):
     """Semantic rebuild from pinned objects; the cached index is never authority."""
     require(type(events) is list and len(events) <= policy.MAX_EVENTS, "registry_event_limit")
-    registrations, auths, archives, links, cache, datasets = {}, {}, {}, [], {}, {}
+    registrations, auths, archives, links, cache, datasets, attempts = {}, {}, {}, [], {}, {}, {}
     dataset_bytes = 0
     for event in events:
         checkpoint()
@@ -143,24 +175,27 @@ def replay(events, objects, checkpoint=lambda: None):
             keys(event, {"kind", "files", "reports"} if kind == "registration" else {"kind", "files"})
             require(type(event["files"]) is dict and set(event["files"]) == (REGISTRATION_FILES if kind == "registration" else ARCHIVE_FILES),
                 "registry_artifact_file_set")
-            with tempfile.TemporaryDirectory(prefix="mpr-registry-validate-") as temporary:
+            with tempfile.TemporaryDirectory(prefix=".registry-validate-", dir=temporary_parent) as temporary:
                 folder = Path(temporary)
                 materialize(folder, event["files"], objects)
                 registration_dir = folder if kind == "registration" else folder/"registration"
                 spec, reg, reg_pin = _registration(registration_dir)
                 registrations[reg_pin] = (spec, reg, reg_pin)
                 if kind == "registration":
-                    require(type(event["reports"]) is list and len(event["reports"]) <= 3)
+                    require(type(event["reports"]) is list and len(event["reports"]) <= 4)
                     require(len({r["role"] for r in event["reports"]}) == len(event["reports"]), "registry_duplicate_report_role")
                     for report in event["reports"]:
                         keys(report, {"role", "sha256"})
-                        require(report["role"] in {"inventory", "decode", "readiness"})
+                        require(report["role"] in {"inventory", "decode", "readiness", "numeric_attempt"})
                         digest(report["sha256"])
                         require(report["sha256"] in objects, "registry_evidence_missing")
                         data = decode(objects[report["sha256"]])
                         require(data.get("batch_id") == reg["batch_id"] and data.get("registration_sha256") == reg_pin and
                             data.get("source_specification_sha256") == reg["source_specification_sha256"], "registry_report_lineage_mismatch")
                         require(data.get("status") in {"complete", "inconclusive"}, "registry_report_status")
+                        if report["role"] == "numeric_attempt":
+                            inconclusive_attempt(data, reg, reg_pin)
+                            attempts[report["sha256"]] = data
                 else:
                     files = event["files"]
                     summary = decode(objects[files["numeric/numeric_export.json"]])
@@ -209,7 +244,13 @@ def replay(events, objects, checkpoint=lambda: None):
             spec, reg, _ = registrations[auth["registration_sha256"]]
             require(auth["batch_id"] == reg["batch_id"] and auth["source_specification_sha256"] == reg["source_specification_sha256"] and
                 auth["authorized_raw_sha256"] == sorted(r["raw_sha256"] for r in reg["recordings"]), "registry_authorization_registration_conflict")
-    rows = policy.build_index(list(registrations.values()), list(auths.items()), list(archives.items()), links, cache)
+    for summary in attempts.values():
+        require(summary["exposure_authorization_sha256"] in auths, "registry_attempt_authorization_missing")
+        auth = auths[summary["exposure_authorization_sha256"]]
+        equal({k:auth[k] for k in ("batch_id", "registration_sha256", "source_specification_sha256")},
+            {k:summary[k] for k in ("batch_id", "registration_sha256", "source_specification_sha256")}, "registry_attempt_authorization_conflict")
+        equal(auth["preserved_readiness_report_sha256"], summary["preserved_readiness_report_sha256"], "registry_attempt_authorization_conflict")
+    rows = policy.build_index(list(registrations.values()), list(auths.items()), list(archives.items()), links, cache, attempts=list(attempts.items()))
     return rows, datasets
 
 
@@ -221,7 +262,8 @@ def load_registry(directory, expected_registry_sha256):
     metadata, pin, _ = read_json(directory/"registry.json")
     require(pin == digest(expected_registry_sha256), "registry_snapshot_digest_mismatch")
     keys(metadata, {"contract_revision", "parent_registry_sha256", "created_at_utc", "events", "objects_sha256", "records",
-        "model_admission_authorized", "roles_assigned", "raw_cache_deletion_authorized"})
+        "model_admission_authorized", "roles_assigned", "raw_cache_deletion_authorized", "runtime_source_sha256"})
+    digest(metadata["runtime_source_sha256"])
     require(metadata["contract_revision"] == policy.REVISION)
     require(all(metadata[k] is False for k in ("model_admission_authorized", "roles_assigned", "raw_cache_deletion_authorized")))
     if metadata["parent_registry_sha256"] is not None:
@@ -235,17 +277,35 @@ def load_registry(directory, expected_registry_sha256):
         store.add(folder/digest(name), name)
     def checkpoint():
         require(time.monotonic() <= store.deadline, "registry_validation_time_limit")
-    rows, datasets = replay(metadata["events"], store.objects, checkpoint)
+    rows, datasets = replay(metadata["events"], store.objects, checkpoint, temporary_parent=directory.parent)
     require(canonical(rows) == canonical(metadata["records"]), "registry_cached_index_does_not_match_evidence")
     store.unchanged()
     return metadata, store.objects, datasets
+
+
+def _private_output(project, output_directory):
+    output = Path(output_directory).expanduser().absolute()
+    private = project/"data/catalog/private"
+    require(".." not in output.parts and output.is_relative_to(private) and output != private and not os.path.lexists(output),
+        "registry_new_private_snapshot_required")
+    require(private.resolve() == private and output.parent.resolve() == output.parent, "registry_output_parent_symlink_or_existing")
+    return output
+
+
+def _fsync_directory(folder):
+    fd = os.open(folder, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
 
 
 def _import_evidence_locked(manifest_path, *, project_root, output_directory, previous_directory=None,
         expected_previous_sha256=None, observe_cache=False):
     """Append evidence to a new private snapshot; never modify prior snapshots."""
     project = Path(project_root).expanduser().resolve(strict=True)
-    output = Path(output_directory).expanduser().absolute()
+    runtime = digest(_runtime(include_compression=True)["runtime_source_sha256"])
+    output = _private_output(project, output_directory)
     private = project/"data/catalog/private"
     require(output.is_relative_to(private) and output != private and not os.path.lexists(output), "registry_new_private_snapshot_required")
     import subprocess
@@ -272,6 +332,13 @@ def _import_evidence_locked(manifest_path, *, project_root, output_directory, pr
         if event not in events:
             require(len(events) < policy.MAX_EVENTS, "registry_event_limit")
             events.append(event)
+    # Learn every declared raw path before reading any supplied report/archive
+    # path, including paths belonging to a later archive entry.
+    for entry in [*manifest["registrations"], *manifest["archives"]]:
+        checkpoint()
+        spec, reg, _ = _registration(entry["registration_directory"])
+        store.raw_paths.update(r["canonical_path_private"] for r in reg["recordings"])
+        store.raw_paths.update(r["local_path_private"] for r in spec["recordings"])
     # Registrations are read before other evidence so raw paths can be excluded.
     for entry in manifest["registrations"]:
         keys(entry, {"registration_directory", "expected_registration_sha256", "reports"})
@@ -279,6 +346,7 @@ def _import_evidence_locked(manifest_path, *, project_root, output_directory, pr
         spec, reg, pin = _registration(folder)
         require(pin == digest(entry["expected_registration_sha256"]), "registry_registration_digest_mismatch")
         store.raw_paths.update(r["canonical_path_private"] for r in reg["recordings"])
+        store.raw_paths.update(r["local_path_private"] for r in spec["recordings"])
         files = {name: store.add(folder/name, pin if name == "registration.json" else reg["source_specification_sha256"]) for name in sorted(REGISTRATION_FILES)}
         reports = []
         require(type(entry["reports"]) is list)
@@ -291,6 +359,7 @@ def _import_evidence_locked(manifest_path, *, project_root, output_directory, pr
         folder, numeric_dir = Path(entry["registration_directory"]), Path(entry["export_directory"])
         spec, reg, reg_pin = _registration(folder)
         store.raw_paths.update(r["canonical_path_private"] for r in reg["recordings"])
+        store.raw_paths.update(r["local_path_private"] for r in spec["recordings"])
         paths = {"registration/registration.json": (folder/"registration.json", reg_pin),
             "registration/source_specification.json": (folder/"source_specification.json", reg["source_specification_sha256"]),
             "lineage/inventory.json": (entry["preserved_inventory_report"], None),
@@ -331,7 +400,7 @@ def _import_evidence_locked(manifest_path, *, project_root, output_directory, pr
             evidence.append(store.add(entry["path"], entry["expected_sha256"]))
         add({"kind": "relationship", "claim": {k: claim[k] for k in ("left", "right", "status")} | {"evidence_sha256": evidence}})
     if observe_cache:
-        rows, _ = replay(events, store.objects, checkpoint)
+        rows, _ = replay(events, store.objects, checkpoint, temporary_parent=private)
         for row in rows:
             for path in row["canonical_paths_private"]:
                 try:
@@ -343,7 +412,7 @@ def _import_evidence_locked(manifest_path, *, project_root, output_directory, pr
                     state, identity = "unavailable", None
                 add({"kind": "cache_observation", "raw_sha256": row["raw_sha256"], "path_private": path,
                     "state": state, "stat_identity": identity, "observed_at_utc": datetime.now(timezone.utc).isoformat()})
-    rows, _ = replay(events, store.objects, checkpoint)
+    rows, _ = replay(events, store.objects, checkpoint, temporary_parent=private)
     store.unchanged()
     require(scan_paths == sorted(authorization_dir.rglob("*.json")), "registry_authorization_set_changed")
     # A new cold index or update from an older branch must not forget prior consent.
@@ -357,6 +426,7 @@ def _import_evidence_locked(manifest_path, *, project_root, output_directory, pr
             require(type(existing.get("events")) is list and all(canonical(event) in inherited_events for event in existing["events"]),
                 "registry_previous_omits_existing_history")
     metadata = {"contract_revision": policy.REVISION, "parent_registry_sha256": expected_previous_sha256,
+        "runtime_source_sha256": runtime,
         "created_at_utc": datetime.now(timezone.utc).isoformat(), "events": events, "objects_sha256": sorted(store.objects),
         "records": rows, "model_admission_authorized": False, "roles_assigned": False, "raw_cache_deletion_authorized": False}
     raw = (json.dumps(metadata, sort_keys=True, indent=2, allow_nan=False)+"\n").encode()
@@ -371,15 +441,14 @@ def _import_evidence_locked(manifest_path, *, project_root, output_directory, pr
             stream.write(value); stream.flush(); os.fsync(stream.fileno())
     for pin, value in store.objects.items():
         write(output/"objects"/pin, value)
+    for folder in (output/"objects", output, output.parent):
+        _fsync_directory(folder)
     store.unchanged()
     require(scan_paths == sorted(authorization_dir.rglob("*.json")), "registry_authorization_set_changed")
+    require(_runtime(include_compression=True)["runtime_source_sha256"] == runtime, "registry_runtime_source_changed")
     write(output/"registry.json", raw)  # commit marker is installed last
-    for folder in (output/"objects", output, output.parent):
-        fd = os.open(folder, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-        try:
-            os.fsync(fd)
-        finally:
-            os.close(fd)
+    for folder in (output, output.parent):
+        _fsync_directory(folder)
     return metadata, sha(raw)
 
 
@@ -390,8 +459,7 @@ def import_evidence(manifest_path, *, project_root, output_directory, previous_d
     import subprocess
     project = Path(project_root).expanduser().resolve(strict=True)
     private = project/"data/catalog/private"
-    output = Path(output_directory).expanduser().absolute()
-    require(output.is_relative_to(private) and output != private and not os.path.lexists(output), "registry_new_private_snapshot_required")
+    output = _private_output(project, output_directory)
     require(subprocess.run(["git", "-C", str(project), "check-ignore", "--no-index", "--quiet", str(output)],
         capture_output=True).returncode == 0, "registry_private_output_must_be_gitignored")
     require(private.resolve() == private, "registry_private_root_symlink")
@@ -413,7 +481,8 @@ def import_evidence(manifest_path, *, project_root, output_directory, previous_d
 class GenericDatasetCollection:
     registry_sha256: str
     archives: tuple
-    model_admission_authorized: bool = False
+    session_state_by_raw: object
+    model_admission_authorized: bool = field(default=False, init=False)
 
     def require_model_admission(self):
         raise policy.RegistryError("generic_dataset_engineering_only_no_model_admission")
@@ -436,4 +505,7 @@ def load_registry_dataset(directory, expected_registry_sha256, archive_sha256):
             "registry_dataset_exposure_conflict")
         seen.update(raws)
         selected.append(dataset)
-    return GenericDatasetCollection(expected_registry_sha256, tuple(selected))
+    state_fields = ("session_link_unresolved", "session_link_conflict", "session_evidence_absent",
+        "declared_physical_session_ids", "source_declared_physical_session_ids")
+    return GenericDatasetCollection(expected_registry_sha256, tuple(selected),
+        _frozen({h:{k:rows[h][k] for k in state_fields} for h in sorted(seen)}))

@@ -44,6 +44,14 @@ All-false drafts confer no reservation; partial/non-Boolean attestations stop
 the import for reconciliation. The importer never changes an attestation or
 creates accepted consent. Archive-consumed adopted records are retained even
 when they are outside the current project directory.
+This scan strictly parses every lowercase `*.json`, including unrelated files;
+non-strict, duplicate-key or oversized configuration stops the import. Other
+suffixes and external locations require explicit `additional_authorizations`.
+An optional registration report with role `numeric_attempt` retains a pinned
+inconclusive numeric summary. Its adopted authorization must also be present
+as an event, with matching registration/specification/readiness pins; a missing
+external authorization fails before snapshot publication. Failed attempts add
+reservation/attempt evidence, never publication, numeric support or a dataset.
 
 Raw identity is the exact byte digest, not a path, basename, RAAS ID, registry
 row or archive. Source locators, recording aliases and declared physical-session
@@ -53,6 +61,13 @@ links; they never prove independence. Confirmed links, unresolved links,
 conflicting links and their immutable evidence remain explicit. Existing
 uncertainty/conflicts are retained by this slice; resolving them for a later
 cohort requires reviewed adjudication rather than deleting old events.
+Different raw digests with the same non-null source recording ID or exact
+canonical-JSON source locator acquire possible raw-to-raw links, evidenced by
+the declaring source-specification digests. These links carry exclusion even
+if an alias later acquires a confirmed session; they never turn a locator into
+a session node. Contradictory source-declared sessions mark the whole possible
+component conflicting. `session_evidence_absent` distinguishes no session
+evidence from an unresolved or conflicting declaration.
 
 Reservations and observed complete publication are separate states. Either
 excludes linked outings from future final selection. Potential/unresolved links
@@ -73,9 +88,11 @@ Empty folders cannot substitute for the pinned recording/locator evidence.
 
 `io.generic_dataset.load_generic_archive` calls `read_pinned_summary`, the
 producer-bound metadata loader and the strict `validate_archive`. It accepts
-the independently reviewed numeric producer fingerprint `45f1f96…` and the
-installed consumer's own exact runtime release. An arbitrary producer digest
-in an input summary is rejected. Existing v0.19.12 readiness is validated against
+only the versioned `REVIEWED_NUMERIC_PRODUCERS` tuple, currently the independently
+reviewed fingerprint `45f1f96…`. Matching the installed consumer's own source
+is insufficient. Future producer additions require explicit compatibility review
+of a frozen producer release; no self-fingerprint or input metadata extends this
+policy. Existing v0.19.12 readiness is validated against
 its pinned producer, so a new integration release does not force successful
 readiness to be rerun or its digest changed.
 
@@ -83,7 +100,10 @@ readiness to be rerun or its digest changed.
 snapshot, requires an explicit unique archive selection, rejects repeated raw
 identity across selected archives and blocks session/exposure contradictions.
 It returns a tuple of separate `GenericArchiveDataset` objects; no file boundary
-is stitched. The archive view exposes:
+is stitched. Its immutable `session_state_by_raw` mapping carries declared and
+source-declared session IDs, unresolved/conflicting state and absent-evidence
+flags for every selected raw. Both dataset types have non-constructible fixed
+false model-admission flags. The archive view exposes:
 
 | Interface | Meaning |
 |---|---|
@@ -105,8 +125,18 @@ The CLI applies a 4 GiB process address-space cap and restores its caller's cap.
 Metadata objects are bounded to 256 MiB, total objects/observed input to 1 GiB,
 retained array memory to 512 MiB, events to 10,000 and validation to 300 s.
 These are new metadata-consumer limits; accepted raw-decoder/science limits are
-unchanged. The new marker is written last with exclusive file creation and
-fsync. A failed publication without its marker is not a completed snapshot.
+unchanged. These byte limits are independent of outing-count admission; do not
+assume seven maximum-size NPZ files plus their JSON evidence fit. Check actual
+unique object bytes, watched input bytes and retained array bytes before later
+bulk intake; an increase needs a separate resource review. No cap is relaxed.
+Output traversal and symlinked parents are rejected before directory creation.
+Replay temporaries live beside the private snapshots, not in global system temp;
+they inherit private temporary-directory permissions and may survive a kill in
+that private area. The object/output/parent directories are fsynced before the
+final marker; source and inputs are rechecked just before it. The marker records
+the creating release's `runtime_source_sha256`, is installed with exclusive
+creation and fsync, and is followed by output/parent fsync. A failed publication
+without its marker is not a completed snapshot.
 
 ## Import schema and commands
 
@@ -116,7 +146,9 @@ has `contract_revision`, `registrations`, `archives`, `relationships` and
 
 - A registration has `registration_directory`, `expected_registration_sha256`
   and `reports`. Each optional report has `role` (`inventory`, `decode` or
-  `readiness`), `path` and `expected_sha256`.
+  `readiness`, or `numeric_attempt`), `path` and `expected_sha256`. An inconclusive
+  numeric attempt requires its adopted authorization, including an explicitly
+  listed/pinned external authorization when the project scan cannot find it.
 - An archive uses the existing numeric validator's registration/inventory/decode/
   readiness/authorization/export paths and the three original expected pins,
   plus `validation_receipt` and `expected_validation_receipt_sha256`. Exact
@@ -166,8 +198,12 @@ additional documentation-only round or old successful raw pilot is required.
 
 ## Local verification checkpoint
 
-Python 3.12.14: compileall passes; 26 focused registry/reader tests pass; full
-814 run /812 passed /two unchanged expected skips. The independently executed
+The original candidate's Python 3.12.14 checks passed: 26 focused tests and full
+814 run /812 passed /two unchanged expected skips. The PR #39 a2 correction is
+recorded in [the review evaluation](artifact_registry_pr39_a2_review_20261019.md).
+The correction passes 45 focused tests and full 833 run/831 passed/two unchanged
+skips, plus a fresh raw-free accepted-archive and returned-report import.
+The independently executed
 read-only returned-archive acceptance confirms producer compatibility, exact
 matched rows/resets, immutable original inputs, no raw stat/open, unresolved
 session linkage and no role/fit/retirement. Private measurements and identities

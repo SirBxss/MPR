@@ -2,11 +2,15 @@
 
 from collections import defaultdict
 import hashlib
+import json
 import re
 
 REVISION = "v0.19.13-private-artifact-registry-2026-10-18"
 MANIFEST_REVISION = "v0.19.13-private-registry-import-2026-10-18"
 ACCEPTED_NUMERIC_PRODUCER = "45f1f96fb3709fb9a41a482374aecc5c8453cd1a315cd5bb2b4c693fbd3d3bdf"
+# Durable compatibility policy: never accept an unreviewed installed release
+# merely because its fingerprint happens to equal an archive's producer today.
+REVIEWED_NUMERIC_PRODUCERS = (ACCEPTED_NUMERIC_PRODUCER,)
 MAX_EVENTS = 10_000
 MAX_OBJECT_BYTES = 256 * 1024**2
 MAX_TOTAL_BYTES = 1024**3
@@ -62,7 +66,7 @@ class Components:
         self.parent[max(left, right)] = min(left, right)
 
 
-def build_index(registrations, authorizations, archives, relationships, cache):
+def build_index(registrations, authorizations, archives, relationships, cache, *, attempts=()):
     """Rebuild disposable rows from pinned evidence, retaining every reservation.
 
     Potential links conservatively carry exclusion. Only confirmed links carry
@@ -70,11 +74,13 @@ def build_index(registrations, authorizations, archives, relationships, cache):
     """
     records = {}
     declaration_links = []
+    locator_groups = defaultdict(lambda: defaultdict(set))
     def record(raw):
         digest(raw)
         return records.setdefault(raw, {"raw_sha256": raw, "size_bytes": None,
             "registration_aliases": [], "source_locators": [], "canonical_paths_private": [],
             "authorization_sha256": [], "complete_archive_sha256": [],
+            "inconclusive_numeric_attempt_sha256": [],
             "permanent_development_reservation": False, "complete_publication_observed": False})
     for entry in registrations:
         spec, registration, pin = entry
@@ -92,6 +98,10 @@ def build_index(registrations, authorizations, archives, relationships, cache):
             locator = declaration["source"]
             if locator not in value["source_locators"]:
                 value["source_locators"].append(locator)
+            for key in ("source_recording_id_private", "source_locator_private"):
+                if locator.get(key) is not None:
+                    exact = json.dumps(locator[key], sort_keys=True, allow_nan=False, separators=(",", ":"))
+                    locator_groups[key, exact][identity["raw_sha256"]].add(registration["source_specification_sha256"])
             # A pre-existing session declaration is evidence of a possible link,
             # never an independent-outing admission. Do not ignore it at import.
             if locator.get("physical_session_id_private") is not None:
@@ -99,6 +109,13 @@ def build_index(registrations, authorizations, archives, relationships, cache):
                     "right": "session:source-declared-"+hashlib.sha256(locator["physical_session_id_private"].encode("utf-8")).hexdigest(),
                     "status": "unresolved",
                     "evidence_sha256": [registration["source_specification_sha256"]]})
+    for group in locator_groups.values():
+        # A spanning star is sufficient and avoids quadratic alias expansion.
+        # These possible raw links carry exclusion, never a session identity.
+        raws = sorted(group)
+        for raw in raws[1:]:
+            declaration_links.append({"left":"raw:"+raws[0], "right":"raw:"+raw,
+                "status":"unresolved", "evidence_sha256":sorted(group[raws[0]] | group[raw])})
     for pin, auth in authorizations:
         for raw in auth["authorized_raw_sha256"]:
             value = record(raw)
@@ -113,6 +130,12 @@ def build_index(registrations, authorizations, archives, relationships, cache):
             value["complete_publication_observed"] = True
             if pin not in value["complete_archive_sha256"]:
                 value["complete_archive_sha256"].append(pin)
+    for pin, summary in attempts:
+        for identity in summary["recordings"]:
+            value = record(identity["raw_sha256"])
+            require(summary["exposure_authorization_sha256"] in value["authorization_sha256"], "registry_attempt_without_reservation")
+            if pin not in value["inconclusive_numeric_attempt_sha256"]:
+                value["inconclusive_numeric_attempt_sha256"].append(pin)
     confirmed, potential, session_aliases = Components(), Components(), Components()
     unresolved, explicit_conflicts = set(), set()
     for link in [*declaration_links, *relationships]:
@@ -142,16 +165,20 @@ def build_index(registrations, authorizations, archives, relationships, cache):
         if r["permanent_development_reservation"] or r["complete_publication_observed"]}
     uncertain_components = {potential.find(n) for n in unresolved}
     conflict_components = {potential.find(n) for n in explicit_conflicts}
+    source_sessions = {raw: sorted({s["physical_session_id_private"] for s in value["source_locators"]
+        if s.get("physical_session_id_private") is not None}) for raw, value in records.items()}
+    conflict_components.update(potential.find("raw:"+raw) for raw, names in source_sessions.items() if len(names) > 1)
+    session_evidence_components = {potential.find(n) for n in tuple(potential.parent) if n.startswith("session:")}
     for raw, value in sorted(records.items()):
         n = "raw:"+raw
         names = sorted(sessions[confirmed.find(n)])
         conflicting_identity = len({session_aliases.find(s) for s in names}) > 1
         possible = potential.find(n)
         value.update(declared_physical_session_ids=[s[8:] for s in names],
-            source_declared_physical_session_ids=sorted({s["physical_session_id_private"] for s in value["source_locators"]
-                if s.get("physical_session_id_private") is not None}),
+            source_declared_physical_session_ids=source_sessions[raw],
             session_link_unresolved=possible in uncertain_components,
             session_link_conflict=conflicting_identity or possible in conflict_components,
+            session_evidence_absent=possible not in session_evidence_components,
             linked_development_exclusion=possible in reserved_components,
             independent_outing_admitted=False, cohort_role=None, model_admission_authorized=False,
             final_candidate_authorized=False, raw_cache_deletion_authorized=False,
