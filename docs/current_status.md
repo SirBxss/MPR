@@ -1,10 +1,39 @@
 # Current project status
 
-Last updated: 2026-10-19. This is the first file a new agent should read after
+Last updated: 2026-10-20. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-19 owner-declared generic cohort implementation candidate
+## Current 2026-10-20 PR #40 MCAP compatibility correction
+
+PR #40's actual owner head is `681cbf9`, tree `b6fac873`, with unchanged main
+`183825a`. CI run `39385094591` tested merge `0da60c0`; both Python jobs compiled
+and ran 864 tests, with eight failures, seven errors and two expected skips.
+The install logs show MCAP 1.6.0 rather than the earlier local 1.5.0. Its inherited
+decoder now forwards `starting_at` and `ending_before` even when both are None.
+The custom indexed reader rejected the keyword, producing the observed errors
+and consequent inconclusive-readiness assertions. Local reproduction confirms
+the exact error; no private MCAP or accepted output was rerun.
+
+The [same-PR correction](generic_cohort_v01914.md) accepts only the unfiltered
+new defaults. All six old/new time bounds remain unsupported when supplied,
+including zero. Existing storage-order/resource/CRC behavior and all science,
+declarations, reservations and cohort thresholds remain fixed. Two native
+regressions check null-bound byte/message parity across three compressions and
+pre-summary/pre-payload rejection of actual bounds.
+
+Local compileall and full MCAP 1.6.0 checks pass under Python 3.10.22/3.12.14:
+866 tests each, 864 passed and two expected skips. The 104 focused current-reader
+checks and 180 focused MCAP 1.5.0/previous-decoder checks also pass. Local runs
+do not substitute for GitHub's actual corrected-head matrix.
+
+Next: apply the single delta on PR #40's branch, independent delta GO, corrected
+pushed-head Python 3.10/3.12 CI and owner merge. The corrective delivery refreshes
+the private metadata helper's exact source pins; its earlier version must not
+be used. The prospective owner lock is still unexecuted. No new raw processing,
+numeric export, fit or final-data exposure follows from fixing CI.
+
+## Historical 2026-10-19 owner-declared generic cohort implementation candidate
 
 PR #39 is merged at `183825a`, tree `56b624d`, reviewed head `5b1be94`.
 Authenticated a2 CI `39245286754` tested merge `3bf327e` with that tree;

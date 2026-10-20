@@ -55,8 +55,12 @@ class IndexedStorageReader(SeekingReader):
         self._storage_validate_crcs = kwargs.get("validate_crcs", False)
 
     def iter_messages(self, topics=None, start_time=None, end_time=None,
-                      log_time_order=True, reverse=False):
-        if log_time_order or reverse or start_time is not None or end_time is not None:
+                      log_time_order=True, reverse=False, *, starting_at=None,
+                      starting_after=None, ending_at=None, ending_before=None):
+        # MCAP 1.6 forwards the new bounds even for an unfiltered decoded read.
+        # Accept their None defaults, but retain the full storage-order contract.
+        if log_time_order or reverse or any(bound is not None for bound in (
+                start_time, end_time, starting_at, starting_after, ending_at, ending_before)):
             raise RecordingReadError("indexed_storage_order_without_time_filter_required")
         topics = None if topics is None else {topics} if isinstance(topics, str) else set(topics)
         summary = self.get_summary()

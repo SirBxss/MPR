@@ -1,6 +1,29 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-19 owner-declared generic cohort candidate
+## Current checkpoint: 2026-10-20 PR #40 MCAP compatibility correction
+
+PR #40 is open at owner head `681cbf9`, tree `b6fac873`, on main `183825a`.
+Both jobs in authenticated CI run `39385094591` compiled successfully but failed
+864 tests with eight failures, seven errors and two expected skips. They used
+MCAP 1.6.0; its inherited decoder forwards new time-bound keywords even for
+unfiltered reads, which the indexed storage reader did not accept. The actual
+pushed tree matches the delivered implementation. This is a reproduced reader
+API incompatibility, not evidence against the cohort or the returned data.
+
+The same-PR correction accepts the four new keyword-only None defaults and
+rejects every actual old/new time bound before summary/payload access. Byte
+ordering, chunk/resource/CRC checks, scientific files and cohort policy remain
+unchanged. Read the correction checkpoint in `docs/generic_cohort_v01914.md`.
+Local compileall passes on Python 3.10.22/3.12.14; each full MCAP 1.6.0 run
+passes 866 tests with two expected skips. The 104 focused current-reader checks
+and 180 focused MCAP 1.5.0/old-decoder compatibility checks also pass.
+Apply only the corrective delivery to the existing PR branch; require focused
+independent delta GO and actual corrected-head Python 3.10/3.12 CI before merge.
+Use refreshed private tree/runtime/input pins afterward. Do not run the earlier
+metadata helper or repeat any accepted scan/export. No operational lock or fit
+has been authorized by the CI correction.
+
+## Historical checkpoint: 2026-10-19 owner-declared generic cohort candidate
 
 PR #39 is merged at main `183825a`, tree `56b624d`, reviewed head `5b1be94`.
 Authenticated a2 CI `39245286754` tests merge `3bf327e` with that same tree;

@@ -178,3 +178,39 @@ lstat on a non-MCAP-suffixed alias. Raw-free returned-artifact acceptance passes
 on private copies, including successor recovery/session evidence, cohort replay
 and exact matched inputs. These checks are candidate evidence, not independent
 review, pushed-head Python 3.10/3.12 CI or an operational owner lock.
+
+## 2026-10-20 PR #40 CI compatibility correction
+
+The pushed owner head `681cbf9` has the delivered tree `b6fac873`. Both jobs in
+run `39385094591`, tested merge `0da60c0`, compile but fail the 864-test suite
+with eight failures, seven errors and two expected skips. CI installed MCAP
+1.6.0. Its [reader API](https://mcap.dev/docs/python/_modules/mcap/reader)
+resolves the new bounds and always forwards `starting_at`/`ending_before` to
+`iter_messages`, including their None defaults. The indexed reader's older
+signature caused the reproduced TypeError before decoding. Readiness assertions
+then reported inconclusive results. This does not invalidate preserved returns.
+
+The correction explicitly accepts `starting_at`, `starting_after`, `ending_at`
+and `ending_before` as keyword-only arguments. None retains the exact old full
+physical-file-order read. Every non-None time bound, old or new, is rejected by
+the existing fixed error before summary or payload access; zero is a bound.
+No filters, fallback scan, reordering, resource/CRC relaxation or broad ignored
+keyword arguments are introduced. Two native regressions cover null-bound
+message parity under NONE/ZSTD/LZ4 and rejection of all six bounds at zero,
+negative and positive values. Existing inherited-decoder and corruption/memory
+tests exercise the new upstream call path.
+
+Local verification: compileall and the complete suite pass on Python 3.10.22
+and 3.12.14 with MCAP 1.6.0/new decoder extras (866 run, 864 passed, two unchanged
+skips each). The 104 focused reader/ingestion checks pass on the new set;
+180 focused reader/ingestion/cohort/registry checks pass with MCAP 1.5.0 and
+the earlier decoder extras. Both local full runs use the CI test command and
+Matplotlib settings without adding BLAS-thread limits. The failed CI logs,
+reproduction and environment inventories remain in the private delivery.
+
+Keep this delta in PR #40, refresh private delivery source pins, and require
+independent delta GO plus corrected-head Python 3.10/3.12 CI before owner merge.
+The earlier local 1.5.0 results above remain historical. No accepted artifact,
+producer allowlist, scientific source file, causal-feature definition, cohort
+gate or model authorization changes. The metadata-only owner operation remains
+pending until its existing review/CI/merge conditions are met.
