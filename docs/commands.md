@@ -1,5 +1,13 @@
 # Supported commands
 
+Current 2026-10-20: PR #40's metadata operation is complete. The next candidate
+CLI is `python -m lane_residuals.cli.locked_development_export --help`; its full
+plan/pin interface is in [the v0.19.15 contract](locked_development_export_v01915.md).
+Use only the separately issued private owner helper after implementation/helper
+GO, exact-head CI and owner merge. It exports selected locked development data
+through the frozen producer; no old success, final read or fit is authorized.
+Earlier dated apply/operation instructions below are historical.
+
 The [v0.19.14 cohort candidate](generic_cohort_v01914.md) adds
 `python -m lane_residuals.cli.generic_cohort create|verify`. Its owner metadata
 helper waits for code GO, exact-head CI and merge. Do not run agent-workspace

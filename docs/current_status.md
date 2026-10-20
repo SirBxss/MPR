@@ -4,7 +4,50 @@ Last updated: 2026-10-20. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-20 PR #40 MCAP compatibility correction
+## Current 2026-10-20 accepted operational lock; development-export candidate
+
+PR #40 is merged at `3b8496b`, full-review GO at owner `f23d8b0`, tree
+`dd6b3c65`, runtime `97b1150e…`. Authenticated exact-tree CI `39387751472`
+passes Python 3.10.22/3.12.15: 866 run, two expected skips each. The issued
+metadata-only operation has returned and passed independent ZIP/receipt/source,
+immutable predecessor/object/event, unpatched replay and split/row/reset checks.
+The first operational cohort is binding; roles are not recomputed for new exports.
+Exact private support, IDs, paths, clocks, evidence quality and markers remain
+in the private verified-result packet. Do not rerun that completed operation.
+
+The [v0.19.15 candidate](locked_development_export_v01915.md) fixes strict
+multi-file interval separation and pre-creation immutable-container checks,
+then adds explicit descendant-chain replay, final-exposure invalidation, a
+development-only export controller and a matched descendant engineering view.
+It retains the original lock/readiness selection and frozen numeric producer,
+source/version/resource guards, explicit owner consent, permanent reservations,
+strict validation and original resets. It grants neither fitting nor deletion.
+Public contracts and accepted artifacts retain their schemas and lineage.
+
+Local compileall and the complete suite pass in three environments: Python
+3.10.22/current MCAP, Python 3.12.14/current MCAP and Python 3.12.14/MCAP 1.4.0
+with the frozen reader dependencies. Each runs 889 tests, 887 pass and the same
+two skip; 23 tests are added over PR #40, including 40 total focused guard cases.
+Ten scientific/numeric source files are byte-identical. Raw-free accepted-result
+replay and disposable apply/draft/owner-launcher checks pass. No owner MCAP or
+real fit was run. The private packet records exact source, evidence and limitations.
+
+Next stopping point: independent review of this implementation and pinned private
+handoff, exact pushed-head CI (Python 3.10/3.12 plus frozen-reader dependencies),
+owner merge, and only then one sequential private development-export operation.
+Reuse existing complete archives; do not rerun registration/inventory/decode or
+counts-only successes. Return captured failures as evidence without automatic
+retry. Training follows only after matched protocol/folds, fold-local transforms,
+fit authorization and the separate advanced-model gates are satisfied.
+
+The accepted owner statement supplies declared drive membership, not independent
+verification or statistical independence. Adequate recording source span does
+not imply long contiguous complete-feature history. RLMB remains a map-relative
+pseudo-reference. Speed's source-future guard, unconfirmed confidence width and
+producer semantics remain unchanged. Both flow variants remain synthetic-only.
+Earlier dated instructions below are historical.
+
+## Historical 2026-10-20 PR #40 MCAP compatibility correction
 
 PR #40's actual owner head is `681cbf9`, tree `b6fac873`, with unchanged main
 `183825a`. CI run `39385094591` tested merge `0da60c0`; both Python jobs compiled

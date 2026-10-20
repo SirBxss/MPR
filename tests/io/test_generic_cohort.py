@@ -191,7 +191,7 @@ class GenericCohortIOTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             replace(view, model_admission_authorized=True)
 
-    def test_native_seven_outings_500_frames_and_120_seconds_lock_without_numeric_exposure(self):
+    def prepare_seven_outing_lock(self):
         entries, scope, declarations, selected = [], [], [], {}
         for i in range(7):
             native = bounded_fixtures.BoundedWorkflowTests()
@@ -223,6 +223,10 @@ class GenericCohortIOTests(unittest.TestCase):
                              readiness_by_raw_sha256=selected)
         self.write_inputs()
         result, h = cohort.create_cohort(**self.arguments())
+        return result, h
+
+    def test_native_seven_outings_500_frames_and_120_seconds_lock_without_numeric_exposure(self):
+        result, h = self.prepare_seven_outing_lock()
         self.assertEqual(result["status"], "complete")
         self.assertEqual(result["eligible_new_outing_count"], 7)
         self.assertEqual(sum(o["cohort_role"] == "final_test" for o in result["outings"]), 2)
