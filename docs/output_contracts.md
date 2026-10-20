@@ -1,5 +1,12 @@
 # v0.4.5 output contracts
 
+Current 2026-10-20: the [v0.19.15 controller](locked_development_export_v01915.md)
+adds an externally pinned private operation plan and receipt/ZIP. It creates new
+v0.19.13 reservation/publication snapshots and unchanged v0.19.12 archives under
+the original accepted v0.19.14 lock. Ordered ancestry and original objects must
+replay; final exposure invalidates evaluation. Original artifact schemas stay
+fixed and all model/deletion grants remain false. Earlier dated states are historical.
+
 The [v0.19.14 cohort candidate](generic_cohort_v01914.md) publishes exactly
 `cohort.json`, `cohort_manifest.json`, `session_declaration.json`. Original hashes
 and registry lineage pin declared evidence, unchanged support and exposure-aware

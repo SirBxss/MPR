@@ -1,5 +1,14 @@
 # Thesis modeling plan
 
+Current 2026-10-20: PR #40 and its operational owner-declared cohort lock are
+accepted. The [locked development-export candidate](locked_development_export_v01915.md)
+preserves that original selection while integrating explicit validated registry
+descendants. This is engineering readiness, with false model admission. No real
+Gaussian/AIOHMM/flow fit or final evaluation follows; first freeze matched
+comparisons, session-disjoint folds, fold-local transformations and the existing
+fit/flow protocol. Source span does not establish adequate temporal histories.
+Both flows remain synthetic-only. Earlier dated candidate states are historical.
+
 Current 2026-10-19: the owner declares existing folder/source IDs to represent
 separate physical drives. The [generic cohort candidate](generic_cohort_v01914.md)
 records owner-declared evidence, applies unchanged support and reservation-aware

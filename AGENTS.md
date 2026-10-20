@@ -1,6 +1,45 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-20 PR #40 MCAP compatibility correction
+## Current checkpoint: 2026-10-20 locked development export implementation
+
+PR #40 is merged at `3b8496b`, reviewed owner head `f23d8b0`, tree `dd6b3c65`,
+runtime `97b1150e…`. Full independent GO includes the pinned metadata operation.
+Authenticated CI `39387751472` tested the same tree at merge `15bb79c`;
+Python 3.10.22/3.12.15 each ran 866 tests with two expected skips.
+The owner completed the metadata operation. Independent CRC/hash/source/receipt,
+predecessor/event/object, unpatched replay and independent split/row/reset checks
+accept its first operational cohort lock. Preserve that lock and every original;
+do not repeat the operation or reroll roles. Private anchors/yields stay private.
+
+Read `docs/locked_development_export_v01915.md`. This implementation candidate
+addresses review R-1/R-2/R-3: strict interval separation, immutable-container
+output rejection before creation, explicit descendant ancestry and lock-bound
+development-only exports through the unchanged frozen numeric producer. Later
+final exposure or changed components fail closed without role reassignment.
+The new descendant engineering reader preserves matched rows/resets and denies
+model admission. The old snapshot reader and old training CLIs stay unchanged.
+
+Local final validation passes compileall and 889 tests (887 passed/two unchanged
+skips) each on Python 3.10.22/current MCAP, Python 3.12.14/current MCAP and
+Python 3.12.14/frozen-reader dependencies. This adds 23 tests over PR #40;
+40 focused guard cases are included. Ten scientific/numeric files remain byte-
+identical. Raw-free copies replay the accepted lock/archives and select only the
+pending development targets. Disposable Git/private-helper checks pass; positive
+owner-choice tests use synthetic identities and stub only helper delegation.
+These are local engineering checks, not pushed-head CI or scientific validation.
+
+Next: independent implementation/private-helper GO, actual pushed-head Python
+3.10/3.12 and reader-compatibility CI, owner merge, then the separately pinned
+private development export plan with explicit owner-adopted authorizations.
+Existing successful exports and counts-only stages are reused. No new raw
+processing or real fit was executed by the agent. Both flows remain synthetic-
+only. Owner-declared identity, temporal fragmentation, source-clock causality,
+RLMB pseudo-reference and confidence/interface assumptions remain explicit.
+The reservation-aware split amendment is outcome-blind for selected finals;
+it does not establish that past exposure choices were blind to hash ranking.
+Earlier dated instructions below are historical.
+
+## Historical checkpoint: 2026-10-20 PR #40 MCAP compatibility correction
 
 PR #40 is open at owner head `681cbf9`, tree `b6fac873`, on main `183825a`.
 Both jobs in authenticated CI run `39385094591` compiled successfully but failed
@@ -821,8 +860,10 @@ agents and new chats.
   pseudo-reference-derived quality as features.
 - Fit standardizers inside training folds only. Held-out groups must not affect
   fitting, early stopping, restarts, transforms, or hyperparameters.
-- Current primary evidence is four technical recording groups from one
-  same-day outing. It does not estimate independent-journey generalization.
+- Historical model evidence is four technical recording groups from one
+  same-day outing. The newly locked owner-declared cohort supplies separate
+  readiness/engineering evidence; real model validation remains pending. Do not
+  attribute independent-journey generalization to the historical model results.
 - Never infer independent-outing count from MCAP count, filename numbering,
   directory count, continuous-block count, or technical recording-group count.
   Only the prospectively recorded physical-session declarations determine the
@@ -836,12 +877,13 @@ agents and new chats.
   Independent frame sampling is invalid.
 - Do not claim final model selection or planner benefit without the required
   independent data or completed planner experiment.
-- RC-GAN is not pursued on the current one-outing corpus.
+- The RC-GAN direction was discontinued under the recorded development-data
+  decision. A newer cohort does not automatically revive that model direction.
 - The independently reviewed v0.16.2 audit is the final diagnostic on the
   current generated ensembles. Do not add an A4 arm, refit, seed sweep,
   planner-parameter sweep, or further post-hoc current-outing statistic.
-- The next primary scientific evidence requires additional independent clean
-  outings under a reviewed, locked final-data protocol. BMW-planner transfer is
+- Independent-outing model evidence requires the reviewed, locked final-data
+  evaluation protocol; readiness alone does not validate a model. BMW-planner transfer is
   optional and separate; it requires confirmed interfaces and a new reviewed
   predeclaration and does not replace independent-outing validation.
 

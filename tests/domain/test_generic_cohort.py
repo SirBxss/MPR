@@ -169,6 +169,20 @@ class GenericCohortPolicyTests(unittest.TestCase):
         self.assertIn("usable_source_intervals_overlap_or_are_not_monotonic", row["failure_codes"])
         self.assertEqual(result["eligible_new_outing_count"], 7)
 
+    def test_touching_multifile_intervals_fail_but_one_nanosecond_separation_passes(self):
+        values = fixture()
+        first, second = values[2]["outings"][:2]
+        first["raw_sha256"] += second["raw_sha256"]
+        values[2]["outings"].remove(second)
+        raw = values[0][1]
+        stop = values[4][values[0][0]]["source_stop_ns"]
+        values[4][raw].update(source_start_ns=stop, source_stop_ns=stop + 120_000_000_000)
+        row = next(o for o in build(values)["outings"] if o["session_id_private"] == "folder-0")
+        self.assertIn("usable_source_intervals_overlap_or_are_not_monotonic", row["failure_codes"])
+        values[4][raw].update(source_start_ns=stop + 1, source_stop_ns=stop + 120_000_000_001)
+        row = next(o for o in build(values)["outings"] if o["session_id_private"] == "folder-0")
+        self.assertTrue(row["technically_eligible"])
+
     def test_partial_outing_scope_and_non_null_prior_lock_are_rejected(self):
         values = fixture()
         first, second = values[2]["outings"][:2]

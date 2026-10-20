@@ -203,13 +203,14 @@ def create_cohort(*, project_root: Path, registry_directory: Path, expected_regi
                   output_directory: Path) -> tuple[dict, str]:
     """Publish a new immutable lock/audit after checking every input and history."""
     project = Path(project_root).expanduser().resolve(strict=True)
-    output = registry._private_output(project, output_directory)
+    output = registry._private_output(project, output_directory, (registry_directory,))
     require(output != project / "data/catalog/private" and not os.path.lexists(output), "cohort_new_private_output_required")
     import subprocess
     require(subprocess.run(["git", "-C", str(project), "check-ignore", "--no-index", "--quiet", str(output)],
                            capture_output=True).returncode == 0, "cohort_output_must_be_gitignored")
     runtime = _runtime(include_compression=True)["runtime_source_sha256"]
     with _writer(project) as private:
+        registry._private_output(project, output, (registry_directory,))
         result, store, old = _inputs(Path(registry_directory), expected_registry_sha256, session_declaration,
             expected_session_declaration_sha256, cohort_manifest, expected_cohort_manifest_sha256)
         # Anchor the registry to this project's entire retained event history.

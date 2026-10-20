@@ -170,7 +170,7 @@ def build_cohort(metadata: dict, declaration: dict, manifest: dict,
         records = [support[raw] for raw in raws]
         intervals = sorted((r["source_start_ns"], r["source_stop_ns"]) for r in records if r["raw_usable"])
         monotonic = all(stop >= start for start, stop in intervals) and all(
-            a[1] <= b[0] for a, b in zip(intervals, intervals[1:]))
+            a[1] < b[0] for a, b in zip(intervals, intervals[1:]))
         frames = sum(r["complete_frame_count"] for r in records if r["raw_usable"])
         sequences = sum(r["complete_sequence_count"] for r in records if r["raw_usable"])
         evidence = OutingEligibilityEvidence(

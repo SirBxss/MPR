@@ -1,5 +1,14 @@
 # Project architecture
 
+The [v0.19.15 candidate](locked_development_export_v01915.md) adds
+`io.locked_development` for raw-free original-lock/descendant replay and exact
+matched engineering views; `workflows.locked_development_export` for sequential
+private reservation/export/validation/publication through the frozen producer;
+and its CLI adapter. The shared output guard protects immutable containers before
+creation. The five scientific files, numeric schemas/producer, causal inputs,
+old snapshot reader and training CLIs remain unchanged. Earlier candidate states
+below are historical; PR #40 and its owner metadata operation are accepted.
+
 The [v0.19.14 cohort candidate](generic_cohort_v01914.md) adds
 `domain.generic_cohort` for owner evidence, identity components, unchanged support
 and exposure-aware selection; `io.generic_cohort` for pinned metadata, durable

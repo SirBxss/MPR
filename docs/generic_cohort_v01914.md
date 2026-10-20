@@ -1,5 +1,20 @@
 # v0.19.14 generic owner-declared outing cohort
 
+## Accepted 2026-10-20 checkpoint and reviewed successor
+
+PR #40 is merged at `3b8496b`, reviewed head `f23d8b0`, tree `dd6b3c65`.
+Full independent GO and exact-tree Python 3.10/3.12 CI are accepted. The issued
+owner metadata operation also returned and passed independent strict replay,
+lineage, split and numeric-row/reset checks. Its first successful operational
+lock is binding. Preserve all original bytes and roles; do not repeat it.
+
+The [v0.19.15 candidate](locked_development_export_v01915.md) addresses review
+conditions R-1/R-2/R-3 before broader use. It adds strict multi-file separation,
+pre-creation container guards, original-lock/descendant integration and a
+development-only frozen-export controller. The original cohort artifact schema,
+role draw, legacy distinction, scientific rules and model denial stay fixed.
+Historical candidate and CI-correction states below describe their dates.
+
 Status: implementation and contract candidate for independent review. This is
 the next slice above the merged v0.19.13 registry/reader, not permission to fit
 a model. The owner now explicitly declares the registered folder/source IDs to

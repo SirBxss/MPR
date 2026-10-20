@@ -283,13 +283,34 @@ def load_registry(directory, expected_registry_sha256):
     return metadata, store.objects, datasets
 
 
-def _private_output(project, output_directory):
+def separate_output(output, protected=()):
+    """Reject immutable-container nesting before a writer creates anything.
+
+    Marker existence is sufficient, including malformed/partial markers. Do not
+    open a marker to decide whether its directory deserves preservation. Explicit
+    inputs are protected even when supplied outside the project's private tree.
+    """
+    output = Path(output).expanduser().absolute()
+    require(".." not in output.parts and output.parent.resolve() == output.parent,
+            "registry_output_parent_symlink_or_existing")
+    for folder in protected:
+        folder = Path(folder).expanduser().absolute()
+        require(not output.is_relative_to(folder) and not folder.is_relative_to(output),
+                "registry_output_overlaps_immutable_input")
+    for parent in (output, *output.parents):
+        require(parent.name != "objects" and not any(os.path.lexists(parent / marker)
+                for marker in ("registry.json", "cohort.json")),
+                "registry_output_inside_immutable_snapshot")
+    return output
+
+
+def _private_output(project, output_directory, protected=()):
     output = Path(output_directory).expanduser().absolute()
     private = project/"data/catalog/private"
     require(".." not in output.parts and output.is_relative_to(private) and output != private and not os.path.lexists(output),
         "registry_new_private_snapshot_required")
     require(private.resolve() == private and output.parent.resolve() == output.parent, "registry_output_parent_symlink_or_existing")
-    return output
+    return separate_output(output, protected)
 
 
 def _fsync_directory(folder):
@@ -305,7 +326,7 @@ def _import_evidence_locked(manifest_path, *, project_root, output_directory, pr
     """Append evidence to a new private snapshot; never modify prior snapshots."""
     project = Path(project_root).expanduser().resolve(strict=True)
     runtime = digest(_runtime(include_compression=True)["runtime_source_sha256"])
-    output = _private_output(project, output_directory)
+    output = _private_output(project, output_directory, () if previous_directory is None else (previous_directory,))
     private = project/"data/catalog/private"
     require(output.is_relative_to(private) and output != private and not os.path.lexists(output), "registry_new_private_snapshot_required")
     import subprocess
@@ -459,7 +480,7 @@ def import_evidence(manifest_path, *, project_root, output_directory, previous_d
     import subprocess
     project = Path(project_root).expanduser().resolve(strict=True)
     private = project/"data/catalog/private"
-    output = _private_output(project, output_directory)
+    output = _private_output(project, output_directory, () if previous_directory is None else (previous_directory,))
     require(subprocess.run(["git", "-C", str(project), "check-ignore", "--no-index", "--quiet", str(output)],
         capture_output=True).returncode == 0, "registry_private_output_must_be_gitignored")
     require(private.resolve() == private, "registry_private_root_symlink")
