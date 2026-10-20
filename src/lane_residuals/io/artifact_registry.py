@@ -85,10 +85,10 @@ class ObjectStore:
     def add(self, path, expected=None):
         path = Path(os.path.abspath(Path(path).expanduser()))
         require(str(path) not in self.raw_paths and not path.name.lower().endswith((".mcap", ".mcap.zst")), "registry_raw_payload_input_forbidden")
-        require(not path.is_symlink(), "registry_metadata_symlink_forbidden")
         # Resolve only the candidate's parent; never resolve/stat the registered
         # raw endpoint. This also catches aliases through a symlinked directory.
         require(str(path.parent.resolve()/path.name) not in self.raw_paths, "registry_raw_payload_input_forbidden")
+        require(not path.is_symlink(), "registry_metadata_symlink_forbidden")
         raw, state = read_bytes(path, policy.MAX_OBJECT_BYTES)
         h = self.watch(path, raw, state)
         if expected is not None:

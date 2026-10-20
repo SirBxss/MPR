@@ -1,5 +1,11 @@
 # v0.4.5 output contracts
 
+The [v0.19.14 cohort candidate](generic_cohort_v01914.md) publishes exactly
+`cohort.json`, `cohort_manifest.json`, `session_declaration.json`. Original hashes
+and registry lineage pin declared evidence, unchanged support and exposure-aware
+roles. The final marker is independently replayed; model/deletion flags remain
+false. Prior numeric and registry schemas remain unchanged.
+
 The [v0.19.13 registry](generic_artifact_registry_v01913.md) publishes a new private snapshot containing exactly `registry.json` plus `objects/`. The index is replayed from pinned evidence, keeps reservations/exposure/session uncertainty and grants no model or retirement admission. Existing numeric artifacts stay unchanged.
 
 

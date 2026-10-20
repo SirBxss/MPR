@@ -1,6 +1,58 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-19 PR #39 corrective review
+## Current checkpoint: 2026-10-20 PR #40 MCAP compatibility correction
+
+PR #40 is open at owner head `681cbf9`, tree `b6fac873`, on main `183825a`.
+Both jobs in authenticated CI run `39385094591` compiled successfully but failed
+864 tests with eight failures, seven errors and two expected skips. They used
+MCAP 1.6.0; its inherited decoder forwards new time-bound keywords even for
+unfiltered reads, which the indexed storage reader did not accept. The actual
+pushed tree matches the delivered implementation. This is a reproduced reader
+API incompatibility, not evidence against the cohort or the returned data.
+
+The same-PR correction accepts the four new keyword-only None defaults and
+rejects every actual old/new time bound before summary/payload access. Byte
+ordering, chunk/resource/CRC checks, scientific files and cohort policy remain
+unchanged. Read the correction checkpoint in `docs/generic_cohort_v01914.md`.
+Local compileall passes on Python 3.10.22/3.12.14; each full MCAP 1.6.0 run
+passes 866 tests with two expected skips. The 104 focused current-reader checks
+and 180 focused MCAP 1.5.0/old-decoder compatibility checks also pass.
+Apply only the corrective delivery to the existing PR branch; require focused
+independent delta GO and actual corrected-head Python 3.10/3.12 CI before merge.
+Use refreshed private tree/runtime/input pins afterward. Do not run the earlier
+metadata helper or repeat any accepted scan/export. No operational lock or fit
+has been authorized by the CI correction.
+
+## Historical checkpoint: 2026-10-19 owner-declared generic cohort candidate
+
+PR #39 is merged at main `183825a`, tree `56b624d`, reviewed head `5b1be94`.
+Authenticated a2 CI `39245286754` tests merge `3bf327e` with that same tree;
+Python 3.10.22/3.12.15 each ran 833 tests, 831 passed and two expected skips.
+The selected batch07 numeric return and both readiness-recovery successors pass
+independent exact-lineage/raw-free validation. Private support/markers remain in
+the delivered review. Do not rerun either task or reapply PR #39.
+
+The owner explicitly declares existing folder/source IDs to represent separate
+drives. Record this as `owner_declared_not_independently_verified`; IDs label
+sessions while SHA-256 identifies bytes. Do not invent acquisition UTC or claim
+independent verification. Preserve old null declarations and possible links.
+
+Read `docs/generic_cohort_v01914.md`. The candidate implements pinned owner
+evidence, unchanged support gates, cross-raw identity/possible-component checks,
+an exposure-aware prospective final draw, immutable cohort replay and an initial
+snapshot-bound matched development data/fold view. First-successful-lock binding,
+all reservations and original resets remain. No old training CLI is rewired;
+model-admission flags remain false and both flows remain synthetic-only. Later
+exports need a reviewed descendant-registry model adapter.
+
+The private helper appends recovered reports and owner-confirmed session claims
+to the latest registry and creates a separate cohort lock, only after focused GO,
+exact pushed-head CI and owner merge. It performs no raw scan, numeric opt-in,
+fit, raw move or deletion. Agent-workspace commands in the earlier review ZIP
+were not owner commands; use only the new delivery's explicit owner instructions.
+Earlier inconsistent checkpoints below are historical.
+
+## Historical checkpoint: 2026-10-19 PR #39 corrective review
 
 PR #39 is open at owner head `83fdd54`, tree `12791e0`, with main `734876b`.
 Read `docs/artifact_registry_pr39_a2_review_20261019.md`. Both Claude blockers

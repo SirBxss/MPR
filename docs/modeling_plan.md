@@ -1,5 +1,13 @@
 # Thesis modeling plan
 
+Current 2026-10-19: the owner declares existing folder/source IDs to represent
+separate physical drives. The [generic cohort candidate](generic_cohort_v01914.md)
+records owner-declared evidence, applies unchanged support and reservation-aware
+prospective selection, and preserves exact matched rows/resets. It does not
+independently verify identity or authorize fitting. Its initial data view is bound
+to the lock's registry; later exports require a reviewed descendant adapter.
+Both flows remain synthetic-only. Older dated candidate notes are historical.
+
 Current 2026-10-18: the [generic registry/reader candidate](generic_artifact_registry_v01913.md) closes archive integration at engineering scope only. Counts-only assessment of the remaining downloaded collection uses the accepted frozen backend. The reviewed independent-outing, matched-row, temporal-support and real-fit/flow scope gates are unchanged.
 
 

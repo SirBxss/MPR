@@ -78,6 +78,27 @@ class IndexedStorageReaderTests(unittest.TestCase):
                 self.assertEqual([item[2].sequence for item in messages], [11, 12])
                 self.assertEqual(decompress.call_count, 3)
 
+    def test_new_time_bound_none_defaults_preserve_storage_order_and_messages(self):
+        for compression in ("NONE", "ZSTD", "LZ4"):
+            with self.subTest(compression=compression):
+                raw = self.recording(compression=compression).read_bytes()
+                expected = list(self.reader(BytesIO(raw)).iter_messages(topics=TOPICS, log_time_order=False))
+                actual = list(self.reader(BytesIO(raw)).iter_messages(topics=TOPICS, log_time_order=False,
+                    starting_at=None, starting_after=None, ending_at=None, ending_before=None))
+                self.assertEqual(actual, expected)
+                self.assertEqual([item[2].log_time for item in actual], [400, 399, 398])
+
+    def test_all_time_bounds_fail_before_summary_or_payload_access_including_zero(self):
+        raw = self.recording().read_bytes()
+        for name in ("start_time", "end_time", "starting_at", "starting_after", "ending_at", "ending_before"):
+            for value in (0, -1, 399):
+                with self.subTest(bound=name, value=value):
+                    reader = self.reader(BytesIO(raw))
+                    with patch.object(reader, "get_summary", side_effect=AssertionError("summary accessed")), \
+                            patch.object(self.storage, "get_chunk_data_stream", side_effect=AssertionError("payload accessed")), \
+                            self.assertRaisesRegex(RecordingReadError, "indexed_storage_order_without_time_filter_required"):
+                        list(reader.iter_messages(topics=TOPICS, log_time_order=False, **{name: value}))
+
     def test_storage_order_is_byte_offset_order_even_if_summary_indexes_are_reversed(self):
         reader = self.reader(BytesIO(self.recording().read_bytes()))
         reader.get_summary().chunk_indexes.reverse()

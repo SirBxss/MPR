@@ -1,5 +1,11 @@
 # Supported commands
 
+The [v0.19.14 cohort candidate](generic_cohort_v01914.md) adds
+`python -m lane_residuals.cli.generic_cohort create|verify`. Its owner metadata
+helper waits for code GO, exact-head CI and merge. Do not run agent-workspace
+review snippets in the owner checkout. No raw scan, numeric opt-in, real fit or
+deletion follows this command.
+
 The v0.19.13 registry import/verify commands and private manifest schema are in [generic_artifact_registry_v01913.md](generic_artifact_registry_v01913.md). They publish engineering evidence only; no raw decode, role assignment, model fit or deletion.
 
 
