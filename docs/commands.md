@@ -845,3 +845,15 @@ Existing implemented default paths remain unchanged. Exit code `0` means the
 command's diagnostic success condition was met, `2` means an input/dependency
 or command error, and commands with a scientific completeness gate may return
 `3` after writing valid diagnostic outputs.
+
+
+## v0.19.16 matched development experiment candidate
+
+Use the separately issued private package after independent protocol/source/helper
+GO, three passing CI jobs and owner merge. Its `PREPARE_EXPERIMENT.py` seals the
+fixed request and installs one false Gaussian-fit authorization. Only the owner
+may adopt its four statements. `RUN_GAUSSIANS.py` then delegates the exact sealed
+experiment to `python -m lane_residuals.cli.development_experiment train`, once.
+Preparation uses the same CLI's `prepare` operation and does not fit anything.
+Both operations require exact consumer tree/runtime and external artifact pins.
+Do not use old training CLIs to bypass this gate or rerun completed exports.

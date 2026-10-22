@@ -1,5 +1,15 @@
 # Thesis modeling plan
 
+Current 2026-10-22: PR #41 and its fixed development exports are accepted.
+The [v0.19.16 experiment candidate](development_experiment_v01916.md) freezes
+matched complete-feature rows and whole-outing development folds, then requires
+a separately reviewed/adopted Gaussian-only real-fit protocol. It fits no BMW
+model during implementation. Both flows remain synthetic-only, with checked
+state persistence and batching prepared for later work. Advanced temporal fits
+need an appropriate support/scope contract; final data stay unexposed. Additional
+downloads do not change the binding cohort or its roles. Earlier dated states
+remain historical.
+
 Current 2026-10-20: PR #40 and its operational owner-declared cohort lock are
 accepted. The [locked development-export candidate](locked_development_export_v01915.md)
 preserves that original selection while integrating explicit validated registry

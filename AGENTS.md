@@ -1,6 +1,47 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-20 locked development export implementation
+## Current checkpoint: 2026-10-22 accepted development exports; experiment candidate
+
+PR #41 is merged at `6ed17f2`, reviewed owner head `ad692e3`, tree `e81a8fab`,
+runtime `3e293c29…`. Independent implementation/private-helper GO and all three
+reviewed-head CI jobs are accepted. The owner completed the fixed development
+export operation. Independent raw-free CRC/SHA/receipt/source/lineage, original
+cohort and every descendant, finite arrays, exact rows and reset checks accept
+the return. Preserve all successful stages, original roles and original files;
+do not rerun exports or reroll the split. Measured support and private pins stay
+in the private verified-return evidence, never public Git.
+
+Read `docs/development_experiment_v01916.md`. The new candidate seals exact
+complete-feature rows and retained offsets across all locked new development
+outings, uses whole-outing folds and adds a separately gated fixed Gaussian-pair
+training/evaluation path. It preserves the old engineering readers' false flags
+and old CLIs. Gaussian means use training-only exact-constant handling and
+minimum-norm OLS; rank and standardized covariance regularization are explicit.
+Source/protocol/helper GO, actual reviewed-head Python 3.10/3.12/frozen-reader CI,
+owner merge and explicit adoption of the exact experiment authorization precede
+real fitting. Preparation fits nothing. Model states, scores and failure receipts
+are private; started attempts cannot be ordinarily retried.
+
+Local final-source compileall and full suites pass on Python 3.10.22/current,
+Python 3.12.14/current and Python 3.12.14/frozen-reader dependencies: 923 run,
+921 passed and two expected skips in each. There are 34 added tests. Twelve
+accepted scientific/numeric/flow-reference files remain byte-identical. Offline
+private replay reconstructs the complete matched population without raw queries
+or BMW model/transform fits. Twelve disposable helper checks pass; positive
+operation delegation is explicitly synthetic/stubbed, with native orchestration
+covered by the full suites. Final local validation docs close this candidate;
+actual pushed-head CI and independent review remain pending.
+
+Both flow variants remain synthetic-only. Checked JSON save/load and a batched
+synthetic sampling path prepare later work without changing the accepted flow
+reference. No capacity/architecture improvement is inferred from software tests.
+Advanced real fits still require scientific temporal support and scope review.
+Short complete-feature sequences are not bridged. Final outings stay untouched;
+legacy data and additional downloads are not silently pooled into this cohort.
+No BMW model was fitted by this implementation. The next private owner commands
+are delivered in the reviewed candidate package, not historical analyst scripts.
+
+## Historical checkpoint: 2026-10-20 locked development export implementation
 
 PR #40 is merged at `3b8496b`, reviewed owner head `f23d8b0`, tree `dd6b3c65`,
 runtime `97b1150e…`. Full independent GO includes the pinned metadata operation.
