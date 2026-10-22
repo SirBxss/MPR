@@ -1,10 +1,48 @@
 # Current project status
 
-Last updated: 2026-10-20. This is the first file a new agent should read after
+Last updated: 2026-10-22. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-20 accepted operational lock; development-export candidate
+## Current 2026-10-22 accepted numeric development cohort; experiment candidate
+
+PR #41 merged as `6ed17f2`, reviewed head `ad692e3`, tree `e81a8fab`, runtime
+`3e293c29…`. Independent GO covers the implementation and fixed private operation.
+CI run `39441789964` passed Python 3.10/current, 3.12/current and 3.12/frozen-reader
+on that reviewed head. The development export return passes independent raw-free
+archive/manifest/source/receipt/lineage and complete registry-chain replay, exact
+finite numeric/matched-row/reset checks and preservation of original evidence.
+Its original cohort roles remain binding, with final evidence unexposed in the
+returned history. Actual yields, clocks, identities and SHA markers stay private.
+No failed or successful stage should be repeated by ordinary retry.
+
+The [v0.19.16 candidate](development_experiment_v01916.md) turns that accepted
+engineering cohort into a reviewable fixed Gaussian development experiment.
+Preparation pins all development complete-feature rows, original offsets and
+whole-outing folds without fitting transformations or models. A separate exact
+owner authorization gates the first real Gaussian pair, with training-only
+transforms, checked model states, common physical scores, equal-outing primary
+aggregation and preserved failure ZIPs. Original readers keep false model flags;
+old training commands are not a bypass. Source/protocol/helper review, exact-head
+CI and owner merge remain pending for this candidate. No BMW fit has run here.
+
+Local final-source compileall and full verification pass in three environments:
+Python 3.10.22/current, Python 3.12.14/current and Python 3.12.14/frozen-reader,
+each 923 tests with two expected skips. The original standard 3.10 invocation
+returned without a final summary and was treated as inconclusive; an explicit
+recorded full-suite rerun confirms all 923/OK/2. There are 34 new tests, twelve
+unchanged scientific/numeric/flow reference files, twelve disposable helper
+checks and raw-free matched-population replay with no BMW fitting. Positive
+private-helper delegation is stubbed/synthetic; actual synthetic orchestration
+runs natively in the full suite. These are local checks, not new-head CI.
+
+Synthetic flow persistence and batched sampling are engineering additions; real
+flow/AIOHMM, final evaluation and planner studies remain separate scientific
+scopes. Temporal fragmentation, source-clock semantics, RLMB pseudo-reference,
+confidence width and interface assumptions remain visible. New downloads need
+separate prospective intake and cannot replace the existing final selection.
+
+## Historical 2026-10-20 accepted operational lock; development-export candidate
 
 PR #40 is merged at `3b8496b`, full-review GO at owner `f23d8b0`, tree
 `dd6b3c65`, runtime `97b1150e…`. Authenticated exact-tree CI `39387751472`

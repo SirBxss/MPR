@@ -2075,3 +2075,16 @@ mutual-nearest source-time pairs that pass the inclusive 50 ms gate before any
 geometry filtering. The 50 ms value is a prospectively fixed v0.18 audit
 constant, not an inherited v0.17 estimate/reference gate. Each accepted pair
 can contribute at most one `synchronized_100m_candidate`.
+
+
+## v0.19.16 matched development experiment candidate
+
+See `development_experiment_v01916.md`. Preparation writes exactly `request.json`,
+`row_manifest.json`, then `experiment.json` as the immutable completion marker.
+It preserves exact original archive mappings and conditioned resets and fits
+nothing. Training is a separate adopted Gaussian-only operation. Its new private
+attempt holds exact authorization, fold-specific model states and physical scores,
+then `run_receipt.json` with source/input/output pins, status and failures. The
+private result ZIP has exact `SHA256SUMS` and CRC verification. Existing attempts
+are never overwritten. Advanced fits/final evaluation/raw processing remain false.
+Synthetic flow JSON state requires external SHA verification and synthetic scope.
