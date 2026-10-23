@@ -1,10 +1,56 @@
 # Current project status
 
-Last updated: 2026-10-22. This is the first file a new agent should read after
+Last updated: 2026-10-23. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-22 accepted numeric development cohort; experiment candidate
+## Current 2026-10-23 accepted Gaussian operation; matched memory candidate
+
+PR #42 is merged at `0712352` (reviewed owner `9d42975`, tree `a87bfb33`, runtime
+`b88b8aa3…`). Exact-tree CI `39757023532` passed all three supported jobs.
+Independent source/protocol GO covered an exact private RUN waiting-loop fix;
+native process-group interrupt tests verified evidence preservation. The owner
+prepared the matching sealed experiment, adopted its exact Gaussian authorization
+and completed the fixed comparison. Its returned ZIP passes independent CRC/SHA,
+receipt/source/authorization, complete cohort/registry replay, row/reset mapping,
+saved-state/score and prospective covariance/calibration checks. Private numerical
+findings and pins remain in the verified-return packet. Do not rerun the baseline
+or present development CV as final/physical-ground-truth validation.
+
+The [v0.19.17 candidate](matched_stationary_ar_v01917.md) adds a stationary scalar
+AR memory control. Reusing the accepted conditional Gaussian states fixes every
+frame marginal and isolates one persistence parameter on training-only adjacent
+pairs. Whole-outing folds, rows, reset clocks and baseline scores remain exact.
+The historical AR/AIOHMM implementation is preserved and not relabelled as this
+new control. Sample-based marginal fluctuations are not evidence of a changed
+frame distribution. Sequence energy and retained-pair lag are primary descriptive
+comparisons; observed-history chain density is separately labelled.
+
+Preparation fits nothing; a new exact authorization gates real fitting. Shared
+writer locking, late input/source checks and immutable semantic-design attempt
+claims preserve exposure. New partial-container guards and checked partial ZIP
+publication address relevant lifecycle observations for this consumer. Old gates
+and source are unchanged. Review of source, scientific scope and private helpers,
+actual new-head three-job CI and owner merge/adoption precede operational use.
+No real phi fit, raw scan or final read has been executed by the agent.
+
+Local compileall and full suites pass on Python 3.10.22/current, 3.12.14/current
+and 3.12.14/frozen-reader: 945 run, 943 passed, two unchanged skips each. The
+22 added tests cover the new law/optimizer/resets and native consumer/lifecycle.
+All 356 pre-existing source/test files remain byte-identical. Raw-free private
+preparation passes with raw/model/transform fits blocked. Fourteen disposable
+helper checks and two native parent-child interrupt/failure cases pass; positive
+helper delegation is explicitly stubbed/synthetic. Validation docs close the
+frozen source/test checkpoint without implementation changes.
+
+Next: apply/push the scoped candidate from the private packet, obtain independent
+source/protocol/helper review, all three actual exact-head CI jobs and owner
+merge; prepare and inspect the new marker before any owner-adopted AR operation. Later AIOHMM and flow comparisons need the
+same population/scorer, appropriate history semantics and fold-local selection.
+The eventual final-test population remains embargoed. No new data acquisition
+is required merely because this candidate exists.
+
+## Historical 2026-10-22 accepted numeric development cohort; experiment candidate
 
 PR #41 merged as `6ed17f2`, reviewed head `ad692e3`, tree `e81a8fab`, runtime
 `3e293c29…`. Independent GO covers the implementation and fixed private operation.

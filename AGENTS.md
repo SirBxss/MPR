@@ -1,6 +1,53 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-22 accepted development exports; experiment candidate
+## Current checkpoint: 2026-10-23 Gaussian return accepted; matched memory candidate
+
+PR #42 is merged at `0712352`, reviewed owner head `9d42975`, tree `a87bfb33`,
+runtime `b88b8aa3…`. Three-job exact-tree CI `39757023532` passed. Claude gave
+source/protocol GO, with an exact private RUN interrupt correction explicitly
+covered by review. That corrected helper was re-issued and tested. The owner
+prepared the independently matching experiment, explicitly adopted the Gaussian
+authorization and completed the fixed operation. Independent raw-free ZIP,
+receipt/source/consent, original cohort/all-descendant replay, exact rows/resets,
+saved-state/score replay and prospective diagnostics accept the return. Preserve
+it; no baseline refit, scan/export repetition or final exposure is authorized.
+All measured values, private pins, identities and plots stay private. A successful
+operation is not a universal model winner or a physical-ground-truth result.
+
+Read `docs/matched_stationary_ar_v01917.md`. The next candidate is a new scalar
+stationary AR(1) memory control using the immutable conditional Gaussian states.
+It preserves their exact mean/covariance and every original fold/reset, fitting
+only one bounded persistence coefficient on training transitions. It is not the
+historical station-wise AR/AIOHMM. Frame marginal metrics cannot establish an
+improvement when those distributions are fixed; sequence generation and retained
+lag are the primary descriptive comparison. Offline observed-history density is
+separate from generated-history sampling and prediction-time input availability.
+
+The new consumer has separate source/protocol/helper review, CI, merge and exact
+owner authorization gates. Its immutable attempt claims prevent same-design
+retries under renamed output requests. Partial-output markers, ZIP-parent checks
+and partial ZIP publication apply to this consumer; earlier workflows retain
+their documented limitations. Existing scientific, numeric, Gaussian and flow
+source is unchanged. No real AR coefficient or transform was fitted by the agent.
+Final-code compileall and full suites pass on Python 3.10.22/current,
+Python 3.12.14/current and Python 3.12.14/frozen-reader: 945 run, 943 passed
+and two unchanged skips each, adding 22 tests. All 356 pre-existing source/test
+files remain byte-identical. Raw-free private preparation replays the exact
+matched population under raw/model/transform-fit guards. Fourteen disposable
+Git/helper checks and two native parent-child failure/interrupt checks pass;
+positive helper delegation is explicitly synthetic/stubbed. Only validation
+docs close the frozen code/test checkpoint. The private packet seals the final
+tree/runtime and owner commands. Actual pushed-head CI and independent review
+remain pending; no operational AR coefficient was fitted.
+
+Both flow modes remain synthetic-only. Future full AR/AIOHMM/flow comparisons
+require matched inputs/rows, fold-local selection, declared history/reset scope
+and appropriate temporal support. Keep final outings unexposed, old results
+immutable, source-clock causality and all reference/confidence assumptions visible.
+The continuity/report/review evidence is in the private verified-return packet.
+Earlier dated checkpoints below are historical.
+
+## Historical checkpoint: 2026-10-22 accepted development exports; experiment candidate
 
 PR #41 is merged at `6ed17f2`, reviewed owner head `ad692e3`, tree `e81a8fab`,
 runtime `3e293c29…`. Independent implementation/private-helper GO and all three

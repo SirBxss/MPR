@@ -1,5 +1,16 @@
 # Supported commands
 
+Current 2026-10-23: the fixed Gaussian return is accepted; preserve its artifacts.
+The next candidate exposes
+`python -m lane_residuals.cli.development_temporal --help`, with separate
+`prepare` and `train` operations and exact request/experiment/authorization pins.
+The [v0.19.17 protocol](matched_stationary_ar_v01917.md) describes its new scalar
+memory control and lifecycle. Use only its independently reviewed private owner
+helpers after exact-head CI and owner merge. Preparation fits nothing; the old
+Gaussian authorization does not grant AR fitting. No coefficient/cap override,
+ordinary retry, baseline refit, final read or raw scan is supported. Analyst
+verification scripts in private evidence packets are not owner commands.
+
 Current 2026-10-20: PR #40's metadata operation is complete. The next candidate
 CLI is `python -m lane_residuals.cli.locked_development_export --help`; its full
 plan/pin interface is in [the v0.19.15 contract](locked_development_export_v01915.md).
