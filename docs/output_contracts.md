@@ -1,5 +1,27 @@
 # v0.4.5 output contracts
 
+## v0.19.17 matched stationary AR candidate
+
+See [the complete contract](matched_stationary_ar_v01917.md). The new sealed
+experiment contains exactly `request.json` and `experiment.json`, binding the
+original Gaussian experiment/return, original rows/folds and fixed AR protocol.
+Engineering admission/final flags remain false; a separate exact AR authorization
+is mandatory. Per-fold saved states retain the complete immutable conditional
+Gaussian base and one bounded phi, training transition count and sufficient
+statistics. Original Gaussian scores are reused, never refitted or overwritten.
+
+Private attempts preserve authorization, durable claim, accepted Gaussian ZIP,
+new model/score states and `run_receipt.json`. The immutable semantic-design claim
+is outside the attempt directory and precedes fitting, so renamed request/output
+paths cannot hide a repeated design. The result ZIP includes SHA256SUMS and is
+published from a verified `.zip.partial` without replacing any existing result.
+Success is `complete_matched_stationary_ar_cross_validation`, exit 0 and integrity
+true. Ordinary pre-publication packaging failures finalize the unpublished local
+receipt as failure and preserve partial files. Hard-kill/post-publication durability
+limits require terminal evidence and recovery review. Single-frame marginal NLL
+and analytic mean are inherited; observed-history chain NLL is a distinct field.
+No final model selection, advanced full AR/AIOHMM/flow or planner claim is granted.
+
 Current 2026-10-20: the [v0.19.15 controller](locked_development_export_v01915.md)
 adds an externally pinned private operation plan and receipt/ZIP. It creates new
 v0.19.13 reservation/publication snapshots and unchanged v0.19.12 archives under

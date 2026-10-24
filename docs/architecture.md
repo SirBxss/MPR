@@ -1,5 +1,14 @@
 # Project architecture
 
+The [v0.19.17 candidate](matched_stationary_ar_v01917.md) adds
+`modeling.matched_stationary_ar` for a one-parameter stationary memory control;
+`io.development_temporal` for strict original-experiment and accepted Gaussian
+ZIP replay; and a separate workflow/CLI for preparation, owner-adopted fitting,
+semantic-design attempt claims and private checked result publication. It reuses
+the exact accepted Gaussian states, existing physical scorer and registry lock.
+It changes no existing scientific/model/ingestion source or old training CLI.
+The first Gaussian return and earlier public source remain immutable.
+
 The [v0.19.15 candidate](locked_development_export_v01915.md) adds
 `io.locked_development` for raw-free original-lock/descendant replay and exact
 matched engineering views; `workflows.locked_development_export` for sequential

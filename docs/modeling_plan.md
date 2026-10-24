@@ -1,5 +1,20 @@
 # Thesis modeling plan
 
+Current 2026-10-23: the first owner-authorized Gaussian operation is accepted
+after raw-free saved-state/score and prospective-diagnostic verification; its
+private numerical comparison is mixed and is not a universal model-selection
+result. Read [the matched stationary AR protocol](matched_stationary_ar_v01917.md).
+The next candidate fixes the accepted conditional Gaussian frame distributions
+and fits one scalar persistence coefficient using training transitions only.
+This is a new memory-only control, not the historical station-wise AR/AIOHMM.
+Existing baselines, folds, exact rows and resets are reused without refitting.
+Primary descriptive evidence is short-sequence energy and retained lag; frame
+scores can fluctuate under Monte Carlo sampling but their model distributions
+are unchanged. Observed-history density and free-running generation remain
+distinct. A separate reviewed authorization, exact-head CI and merge precede
+real use. Later full AR/AIOHMM/flow and final/planner scopes remain separate;
+do not mix historical-population scores into the current matched comparison.
+
 Current 2026-10-22: PR #41 and its fixed development exports are accepted.
 The [v0.19.16 experiment candidate](development_experiment_v01916.md) freezes
 matched complete-feature rows and whole-outing development folds, then requires
