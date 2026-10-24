@@ -1,10 +1,42 @@
 # Current project status
 
-Last updated: 2026-10-23. This is the first file a new agent should read after
+## Current 2026-10-24 accepted scalar AR; one-state AR candidate
+
+PR #43 merged as `188a3a8` (reviewed owner `6bfb33f`, tree `10ef92f`, runtime
+`33479095…`). Exact-tree CI `40079273807` passed all three jobs. Independent GO
+and pre-run interpretation qualification preceded the separately adopted operation.
+Its first scalar AR return passes raw-free archive/lineage/consent/attempt,
+original cohort/all-descendant replay, exact-row/reset and numerical replay.
+The owner returned its normal publication SHA line; finalization is now accepted.
+Add a new acceptance checkpoint without rewriting the earlier pending report.
+All measurements and private anchors remain private. Preserve every original;
+no baseline refit, repeated scan/export or final-outing read follows.
+
+The [v0.19.18 protocol](matched_one_state_ar_v01918.md) defines the next fixed
+one-state station-wise Gaussian AR/AIOHMM consumer. Exact fold transformations
+come from immutable conditional Gaussian states; no standardizer is refitted.
+All original rows, clocks, resets and predecessor results are preserved. Exact
+Gaussian generated-history marginal recursion provides fair frame density;
+observed-history chain density stays offline and separate. Finite unconverged
+states retain warnings and require scientific review, without automatic retry.
+The architecture has no latent switching; this is not a pure memory ablation.
+
+Local implementation/validation evidence is delivered in the private packet.
+Independent source/protocol/helper GO, exact-head three-job CI and owner merge
+are pending; preparation and new four-statement adoption precede any fit.
+No real one-state model was fitted here. Both flow modes remain synthetic-only.
+Keep final outings embargoed and causal/reference/identity assumptions visible.
+
+Four major stages remain from candidate delivery: operate/review this baseline;
+review/run matched flow experiments; freeze comparison and authorized held-out
+evaluation; conduct planner-level assessment. More downloads are separate future
+intake, not automatically admitted or needed for this implementation.
+
+Last updated: 2026-10-24. This is the first file a new agent should read after
 `AGENTS.md`. Update it whenever implementation, review, merge state, or the
 critical path changes.
 
-## Current 2026-10-23 accepted Gaussian operation; matched memory candidate
+## Historical 2026-10-23 accepted Gaussian operation; matched memory candidate
 
 PR #42 is merged at `0712352` (reviewed owner `9d42975`, tree `a87bfb33`, runtime
 `b88b8aa3…`). Exact-tree CI `39757023532` passed all three supported jobs.

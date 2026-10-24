@@ -1,5 +1,15 @@
 # Supported commands
 
+Current 2026-10-24: the Gaussian pair and scalar AR return are accepted.
+The new [v0.19.18 candidate](matched_one_state_ar_v01918.md) exposes
+`python -m lane_residuals.cli.development_one_state --help` and separate
+`prepare`/`train` operations with exact source/request/experiment/consent pins.
+Use the sealed private packet's numbered owner steps after independent review,
+all actual exact-head CI jobs and owner merge. Preparation fits nothing.
+Analyst verification/plot scripts in historical evidence are not owner commands.
+Do not retry an attempted design, fit via an older CLI or expose final outings.
+The following dated command checkpoints are historical.
+
 Current 2026-10-23: the fixed Gaussian return is accepted; preserve its artifacts.
 The next candidate exposes
 `python -m lane_residuals.cli.development_temporal --help`, with separate

@@ -1,5 +1,27 @@
 # v0.4.5 output contracts
 
+## v0.19.18 matched one-state AR candidate
+
+See [the complete contract](matched_one_state_ar_v01918.md). The closed request
+pins the original scalar experiment and accepted ZIP. The exact two-file new
+experiment seals original rows/folds/archives, full protocol and hashed adapter
+layouts with integer clocks and padding. A distinct exact four-boolean owner
+authorization gates fitting. Engineering-admission/final flags remain false.
+
+The result contains `experiment/`, `training/` and `SHA256SUMS`; training
+preserves adopted consent, semantic claim, accepted scalar ZIP, every fold's
+model with legacy fit report, physical scores and receipt. Complete status is
+`complete_matched_one_state_ar_cross_validation`, exit 0 and integrity true.
+Fit-quality/convergence flags require scientific review even on process success.
+Frame density is generated-history marginal; offline history density is separate.
+All predecessor results remain unchanged; no old model is refitted.
+
+Claim-adjacent immutable output-creation/receipt/packaging failure events cover
+new-consumer lifecycle failures where storage permits. A published ZIP survives
+post-publication failure, which may only appear in the external event and actual
+terminal child exit. Return both ZIP and terminal status. Partial/failed attempts
+are immutable and not ordinary retry authorization. Earlier contracts follow.
+
 ## v0.19.17 matched stationary AR candidate
 
 See [the complete contract](matched_stationary_ar_v01917.md). The new sealed
