@@ -1,6 +1,21 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-24 scalar AR accepted; one-state AR candidate
+## Current 2026-10-25 PR #44 prospective covariance revision
+
+The unrun a1 PR head received independent source/helper/mathematical GO and
+three-job CI. Its legacy covariance shrinkage is a scientific comparison confound.
+The same-PR a2 revision removes diagonal shrinkage and fixes the eigenvalue
+minimum at 1e-6, without changing the legacy algorithm or accepted predecessors.
+This clips eigenvalues; accepted Gaussian regularization adds 1e-6 I. Retain that
+distinction, floor diagnostics, length strata and saved-state Monte Carlo
+sensitivity in interpretation. No a1 or a2 real one-state fit has occurred.
+
+The model, experiment and authorization revisions change; old preparation pins
+are superseded. Obtain focused delta/private-helper review and new-head CI before
+owner merge, preparation and separate owner adoption. Keep accepted data, scores,
+rows/resets and final-outing restrictions. No new sweep or prior-stage rerun.
+
+## Historical checkpoint: 2026-10-24 scalar AR accepted; one-state AR candidate
 
 PR #43 is merged at `188a3a8`, reviewed owner head `6bfb33f`, tree `10ef92f`,
 runtime `33479095…`. Exact-tree CI `40079273807` passed all three jobs.

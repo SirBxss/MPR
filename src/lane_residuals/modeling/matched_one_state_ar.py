@@ -14,17 +14,18 @@ from .matched_gaussian import MatchedGaussian, matrix
 from .matched_stationary_ar import offsets_for
 
 MODEL_NAME = 'matched_one_state_aiohmm_ar'
-REVISION = 'v0.19.18-matched-one-state-adapter-2026-10-24-a1'
+REVISION = 'v0.19.18-matched-one-state-adapter-2026-10-25-a2'
 MAX_PADDED_FRAMES = 100000
 MAX_SAMPLED_PADDED_FRAMES = 2000000
-# Existing regularization/stopping defaults are explicit and fixed; only the
-# historical one-state architecture, ineffective transitions and 0.99 ceiling
-# differ from the generic class defaults. No current held-out tuning occurs.
+# Prospective review revision: remove legacy diagonal shrinkage and use a
+# 1e-6 eigenvalue minimum in accepted training-standardized units. The Gaussian
+# adds 1e-6 I instead; these small-variance safeguards are not identical.
+# Other legacy settings remain fixed. No current AR held-out fit was inspected.
 CONFIGURATION = dict(state_count=1, maximum_em_iterations=30, minimum_em_iterations=5,
     convergence_tolerance=1e-4, convergence_criterion='relative_total_log_probability',
     regression_ridge_penalty=1e-3, emission_parameter_pooling_penalty=10.,
-    state_covariance_pooling=.5, covariance_diagonal_shrinkage=.15,
-    covariance_minimum_eigenvalue=1e-5, minimum_effective_state_observations=10.,
+    state_covariance_pooling=.5, covariance_diagonal_shrinkage=0.,
+    covariance_minimum_eigenvalue=1e-6, minimum_effective_state_observations=10.,
     maximum_absolute_autoregression=.99, transition_l2_penalty=1e-3,
     transition_learning_rate=.03, transition_adam_steps=30,
     initial_probability_smoothing=1e-2, minimum_state_occupancy_fraction=.01,

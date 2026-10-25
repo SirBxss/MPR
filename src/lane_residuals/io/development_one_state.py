@@ -13,8 +13,8 @@ from ..modeling.matched_one_state_ar import MODEL_NAME, CONFIGURATION,padded_blo
 from ..modeling.matched_stationary_ar import StationaryAR
 from . import development_experiment as previous, development_temporal as temporal, artifact_registry as registry
 
-REVISION='v0.19.18-matched-one-state-experiment-2026-10-24-a1'
-AUTHORIZATION_REVISION='v0.19.18-one-state-ar-fit-2026-10-24-a1'
+REVISION='v0.19.18-matched-one-state-experiment-2026-10-25-a2'
+AUTHORIZATION_REVISION='v0.19.18-one-state-ar-fit-2026-10-25-a2'
 STATIONARY_SOURCE=('188a3a896172ad139d26006f31f430141f72c8f6','10ef92f593b86c05b979b085559d6a614c006a2e',
                    '33479095e835df9e911c0bf40a30e91bcbc7f065f5e3e19f444dc7969e461166')
 FIELDS={'contract_revision','original_temporal_experiment_directory','expected_original_temporal_experiment_sha256',
@@ -22,6 +22,7 @@ FIELDS={'contract_revision','original_temporal_experiment_directory','expected_o
 ATTESTATIONS={'explicit_development_one_state_ar_fit','independent_protocol_review_and_ci_accepted',
               'final_outings_remain_unexposed','fixed_protocol_and_preserve_failed_attempts'}
 PROTOCOL={'model':MODEL_NAME,'configuration':CONFIGURATION,'feature_names':list(BMW_CONDITION_FEATURE_NAMES),
+ 'covariance_regularization':'prospective_D1B_zero_diagonal_shrinkage_eigenvalue_clip_1e-6_not_Gaussian_additive_1e-6_I',
  'maximum_padded_frames':MAX_PADDED_FRAMES,'maximum_sampled_padded_frames':MAX_SAMPLED_PADDED_FRAMES,
  'population':'exact_original_complete_feature_rows_all_locked_development_outings',
  'transform':'reuse_each_accepted_conditional_Gaussian_training_fold_means_scales_exactly_no_refit',

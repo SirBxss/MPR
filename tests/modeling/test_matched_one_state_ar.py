@@ -143,3 +143,33 @@ class MatchedOneStateTests(unittest.TestCase):
             with self.assertRaises(ValueError):self.state.sample(np.zeros((5,6)),offsets,sample_count=8,seed=1)
         with self.assertRaises(ValueError):self.state.sample(np.full((5,6),np.nan),[0,5],sample_count=8,seed=1)
         with self.assertRaises(ValueError):fit_one_state_ar(base(48),[block()])
+
+    def test_prospective_regularization_of_reset_and_innovation_matches_raw_spectrum(self):
+        # Coherent rank-deficient errors make shrinkage and floor changes visible.
+        b=block();b.y=np.tile(b.y[:,:1],(1,21));transform=base()
+        fitted,_=fit_one_state_ar(transform,[b]);p=fitted.model.to_dict()
+        self.assertEqual(p['configuration']['covariance_diagonal_shrinkage'],0.)
+        self.assertEqual(p['configuration']['covariance_minimum_eigenvalue'],1e-6)
+        z=(b.y-transform.residual_mean)/transform.residual_scale
+        x=(b.x-transform.condition_mean)/transform.condition_scale
+        design=np.column_stack((np.ones(len(x)),x))
+        initial=np.asarray(p['initial_emission_coefficients'])
+        reset_error=z-design@initial
+        rows=np.setdiff1d(np.arange(len(z)),b.offsets[:-1])
+        B=np.asarray(p['emission_coefficients'])[0];a=np.asarray(p['autoregressive_coefficients'])[0]
+        innovation=z[rows]-design[rows]@B-z[rows-1]*a
+        for errors,actual in [(reset_error,p['initial_emission_covariance_standardized2']),
+                (innovation,p['covariances_standardized2'][0])]:
+            raw=errors.T@errors/len(errors)
+            eigenvalues,vectors=np.linalg.eigh((raw+raw.T)/2)
+            expected=(vectors*np.maximum(eigenvalues,1e-6))@vectors.T
+            np.testing.assert_allclose(actual,expected,atol=2e-14,rtol=1e-11)
+            self.assertLess(eigenvalues[0],1e-6)
+            # The accepted Gaussian uses addition; do not conflate conventions.
+            self.assertGreater(np.max(np.abs(np.asarray(actual)-(raw+1e-6*np.eye(21)))),1e-8)
+
+    def test_superseded_adapter_revision_and_shrinkage_states_are_rejected(self):
+        p=deepcopy(self.state.to_dict());p['contract_revision']='v0.19.18-matched-one-state-adapter-2026-10-24-a1'
+        with self.assertRaisesRegex(ValueError,'closed_adapter_schema'):OneStateAR.from_dict(p)
+        p=deepcopy(self.state.to_dict());p['legacy_model']['configuration']['covariance_diagonal_shrinkage']=.15
+        with self.assertRaisesRegex(ValueError,'fixed_configuration'):OneStateAR.from_dict(p)

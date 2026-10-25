@@ -1,8 +1,9 @@
 # v0.19.18 matched one-state AR development protocol
 
-Status: implementation candidate, 2026-10-24. PR #43 and its first scalar AR
-return are accepted; this new consumer has not been independently reviewed,
-merged or authorized for a real fit. Private publication terminal evidence
+Status: prospective same-PR revision, 2026-10-25. PR #43 and its first scalar
+AR return are accepted. PR #44 a1 received implementation GO and three-job CI;
+this a2 configuration revision needs focused delta review and new-head CI before
+owner merge or operation. No one-state BMW fit has run. Private publication terminal evidence
 closes the earlier return's pending finalization check. Preserve the original
 analysis and add its acceptance checkpoint; never rewrite the earlier report.
 
@@ -35,12 +36,23 @@ frames. No reset-only covariance fit is introduced.
 The full literal configuration is frozen in `CONFIGURATION` and in each marker:
 maximum/minimum EM iterations 30/5; relative-total-training-log-probability
 tolerance 1e-4; regression ridge 1e-3; emission pooling 10; covariance pooling
-0.5, diagonal shrinkage 0.15, minimum eigenvalue 1e-5; minimum effective
+0.5, diagonal shrinkage 0, minimum eigenvalue 1e-6; minimum effective
 observations 10; AR ceiling 0.99; transition L2 1e-3, learning rate 0.03 and
 Adam steps 30; initial smoothing 0.01; minimum state occupancy 0.01; seed
 20260820; input-dependent transitions false. Transition machinery is ineffective
-for one state. These explicit legacy defaults are not a reproduction of every
-historical fitted artifact or evidence of tuned optimality.
+for one state. The legacy algorithm and all other settings are unchanged.
+This is not a reproduction of every historical fitted artifact or evidence of
+tuned optimality.
+
+The covariance settings replace the unrun a1 design prospectively: diagonal
+shrinkage can alter coherent spatial directions enough to obscure the intended
+comparison. Reset and innovation covariances now use no diagonal shrinkage and
+eigenvalue clipping at 1e-6 in the accepted training-standardized coordinates.
+The Gaussian instead adds 1e-6 I. For an empirical eigenvalue lambda >= 0, these
+produce max(lambda, 1e-6) and lambda + 1e-6 respectively; they are not identical.
+Report spectra, floor-bound directions and their density contribution. The
+configuration is fixed before any one-state result, without a sweep or a1 fit.
+A changed request/marker/authorization revision prevents stale operation.
 
 Exactly one training-only fit per outer fold; no validation argument, restart,
 held-out tuning or model-family sweep. Save every iteration log, best iteration,
@@ -77,6 +89,16 @@ NLL/frame separate and explicitly offline; it is not prediction-time observed
 error input and is not interchangeable with frame marginal NLL.
 Save analytic marginal-mean RMSE separately from sample-score means.
 Sample Monte Carlo variation remains; no automatic winner or significance claim.
+
+Privately declare interpretation before RUN: paired outing sequence-energy
+differences and equal-outing means with length strata 1, 2-9 and >=10; reset
+versus non-reset frame NLL; station coefficient/cap profiles; covariance growth
+with sequence position; and held-out eigendirection lag diagnostics. Missing
+strata stay unassessed. Lag-error improvement alone is not evidence of adequate
+dynamics. K=1 repeats a closed-form M-step, so convergence is not evidence of
+fit adequacy. Saved-state fixed-seed sensitivity is required before interpreting
+small sample-score differences; it does not authorize a fit, seed selection or
+replacement of the primary scores. The private note fixes seeds and aggregation.
 
 ## Contracts, lifecycle and authorization
 
