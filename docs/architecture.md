@@ -1,5 +1,12 @@
 # Project architecture
 
+The [v0.19.18 consumer](matched_one_state_ar_v01918.md) adds a matched adapter
+around unchanged one-state AIOHMM math. `io.development_one_state` replays accepted
+scalar/Gaussian evidence and seals adapter layouts; its workflow fits only the
+new law, scores exact Gaussian marginals and preserves semantic attempt claims
+and failure events. The new CLI has prepare/train subcommands. Existing source
+and CLIs remain unchanged. No permission is inherited from engineering readers.
+
 The [v0.19.17 candidate](matched_stationary_ar_v01917.md) adds
 `modeling.matched_stationary_ar` for a one-parameter stationary memory control;
 `io.development_temporal` for strict original-experiment and accepted Gaussian

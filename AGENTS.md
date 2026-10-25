@@ -1,6 +1,51 @@
 # MPR agent instructions
 
-## Current checkpoint: 2026-10-23 Gaussian return accepted; matched memory candidate
+## Current 2026-10-25 PR #44 prospective covariance revision
+
+The unrun a1 PR head received independent source/helper/mathematical GO and
+three-job CI. Its legacy covariance shrinkage is a scientific comparison confound.
+The same-PR a2 revision removes diagonal shrinkage and fixes the eigenvalue
+minimum at 1e-6, without changing the legacy algorithm or accepted predecessors.
+This clips eigenvalues; accepted Gaussian regularization adds 1e-6 I. Retain that
+distinction, floor diagnostics, length strata and saved-state Monte Carlo
+sensitivity in interpretation. No a1 or a2 real one-state fit has occurred.
+
+The model, experiment and authorization revisions change; old preparation pins
+are superseded. Obtain focused delta/private-helper review and new-head CI before
+owner merge, preparation and separate owner adoption. Keep accepted data, scores,
+rows/resets and final-outing restrictions. No new sweep or prior-stage rerun.
+
+## Historical checkpoint: 2026-10-24 scalar AR accepted; one-state AR candidate
+
+PR #43 is merged at `188a3a8`, reviewed owner head `6bfb33f`, tree `10ef92f`,
+runtime `33479095…`. Exact-tree CI `40079273807` passed all three jobs.
+Independent GO and a prospective private interpretation note preceded the first
+owner-adopted scalar AR operation. Its immutable return passes raw-free archive,
+receipt/source/consent/claim, original cohort/all-descendant replay, row/reset,
+saved-state and score checks. The owner's normal publication terminal line
+closes the pending finalization check. Preserve the original analysis and new
+private acceptance addendum. Do not repeat the operation or rewrite its reports.
+Measured findings and private anchors stay private; no universal winner follows.
+
+Read `docs/matched_one_state_ar_v01918.md`. The new consumer reuses unchanged
+one-state station-wise Gaussian AR/AIOHMM math with exact accepted fold transforms,
+rows, clocks and resets. It fits no transform or predecessor. Analytic frame
+marginal NLL uses generated-history recursion; offline history density is separate.
+Retain convergence/warnings and flag finite unconverged states for scientific
+review. This broader comparison changes more than persistence and has no latent
+switching. Four major stages are documented: this baseline, matched flows,
+frozen comparison/held-out evaluation, and planner assessment.
+
+New source/protocol/private-helper GO, exact-head three-job CI and owner merge
+precede preparation and separately adopted exact one-state authorization.
+Semantic claims prevent renamed retries; durable new ancestors and separate
+failure events preserve lifecycle evidence. Return terminal child status with
+the result. No new BMW fit or final exposure occurred in this implementation.
+Both flows remain synthetic-only. Keep causality, owner-declared identity
+qualification, RLMB pseudo-reference and confidence/interface assumptions visible.
+Earlier instructions below are historical where they conflict.
+
+## Historical checkpoint: 2026-10-23 Gaussian return accepted; matched memory candidate
 
 PR #42 is merged at `0712352`, reviewed owner head `9d42975`, tree `a87bfb33`,
 runtime `b88b8aa3…`. Three-job exact-tree CI `39757023532` passed. Claude gave

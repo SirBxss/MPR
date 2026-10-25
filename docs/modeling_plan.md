@@ -1,5 +1,21 @@
 # Thesis modeling plan
 
+Current 2026-10-24: the matched Gaussian pair and scalar AR return are accepted;
+private diagnostic evidence motivates the next existing one-state station-wise
+AR/AIOHMM baseline. Read [the v0.19.18 protocol](matched_one_state_ar_v01918.md).
+It preserves exact fold transformations, rows and resets and reuses predecessor
+results without refitting. Generated-history marginal NLL is analytic; chain
+density is separately offline. Fixed training-only stopping is not outer-fold
+tuning. Convergence/warnings must be reviewed before scientific acceptance.
+
+Four major stages remain at this candidate: the stronger matched baseline,
+matched unconditional/conditional AR flow experiments, a frozen comparison and
+authorized held-out evaluation, and planner-level assessment. No automatic
+two-state sweep or extra acquisition follows. Flow architecture improvements need
+a specific training-only justification and their own reviewed experiment scope.
+Both flows remain synthetic-only. Existing causal/reference/identity limitations
+and final-outing embargo persist. Earlier chronological checkpoints follow.
+
 Current 2026-10-23: the first owner-authorized Gaussian operation is accepted
 after raw-free saved-state/score and prospective-diagnostic verification; its
 private numerical comparison is mixed and is not a universal model-selection
