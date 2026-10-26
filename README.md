@@ -1,6 +1,35 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-16):** PR #36 received NO-GO for evidence and
+**Current checkpoint (2026-10-26, PR #45 a2):** Independent review identified
+incorrect local exclusion classification and a misleading combined-mask legend.
+Both are corrected with regression checks. Canonical design claims, durable
+phase receipts, pre-claim metadata budget planning and an exact reviewed-tree
+pin in the private runner harden the same bounded diagnostic. The fixed window,
+freshness screen, model/data contracts and accepted results are unchanged.
+The a1 three-job CI passed; a2 needs focused source/private-packet GO and new-head
+CI before owner merge or payload operation. No BMW pilot has run.
+
+**Historical implementation checkpoint (2026-10-26):** The matched Gaussian pair and both AR
+controls are trained and independently verified. Both flow modes remain
+synthetic-only on this matched population; final held-out and planner work are
+later phases. The summary-only velocity return is technically verified, with
+its review/CI/merge prerequisite closure unestablished. Preserve it and all
+accepted training evidence; do not repeat those operations.
+
+The next implementation is a [bounded direct-velocity timing pilot](docs/velocity_timing_pilot_v01920.md):
+one development recording, a fixed sustained geometry interval, selected indexed
+payload decoding, diagnostic CSVs and Python plots. It adds an enforced live
+merged-source/exact-head-CI gate and a durable one-attempt claim. No feature,
+dataset or model is changed. Independent review, actual three-job CI and owner
+merge are pending before its private operation.
+
+Future agents start with [AGENTS.md](AGENTS.md), [current status](docs/current_status.md)
+and the [complete v0.19.20 handoff](docs/agent_handoff_v01920.md). Update these
+entry points and this README after each implementation/result/review. The private
+patch packet includes apply, test, review, operation and return instructions;
+private inputs/results must not be committed. All checkpoints below are historical.
+
+**Historical checkpoint (2026-10-16):** PR #36 received NO-GO for evidence and
 historical-consumer scope. The [a2 correction and evaluation](docs/edp_descriptor_compatibility_a2_review_20261016.md)
 decodes actual interface 2.3 custom options, records the explicit compatibility
 argument and restricts the second root to bounded readiness. Historical locks

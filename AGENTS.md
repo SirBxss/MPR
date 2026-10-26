@@ -1,6 +1,67 @@
 # MPR agent instructions
 
-## Current 2026-10-25 PR #44 prospective covariance revision
+## Current 2026-10-26 PR #45 a2 review correction
+
+Read `docs/velocity_timing_a2_review_20261026.md`, the updated protocol and
+handoff. The local combined mask now excludes estimate_features_* failures and
+unavailable geometry, while replacing every speed-path failure under the same
+exploratory screen. Its legend names the combined mask accurately. New frame
+provenance fields and aggregate tie counts support offline audit. No feature,
+window, threshold, dataset, fit or final-outing rule changes.
+
+Canonical semantic identities key durable per-project claims; formatting and
+input/output renames cannot retry a claimed design. One descriptor first reads
+only metadata to prove affordability, before claiming/hash/payload. Phase reports
+are atomic and fsynced, with unknown progress after hard termination. The private
+runner additionally pins the entire reviewed tree, including documentation.
+The a1 exact-head three-job CI is verified. A2 focused source/protocol/private-
+packet GO, new-head CI, owner merge and the BMW operation remain pending. Supply
+the complete private packet for review; keep it off public GitHub. Preserve
+every earlier result. All earlier checkpoints below are historical on conflicts.
+
+## Historical 2026-10-26 bounded velocity timing candidate
+
+Read `docs/agent_handoff_v01920.md` and `docs/velocity_timing_pilot_v01920.md`.
+Update this file, root README, current status and the handoff after each
+implementation/result/review; preserve dated history. The v0.19.19 summary
+return is technically verified. Offline custom options expose a documented
+VehicleVelocity timestamp limitation and a distinct COG absolute-speed quantity;
+actual payload behavior remains unobserved. Its launcher omitted enforcement of
+review/CI/merge prerequisites; available remote evidence did not establish their
+closure. Record the deviation, preserve the result and never rerun it.
+
+v0.19.20 adds one fixed geometry-selected local timing pilot with current full
+raw identity verification, bounded selected decoding of both direct topics,
+exploratory clock screens and Python plots. It enforces live merged-main,
+exact-head three-job CI and owner-attested independent GO evidence before raw
+inspection. No offline gate bypass, timestamp substitution, invalid-update
+fallback, new speed feature, dataset, final exposure or fit is introduced.
+Request-digest claims forbid renamed raw-started retries; preserve incomplete
+reports/ZIPs. Source/protocol/private-runner review, actual-head CI, owner merge
+and this new BMW pilot remain pending. Four matched configurations are complete;
+both flows remain synthetic-only. Keep existing scientific real-fit gates.
+
+## Historical 2026-10-26 bounded velocity investigation
+
+The merged PR #44 a2 station-wise one-state AR return and owner exit-zero
+publication are independently accepted. Preserve the private verification and
+all original outputs; do not repeat baseline fits or exports. Both Gaussian
+configurations and both AR controls are complete on the matched development
+population. Both flows remain synthetic-only; final outings remain unexposed.
+
+Read `docs/velocity_summary_probe_v01919.md`. The next candidate is a one-file,
+summary-only descriptor/I/O diagnostic for both direct velocity topics and
+odometry. No payload decoding, new speed policy, numeric dataset or training is
+implemented. The reviewed request pins the original accepted development cohort
+snapshot; it does not replay the registry. Fresh summary equality is explicitly
+not full-current-raw identity verification. Never elevate it into payload consent.
+Keep private requests, schemas and observations out of public Git. Independent
+source/protocol/private-launcher GO, exact-head three-job CI and owner merge
+precede the bounded owner operation. Budget failure is inconclusive; no broader
+scan fallback. Flow protocol work can continue; existing real-fit and scientific
+temporal-support gates remain. Earlier checkpoints are historical on conflicts.
+
+## Historical 2026-10-25 PR #44 prospective covariance revision
 
 The unrun a1 PR head received independent source/helper/mathematical GO and
 three-job CI. Its legacy covariance shrinkage is a scientific comparison confound.
