@@ -1,5 +1,25 @@
 # Current project status
 
+## Current 2026-10-26 velocity summary verified; timing pilot implemented
+
+The v0.19.19 owner summary return passes raw-free technical verification. Its
+exact descriptor bytes also contain custom annotations exposing a documented
+VehicleVelocity timestamp limitation and a different COG absolute-speed
+quantity. No direct-speed payload or longer sequence support has been observed.
+The old launcher omitted review/CI/merge enforcement; prerequisite closure was
+not established by available remote evidence. Preserve the return and deviation.
+
+The [v0.19.20 protocol](velocity_timing_pilot_v01920.md) implements one fixed
+sustained geometry-window payload diagnostic, registered raw SHA verification,
+bounded indexed decoding, fixed exploratory clock screens, private CSVs and
+Matplotlib figures. It prospectively enforces actual merged-source/exact-head
+CI evidence and recorded independent review GO before raw access, with durable
+attempt claims and incomplete-output preservation. No existing scientific source,
+feature, dataset or model is modified. Review/actual-head CI/merge/BMW operation
+are pending. Use the [agent handoff](agent_handoff_v01920.md) for complete state,
+next actions, training scope and no-rerun boundaries. Earlier checkpoints are
+historical where they conflict; keep their original provenance intact.
+
 ## Current 2026-10-26 matched baselines complete; bounded speed investigation
 
 PR #44 a2 is merged and its first station-wise one-state AR result has passed

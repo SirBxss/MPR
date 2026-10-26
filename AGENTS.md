@@ -1,5 +1,27 @@
 # MPR agent instructions
 
+## Current 2026-10-26 bounded velocity timing candidate
+
+Read `docs/agent_handoff_v01920.md` and `docs/velocity_timing_pilot_v01920.md`.
+Update this file, root README, current status and the handoff after each
+implementation/result/review; preserve dated history. The v0.19.19 summary
+return is technically verified. Offline custom options expose a documented
+VehicleVelocity timestamp limitation and a distinct COG absolute-speed quantity;
+actual payload behavior remains unobserved. Its launcher omitted enforcement of
+review/CI/merge prerequisites; available remote evidence did not establish their
+closure. Record the deviation, preserve the result and never rerun it.
+
+v0.19.20 adds one fixed geometry-selected local timing pilot with current full
+raw identity verification, bounded selected decoding of both direct topics,
+exploratory clock screens and Python plots. It enforces live merged-main,
+exact-head three-job CI and owner-attested independent GO evidence before raw
+inspection. No offline gate bypass, timestamp substitution, invalid-update
+fallback, new speed feature, dataset, final exposure or fit is introduced.
+Request-digest claims forbid renamed raw-started retries; preserve incomplete
+reports/ZIPs. Source/protocol/private-runner review, actual-head CI, owner merge
+and this new BMW pilot remain pending. Four matched configurations are complete;
+both flows remain synthetic-only. Keep existing scientific real-fit gates.
+
 ## Current 2026-10-26 bounded velocity investigation
 
 The merged PR #44 a2 station-wise one-state AR return and owner exit-zero
