@@ -1,5 +1,25 @@
 # MPR agent instructions
 
+## Current 2026-10-26 bounded velocity investigation
+
+The merged PR #44 a2 station-wise one-state AR return and owner exit-zero
+publication are independently accepted. Preserve the private verification and
+all original outputs; do not repeat baseline fits or exports. Both Gaussian
+configurations and both AR controls are complete on the matched development
+population. Both flows remain synthetic-only; final outings remain unexposed.
+
+Read `docs/velocity_summary_probe_v01919.md`. The next candidate is a one-file,
+summary-only descriptor/I/O diagnostic for both direct velocity topics and
+odometry. No payload decoding, new speed policy, numeric dataset or training is
+implemented. The reviewed request pins the original accepted development cohort
+snapshot; it does not replay the registry. Fresh summary equality is explicitly
+not full-current-raw identity verification. Never elevate it into payload consent.
+Keep private requests, schemas and observations out of public Git. Independent
+source/protocol/private-launcher GO, exact-head three-job CI and owner merge
+precede the bounded owner operation. Budget failure is inconclusive; no broader
+scan fallback. Flow protocol work can continue; existing real-fit and scientific
+temporal-support gates remain. Earlier checkpoints are historical on conflicts.
+
 ## Current 2026-10-25 PR #44 prospective covariance revision
 
 The unrun a1 PR head received independent source/helper/mathematical GO and

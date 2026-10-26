@@ -1,5 +1,22 @@
 # Current project status
 
+## Current 2026-10-26 matched baselines complete; bounded speed investigation
+
+PR #44 a2 is merged and its first station-wise one-state AR result has passed
+independent raw-free verification, including the owner's exit-zero publication.
+The two Gaussian and two AR configurations are complete on their shared
+development population. Preserve all original evidence and final-outing roles.
+The two flow modes still need reviewed matched real-data training/evaluation;
+final held-out and planner work are later stages. Do not turn model counts into
+an effort estimate or claim that temporal support has been resolved.
+
+The [v0.19.19 bounded velocity checkpoint](velocity_summary_probe_v01919.md)
+adds only a summary/descriptor/I/O probe for one reviewed development recording.
+No message payloads, altered speed feature, residual export, fitted state or new
+temporal claim follows. Flow engineering can continue alongside this small
+investigation; real fits retain the existing scientific and approval gates.
+Review/actual-head CI/owner merge remain pending for this new implementation.
+
 ## Current 2026-10-25 PR #44 prospective covariance revision
 
 The unrun a1 PR head received independent source/helper/mathematical GO and
