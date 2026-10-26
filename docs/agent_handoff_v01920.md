@@ -1,6 +1,41 @@
-# Agent handoff — v0.19.20 velocity timing candidate
+# Agent handoff — v0.19.20 timing return accepted
 
-Current revision: a2, after PR #45 independent review. Read
+## Current result and next action, 2026-10-26
+
+Read `velocity_timing_result_20261026.md` after AGENTS and current status. PR #45
+a2 received independent source/protocol/private-packet GO, all three actual-head
+CI jobs and owner merge before the first operation. The exit-zero return passes
+independent raw-free archive/input/receipt/source/GO/CI and complete analysis
+replay. Preserve original evidence and the owner claim. The completed pilot and
+v0.19.19 summary must not be rerun. The old whole-tree-pinned runner is not an
+owner command for this newer documentation tree.
+
+The approved latest-at-or-before-log selector does not solve local fragmentation.
+A separately labelled post-hoc cached calculation using the one latest strictly
+earlier logged update is promising. It is not adopted, does not search past an
+invalid selected update and does not establish producer clocks/physical input
+availability or cohort-wide recovery. Preserve the descriptor-versus-observed-
+payload distinction and separate inner/outer/standstill qualifiers.
+
+Next write a prospective cached-only history specification/replay and establish
+longitudinal units, sign, reference point, clock/timestamp and actual consumer
+availability semantics. No second raw read is needed for this cached assessment.
+New production policy, data expansion or adoption needs separately reviewed scope
+and appropriate implementation/CI/owner-operation gates. There is no new owner
+operation command in this result checkpoint.
+
+The accepted four matched configurations remain complete; both flows remain
+synthetic-only. Prepare flow protocol/software alongside the cached investigation
+while retaining scientific temporal-support and model-substitution gates. Later
+held-out comparison and planner assessment are not complete. Keep final outings
+unexposed. A changed feature/population requires a versioned matched comparison,
+not overwriting accepted models or indiscriminate refits. Update README, AGENTS,
+status and handoff after the next review/result/implementation. Runtime/tests
+are unchanged here. All conflicting operating instructions below are historical.
+
+## Historical preparation checkpoint
+
+Historical revision: a2, after PR #45 first independent review. Read
 `velocity_timing_a2_review_20261026.md`. The reviewed a1 head passed exact-head
 CI but had two source/protocol blockers; the private packet was unreviewed.
 A2 fixes the local mask and legend, records original exclusions in the CSV,

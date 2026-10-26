@@ -1,6 +1,31 @@
 # MPR agent instructions
 
-## Current 2026-10-26 PR #45 a2 review correction
+## Current 2026-10-26 timing return accepted
+
+Read `docs/velocity_timing_result_20261026.md`. PR #45 a2 received full independent
+source/protocol/private-packet GO, actual exact-head three-job CI and owner merge.
+The owner's first bounded timing return is accepted after raw-free archive,
+receipt/source/GO/CI/input, integer selection and full frame/analysis replay.
+Preserve its original result, review and owner claim; do not rerun the design.
+
+The reviewed latest-log screen fails to resolve local temporal fragmentation.
+A separate post-hoc strict-prior-log cached replay is promising, not adopted.
+Next prospectively specify/review that cached history rule and establish producer
+units/sign/reference/clock/timestamp/availability semantics. No raw re-decode is
+needed for cached replay. No production selector or feature/dataset change is
+authorized by this completed diagnostic; preserve invalid-latest barriers,
+geometry/non-speed exclusions and original resets. VehicleVelocity stays a
+diagnostic control; observed payloads must not be overwritten to fit annotations.
+
+Both Gaussians and both AR controls remain accepted. Both flows remain synthetic-
+only; flow protocol/software work may continue under existing real-fit temporal-
+support and model-substitution gates. Keep final outings unexposed and original
+comparisons immutable. Any later changed population/feature needs a versioned
+matched comparison; no blanket refits now. This closure changes docs only and
+issues no owner raw/training command. Update continuity docs after every result,
+review and implementation. Earlier checkpoints below are historical on conflicts.
+
+## Historical 2026-10-26 PR #45 a2 review correction
 
 Read `docs/velocity_timing_a2_review_20261026.md`, the updated protocol and
 handoff. The local combined mask now excludes estimate_features_* failures and

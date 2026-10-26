@@ -1,5 +1,18 @@
 # PR #45 a2 correction and continuity record
 
+## Current closure
+
+The focused a2 review gave source/protocol/private-packet and fixed-operation
+GO with no blockers. Actual reviewed-head three-job CI passed and the owner
+merged before the first bounded operation. Its exit-zero return is now accepted;
+read the [result/next boundary](velocity_timing_result_20261026.md). Preserve the
+private review and evidence outside Git. No correction or repeat operation is
+needed. The next history-selection hypothesis is post hoc and needs its own
+prospective scope; it does not inherit this operation's GO. The text below is
+the historical a2 preparation and validation record.
+
+## Historical correction record
+
 The independent source/protocol review required two corrections before the
 single timing operation. The private operational packet was not available in
 that review, so it had no private-helper or operation GO. This revision remains

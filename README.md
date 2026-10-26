@@ -1,6 +1,25 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-26, PR #45 a2):** Independent review identified
+**Current checkpoint (2026-10-26, timing return accepted):** PR #45 a2 received
+independent source/protocol/private-packet GO, passed all three exact-head CI
+jobs and merged before the owner's first bounded timing operation. Its exit-zero
+return passes independent raw-free input/receipt/source and full analysis replay.
+Read the [result and next boundary](docs/velocity_timing_result_20261026.md).
+Preserve the original return and owner claim; do not rerun this completed design.
+
+The reviewed latest-log screen does not resolve local temporal fragmentation.
+A separate post-hoc cached replay using one latest strictly earlier logged
+update is promising, but is not an adopted feature/dataset or availability proof.
+Next specify and review that cached-only history policy and establish producer
+semantics; no new raw/training command is issued. Both Gaussians and both AR
+controls remain complete; both flows still need matched real-data training.
+Flow protocol/software work can proceed under the existing scientific gates.
+
+README, AGENTS, status, protocol and handoff are updated by this documentation-
+only checkpoint. Runtime source/tests and accepted datasets/models are unchanged.
+All earlier checkpoints below are historical where they conflict.
+
+**Historical checkpoint (2026-10-26, PR #45 a2):** Independent review identified
 incorrect local exclusion classification and a misleading combined-mask legend.
 Both are corrected with regression checks. Canonical design claims, durable
 phase receipts, pre-claim metadata budget planning and an exact reviewed-tree

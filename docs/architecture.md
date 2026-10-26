@@ -1,5 +1,13 @@
 # Project architecture
 
+Current timing status: the independently approved a2 operation completed and its
+first return passed raw-free verification. Read the
+[completion/next boundary](velocity_timing_result_20261026.md). Runtime modules
+and tests are unchanged by this documentation closure. A separate post-hoc
+strict-prior-log calculation exists only in private cached-return analysis;
+it is not a production selector or a new feature/dataset path. No further raw
+decode or model fit is introduced, and completed attempts cannot be replayed.
+
 The [v0.19.20 timing pilot](velocity_timing_pilot_v01920.md) is an isolated
 diagnostic consumer. `io.velocity_review_gate` checks live merged-source/CI
 evidence; `io.velocity_timing_pilot` verifies the registered raw file and uses
