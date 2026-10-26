@@ -1,4 +1,5 @@
 from io import BytesIO
+import copy
 from pathlib import Path
 import tempfile
 import unittest
@@ -42,8 +43,12 @@ class VelocityPilotIoTests(unittest.TestCase):
                 self.check(recording())
 
     def test_actual_message_limit_is_enforced_before_next_decode(self):
-        with patch.dict(pilot.LIMITS, decoded_messages=1), self.assertRaisesRegex(ValueError, "message_count_budget"):
-            self.check(recording())
+        raw = recording()
+        with tempfile.TemporaryDirectory() as temp:
+            prepared = pilot.prepare_window(BytesIO(raw), len(raw), read_inventory(BytesIO(raw), len(raw)),
+                (LOG-1_000_000_000, LOG+13_000_000_000), temp)
+            with patch.dict(pilot.LIMITS, decoded_messages=1), self.assertRaisesRegex(ValueError, "message_count_budget"):
+                pilot.decode_prepared(prepared)
 
     def test_meter_and_deadline_do_not_allow_unbounded_reads(self):
         meter = pilot.Metered(BytesIO(b"a"), 0)
@@ -77,6 +82,17 @@ class VelocityPilotIoTests(unittest.TestCase):
         raw = recording()
         with tempfile.TemporaryDirectory() as temp, self.assertRaisesRegex(ValueError, "fresh_inventory_changed"):
             pilot.decode_window(BytesIO(raw), len(raw), {}, (LOG, LOG+1), temp)
+
+    def test_design_key_ignores_equivalent_input_path_aliases(self):
+        with tempfile.TemporaryDirectory() as temp:
+            request, pin, _ = prepare(Path(temp))
+            q, _, _, _ = pilot.load_request(request, pin)
+            alias = copy.deepcopy(q)
+            alias["summary_scope"]["raw_path_private"] = "/other/location/input.mcap"
+            alias["summary_scope"]["cohort_file"] = "cohort_alias.json"
+            alias["audit_file"] = "audit_alias.json"
+            alias["numeric_file"] = "numeric_alias.npz"
+            self.assertEqual(pilot.design_sha256(q), pilot.design_sha256(alias))
 
     def test_corrupt_chunk_crc_rejected(self):
         from mcap.reader import SeekingReader

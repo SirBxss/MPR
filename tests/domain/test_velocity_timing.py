@@ -51,6 +51,29 @@ class TimingScreenTests(unittest.TestCase):
         result, screens = self.screen([e])
         self.assertTrue(screens[0]["log_time_tied_to_edp"])
         self.assertIs(result["physical_causal_availability_proven"], False)
+        self.assertEqual(result["topics"][TOPICS[0]]["edp_log_tie_frames"], 1)
+
+    def test_all_producer_speed_path_failures_can_be_replaced_by_the_screen(self):
+        for code in ("speed_uses_future_source_sample", "odometry_interpolation_gap_exceeds_limit",
+            "odometry_reference_time_outside_coverage", "odometry_speed_history_outside_coverage",
+            "odometry_log_lag_exceeds_limit", "odometry_stream_empty",
+            "odometry_stream_invalid_or_schema_changed", "ValueError", "TypeError"):
+            with self.subTest(code=code):
+                r = row(0); r["conditions_available"] = False; r["condition_failure_codes"] = [code]
+                _, screens = self.screen([event()], [r])
+                self.assertTrue(screens[0]["local_hypothetical_complete"])
+                self.assertEqual(screens[0]["condition_failure_codes"], [code])
+
+    def test_geometry_and_estimate_derived_exclusions_remain_barriers(self):
+        r = row(0); r["residual_available"] = False
+        _, screens = self.screen([event()], [r])
+        self.assertTrue(screens[0]["recorded_clock_screen_met"])
+        self.assertFalse(screens[0]["local_hypothetical_complete"])
+        r["residual_available"] = True
+        r["condition_failure_codes"] = ["odometry_interpolation_gap_exceeds_limit", "estimate_features_estimate_inputs_non_finite"]
+        _, screens = self.screen([event()], [r])
+        self.assertFalse(screens[0]["non_speed_features_available"])
+        self.assertFalse(screens[0]["local_hypothetical_complete"])
 
     def test_zero_speed_with_valid_quality_is_not_treated_as_missing(self):
         _, screens = self.screen([event(value=0.)])

@@ -1,6 +1,15 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-26):** The matched Gaussian pair and both AR
+**Current checkpoint (2026-10-26, PR #45 a2):** Independent review identified
+incorrect local exclusion classification and a misleading combined-mask legend.
+Both are corrected with regression checks. Canonical design claims, durable
+phase receipts, pre-claim metadata budget planning and an exact reviewed-tree
+pin in the private runner harden the same bounded diagnostic. The fixed window,
+freshness screen, model/data contracts and accepted results are unchanged.
+The a1 three-job CI passed; a2 needs focused source/private-packet GO and new-head
+CI before owner merge or payload operation. No BMW pilot has run.
+
+**Historical implementation checkpoint (2026-10-26):** The matched Gaussian pair and both AR
 controls are trained and independently verified. Both flow modes remain
 synthetic-only on this matched population; final held-out and planner work are
 later phases. The summary-only velocity return is technically verified, with

@@ -15,19 +15,31 @@ from tempfile import TemporaryDirectory
 import time
 import zipfile
 
-from ..domain.velocity_timing import TOPICS
+from ..domain.velocity_timing import TOPICS, AGE_NS
 from . import recording_decode_check as decoder
 from .recording_inventory import read_inventory
 from .recording_readiness_resources import configure
 from .velocity_summary_probe import pinned_json, require, scope
 
-REVISION = "v0.19.20-velocity-timing-pilot-a1"
+REVISION = "v0.19.20-velocity-timing-pilot-a2"
 LIMITS = {"maximum_raw_file_bytes": 2*1024**3, "hash_seconds": 120,
     "processing_seconds": 120, "metadata_read_bytes": 128*1024**2,
     "selected_chunk_read_bytes": 128*1024**2, "expanded_chunk_bytes": 512*1024**2,
     "single_chunk_bytes": 4*1024**2, "selected_chunks": 2048,
     "decoded_messages": 50000, "index_database_bytes": 32*1024**2}
 WINDOW_NS, PADDING_NS = 12_000_000_000, 1_000_000_000
+
+
+def design_sha256(request):
+    """Canonical scientific identities, independent of JSON formatting/paths."""
+    identity = request["summary_scope"]
+    value = {"revision": request["revision"], "identity": {k: identity[k] for k in
+        ("outing_id", "recording_id", "raw_sha256", "size_bytes", "cohort_sha256", "inventory_sha256")},
+        "numeric_summary_sha256": request["numeric_summary_sha256"],
+        "window_start_log_ns": str(int(request["window_start_log_ns"])),
+        "window_end_log_ns": str(int(request["window_end_log_ns"])),
+        "padding_ns": PADDING_NS, "exploratory_age_ns": AGE_NS}
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
 def fixed_window_start(rows):
@@ -151,9 +163,8 @@ class Sink:
             "nested_present": present, "non_default_decoded_fields": [f.name for f, _ in message.ListFields()]})
 
 
-def decode_window(stream, size, expected, window, scratch):
-    from mcap.records import Chunk
-    from mcap.stream_reader import StreamReader
+def prepare_window(stream, size, expected, window, scratch):
+    """Summary/index-only affordability check; no hash, claim or message reads."""
     started = time.monotonic()
     deadline = started+LIMITS["processing_seconds"]
     metered = Metered(stream, deadline)
@@ -172,7 +183,6 @@ def decode_window(stream, size, expected, window, scratch):
             return function(payload)
         return decode
     decoders = {key: bounded(value) for key, value in decoders.items()}
-    sink = Sink(selected, window)
     with TemporaryDirectory(prefix="mpr-velocity-index-", dir=scratch) as temporary:
         with closing(sqlite3.connect(Path(temporary)/"index.sqlite")) as db:
             configure(db, LIMITS["index_database_bytes"])
@@ -184,30 +194,60 @@ def decode_window(stream, size, expected, window, scratch):
             require(sum(r[1] for r in plan) <= LIMITS["selected_chunk_read_bytes"] and
                 sum(r[7] for r in plan) <= LIMITS["expanded_chunk_bytes"] and
                 all(max(r[1], r[7]) <= LIMITS["single_chunk_bytes"] for r in plan), "pilot_planned_window_budget")
-            counts, crc_checked, expanded = Counter(), 0, 0
-            state = {"decoded_selected_message_count": 0, "selected_payload_bytes_processed": 0}
-            for row in plan:
-                offset, length, _, first, last, compression, compressed, uncompressed, _, _ = row
-                require(time.monotonic() <= deadline, "pilot_processing_timeout")
-                metered.phase = "selected_chunk"
-                metered.seek(offset)
-                raw = metered.read(length)
-                require(struct.unpack_from("<BQ", raw) == (6, length-9), "pilot_chunk_record_changed")
-                chunk = next(StreamReader(BytesIO(raw), skip_magic=True, emit_chunks=True,
-                    record_size_limit=LIMITS["single_chunk_bytes"]).records)
-                require(isinstance(chunk, Chunk) and chunk.uncompressed_size == uncompressed and len(chunk.data) == compressed and
-                    chunk.compression == compression and chunk.message_start_time == int(first) and chunk.message_end_time == int(last),
-                    "pilot_chunk_header_changed")
-                require(compression in ("", "zstd", "lz4"), "pilot_compression_unsupported")
-                data = decoder._decompress(chunk)
-                expanded += len(data)
-                crc_checked += bool(chunk.uncompressed_crc)
-                sink.chunk_bounds = (int(first), int(last))
-                decoder._messages(data, channels, schemas, selected, decoders, counts, deadline, state, sink)
-                require(state["decoded_selected_message_count"] <= LIMITS["decoded_messages"], "pilot_message_count_budget")
-                del raw, data, chunk
-    return sink.records, {"indexed_chunks": indexed, "window_chunks": len(plan), "nonzero_chunk_crcs_checked": crc_checked,
-        "zero_chunk_crcs_unavailable": len(plan)-crc_checked, "read_bytes_by_phase": metered.used,
+    upper = sum(c["advertised_message_count"] for c in selected.values())
+    require(upper <= LIMITS["decoded_messages"], "pilot_advertised_message_count_budget")
+    elapsed = time.monotonic()-started
+    require(elapsed <= LIMITS["processing_seconds"], "pilot_processing_timeout")
+    summary = {"indexed_chunks": indexed, "window_chunks": len(plan),
+        "selected_chunk_record_bytes": sum(r[1] for r in plan), "expanded_chunk_bytes": sum(r[7] for r in plan),
+        "selected_recording_message_upper_bound": upper, "metadata_bytes_read": metered.used["metadata"],
+        "metadata_elapsed_seconds": elapsed, "padded_window_log_ns": [str(v) for v in window],
+        "payload_decode_performed_during_planning": False, "full_raw_hash_performed_during_planning": False}
+    return {"channels": channels, "schemas": schemas, "selected": selected, "decoders": decoders,
+        "metered": metered, "window": window, "plan": plan, "summary": summary}
+
+
+def decode_prepared(prepared):
+    """Consume an already affordable plan, without a second metadata pass."""
+    from mcap.records import Chunk
+    from mcap.stream_reader import StreamReader
+    started = time.monotonic()
+    metered = prepared["metered"]
+    deadline = started+LIMITS["processing_seconds"]-prepared["summary"]["metadata_elapsed_seconds"]
+    metered.deadline = deadline  # Hash time is separate from processing time.
+    sink = Sink(prepared["selected"], prepared["window"])
+    counts, crc_checked, expanded = Counter(), 0, 0
+    state = {"decoded_selected_message_count": 0, "selected_payload_bytes_processed": 0}
+    for row in prepared["plan"]:
+        offset, length, _, first, last, compression, compressed, uncompressed, _, _ = row
+        require(time.monotonic() <= deadline, "pilot_processing_timeout")
+        metered.phase = "selected_chunk"
+        metered.seek(offset)
+        raw = metered.read(length)
+        require(struct.unpack_from("<BQ", raw) == (6, length-9), "pilot_chunk_record_changed")
+        chunk = next(StreamReader(BytesIO(raw), skip_magic=True, emit_chunks=True,
+            record_size_limit=LIMITS["single_chunk_bytes"]).records)
+        require(isinstance(chunk, Chunk) and chunk.uncompressed_size == uncompressed and len(chunk.data) == compressed and
+            chunk.compression == compression and chunk.message_start_time == int(first) and chunk.message_end_time == int(last),
+            "pilot_chunk_header_changed")
+        require(compression in ("", "zstd", "lz4"), "pilot_compression_unsupported")
+        data = decoder._decompress(chunk)
+        expanded += len(data)
+        crc_checked += bool(chunk.uncompressed_crc)
+        sink.chunk_bounds = (int(first), int(last))
+        decoder._messages(data, prepared["channels"], prepared["schemas"], prepared["selected"],
+            prepared["decoders"], counts, deadline, state, sink)
+        require(state["decoded_selected_message_count"] <= LIMITS["decoded_messages"], "pilot_message_count_budget")
+        del raw, data, chunk
+    return sink.records, {"indexed_chunks": prepared["summary"]["indexed_chunks"], "window_chunks": len(prepared["plan"]),
+        "nonzero_chunk_crcs_checked": crc_checked,
+        "zero_chunk_crcs_unavailable": len(prepared["plan"])-crc_checked, "read_bytes_by_phase": metered.used,
         "expanded_chunk_bytes": expanded, "decoded_selected_messages_in_touched_chunks": state["decoded_selected_message_count"],
-        "messages_retained_in_padded_log_window": len(sink.records), "elapsed_seconds": time.monotonic()-started,
-        "padded_window_log_ns": [str(v) for v in window], "full_recording_decoded": False}
+        "messages_retained_in_padded_log_window": len(sink.records),
+        "elapsed_seconds": time.monotonic()-started+prepared["summary"]["metadata_elapsed_seconds"],
+        "padded_window_log_ns": [str(v) for v in prepared["window"]], "full_recording_decoded": False}
+
+
+def decode_window(stream, size, expected, window, scratch):
+    """Convenience wrapper for synthetic reader checks, not an owner bypass."""
+    return decode_prepared(prepare_window(stream, size, expected, window, scratch))

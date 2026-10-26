@@ -9,6 +9,12 @@ attempt claims/partial reports and `reporting.velocity_timing` renders Python
 figures. No existing model, feature, numeric-export or scientific producer is
 changed. The CLI/private runner supply prospective review/merge enforcement.
 
+The a2 diagnostic splits metadata planning from consumption of the same prepared
+index/decoder plan. Both use one raw descriptor. A durable semantic design claim
+precedes full-file hashing and message decoding; preflight budget failure creates
+no claim. Atomic phase snapshots distinguish unknown progress after hard kill.
+The private runner pins the complete reviewed tree, rather than only source bytes.
+
 The [v0.19.18 consumer](matched_one_state_ar_v01918.md) adds a matched adapter
 around unchanged one-state AIOHMM math. `io.development_one_state` replays accepted
 scalar/Gaussian evidence and seals adapter layouts; its workflow fits only the

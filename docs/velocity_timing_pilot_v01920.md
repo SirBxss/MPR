@@ -1,6 +1,9 @@
 # v0.19.20 bounded direct-velocity timing pilot
 
-Status: implementation candidate. No BMW payload pilot or new fit has run.
+Status: a2 implementation candidate after independent review. A1 exact-head CI
+passed, but the local exclusion predicate and combined-mask legend needed
+correction. A2 requires focused source/private-packet GO and new-head CI. No BMW
+payload pilot or new fit has run. Read `velocity_timing_a2_review_20261026.md`.
 The v0.19.19 summary return is technically verified; its source/review/CI/merge
 prerequisite closure was not established. Preserve it and record that deviation.
 Never rerun it to create a different operational history. The new source gate
@@ -64,21 +67,34 @@ publish clock comparability and physical input availability remain unproven.
 The term `recorded_clock_screen_met` must not be relabelled causal eligibility.
 Outer VehicleVelocity qualifier acceptance is not adopted by this screen.
 
-Hypothetical local complete masks additionally retain original geometry and every
-non-speed feature exclusion. Original excluded rows, message/pair discontinuities,
+Hypothetical local complete masks additionally require `residual_available` and
+no `condition_failure_codes` entry beginning `estimate_features_`. In this frozen
+producer those are exactly the non-speed feature failures; all other entries
+come from the speed path, including `odometry_*` and bare exception class names.
+The frame CSV retains the original codes and both constituent mask flags. Its
+plot legend names local hypothetical completeness, never just the clock screen.
+Original excluded rows, message/pair discontinuities,
 nonpositive source increments and increments above 200 ms break sequences. Counts,
 transitions and maximum spans are restricted to the selected local interval;
 do not infer a cohort-wide dataset gain or longer-history model validation.
 
 Numeric agreement pairs are limited to originally complete frames. Candidate
 native units and old m/s values are not assumed equivalent; RMSE/offset are
-exploratory numerical observations, not calibrated physical errors. No learned
+exploratory numerical observations, not calibrated physical errors. Aggregate
+names use `old_value` rather than an implied common m/s unit; equivalence is
+explicitly false. EDP log ties are counted per frame and aggregated per topic.
+No learned
 scale, lag, imputation, clipping or feature transformation is introduced.
 
 ## Bounded implementation and integrity
 
-The workflow keeps one regular raw descriptor open across full registered SHA-256
-verification, fresh exact inventory comparison and indexed payload decoding.
+After source-gate and regular-file checks, the workflow opens one nonblocking,
+no-follow regular raw descriptor. It first reads summary/index/schema metadata
+to prove the actual fixed-window budget, without hashing or decoding messages.
+Only an affordable plan can reserve the durable hash/payload claim. The same
+descriptor remains open across the registered SHA-256 verification and consumption
+of the prepared plan; metadata is not reread. No payload is decoded before full
+current identity verification.
 Check size/type and stable device/inode/size/mtime/ctime throughout. Unlike the
 summary-only predecessor, current raw identity is verified before decoding.
 Only this one existing registered recording is hashed, once; this is a new
@@ -99,7 +115,12 @@ payload identity check, not a repeated residual export or summary operation.
 | Initial available memory / scratch space | 1 GiB / 256 MiB |
 
 The 2 GiB raw verification pass is separate from the two 128 MiB phase budgets.
-Advertised selected chunk costs must pass **before any decompression**. Reject
+The metadata and decoder phases share the 120-second processing allowance;
+the hash time has its own allowance. Actual indexed window costs and the selected
+whole-recording advertised message upper bound must pass **before the claim,
+full hashing or any message decompression**. A global summary total cannot prove
+the local index budget; it is checked against the live exact inventory indexes.
+Reject
 missing/ambiguous topics, unsupported compression, changed summaries/descriptors,
 overlapping index ranges, dishonest headers, CRC failures and exceeded actual
 message limits. Reuse unchanged reviewed reader primitives and their bounded
@@ -119,18 +140,37 @@ merged trees; the latest exact-head tests workflow succeeded; all three required
 Python 3.10/current, Python 3.12/current and frozen-reader jobs succeeded.
 Network/rate-limit/unavailable evidence fails closed before raw inspection.
 There is no offline bypass or self-supplied successful CI JSON.
+The private runner pins the full expected reviewed tree, not just Python bytes;
+even a later documentation-only merge invalidates this packet. It records that
+expected tree in the parent receipt. Review attestation is still not authentication
+of an independent reviewer. Its source-gate `--preflight-only` path (seal/check)
+opens no raw file and can surface API connectivity/rate limits in advance.
 
 `run` revalidates the note hash and live evidence before raw path access. Changes
 to source/CI invalidate the gate. The final report records commit/tree, reviewed
 head, PR, run/job identities, request and gate pins, and review-note digest. The
 workflow checks runtime/current commit again before declaring completion.
 
-A durable exclusive request-digest claim under
-`outputs/private/velocity_timing_attempts/` precedes raw opening. Changing output
-names cannot retry the same fixed request. Raw-started failure is inconclusive;
-keep its partial report and parent ZIP and return it for review. No automatic
-retry, widened budget or changed clock contract is allowed. Gate-only preflight
-failures consume no raw claim and can be corrected without another raw operation.
+A durable exclusive canonical design claim under
+`outputs/private/velocity_timing_attempts/` precedes full hashing and payload
+decoding. Its key uses revision, outing/recording/raw/size/cohort/inventory
+identities, numeric-summary pin, integer window and fixed padding/age settings.
+Formatting, input path aliases and output names are excluded. Reformatting JSON
+cannot create another claimed design. File and directory ancestry are fsynced.
+Existing claims reject before reading recording summary/index bytes. This is per-project
+protection, not a global ledger across fresh clones; ordinary process discipline
+still forbids a second clone as a retry. Claimed failure is inconclusive; return
+all evidence. Gate failure and unaffordable metadata plans consume no claim.
+The parent still preserves failed child packets; do not delete or rename them
+to force a retry, widen budgets, or change clocks.
+
+Progress snapshots use atomic replacement and fsync. Initial hash/decode progress
+is unknown (`null`), not a claim that nothing happened. The hash and decoded
+completion boundaries are persisted explicitly. SIGINT/SIGTERM produce an
+incomplete report; SIGTERM is converted to a child exception. SIGKILL cannot run
+finally, so a last `started` snapshot remains noninterpretable but honest about
+unknown progress. Python subprocess timeout kills the POSIX child with SIGKILL;
+the parent still records timeout/incomplete and packages available evidence.
 
 ## Outputs, tests and next decision
 
@@ -156,7 +196,7 @@ side investigation. Existing Gaussian/AR results remain fixed. Flow protocol/
 software work can proceed, while real fitting retains the existing scientific
 temporal-support and supervisor-visible model-substitution gates.
 
-## Local validation checkpoint
+## Historical a1 local validation checkpoint
 
 Python 3.12.14 current and frozen-reader environments each pass the 88 focused
 checks (33 new, 55 predecessor-reader checks), with no skips. A native synthetic

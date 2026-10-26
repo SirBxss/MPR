@@ -1,6 +1,22 @@
 # Current project status
 
-## Current 2026-10-26 velocity summary verified; timing pilot implemented
+## Current 2026-10-26 PR #45 a2 corrections prepared
+
+The independent source review found a local exclusion-classification error and
+combined-mask legend mismatch. Both are corrected, with audit provenance,
+canonical per-project design claims, atomic phase receipts and metadata-only
+affordability checks before the one-shot hash/payload reservation. The private
+runner pins the exact whole reviewed tree and supports a metadata-only source-
+gate dry run. Read the [a2 correction record](velocity_timing_a2_review_20261026.md).
+
+The original PR #45 head passed all three exact-head CI jobs. That does not
+validate a2: focused delta/private-packet GO, new-head CI and owner merge remain
+pending before the new BMW operation. The private packet was missing from the
+first independent review and is supplied in full for the follow-up. No BMW
+payload pilot, new feature/dataset or model fit has occurred. Earlier dated
+checkpoints below are historical; their text is retained as provenance.
+
+## Historical 2026-10-26 velocity summary verified; timing pilot implemented
 
 The v0.19.19 owner summary return passes raw-free technical verification. Its
 exact descriptor bytes also contain custom annotations exposing a documented
@@ -20,7 +36,7 @@ are pending. Use the [agent handoff](agent_handoff_v01920.md) for complete state
 next actions, training scope and no-rerun boundaries. Earlier checkpoints are
 historical where they conflict; keep their original provenance intact.
 
-## Current 2026-10-26 matched baselines complete; bounded speed investigation
+## Historical 2026-10-26 matched baselines complete; bounded speed investigation
 
 PR #44 a2 is merged and its first station-wise one-state AR result has passed
 independent raw-free verification, including the owner's exit-zero publication.
@@ -37,7 +53,7 @@ temporal claim follows. Flow engineering can continue alongside this small
 investigation; real fits retain the existing scientific and approval gates.
 Review/actual-head CI/owner merge remain pending for this new implementation.
 
-## Current 2026-10-25 PR #44 prospective covariance revision
+## Historical 2026-10-25 PR #44 prospective covariance revision
 
 The unrun a1 PR head received independent source/helper/mathematical GO and
 three-job CI. Its legacy covariance shrinkage is a scientific comparison confound.

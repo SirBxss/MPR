@@ -1,12 +1,15 @@
 # Supported commands
 
-Current v0.19.20 candidate: `python -m lane_residuals.cli.velocity_timing_pilot --help`
-exposes metadata-only `seal` and one-request `run`. Use only the private packet's
+Current v0.19.20 a2 candidate: `python -m lane_residuals.cli.velocity_timing_pilot --help`
+exposes metadata-only `seal`/`check` and a one-design `run`. Use only the private packet's
 pinned owner launcher after independent GO, actual exact-head three-job CI and
 owner merge; it automates the source seal without manual hash copying. Read the
 [protocol](velocity_timing_pilot_v01920.md) and [handoff](agent_handoff_v01920.md).
 Outputs are local timing diagnostics and Python plots, not a speed replacement
 or training dataset. Existing commands and completed operations are unchanged.
+The a2 private runner supports `--preflight-only` for source-gate connectivity
+and metadata sealing, without opening the raw file. Normal operation additionally
+checks the actual indexed window budget before reserving the hash/payload claim.
 
 Current 2026-10-24: the Gaussian pair and scalar AR return are accepted.
 The new [v0.19.18 candidate](matched_one_state_ar_v01918.md) exposes

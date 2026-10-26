@@ -1,6 +1,25 @@
 # MPR agent instructions
 
-## Current 2026-10-26 bounded velocity timing candidate
+## Current 2026-10-26 PR #45 a2 review correction
+
+Read `docs/velocity_timing_a2_review_20261026.md`, the updated protocol and
+handoff. The local combined mask now excludes estimate_features_* failures and
+unavailable geometry, while replacing every speed-path failure under the same
+exploratory screen. Its legend names the combined mask accurately. New frame
+provenance fields and aggregate tie counts support offline audit. No feature,
+window, threshold, dataset, fit or final-outing rule changes.
+
+Canonical semantic identities key durable per-project claims; formatting and
+input/output renames cannot retry a claimed design. One descriptor first reads
+only metadata to prove affordability, before claiming/hash/payload. Phase reports
+are atomic and fsynced, with unknown progress after hard termination. The private
+runner additionally pins the entire reviewed tree, including documentation.
+The a1 exact-head three-job CI is verified. A2 focused source/protocol/private-
+packet GO, new-head CI, owner merge and the BMW operation remain pending. Supply
+the complete private packet for review; keep it off public GitHub. Preserve
+every earlier result. All earlier checkpoints below are historical on conflicts.
+
+## Historical 2026-10-26 bounded velocity timing candidate
 
 Read `docs/agent_handoff_v01920.md` and `docs/velocity_timing_pilot_v01920.md`.
 Update this file, root README, current status and the handoff after each
@@ -22,7 +41,7 @@ reports/ZIPs. Source/protocol/private-runner review, actual-head CI, owner merge
 and this new BMW pilot remain pending. Four matched configurations are complete;
 both flows remain synthetic-only. Keep existing scientific real-fit gates.
 
-## Current 2026-10-26 bounded velocity investigation
+## Historical 2026-10-26 bounded velocity investigation
 
 The merged PR #44 a2 station-wise one-state AR return and owner exit-zero
 publication are independently accepted. Preserve the private verification and
@@ -42,7 +61,7 @@ precede the bounded owner operation. Budget failure is inconclusive; no broader
 scan fallback. Flow protocol work can continue; existing real-fit and scientific
 temporal-support gates remain. Earlier checkpoints are historical on conflicts.
 
-## Current 2026-10-25 PR #44 prospective covariance revision
+## Historical 2026-10-25 PR #44 prospective covariance revision
 
 The unrun a1 PR head received independent source/helper/mathematical GO and
 three-job CI. Its legacy covariance shrinkage is a scientific comparison confound.

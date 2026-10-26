@@ -87,7 +87,9 @@ def summarize(records, targets, old_speed):
                 if chosen["value"] is None:
                     reasons.append("nonfinite_value")
             clock_screen = not reasons
-            other_ok = all(c.startswith("speed_") for c in row["condition_failure_codes"])
+            # Frozen producer: estimate-derived failures have this prefix;
+            # remaining codes (including odometry_* and exception classes) are speed-path failures.
+            other_ok = not any(c.startswith("estimate_features_") for c in row["condition_failure_codes"])
             include = row["residual_available"] and other_ok and clock_screen
             mask.append(include)
             old = old_speed.get(row["candidate_index"])
@@ -98,6 +100,8 @@ def summarize(records, targets, old_speed):
                 "source_age_ns": None if age is None else str(age), "recorded_clock_screen_met": clock_screen,
                 "log_time_tied_to_edp": chosen is not None and int(chosen["log_ns"]) == deadline,
                 "local_hypothetical_complete": bool(include), "old_complete": row["conditions_available"],
+                "residual_available": row["residual_available"], "non_speed_features_available": other_ok,
+                "condition_failure_codes": list(row["condition_failure_codes"]),
                 "old_speed_mps": old, "candidate_value_native_units": chosen["value"] if chosen else None,
                 "reasons": reasons})
         differences = [new-old for old, new in pairs]
@@ -105,12 +109,14 @@ def summarize(records, targets, old_speed):
             if int(a["source_ns"]) > 0 and int(b["source_ns"]) > 0]
         result[topic] = {"update_counts": dict(counts), "inner_qualifier_counts": dict(qualifiers),
             "outer_qualifier_counts": dict(outer), "duplicate_log_times": len(logs)-len(set(logs)),
+            "edp_log_tie_frames": sum(r["log_time_tied_to_edp"] for r in screens if r["topic"] == topic),
             "source_time_inversions_in_log_order": sum(d < 0 for d in source_deltas),
             "source_delta_ns_range_in_log_order": [str(min(source_deltas)), str(max(source_deltas))] if source_deltas else None,
             "local_hypothetical_complete_under_screen": sequence_stats(targets, mask),
             "native_numeric_comparison_only": {"pairs": len(pairs),
-                "mean_native_minus_old_mps": math.fsum(d/len(differences) for d in differences) if pairs else None,
-                "rmse_native_against_old_mps": math.hypot(*differences)/math.sqrt(len(differences)) if pairs else None},
+                "mean_native_minus_old_value": math.fsum(d/len(differences) for d in differences) if pairs else None,
+                "rmse_native_against_old_value": math.hypot(*(d/math.sqrt(len(differences)) for d in differences)) if pairs else None,
+                "units_equivalence_established": False},
             "outer_qualifier_acceptance_adopted": False}
     return {"topics": result,
         "local_original_complete": sequence_stats(targets, [r["residual_available"] and r["conditions_available"] for r in targets]),

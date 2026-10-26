@@ -33,11 +33,12 @@ def plot(output, records, screens, report):
         rows = [r for r in screens if r["topic"] == topic]
         x = [(int(r["edp_log_ns"])-start)/1e9 for r in rows]
         axes[0].scatter(x, [i+int(r["local_hypothetical_complete"])*.3 for r in rows], s=15,
-            label=topic.rsplit("/", 1)[-1]+" (raised = screen met)")
+            label=topic.rsplit("/", 1)[-1]+" (raised = local hypothetical complete)")
     old = [r for r in screens if r["topic"] == TOPICS[0]]
     axes[0].scatter([(int(r["edp_log_ns"])-start)/1e9 for r in old], [2+int(r["old_complete"])*.3 for r in old],
         s=15, color="#555555", label="Original complete mask")
     axes[0].set_yticks([])
+    axes[0].set_title("Raised = geometry + non-speed features + fixed recorded-clock screen", fontsize=9)
     axes[0].legend(fontsize=8, loc="upper right")
     axes[0].set_xlabel("Recorded log time from fixed window start (s)")
     labels, spans = ["Original"], [report["analysis"]["local_original_complete"]["maximum_span_s"]]

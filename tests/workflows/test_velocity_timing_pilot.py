@@ -1,4 +1,6 @@
 import json
+import hashlib
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -73,11 +75,55 @@ class PilotWorkflowTests(unittest.TestCase):
         self.assertEqual(report["failure_class"], "KeyboardInterrupt")
 
     def test_modified_raw_file_cannot_produce_complete_result(self):
-        original = workflow.decode_window
+        original = workflow.decode_prepared
         def changed(*args):
             value = original(*args)
             with self.raw.open("ab") as stream:
                 stream.write(b"modified")
             return value
-        with self.mocks(), patch.object(workflow, "decode_window", side_effect=changed), self.assertRaisesRegex(ValueError, "raw_changed_during_decode"):
+        with self.mocks(), patch.object(workflow, "decode_prepared", side_effect=changed), self.assertRaisesRegex(ValueError, "raw_changed_during_decode"):
             self.run_pilot(self.root/"result")
+
+    def test_reformatted_request_cannot_repeat_a_started_design(self):
+        with self.mocks(), patch.object(workflow, "verify_raw", side_effect=ValueError("pilot_test_hash")), self.assertRaises(ValueError):
+            self.run_pilot(self.root/"result")
+        self.request.write_text(json.dumps(json.loads(self.request.read_text()), indent=3))
+        new_pin = hashlib.sha256(self.request.read_bytes()).hexdigest()
+        self.assertNotEqual(new_pin, self.pin)
+        self.pin = new_pin
+        with self.mocks(), patch.object(workflow, "prepare_window", side_effect=AssertionError("metadata reread")), self.assertRaises(FileExistsError):
+            self.run_pilot(self.root/"renamed")
+
+    def test_budget_failure_creates_no_claim_and_does_not_hash(self):
+        with self.mocks(), patch.dict(workflow.LIMITS, selected_chunk_read_bytes=0), \
+                patch.object(workflow, "verify_raw", side_effect=AssertionError("hash before plan")), self.assertRaisesRegex(ValueError, "planned_window_budget"):
+            self.run_pilot(self.root/"result")
+        self.assertFalse((self.root/"outputs").exists())
+        self.assertFalse((self.root/"result").exists())
+
+    def test_fifo_is_rejected_without_claim_or_blocking_open(self):
+        self.raw.unlink()
+        os.mkfifo(self.raw)
+        with self.mocks(), self.assertRaisesRegex(ValueError, "regular_registered_raw"):
+            self.run_pilot(self.root/"result")
+        self.assertFalse((self.root/"outputs").exists())
+
+    def test_figure_legend_names_the_combined_mask(self):
+        from lane_residuals.reporting.velocity_timing import plot
+        from lane_residuals.domain.velocity_timing import TOPICS
+        import matplotlib.pyplot as plt
+        screens = [{"topic": topic, "edp_log_ns": "100", "recorded_clock_screen_met": True,
+            "local_hypothetical_complete": False, "old_complete": False, "old_speed_mps": None} for topic in TOPICS]
+        stats = {topic: {"local_hypothetical_complete_under_screen": {"maximum_span_s": 0.}} for topic in TOPICS}
+        report = {"window_start_log_ns": "100", "window_end_log_ns": "12000000100",
+            "analysis": {"local_original_complete": {"maximum_span_s": 0.}, "topics": stats}}
+        try:
+            with patch.object(plt, "close"):
+                plot(self.root, [], screens, report)
+                axes = plt.figure(plt.get_fignums()[-1]).axes[0]
+                labels = axes.get_legend_handles_labels()[1]
+                self.assertTrue(all("local hypothetical complete" in label for label in labels[:2]))
+                self.assertFalse(any("raised = screen met" in label for label in labels))
+                self.assertEqual(axes.collections[0].get_offsets()[0, 1], 0.)
+        finally:
+            plt.close("all")

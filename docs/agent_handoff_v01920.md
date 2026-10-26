@@ -1,5 +1,15 @@
 # Agent handoff — v0.19.20 velocity timing candidate
 
+Current revision: a2, after PR #45 independent review. Read
+`velocity_timing_a2_review_20261026.md`. The reviewed a1 head passed exact-head
+CI but had two source/protocol blockers; the private packet was unreviewed.
+A2 fixes the local mask and legend, records original exclusions in the CSV,
+keys claims on canonical semantic identities, checks affordability before the
+hash/payload claim, and persists honest atomic phase receipts. The private runner
+pins the complete reviewed tree and supplies a source-only dry run. A2 source/
+protocol/private-packet GO and new-head CI are pending. Do not run the a1 helper
+or reuse its request/seal. No BMW timing pilot has run under either revision.
+
 Read this file after AGENTS.md and docs/current_status.md. Update this handoff,
 the root README and current status after each implementation/result/review. Keep
 dated historical records intact; add a superseding checkpoint rather than rewrite
@@ -66,7 +76,7 @@ an apply helper for either the old main or already-applied v0.19.19 tree, and a
 single owner runner after review/CI/merge. Patch application never reruns v0.19.19.
 
 One full registered raw hash precedes selected indexed decoding of both direct
-topics together. Resource caps, fixed request claims and failure ZIPs prevent
+topics together. Resource caps, canonical per-project design claims and failure ZIPs prevent
 silent sweeps and renamed retries. Output is diagnostic CSV/JSON and Python
 plots. A fixed 100 ms recorded-clock screen is exploratory; source-clock and
 physical availability semantics remain unproven. Invalid latest updates are
