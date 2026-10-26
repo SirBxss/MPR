@@ -1,6 +1,33 @@
 # MPR agent instructions
 
-## Current 2026-10-26 timing return accepted
+## Current 2026-10-26 v0.19.21 cached history implementation
+
+Read `docs/velocity_history_replay_v01921.md` and `docs/agent_handoff_v01921.md`.
+Five new isolated modules implement strict-prior-log selection, bounded cached-
+return verification, diagnostics, Python plots and CLI. Previously tracked source
+and tests remain unchanged. The private optional verifier's entire-home path ban
+is corrected to an exact cached-file allowlist. Preserve the failed optional
+replay and all original results; it did not repeat or invalidate the raw pilot.
+
+This candidate excludes co-logged updates before selecting one earlier update,
+then validates once without fallback. It preserves geometry/non-speed exclusions
+and resets, uses integer clocks, reports inversions without repair and keeps
+inner/outer/standstill qualifiers distinct. It is post hoc on the same cached
+development window, not independent validation or an adopted training feature.
+No archived raw-path string is opened/statted; no new raw operation, training
+array, geometry extraction or fit is implemented. Cached analysis is repeatable
+into new directories and never bypasses the completed raw claim.
+
+Next: independent candidate assessment, actual new-head CI, and longitudinal
+producer units/sign/reference/clock/timestamp/consumer-availability evidence.
+Only a separately reviewed bounded expansion can assess generalization. Do not
+adopt features, sweep the cohort, expose finals or refit accepted baselines from
+this local result. Both Gaussians and both AR controls remain complete; both
+flows remain synthetic-only. Flow preparation can continue under existing gates.
+Keep continuity docs current after each review/result/implementation. All earlier
+checkpoints below are historical on conflicts.
+
+## Historical 2026-10-26 timing return accepted
 
 Read `docs/velocity_timing_result_20261026.md`. PR #45 a2 received full independent
 source/protocol/private-packet GO, actual exact-head three-job CI and owner merge.

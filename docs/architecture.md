@@ -1,5 +1,14 @@
 # Project architecture
 
+The [v0.19.21 cached-history consumer](velocity_history_replay_v01921.md) adds
+`domain.velocity_history`, `io.velocity_history`, its isolated workflow,
+`reporting.velocity_history` and CLI. It loads one bounded pinned result ZIP,
+checks original cache/receipt bindings and original analysis, then applies the
+fixed strict-prior-log hypothesis. Only known cached files enter a temporary
+directory; archived raw paths are provenance strings. There is no live source
+gate, raw reader, feature-export or fit path. Previously tracked runtime/tests
+remain unchanged; diagnostic outputs cannot grant training/data admission.
+
 Current timing status: the independently approved a2 operation completed and its
 first return passed raw-free verification. Read the
 [completion/next boundary](velocity_timing_result_20261026.md). Runtime modules

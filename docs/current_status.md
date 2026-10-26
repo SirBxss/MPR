@@ -1,6 +1,26 @@
 # Current project status
 
-## Current 2026-10-26 timing return verified and closed
+## Current 2026-10-26 cached strict-prior-log step implemented
+
+The [v0.19.21 cached investigation](velocity_history_replay_v01921.md) implements
+and tests the next history rule independently of production features. One bounded
+completed development return is verified and its entire approved analysis replayed
+before strict-prior-log comparison. Diagnostic tables and Python figures expose
+chosen timestamps, ages, exclusions and qualifiers. No raw path is dereferenced,
+new training arrays exported or model fitted. Previous source/tests are unchanged.
+
+The owner's optional-verifier failure was an overbroad home-directory guard;
+the corrected private helper uses exact allowed cached files and retains raw/
+unlisted-path refusal. No accepted pilot rerun is needed. Keep partial evidence.
+Local engineering/cached results are private. Independent new source/protocol
+assessment and actual new-head CI remain pending. Read the
+[new handoff](agent_handoff_v01921.md) for the next semantics/generalization
+decision and operating boundaries. The candidate remains post hoc, unadopted
+and local. Both Gaussians and both AR controls remain complete; both flows still
+need matched real-data training/evaluation under existing gates. Earlier dated
+checkpoints below are historical where they conflict.
+
+## Historical 2026-10-26 timing return verified and closed
 
 PR #45 a2 received independent source/protocol/private-packet GO, successful
 actual-head three-job CI and owner merge. The first bounded timing operation

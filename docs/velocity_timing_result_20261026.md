@@ -1,5 +1,11 @@
 # v0.19.20 timing return: completion and next boundary
 
+Next implementation: [v0.19.21 cached strict-prior-log replay](velocity_history_replay_v01921.md).
+It formalizes and tests the separate hypothesis below without changing this
+accepted result or the original pilot policy. The optional verifier's private
+home-directory guard is corrected; the failed cached replay requires no raw
+repeat. Source/feature adoption and generalization remain separate decisions.
+
 ## Completed operation
 
 PR #45 received independent a2 source/protocol/private-packet GO. The reviewed

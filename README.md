@@ -1,6 +1,24 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-26, timing return accepted):** PR #45 a2 received
+**Current checkpoint (2026-10-26, v0.19.21 cached history implemented):**
+The [strict-prior-log investigation](docs/velocity_history_replay_v01921.md)
+now has an isolated selector, cached-return verifier, diagnostic CLI and Python
+plots. It checks one latest strictly earlier logged update without invalid-update
+fallback and replays the original accepted analysis first. Existing runtime,
+feature/model/data source and tests are unchanged. It opens no raw recording,
+exports no training arrays and fits no model. The candidate remains post hoc on
+the same cached window; producer/clock/availability semantics and generalization
+remain unresolved. A private helper correction fixes an overly broad home-path
+guard that blocked legitimate optional cached verification.
+
+Read [the v0.19.21 handoff](docs/agent_handoff_v01921.md). Both Gaussians and both
+AR controls remain complete; both flows still need matched real-data training.
+Flow preparation can continue under existing scientific gates. Independent new
+source/protocol assessment and actual new-head CI remain pending. No new raw
+operation or feature/dataset adoption is authorized by this cached implementation.
+Earlier checkpoints are historical on conflicts.
+
+**Historical checkpoint (2026-10-26, timing return accepted):** PR #45 a2 received
 independent source/protocol/private-packet GO, passed all three exact-head CI
 jobs and merged before the owner's first bounded timing operation. Its exit-zero
 return passes independent raw-free input/receipt/source and full analysis replay.

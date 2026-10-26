@@ -1,5 +1,11 @@
 # Agent handoff — v0.19.20 timing return accepted
 
+The next implementation is now documented in
+[the v0.19.21 handoff](agent_handoff_v01921.md). Its cached-only strict-prior-log
+candidate does not modify this completed pilot or adopt its post-hoc support as
+training data. The private optional verifier's home-path guard is corrected;
+no raw rerun is required. This file preserves the prior checkpoint and context.
+
 ## Current result and next action, 2026-10-26
 
 Read `velocity_timing_result_20261026.md` after AGENTS and current status. PR #45
