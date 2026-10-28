@@ -1,5 +1,14 @@
 # Project architecture
 
+## v0.19.22 paired source-tie diagnostic
+
+The [new diagnostic](velocity_source_ties_v01922.md) adds four isolated modules:
+`domain.velocity_source_ties` delegates primary selection to unchanged history
+math and computes a secondary on the same sample; its workflow reuses the
+unchanged bounded cached-return loader and output writers; reporting uses
+Matplotlib; the CLI exposes only pinned ZIP and fresh output paths. Existing
+source/tests, scientific consumers, features and model gates are unchanged.
+
 The [v0.19.21 cached-history consumer](velocity_history_replay_v01921.md) adds
 `domain.velocity_history`, `io.velocity_history`, its isolated workflow,
 `reporting.velocity_history` and CLI. It loads one bounded pinned result ZIP,

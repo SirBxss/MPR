@@ -1,5 +1,17 @@
 # v0.4.5 output contracts
 
+## v0.19.22 cached paired source-tie audit
+
+See [the fixed contract](velocity_source_ties_v01922.md). A successful fresh
+output contains exactly `report.private.json`, `paired_frames.private.csv`,
+`support_comparison.private.csv`, `source_tie_comparison.png` and `.pdf`.
+Success status is `complete_cached_source_tie_audit`; output-stage failures
+preserve `incomplete_cached_source_tie_audit` and failure class. The primary
+analysis is unchanged; secondary fields use its same selected update. Both
+supports, original gains/losses, tie counts and numeric clock observations stay
+explicitly diagnostic. No raw file, training array, adopted feature, producer
+identification, physical availability or independent validation is granted.
+
 ## v0.19.18 matched one-state AR candidate
 
 See [the complete contract](matched_one_state_ar_v01918.md). The closed request

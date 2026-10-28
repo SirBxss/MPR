@@ -1,6 +1,40 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-26, v0.19.21 cached history implemented):**
+**Current checkpoint (2026-10-28, v0.19.22 candidate):** PR #46 is merged
+with the approved tree. Its deferred review closure is included in this
+implementation; do not apply it separately. The new
+[paired source-tie diagnostic](docs/velocity_source_ties_v01922.md) preserves
+the primary selector and reports a strict-source secondary on the same selected
+update, clock observations, original gains/losses, and Python figures.
+It reuses only a pinned completed cache. No speed feature, dataset, model or
+raw-operation policy is changed. Independent new-source review and actual
+new-head CI are pending; local validation and post-hoc cached evidence are
+provided in the private packet.
+
+Private source evidence does not establish recording-applicable producer/clock
+semantics. Keep it private and distinguish numeric recorded order from physical
+availability. Read the [new handoff](docs/agent_handoff_v01922.md) for the focused
+next evidence step, interpretation decision and future bounded validation.
+Both Gaussians and both AR controls are complete; both flows still need first
+real matched fits under existing gates. No new owner diagnostic run is needed.
+
+**Historical checkpoint (2026-10-28, PR #46 GO accepted):** Independent review gave
+source/protocol/private-helper GO with no blockers and accepted the completed
+cached diagnostic. All three exact reviewed-head CI jobs are independently
+verified successful; PR #46 is ready for owner merge at its approved head.
+No source correction or owner operation is needed. Read the
+[review acceptance and next boundary](docs/velocity_history_review_20261028.md).
+
+The source-tie convention has a material local sensitivity. Keep the primary
+rule unchanged; predeclare a strict-source secondary on the same selected update
+for future independent windows. Next obtain producer value/clock/stamping evidence
+before proposing a bounded development expansion. Local topic correspondence is
+a consistency check, not independent validation or feature adoption. Both flow
+configurations still need matched real-data training; flow preparation continues
+under existing gates. This is a documentation-only closure for after merge or
+the next source checkpoint. All older conflicting checkpoints are historical.
+
+**Historical checkpoint (2026-10-26, v0.19.21 cached history implemented):**
 The [strict-prior-log investigation](docs/velocity_history_replay_v01921.md)
 now has an isolated selector, cached-return verifier, diagnostic CLI and Python
 plots. It checks one latest strictly earlier logged update without invalid-update

@@ -1,6 +1,57 @@
 # MPR agent instructions
 
-## Current 2026-10-26 v0.19.21 cached history implementation
+## Current 2026-10-28 v0.19.22 paired source-tie candidate
+
+PR #46 is merged with its approved tree. Carry its deferred review closure in
+this implementation; do not reapply it separately. Read
+`docs/velocity_source_ties_v01922.md` and `docs/agent_handoff_v01922.md`.
+The new isolated diagnostic keeps the primary selector byte-identical and
+reports a strict-source secondary on the same chosen update without fallback,
+clock observations and Python plots. Existing loader/other Python code stays
+unchanged. Both rules remain post hoc on the original cached window.
+
+New private source evidence does not establish deployed producer/clock/value
+semantics. Keep the transcript and its source details/results outside public
+Git. Earlier sensor timestamp evidence already exists; do not reopen its broad
+trace or infer active mode from defaults. Focus only on the unresolved path,
+retain unknown historical identity, and distinguish recorded clock screening
+from physical consumer availability. No feature/schema/population adoption,
+new raw expansion, model fit or final exposure is granted. A future bounded
+validation needs a separate prospective protocol and both predeclared tie rules.
+
+Independent review and actual new-head CI are pending. Private local validation
+and cached replay accompany the patch; no owner diagnostic operation is needed.
+Four baselines remain complete; both flows need first matched real fits under
+existing temporal/model-substitution gates. Flow protocol/software preparation
+can continue. Preserve all accepted evidence and update continuity docs after
+each implementation/review/result. Earlier checkpoints are historical on conflicts.
+
+## Historical 2026-10-28 PR #46 review accepted
+
+Read `docs/velocity_history_review_20261028.md`. Independent source/protocol and
+private-helper GO has no blockers. All three exact reviewed-head CI jobs are
+independently verified green. PR #46 can merge unchanged at the approved head;
+no owner operation is required. Apply this documentation-only closure after
+that merge or with the next source checkpoint. Runtime/tests remain unchanged.
+
+The source-tie sensitivity is material. Keep the primary rule (strict log
+precedence, source equality allowed) and age screen fixed. Predeclare a strict-source secondary on the
+same selected update for future windows; do not search older history after a tie
+failure or switch conventions based on results. The existing runtime does not
+report that new secondary; current secondary evidence is private post-hoc replay.
+
+Next obtain producer units/sign/reference point, timestamp assignment/resolution,
+clock/cycle and consumer timing evidence read-only. Distinguish current source
+from the deployed recording build. Local direct-topic near-identity is not proof
+of independent control, global identity or interchangeability. No raw expansion,
+feature/schema/population adoption, fit or final exposure follows from this GO.
+Four baselines remain complete; both flows still need first real matched fits.
+Flow preparation can continue under existing gates. Preserve all results, claims
+and the old partial optional replay. Keep private evidence out of public Git.
+Update continuity docs after each review/result/implementation. Older conflicting
+checkpoints below are historical.
+
+## Historical 2026-10-26 v0.19.21 cached history implementation
 
 Read `docs/velocity_history_replay_v01921.md` and `docs/agent_handoff_v01921.md`.
 Five new isolated modules implement strict-prior-log selection, bounded cached-

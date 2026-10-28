@@ -1,6 +1,52 @@
 # Current project status
 
-## Current 2026-10-26 cached strict-prior-log step implemented
+## Current 2026-10-28 PR #46 merged; paired source-tie implementation
+
+PR #46 merged at `3a48cced905a4dc12dd02fe548e2ae0238cf5e73`, tree
+`b69141494fb08bae174f2532619d501222de7753`, independently checked read-only.
+Its review/CI acceptance documentation is carried into this implementation.
+The [v0.19.22 diagnostic](velocity_source_ties_v01922.md) reports both source
+conventions on the unchanged primary's same selected update, exact integer
+clock observations, original support/gains/losses and Python figures. It reads
+only the bounded accepted return cache and changes no old Python file, training
+feature, model, dataset or raw gate. Independent review/new-head CI are pending.
+Measured replay/local validation and source assessment remain private.
+
+New private source evidence does not establish deployed quantity or clock
+semantics. Earlier sensor timestamp evidence is retained; recording modes and
+consumer availability remain qualified. Do not impose repeated unrecoverable
+historical-metadata requests. Resolve the focused remaining evidence and make
+an explicit interpretation decision before any separately reviewed bounded
+new-window validation or versioned feature/population adoption. No owner replay
+is needed for this already supplied cached diagnostic.
+
+Both Gaussians and both AR controls are complete. Both flows still need their
+first real matched training/evaluation under existing scientific gates. Flow
+software/protocol preparation may continue alongside this evidence work.
+Final evaluation and planner assessment follow; final outings stay unexposed.
+Read [the complete new handoff](agent_handoff_v01922.md). Older checkpoints
+below retain their historical status and original provenance.
+
+## Historical 2026-10-28 cached-history GO and exact-head CI accepted
+
+Independent review has no blockers for v0.19.21 source/protocol/private helpers
+and accepts the completed cached diagnostic and prior timing return. The actual
+reviewed PR #46 head passed all three required CI jobs, independently checked.
+At this checkpoint the PR is open, ready for owner merge unchanged; no operation
+or source correction is required. Read the
+[review acceptance](velocity_history_review_20261028.md).
+
+The source-equality convention has a material sensitivity, which remains private
+post-hoc evidence on the same window. Keep the primary policy unchanged and
+predeclare a strict-source secondary for future independent windows on the same
+chosen update, without fallback. Obtain producer quantity/stamping/clock evidence
+next; only then propose a separately reviewed bounded expansion. No adoption,
+cohort recovery or real-fit gate is closed by these results. Both flow modes still
+need first matched real-data fits; both Gaussians and both AR controls remain
+accepted. No raw read or fit occurred for this documentation-only review closure.
+Apply it after merging the approved PR or in the next source checkpoint.
+
+## Historical 2026-10-26 cached strict-prior-log step implemented
 
 The [v0.19.21 cached investigation](velocity_history_replay_v01921.md) implements
 and tests the next history rule independently of production features. One bounded

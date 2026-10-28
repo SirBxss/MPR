@@ -1,5 +1,30 @@
 # Agent handoff — v0.19.21 cached velocity history
 
+## Current review closure, 28 October 2026
+
+Read [the accepted review checkpoint](velocity_history_review_20261028.md).
+Source/protocol/private helpers have independent GO with no blockers; exact-head
+CI is independently verified green in all three required jobs. PR #46 is ready
+for owner merge unchanged. No owner operation is needed. This docs-only closure
+belongs after that merge or in the next source checkpoint; runtime/tests are
+unchanged and old CI does not stand for a later docs head's CI.
+
+The material new qualification is dependence on source-time equality. Preserve
+the current primary convention. Before any new window is inspected, predeclare
+both source tie conventions and report the strict-source secondary using the
+same selected prior update without replacement/fallback. It is not implemented
+as a secondary in the approved public runtime yet. Current sensitivity evidence
+is private and post hoc, not independent data or a new feature policy.
+
+Next obtain read-only producer quantity, stamping, clock/cycle/resolution and
+consumer timing evidence, including whether the deployed recording build is
+known. Local topic near-identity supports consistency only. A later expansion
+needs separately reviewed geometry-only development windows and success criteria.
+No raw/feature/schema/population/fit/final gate is closed here. Four baselines
+remain complete; both flows need first real matched fits. Flow preparation can
+continue under existing gates. Keep original results/claims and failed optional
+replay immutable. The preparation status below is historical on conflicts.
+
 Start with AGENTS, README, current status and
 [the exact cached-history protocol](velocity_history_replay_v01921.md).
 The previous accepted timing result and scientific context remain in

@@ -1,5 +1,22 @@
 # Supported commands
 
+## v0.19.22 paired source-tie diagnostic
+
+`python -m lane_residuals.cli.velocity_source_ties --result-zip COMPLETED.zip
+--result-sha256 SHA256 --output NEW_DIRECTORY` reuses the bounded accepted
+cached return. See [the exact contract](velocity_source_ties_v01922.md).
+It runs the unchanged primary once and a strict-source secondary on the same
+sample, writing private JSON/CSV/Matplotlib PNG/PDF. It exposes no raw, training,
+feature, clock-offset, age-tuning or new-window switch. The current cached replay
+is already supplied privately; no additional owner operation is required.
+
+Current review checkpoint (28 October 2026): PR #46 source/protocol/private
+helpers have independent GO and successful exact-head three-job CI. No owner
+operation is needed. Merge the approved head unchanged; completed analyses and
+optional verifier checks need no rerun. The CLI below remains a repeatable
+cached diagnostic, not raw/training authorization. See the
+[review acceptance](velocity_history_review_20261028.md).
+
 Current v0.19.21 cached-only diagnostic:
 
 ```bash

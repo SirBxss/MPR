@@ -1,6 +1,27 @@
 # Thesis modeling plan
 
-Current 2026-10-24: the matched Gaussian pair and scalar AR return are accepted;
+Current 2026-10-28: both matched Gaussians and both matched AR controls are
+trained and accepted on the original frozen development population. Both flows
+remain synthetic-only and need first matched real-data protocol/training/
+evaluation under the existing temporal-support and model-substitution gates.
+Flow software/protocol preparation can proceed alongside the small speed
+investigation; model counts are not an estimate of remaining effort.
+
+PR #46 is merged. The [paired source-tie diagnostic](velocity_source_ties_v01922.md)
+carries its review closure and adds explicitly post-hoc cached sensitivity,
+without adopting a speed feature or changing any old model. Quantity/clock
+interpretation and a separately reviewed prospective bounded validation precede
+any changed-population experiment. Preserve the original comparison; a later
+adopted schema/population needs an appropriate versioned common comparison,
+not blanket refits now. Do not repeatedly demand unavailable historical
+metadata or promote recorded clock checks to physical consumer availability.
+
+Finish the two flow configurations and matched comparison after the common
+input/protocol decision, then separately authorize final evaluation and planner
+assessment. Final outings remain unexposed. Earlier checkpoints below retain
+their historical provenance and do not supersede this status.
+
+Historical 2026-10-24: the matched Gaussian pair and scalar AR return are accepted;
 private diagnostic evidence motivates the next existing one-state station-wise
 AR/AIOHMM baseline. Read [the v0.19.18 protocol](matched_one_state_ar_v01918.md).
 It preserves exact fold transformations, rows and resets and reuses predecessor
