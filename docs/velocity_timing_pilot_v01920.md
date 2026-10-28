@@ -1,6 +1,16 @@
 # v0.19.20 bounded direct-velocity timing pilot
 
-Status: a2 implementation candidate after independent review. A1 exact-head CI
+Current status: the independently approved a2 operation completed after actual
+reviewed-head CI and owner merge. Its first exit-zero return is accepted by
+raw-free receipt/source/input and complete analysis replay. Read the
+[completion/next boundary](velocity_timing_result_20261026.md). The completed
+design must not be rerun. This document preserves the original approved policy;
+the post-hoc strict-prior-log hypothesis has not amended that policy or adopted
+a feature/dataset. Observed VehicleVelocity timestamps differ from the interface
+comment; retain that distinction and do not rewrite payloads to fit the comment.
+All pending-operation/apply text below is historical preparation provenance.
+
+Historical status: a2 implementation candidate after independent review. A1 exact-head CI
 passed, but the local exclusion predicate and combined-mask legend needed
 correction. A2 requires focused source/private-packet GO and new-head CI. No BMW
 payload pilot or new fit has run. Read `velocity_timing_a2_review_20261026.md`.

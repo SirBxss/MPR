@@ -1,6 +1,43 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-26, PR #45 a2):** Independent review identified
+**Current checkpoint (2026-10-26, v0.19.21 cached history implemented):**
+The [strict-prior-log investigation](docs/velocity_history_replay_v01921.md)
+now has an isolated selector, cached-return verifier, diagnostic CLI and Python
+plots. It checks one latest strictly earlier logged update without invalid-update
+fallback and replays the original accepted analysis first. Existing runtime,
+feature/model/data source and tests are unchanged. It opens no raw recording,
+exports no training arrays and fits no model. The candidate remains post hoc on
+the same cached window; producer/clock/availability semantics and generalization
+remain unresolved. A private helper correction fixes an overly broad home-path
+guard that blocked legitimate optional cached verification.
+
+Read [the v0.19.21 handoff](docs/agent_handoff_v01921.md). Both Gaussians and both
+AR controls remain complete; both flows still need matched real-data training.
+Flow preparation can continue under existing scientific gates. Independent new
+source/protocol assessment and actual new-head CI remain pending. No new raw
+operation or feature/dataset adoption is authorized by this cached implementation.
+Earlier checkpoints are historical on conflicts.
+
+**Historical checkpoint (2026-10-26, timing return accepted):** PR #45 a2 received
+independent source/protocol/private-packet GO, passed all three exact-head CI
+jobs and merged before the owner's first bounded timing operation. Its exit-zero
+return passes independent raw-free input/receipt/source and full analysis replay.
+Read the [result and next boundary](docs/velocity_timing_result_20261026.md).
+Preserve the original return and owner claim; do not rerun this completed design.
+
+The reviewed latest-log screen does not resolve local temporal fragmentation.
+A separate post-hoc cached replay using one latest strictly earlier logged
+update is promising, but is not an adopted feature/dataset or availability proof.
+Next specify and review that cached-only history policy and establish producer
+semantics; no new raw/training command is issued. Both Gaussians and both AR
+controls remain complete; both flows still need matched real-data training.
+Flow protocol/software work can proceed under the existing scientific gates.
+
+README, AGENTS, status, protocol and handoff are updated by this documentation-
+only checkpoint. Runtime source/tests and accepted datasets/models are unchanged.
+All earlier checkpoints below are historical where they conflict.
+
+**Historical checkpoint (2026-10-26, PR #45 a2):** Independent review identified
 incorrect local exclusion classification and a misleading combined-mask legend.
 Both are corrected with regression checks. Canonical design claims, durable
 phase receipts, pre-claim metadata budget planning and an exact reviewed-tree

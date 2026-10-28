@@ -1,6 +1,49 @@
 # Current project status
 
-## Current 2026-10-26 PR #45 a2 corrections prepared
+## Current 2026-10-26 cached strict-prior-log step implemented
+
+The [v0.19.21 cached investigation](velocity_history_replay_v01921.md) implements
+and tests the next history rule independently of production features. One bounded
+completed development return is verified and its entire approved analysis replayed
+before strict-prior-log comparison. Diagnostic tables and Python figures expose
+chosen timestamps, ages, exclusions and qualifiers. No raw path is dereferenced,
+new training arrays exported or model fitted. Previous source/tests are unchanged.
+
+The owner's optional-verifier failure was an overbroad home-directory guard;
+the corrected private helper uses exact allowed cached files and retains raw/
+unlisted-path refusal. No accepted pilot rerun is needed. Keep partial evidence.
+Local engineering/cached results are private. Independent new source/protocol
+assessment and actual new-head CI remain pending. Read the
+[new handoff](agent_handoff_v01921.md) for the next semantics/generalization
+decision and operating boundaries. The candidate remains post hoc, unadopted
+and local. Both Gaussians and both AR controls remain complete; both flows still
+need matched real-data training/evaluation under existing gates. Earlier dated
+checkpoints below are historical where they conflict.
+
+## Historical 2026-10-26 timing return verified and closed
+
+PR #45 a2 received independent source/protocol/private-packet GO, successful
+actual-head three-job CI and owner merge. The first bounded timing operation
+completed with owner-published exit zero. Independent raw-free source/receipt/
+input and full analysis replay accepts its scoped return. Preserve the owner
+claim and immutable original evidence. Do not rerun or rename the completed design.
+
+The reviewed selector does not resolve local temporal fragmentation. A separate
+post-hoc cached replay with one latest strictly earlier logged update is promising
+locally, but proves no producer semantics or physical availability and creates no
+new training eligibility. Read the [result/next boundary](velocity_timing_result_20261026.md).
+Next prospectively specify/review cached history selection and resolve producer
+semantics; this requires no repeat decode of the completed window. No new owner
+raw/training command is issued. All runtime source/tests and accepted models,
+datasets, final roles and geometry/reference contracts are unchanged.
+
+Both Gaussian and both AR configurations remain trained and verified. Both
+flows still need matched real-data protocol/training/evaluation; final held-out
+and planner phases follow. Flow protocol/software preparation can proceed under
+the existing scientific gates. Configuration counts do not estimate effort.
+Earlier dated checkpoints below are retained as historical provenance.
+
+## Historical 2026-10-26 PR #45 a2 corrections prepared
 
 The independent source review found a local exclusion-classification error and
 combined-mask legend mismatch. Both are corrected, with audit provenance,

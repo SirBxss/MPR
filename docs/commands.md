@@ -1,6 +1,31 @@
 # Supported commands
 
-Current v0.19.20 a2 candidate: `python -m lane_residuals.cli.velocity_timing_pilot --help`
+Current v0.19.21 cached-only diagnostic:
+
+```bash
+python -m lane_residuals.cli.velocity_history --help
+```
+
+Its only inputs are `--result-zip`, `--result-sha256` and a new `--output`
+directory. Use the pinned private packet for exact cached paths; no raw recording,
+new owner raw claim, network source gate or model fit is involved. The archive
+must be a completed development timing return and its original analysis must
+replay. Output is diagnostic CSV/JSON and Matplotlib PNG/PDF, not a training
+export. There are no clock/age/window/adoption switches. Read the
+[protocol](velocity_history_replay_v01921.md) and [handoff](agent_handoff_v01921.md).
+The completed v0.19.20 raw pilot remains closed. Historical commands below do not
+authorize repeating it or adopting this new post-hoc candidate.
+
+Current 2026-10-26: the v0.19.20 a2 pilot completed and its first return is
+verified. Do not rerun its `run` command, issue a renamed request or reuse its
+whole-tree-pinned private runner after source/documentation changes. No new raw
+or training command is issued by this documentation closure. The next cached
+history-policy analysis uses the private returned CSVs only, outside production
+feature/dataset workflows. Read the [result/next boundary](velocity_timing_result_20261026.md).
+All candidate operation instructions below are historical; successful stages and
+original model/data artifacts must remain immutable.
+
+Historical v0.19.20 a2 candidate: `python -m lane_residuals.cli.velocity_timing_pilot --help`
 exposes metadata-only `seal`/`check` and a one-design `run`. Use only the private packet's
 pinned owner launcher after independent GO, actual exact-head three-job CI and
 owner merge; it automates the source seal without manual hash copying. Read the
