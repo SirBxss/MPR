@@ -1,6 +1,23 @@
 # Thesis modeling plan
 
-Current 2026-10-28: both matched Gaussians and both matched AR controls are
+Current 2026-10-29: PR #47 is merged and its review/CI acceptance is recorded
+[here](speed_source_review_20261029.md). Updated source/numeric evidence supports
+a qualified offline direct-speed candidate. The next
+[cache-only mechanism audit](speed_mechanism_v01923.md) tests old endpoint/failure
+structure across all original development outings before new raw work, under a
+protocol frozen before other-outing inspection. It cannot test direct-speed
+recovery, create training eligibility or prove physical availability.
+
+Four matched baseline configurations remain complete. Both flows still await
+first matched real-data protocol/training/evaluation under existing temporal-
+support/model-substitution gates. Flow software/protocol preparation may continue
+alongside the small audit. After its result choose a separately predeclared
+bounded payload study if needed, then a versioned common comparison only if a
+new feature/population is adopted. Preserve the original experiment. Final data
+stay unexposed; final evaluation and planner assessment remain later. Earlier
+checkpoints below retain their original provenance.
+
+Historical 2026-10-28: both matched Gaussians and both matched AR controls are
 trained and accepted on the original frozen development population. Both flows
 remain synthetic-only and need first matched real-data protocol/training/
 evaluation under the existing temporal-support and model-substitution gates.

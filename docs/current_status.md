@@ -1,6 +1,34 @@
 # Current project status
 
-## Current 2026-10-28 PR #46 merged; paired source-tie implementation
+## Current 2026-10-29 PR #47 merged; fixed cached mechanism implementation
+
+PR #47 merged at `1ba5e010ea7f48a90b76ea96765a416c7dca2b08` with approved
+`ee82d51f5f5677606d92b55f8f37d2df1b0cb609` tree. Its independent GO, exact-head
+three-job CI and updated source qualification are accepted; see
+[the closure](speed_source_review_20261029.md). No old operation is repeated.
+
+The [v0.19.23 consumer](speed_mechanism_v01923.md) implements the next fixed
+cache-only mechanism test across the original development experiment. It replays
+native lineage/roles/rows/folds unchanged, reads digest-bound audits and reports
+endpoint tables, unknowns, failures, clock structure, original support and Python
+plots. Freeze code/protocol before other-outing mechanism analysis. Private
+local evidence accompanies the patch; actual-head CI and independent new-source/
+result review remain pending. The only old Python change is a plot-label
+clarification, with no old calculation/feature/dataset/model change.
+
+The investigation now supports an offline direct-speed candidate with explicit
+quantity/clock premises. Exact recorded stamps/grid are not physical sample or
+consumer-availability proof. The cache audit cannot validate direct-speed recovery
+outside the old window. After its result decide the smallest separately reviewed
+bounded payload study, with predeclared geometry windows and success criteria.
+No raw command, adopted speed/schema/population or fit is granted here.
+
+Four matched baselines remain accepted; both flows still need first real matched
+fits under existing gates. Flow preparation can continue in parallel. Final
+outings stay unexposed and final/planner stages remain later. Read the
+[new handoff](agent_handoff_v01923.md); historical checkpoints follow.
+
+## Historical 2026-10-28 PR #46 merged; paired source-tie implementation
 
 PR #46 merged at `3a48cced905a4dc12dd02fe548e2ae0238cf5e73`, tree
 `b69141494fb08bae174f2532619d501222de7753`, independently checked read-only.

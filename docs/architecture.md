@@ -1,5 +1,15 @@
 # Project architecture
 
+## v0.19.23 cached mechanism audit
+
+The [new consumer](speed_mechanism_v01923.md) adds five isolated modules:
+`domain.speed_mechanism` owns row-local equality/unknown and grid arithmetic;
+`io.speed_mechanism` reuses unchanged original-experiment validation and selects
+its digest-bound audits; workflow preserves fresh/incomplete outputs and late
+input integrity; reporting uses Matplotlib; CLI exposes only project/request/
+pin/output. No model, raw, numeric producer or dataset logic changes. The old
+paired figure receives two label clarifications only.
+
 ## v0.19.22 paired source-tie diagnostic
 
 The [new diagnostic](velocity_source_ties_v01922.md) adds four isolated modules:

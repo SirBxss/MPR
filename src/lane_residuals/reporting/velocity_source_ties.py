@@ -13,8 +13,8 @@ def plot(output, screens, report):
     selections = (
         ("original_complete", "Original complete", "original_local_complete", "#60758c"),
         ("approved_latest_log", "Prior pilot: log ≤ EDP", "approved_latest_log_hypothetical_complete", "#bb614b"),
-        ("primary_source_at_or_before", "Primary: source ≤ EDP", "local_hypothetical_complete", "#23866c"),
-        ("secondary_source_strictly_before", "Secondary: source < EDP", "strict_source_local_hypothetical_complete", "#8662a1"),
+        ("primary_source_at_or_before", "Primary: log < EDP, source ≤ EDP", "local_hypothetical_complete", "#23866c"),
+        ("secondary_source_strictly_before", "Secondary: same update, source < EDP", "strict_source_local_hypothetical_complete", "#8662a1"),
     )
     fig, axes = plt.subplots(3, 2, figsize=(14, 10), constrained_layout=True)
     for column, topic in enumerate(TOPICS):

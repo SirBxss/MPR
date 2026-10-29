@@ -1,6 +1,36 @@
 # MPR agent instructions
 
-## Current 2026-10-28 v0.19.22 paired source-tie candidate
+## Current 2026-10-29 v0.19.23 cached mechanism candidate
+
+PR #47 is merged with approved ee82d51f tree. Its independent GO and three-job
+reviewed-head CI are accepted. Read `docs/speed_source_review_20261029.md`,
+`docs/speed_mechanism_v01923.md` and `docs/agent_handoff_v01923.md`.
+
+The new consumer uses the unchanged original sealed experiment validator and
+all original development audits. Freeze protocol/runtime before reading other
+outings for this mechanism. The original investigation outing is already examined;
+all others are still exposed development data, not final/model validation.
+Retain complete denominators, row-local current endpoints, unknown brackets,
+all failures and original support. Report counterexamples. Never infer equality
+from another row/recording, fill missing brackets or tune the fixed grid/rules.
+
+The audit evaluates no direct velocity rule, new training population or recovery.
+No raw stat/open/decode, model/standardizer fit, changed X/Y, final numeric read or
+new raw claim is allowed. Only the paired figure labels change in old Python;
+all other previous Python files remain unchanged. Local synthetic/cache evidence
+is private; independent candidate review and actual-head CI remain pending.
+
+Updated private source/recorded-data evidence supports a qualified offline direct-
+speed candidate. Producer/physical availability remain qualified. Do not repeat
+broad source queries or unavailable historical-metadata requests. After the cache
+result decide a separately predeclared bounded direct-speed payload validation,
+not a cohort sweep. Primary equality and strict same-update secondary remain.
+Four baselines stay complete, both flows need first matched real fits under
+existing gates, and all original comparisons/final embargoes remain. Carry review
+closures into implementation checkpoints; keep continuity docs current. Older
+checkpoints below are historical on conflicts.
+
+## Historical 2026-10-28 v0.19.22 paired source-tie candidate
 
 PR #46 is merged with its approved tree. Carry its deferred review closure in
 this implementation; do not reapply it separately. Read
