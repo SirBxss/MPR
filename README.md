@@ -1,6 +1,28 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-28, v0.19.22 candidate):** PR #46 is merged
+**Current checkpoint (2026-10-29, v0.19.23 candidate):** PR #47 is merged.
+Its independent GO, exact-head three-job CI and updated source-evidence
+qualification are carried into this implementation. Read the
+[acceptance record](docs/speed_source_review_20261029.md).
+
+The [cache-only mechanism audit](docs/speed_mechanism_v01923.md) implements fixed
+row-local endpoint/failure tables and clock observations on every original
+development outing. It reuses the unchanged sealed experiment validator, reports
+unknown brackets and counterexamples, and produces Python figures. Freeze the
+protocol/code before inspecting other outings for the mechanism. No direct-speed
+rule, new training eligibility, raw access or model fit is implemented. Original
+support and all accepted results remain unchanged. The paired plot receives only
+the reviewed label clarification. New-source independent review/actual-head CI
+are pending; local evidence is private.
+
+New source/numeric evidence supports a qualified offline direct-speed candidate;
+physical availability and historical producer remain qualified. This audit can
+check whether the old fragmentation mechanism extends beyond its original case.
+It cannot measure direct-speed recovery without a later bounded payload study.
+Four baselines are complete; both flows need first real matched fits under existing
+gates. Start future work with the [new handoff](docs/agent_handoff_v01923.md).
+
+**Historical checkpoint (2026-10-28, v0.19.22 candidate):** PR #46 is merged
 with the approved tree. Its deferred review closure is included in this
 implementation; do not apply it separately. The new
 [paired source-tie diagnostic](docs/velocity_source_ties_v01922.md) preserves

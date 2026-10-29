@@ -1,5 +1,15 @@
 # Supported commands
 
+## v0.19.23 cached mechanism audit
+
+Use `python -m lane_residuals.cli.speed_mechanism --project PROJECT --request
+REQUEST.json --request-sha256 SHA256 --output NEW_DIRECTORY`. See the fixed
+[protocol](speed_mechanism_v01923.md) and private packet. It replays the original
+sealed experiment and every development outing's cached audit. There is no raw,
+training, age, offset, new feature or subset option. New private outputs preserve
+unknowns and original population/support; they do not admit frames. A supplied
+cached preview needs no extra owner operation merely to reproduce it.
+
 ## v0.19.22 paired source-tie diagnostic
 
 `python -m lane_residuals.cli.velocity_source_ties --result-zip COMPLETED.zip

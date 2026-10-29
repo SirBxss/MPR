@@ -1,5 +1,16 @@
 # v0.4.5 output contracts
 
+## v0.19.23 cached mechanism diagnostic
+
+See [the fixed protocol](speed_mechanism_v01923.md). A complete output has exactly
+`report.private.json`, `candidate_mechanism.private.csv`, `outing_summary.private.csv`,
+`clock_structure.private.csv`, `speed_mechanism.png` and `.pdf`. Success status is
+`complete_cached_speed_mechanism_audit`; output-stage failure preserves
+`incomplete_cached_speed_mechanism_audit` and failure class. Original support,
+all rows/strata, unknown brackets, endpoint table cells, failure codes and
+recording-local clock observations are retained. No new arrays, speed eligibility,
+physical availability, direct-velocity validation or model grant exists.
+
 ## v0.19.22 cached paired source-tie audit
 
 See [the fixed contract](velocity_source_ties_v01922.md). A successful fresh
