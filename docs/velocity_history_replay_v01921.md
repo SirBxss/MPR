@@ -2,6 +2,15 @@
 
 ## Scope and status
 
+Current review status (28 October 2026): source/protocol/private-helper GO has
+no blockers, and all three actual reviewed-head CI jobs passed. PR #46 can merge
+unchanged; no owner operation is required. Read the
+[review acceptance and source-tie qualification](velocity_history_review_20261028.md).
+The approved primary policy below remains unchanged. A strict-source secondary
+is proposed for prospective reporting in future windows, not implemented in this
+approved runtime and not adopted from current post-hoc evidence. The following
+pending-review language is historical preparation provenance.
+
 This implements the next step after the accepted v0.19.20 timing return. It is
 a cached-data diagnostic, not a production speed feature or training dataset.
 It makes the earlier post-hoc strict-prior-log hypothesis explicit, auditable
@@ -36,7 +45,8 @@ No timestamp is substituted, offset fitted, threshold tuned, speed interpolated
 or value transformed. Log/source/publish times use integer nanoseconds. Input
 source/publish regressions in logged order are reported, not repaired or sorted
 away. Outer VehicleVelocity and standstill qualifiers are recorded without an
-adopted acceptance predicate. VehicleVelocity remains a diagnostic control.
+adopted acceptance predicate. VehicleVelocity remains a diagnostic consistency
+comparison, not an independent control.
 
 Reject multiple recording identities in one history invocation. Excluded frames,
 estimate/pair index discontinuities, nonpositive source steps and steps above
