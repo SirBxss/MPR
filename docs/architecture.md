@@ -1,5 +1,20 @@
 # Project architecture
 
+## v0.19.24 bounded direct-speed study
+
+The [study](direct_speed_study_v01924.md) adds isolated
+`domain/io/workflows/reporting/cli.direct_speed_study` modules. The loader uses
+the unchanged sealed experiment validator and original audit/inventory/archive
+identities. Metadata-only selection fixes two development windows. The workflow
+validates live review/merge/CI before raw access or new population statistics,
+preflights both through original indexed reader primitives, then claims both
+before hashing either. Its isolated 4 GiB hash ceiling leaves the old pilot's
+2 GiB bound unchanged. Explicit scalar/qualifier descriptor binding precedes
+payload. The domain reports paired rules, every run, speed differences and
+within-outing/station population summaries. No training/admission path exists.
+Neutral `io.private_reports` supplies durable report writers here and to the
+cached speed-mechanism workflow; old raw workflows keep existing writers.
+
 ## v0.19.23 cached mechanism audit
 
 The [new consumer](speed_mechanism_v01923.md) adds five isolated modules:

@@ -4,7 +4,7 @@ from pathlib import Path
 from ..domain.speed_mechanism import REVISION, TICK_NS, summarize
 from ..io.speed_mechanism import load
 from ..io.artifact_registry import separate_output
-from .velocity_timing_pilot import write_csv, write_json
+from ..io.private_reports import write_csv, write_json
 
 
 def run(project, request, request_sha256, output):

@@ -1,5 +1,24 @@
 # v0.4.5 output contracts
 
+## v0.19.24 bounded direct-speed development study
+
+See [the protocol](direct_speed_study_v01924.md). Complete output has
+`report.private.json`, `population_stations.private.csv`,
+`direct_speed_windows.png/.pdf`, `cached_population_difference.png/.pdf`, and
+a folder per fixed outing with exact original audit/inventory JSON,
+derived old-speed-only JSON, `velocity_updates.private.csv` and
+`frame_decisions.private.csv`. No original X/Y archive or new arrays are copied.
+Report source/request/input pins, plans, both window claims, hash/decode
+evidence, all run lists, coverage/failures/gains/losses, paired agreement and
+population/timing descriptions. Success is
+`complete_bounded_direct_speed_development_study`; failure preserves
+`incomplete_bounded_direct_speed_development_study` and class/code where
+available. Persist started phases before hash/decode; hard termination leaves
+unknown progress. Preflight affordability failure creates no payload claim or
+replacement. Started windows cannot be retried under renamed/rebatched designs.
+The private launcher packages request/gate/review note, parent receipt/logs and
+checksums with complete or partial results.
+
 ## v0.19.23 cached mechanism diagnostic
 
 See [the fixed protocol](speed_mechanism_v01923.md). A complete output has exactly
