@@ -1,6 +1,26 @@
 # Thesis modeling plan
 
-Current 2026-10-29: PR #47 is merged and its review/CI acceptance is recorded
+Current 2026-10-29: PR #48 is merged; source/result GO and exact-head CI are
+accepted [here](speed_mechanism_review_20261029.md). The speed definition/guard
+explains old fragmentation; direct-speed recovery remains unproven. The
+[bounded prospective study](direct_speed_study_v01924.md) adds two fixed
+development windows, both rules, coverage/sequence/agreement diagnostics and
+a small cached population comparison. New source/protocol/private-helper GO,
+CI and owner merge precede the first owner run. No study payload or new
+population comparison ran in implementation. Diagnostic targets do not adopt
+a feature/schema/population or authorize fitting.
+
+Additional owner-reported long drives in ID-named storage may later enlarge
+a versioned development/training population through
+[staged intake](additional_recordings_intake_v01924.md). They are outside the
+frozen experiment and do not replace original unexposed final outings.
+Four baselines remain complete; both flows await first matched real fits under
+existing gates. Continue flow software/protocol preparation. Decide common
+input/population contracts before those fits and any appropriate revised
+comparison, preserving old results. Final evaluation/planner assessment remain
+later stages; no blanket refits now.
+
+Historical 2026-10-29: PR #47 is merged and its review/CI acceptance is recorded
 [here](speed_source_review_20261029.md). Updated source/numeric evidence supports
 a qualified offline direct-speed candidate. The next
 [cache-only mechanism audit](speed_mechanism_v01923.md) tests old endpoint/failure

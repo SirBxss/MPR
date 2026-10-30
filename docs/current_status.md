@@ -1,6 +1,30 @@
 # Current project status
 
-## Current 2026-10-29 PR #47 merged; fixed cached mechanism implementation
+## Current 2026-10-29 PR #48 merged; bounded direct-speed implementation
+
+PR #48 merged at `6eac51c107183e5259e66abedba9da56b0b7be46`, approved tree
+`2bfdc23ce3e4f0c74bde9c0f31365c3735d3db47`. Independent source/result GO and
+actual-head three-job CI are accepted [here](speed_mechanism_review_20261029.md).
+
+The [prospective study](direct_speed_study_v01924.md) implements two fixed
+development windows with unchanged primary/same-update secondary, native
+validation, explicit descriptor binding, original decoder budgets, isolated
+hash-size bounds, durable claims and partial reports. It reports coverage,
+full sequence spans, speed agreement and Python figures. The small cached
+population comparison adds per-outing/station summaries without new arrays
+or fitting. The private request/helper await independent review; new-head CI
+and owner merge precede the one owner run. No real study payload or new
+population comparison ran during implementation.
+
+Old speed fragmentation is explained by its definition/guard. Direct speed
+appears addressable as a versioned candidate; recovery and physical availability
+remain qualified. Additional owner-reported long drives in ID-named storage
+are [future intake](additional_recordings_intake_v01924.md), not admitted data
+or newly assigned roles. Original results and final embargo remain. Four
+baselines are complete; both flows await first matched real fits under existing
+gates. Read the [handoff](agent_handoff_v01924.md).
+
+## Historical 2026-10-29 PR #47 merged; fixed cached mechanism implementation
 
 PR #47 merged at `1ba5e010ea7f48a90b76ea96765a416c7dca2b08` with approved
 `ee82d51f5f5677606d92b55f8f37d2df1b0cb609` tree. Its independent GO, exact-head
