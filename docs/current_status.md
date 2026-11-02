@@ -1,6 +1,27 @@
 # Current project status
 
-## Current 2026-10-29 PR #48 merged; bounded direct-speed implementation
+## Current 2 November 2026 PR #49 merged and metadata failure corrected
+
+PR #49 merged at 448c4f9e5c3c21f4b467a68d391eb42348b87c92 with approved
+b4b327799bbef12465987a5c73685481dba976a9 tree. Independent source/protocol/helper
+GO and required CI were accepted. The owner's first fixed study failed normally
+during metadata preflight, before claims, hashing, payload decoding or the
+population comparison. The complete failure ZIP and child status are preserved.
+
+The [correction](direct_speed_metadata_recovery_v01925.md) removes redundant
+schema I/O while retaining the original planner, descriptor validation and all
+resource limits. Default legacy behaviour and every scientific rule remain
+unchanged. The private recovery launcher verifies the old return, reconciles
+existing claims and provides one new attempt after independent delta review,
+new actual head CI and owner merge. No real speed feasibility result exists
+from the first attempt. Read the [handoff](agent_handoff_v01925.md).
+
+Four baseline configurations remain complete. Both flow modes need first real
+matched fits under existing gates. New long drives remain future intake
+candidates. Original results, scientific candidate choice and final embargo
+remain in force.
+
+## Historical 2026-10-29 PR #48 merged; bounded direct-speed implementation
 
 PR #48 merged at `6eac51c107183e5259e66abedba9da56b0b7be46`, approved tree
 `2bfdc23ce3e4f0c74bde9c0f31365c3735d3db47`. Independent source/result GO and

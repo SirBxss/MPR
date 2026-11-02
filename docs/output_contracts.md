@@ -1,5 +1,17 @@
 # v0.4.5 output contracts
 
+## Metadata recovery evidence
+
+The [correction](direct_speed_metadata_recovery_v01925.md) preserves the original
+study status/report contract and scientific request. The completed window plan
+adds decoder_schema_pass_count equal to one for the construction traversal,
+with inventory integrity reads still included in metadata_bytes_read.
+The private recovery receipt binds the previous failure archive and its zero
+claim/hash/payload evidence. The new return ZIP includes that original archive.
+Fresh attempt/output names never replace old evidence or bypass existing claims.
+Complete, failed, interrupted and publication failure paths retain actual child
+status and available evidence. No feature or training admission is added.
+
 ## v0.19.24 bounded direct-speed development study
 
 See [the protocol](direct_speed_study_v01924.md). Complete output has

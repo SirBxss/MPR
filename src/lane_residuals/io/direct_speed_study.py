@@ -139,9 +139,6 @@ def verify_raw(stream, case):
 
 def prepare(stream, size, expected, window, scratch):
     """Original indexed budgets, plus explicit scalar/qualifier type binding."""
-    started = time.monotonic()
-    prepared = prepare_window(stream,size,expected,window,scratch)
-    metered = prepared["metered"]
     declarations = []
     def observe(schema, message):
         descriptor = message.DESCRIPTOR
@@ -163,10 +160,7 @@ def prepare(stream, size, expected, window, scratch):
         declarations.append({"schema_id":schema.id,"root_name":schema.name,"descriptor_sha256":hashlib.sha256(schema.data).hexdigest(),
             "scalar_fields":[{"name":f.name,"number":f.number,"type":f.type} for f in descriptor.fields],
             "inner_qualifier_one_name":valid.name,"units_and_physical_reference_proven_by_descriptor":False})
-    groups = decoder._groups(metered,size,metered.deadline)
-    decoder._decoders(metered,groups,prepared["selected"],prepared["schemas"],metered.deadline,observe)
-    prepared["summary"]["metadata_elapsed_seconds"] = time.monotonic()-started
-    prepared["summary"]["metadata_bytes_read"] = metered.used["metadata"]
-    require(prepared["summary"]["metadata_elapsed_seconds"] <= LIMITS["processing_seconds"], "study_planning_timeout")
+    prepared = prepare_window(stream,size,expected,window,scratch,descriptor_observer=observe)
     prepared["summary"]["descriptor_bindings"] = declarations
+    prepared["summary"]["decoder_schema_pass_count"] = 1
     return prepared

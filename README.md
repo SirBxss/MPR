@@ -1,6 +1,25 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-29, v0.19.24 candidate):** PR #48 is merged.
+**Current checkpoint: 2 November 2026, v0.19.25 metadata correction.**
+PR #49 is merged with accepted independent review and required CI. The first
+owner study stopped during metadata preflight before claims, hashing, payload
+decoding or population comparison. The failed attempt is preserved.
+
+The [engineering correction](docs/direct_speed_metadata_recovery_v01925.md)
+removes an unnecessary schema traversal by using the original planner's existing
+descriptor observer during decoder construction. All metadata, decode, hash and
+scientific limits remain unchanged. The original scientific request and claim
+keys remain in force. The private recovery helper verifies the exact failed
+return, checks existing claims and supplies one continuation command after new
+independent review, actual head CI and owner merge. Parent signal handling and
+partial evidence publication are also covered. No speed result or model fit
+was produced by the failed preflight.
+
+Read the [new handoff](docs/agent_handoff_v01925.md). Four baselines remain
+complete, both flows await first real matched fits under existing gates, and
+additional owner recordings remain prospective intake.
+
+**Historical checkpoint (2026-10-29, v0.19.24 candidate):** PR #48 is merged.
 Its independent source/result GO and exact-head three-job CI are accepted;
 read the [closure](docs/speed_mechanism_review_20261029.md).
 
