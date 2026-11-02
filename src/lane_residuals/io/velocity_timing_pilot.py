@@ -163,7 +163,7 @@ class Sink:
             "nested_present": present, "non_default_decoded_fields": [f.name for f, _ in message.ListFields()]})
 
 
-def prepare_window(stream, size, expected, window, scratch):
+def prepare_window(stream, size, expected, window, scratch, *, descriptor_observer=None):
     """Summary/index-only affordability check; no hash, claim or message reads."""
     started = time.monotonic()
     deadline = started+LIMITS["processing_seconds"]
@@ -174,7 +174,10 @@ def prepare_window(stream, size, expected, window, scratch):
     roots = {TOPICS[0]: "Adp.QualifiedTimedFloat64", TOPICS[1]: "Adp.VehicleVelocity"}
     require(all(schemas[c["schema_id"]]["name"] == roots[c["topic"]] for c in selected.values()), "pilot_root_schema_mismatch")
     groups = decoder._groups(metered, size, deadline)
-    decoders = decoder._decoders(metered, groups, selected, schemas, deadline)
+    if descriptor_observer is None:
+        decoders = decoder._decoders(metered, groups, selected, schemas, deadline)
+    else:
+        decoders = decoder._decoders(metered, groups, selected, schemas, deadline, descriptor_observer)
     calls = [0]
     def bounded(function):
         def decode(payload):

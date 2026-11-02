@@ -1,5 +1,16 @@
 # Project architecture
 
+## Metadata recovery correction
+
+The [v0.19.25 correction](direct_speed_metadata_recovery_v01925.md) adds an
+optional descriptor observer keyword to io.velocity_timing_pilot.prepare_window.
+Legacy calls retain their original decoder path. io.direct_speed_study supplies
+its existing validation observer in that first construction pass and removes
+the redundant group traversal. No metering limit or domain algorithm changes.
+The private recovery helper verifies a pinned failure archive, reconciles claims
+and preserves it with new phase and source evidence. Signal handling covers the
+active parent operation and partial publication.
+
 ## v0.19.24 bounded direct-speed study
 
 The [study](direct_speed_study_v01924.md) adds isolated

@@ -1,5 +1,15 @@
 # Supported commands
 
+## Metadata recovery operation
+
+Use the private recovery packet for the single continuation of the original
+fixed study, after new independent source/helper GO, current head CI and merge.
+The CLI and scientific request are unchanged. The private helper verifies the
+original metadata only failure and rejects prior/uncertain payload claims before
+new raw work. Preserve attempt 001. Never rerun the old command or edit/rename
+the old outputs. Read [the amendment](direct_speed_metadata_recovery_v01925.md).
+The exact replacement command and fresh attempt names are in the private README.
+
 ## v0.19.24 bounded direct-speed study
 
 `python -m lane_residuals.cli.direct_speed_study seal|check|run` uses the

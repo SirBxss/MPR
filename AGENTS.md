@@ -1,6 +1,37 @@
 # MPR agent instructions
 
-## Current 2026-10-29 v0.19.24 bounded direct-speed candidate
+## Current 2 November 2026 metadata recovery candidate
+
+Read docs/direct_speed_metadata_recovery_v01925.md and docs/agent_handoff_v01925.md.
+PR #49 is merged with approved b4b32779 tree, accepted independent source/helper
+GO and required CI. The first owner return is a metadata only failure: no study
+claim, full file hash, velocity payload or population comparison began. Preserve
+its exact ZIP, receipts, logs and attempt directory.
+
+The correction reuses the existing descriptor observer in the original indexed
+planner's decoder traversal instead of loading schemas again. Keep every budget
+and descriptor check. The default legacy call remains unchanged. Domain selectors,
+age/tie rules, windows, masks, sequence and agreement calculations are untouched.
+
+The scientific request/revision and canonical claim keys are unchanged. Recovery
+requires verification of the exact failed return and current owner claim ledger.
+A matching raw identity or uncertain historical claim blocks continuation across
+diagnostic revisions. Do not rename/delete old attempts or treat a fresh attempt
+number as permission to repeat claimed work. The exact recovery helper and delta
+source need independent review, new actual head CI and owner merge before one
+continuation. It packages prior evidence and handles parent termination signals.
+No new actual payload study or population result has run in implementation.
+
+The prior private candidate declaration is retained: longitudinal primary,
+VehicleVelocity control and strict source sensitivity. No feature/schema/
+population adoption, training array, model fit, cohort sweep or final exposure.
+Four baselines remain complete, both flows await first real matched fits under
+existing gates, and reported new long drives remain prospective intake only.
+Keep original results, final reservations and identity/causality qualifications.
+Update all continuity docs after each implementation/review/result. Earlier
+conflicting checkpoints are historical.
+
+## Historical 2026-10-29 v0.19.24 bounded direct-speed candidate
 
 PR #48 is merged with approved 2bfdc23c tree. Independent source/result GO and
 actual-head three-job CI are accepted. Read

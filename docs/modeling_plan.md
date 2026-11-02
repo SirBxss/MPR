@@ -1,6 +1,22 @@
 # Thesis modeling plan
 
-Current 2026-10-29: PR #48 is merged; source/result GO and exact-head CI are
+Current 2 November 2026: PR #49 is merged and independently accepted. Its first
+owner run stopped in metadata preparation before claims, hashing, speed payloads
+or new population outcomes. This is an engineering failure and provides no
+negative or positive speed feasibility evidence. The
+[correction](direct_speed_metadata_recovery_v01925.md) removes duplicate schema
+I/O under unchanged limits. The same scientific request and candidate remain.
+New delta source/helper review, actual head CI and owner merge precede one
+verified continuation, preserving the old failed attempt and all claim history.
+
+Four matched baseline configurations stay complete. Both flows await first
+matched real fits under the existing input, temporal and model substitution
+gates. Flow preparation may continue. New long recordings remain prospective
+intake and do not change this fixed study or original final reservations.
+A versioned feature/population decision and appropriate common comparison
+follow actual evidence, with no blanket refits now.
+
+Historical 2026-10-29: PR #48 is merged; source/result GO and exact-head CI are
 accepted [here](speed_mechanism_review_20261029.md). The speed definition/guard
 explains old fragmentation; direct-speed recovery remains unproven. The
 [bounded prospective study](direct_speed_study_v01924.md) adds two fixed
