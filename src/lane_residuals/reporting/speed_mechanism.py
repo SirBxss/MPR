@@ -19,7 +19,7 @@ def plot(output, report):
         axes[0].bar(x, values, bottom=bottom, label=label, color=color)
         bottom = [a+b for a, b in zip(bottom, values)]
     axes[0].set_ylabel("Original retained candidate rows")
-    axes[0].legend(fontsize=8)
+    axes[0].legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1))
     bottom = [0]*len(outings)
     for key, label, color in (("complete_equal", "Complete + endpoint equality", "#23866c"),
             ("incomplete_unequal", "Incomplete + endpoint inequality", "#60758c"),
@@ -30,7 +30,12 @@ def plot(output, report):
         axes[1].bar(x, values, bottom=bottom, label=label, color=color)
         bottom = [a+b for a,b in zip(bottom, values)]
     axes[1].set_ylabel("Geometry ready; no declared\nestimate-feature failure")
-    axes[1].legend(fontsize=8)
+    axes[1].legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1))
+    if all(o["stratum_assessable_complete_endpoint_table"][k] == 0
+           for o in outings for k in ("complete_unequal", "incomplete_equal")):
+        axes[1].text(0.01, 0.98, "Both mismatch cells: 0 in every outing",
+            transform=axes[1].transAxes, va="top", fontsize=8,
+            bbox={"facecolor": "white", "alpha": .9, "edgecolor": "none"})
     spans = [o["original_matched_support"]["maximum_complete_sequence_duration_ns"]/1e9 for o in outings]
     axes[2].bar(x, spans, color="#60758c")
     for i, span in enumerate(spans):

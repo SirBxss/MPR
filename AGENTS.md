@@ -1,6 +1,41 @@
 # MPR agent instructions
 
-## Current 2026-10-29 v0.19.23 cached mechanism candidate
+## Current 2026-10-29 v0.19.24 bounded direct-speed candidate
+
+PR #48 is merged with approved 2bfdc23c tree. Independent source/result GO and
+actual-head three-job CI are accepted. Read
+`docs/speed_mechanism_review_20261029.md`, `docs/direct_speed_study_v01924.md`,
+`docs/additional_recordings_intake_v01924.md` and `docs/agent_handoff_v01924.md`.
+
+Exact private request/helper, source and protocol need independent GO, new-head
+CI and owner merge before the fixed two-window operation. No actual study
+payload or new population comparison ran here. The normal public review/merge
+externally freezes the prospective design. Select metadata-size-eligible
+development IDs and earliest sustained geometry windows only; no speed/residual
+outcomes, age statistics, replacement outing or best-window selection. Keep
+primary equality, same-update strict-source secondary, 100 ms, all failures/
+denominators and original resets. No fallback, fitted offset or adoption.
+
+Maximum two files, 4 GiB each/6 GiB total; old pilot limits stay unchanged.
+Use original indexed decoder limits plus descriptor binding. Preflight both
+before claims/hash/payload; durably claim both windows before hashing either.
+Never retry started windows by renaming/rebatching. Preserve partial claims,
+reports/logs/ZIPs and unknown progress. No new arrays, fitting, cohort sweep,
+feature/schema/population adoption or final exposure. The cached population
+check is descriptive per outing/station, without frame independence, model-
+impact or representativeness inference. Do not acquire missing raw fields for it.
+
+Carry PR #48 accounting, neutral-writer and plot fixes; require numeric parity
+with accepted reports/CSVs. Additional owner-reported long recordings in
+ID-named storage are prospective intake only, with exact status private.
+No agent path/identity checks, registration, roles or admission are claimed.
+Later staged intake/versioned population decisions preserve old results and the
+original final embargo. Do not confuse final training with final evaluation.
+Four baselines stay complete; both flows need first real matched fits under
+existing gates. Flow preparation can continue. Update all continuity docs after
+each implementation/review/result. Older conflicting checkpoints are historical.
+
+## Historical 2026-10-29 v0.19.23 cached mechanism candidate
 
 PR #47 is merged with approved ee82d51f tree. Its independent GO and three-job
 reviewed-head CI are accepted. Read `docs/speed_source_review_20261029.md`,

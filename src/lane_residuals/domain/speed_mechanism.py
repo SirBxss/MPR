@@ -1,6 +1,7 @@
 """Fixed row-local timestamp questions, never a replacement speed feature."""
 from collections import Counter
 import re
+from .artifact_registry import require
 
 REVISION = "v0.19.23-cached-speed-mechanism-a1"
 TICK_NS = 2**20
@@ -109,7 +110,7 @@ def summarize(outing_id, rows, original_support, previously_examined):
         "geometry_without_declared_estimate_failure_rows": sum(r["geometry_without_declared_estimate_failure"] for r in frames),
         "stratum_assessable_complete_endpoint_table": eligible_table, "stratum_not_assessable_counts": dict(eligible_unknown),
         "condition_failure_counts": dict(failures), "clock_observations": clocks, "original_matched_support": original_support}
-    assert sum(all_table.values())+sum(unknown.values()) == len(rows)
-    assert sum(eligible_table.values())+sum(eligible_unknown.values()) == summary["geometry_without_declared_estimate_failure_rows"]
-    assert summary["original_matched_complete_rows"]+summary["geometry_with_only_future_source_speed_failure"]+summary["other_rows"] == len(rows)
+    require(sum(all_table.values())+sum(unknown.values()) == len(rows), "mechanism_accounting_mismatch")
+    require(sum(eligible_table.values())+sum(eligible_unknown.values()) == summary["geometry_without_declared_estimate_failure_rows"], "mechanism_accounting_mismatch")
+    require(summary["original_matched_complete_rows"]+summary["geometry_with_only_future_source_speed_failure"]+summary["other_rows"] == len(rows), "mechanism_accounting_mismatch")
     return summary, frames

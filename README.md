@@ -1,6 +1,26 @@
 # Minimal Path-Residual Model (MPR)
 
-**Current checkpoint (2026-10-29, v0.19.23 candidate):** PR #47 is merged.
+**Current checkpoint (2026-10-29, v0.19.24 candidate):** PR #48 is merged.
+Its independent source/result GO and exact-head three-job CI are accepted;
+read the [closure](docs/speed_mechanism_review_20261029.md).
+
+The [bounded direct-speed study](docs/direct_speed_study_v01924.md) implements
+two fixed geometry-selected development windows, both timestamp conventions,
+coverage/full-run and speed-agreement diagnostics, a cached population comparison
+and Python plots. It preserves native experiment validation, live source/CI/
+merge gates, original indexed decoder limits and durable no-retry claims.
+New source/protocol/private-launcher review and actual-head CI are pending.
+No real study payload or new population comparison ran in implementation.
+The private packet supplies one owner command only after GO, CI and merge.
+
+Old speed fragmentation is explained by its definition/guard; direct speed is
+a versioned candidate, with cohort recovery unproven. Small review fixes are
+carried here. Additional owner-reported recordings in ID-named storage are
+[future intake](docs/additional_recordings_intake_v01924.md), outside the frozen
+experiment. Four baselines are complete; both flows await first real matched
+fits under existing gates. Read the [new handoff](docs/agent_handoff_v01924.md).
+
+**Historical checkpoint (2026-10-29, v0.19.23 candidate):** PR #47 is merged.
 Its independent GO, exact-head three-job CI and updated source-evidence
 qualification are carried into this implementation. Read the
 [acceptance record](docs/speed_source_review_20261029.md).

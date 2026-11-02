@@ -1,5 +1,17 @@
 # Supported commands
 
+## v0.19.24 bounded direct-speed study
+
+`python -m lane_residuals.cli.direct_speed_study seal|check|run` uses the
+pinned private request and reviewed runtime. See `--help`, the
+[protocol](direct_speed_study_v01924.md) and exact private owner launcher.
+`seal/check` validate original lineage/roles and live source/CI without raw
+access or population outcomes. `run` revalidates source, preflights both fixed
+windows, claims them durably, hashes/decodes under bounds, then writes private
+window/population diagnostics. No subset, new-window, offset or age-tuning
+switch. Use the supplied one owner command after independent source/protocol/
+helper GO, actual-head CI and merge. Return ZIP and child status, also on failure.
+
 ## v0.19.23 cached mechanism audit
 
 Use `python -m lane_residuals.cli.speed_mechanism --project PROJECT --request
