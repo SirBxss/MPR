@@ -1,5 +1,27 @@
 # Thesis modeling plan
 
+## Current 3 November 2026 cached disagreement implementation
+
+The completed direct speed study is preserved and technically accepted. This
+candidate adds a bounded cached consumer for fixed disagreement and bracket
+questions, with unchanged native selector/CSV replay. It performs no MCAP
+operation, new training export, feature adoption, model fit or final exposure.
+Read docs/speed_disagreement_v01926.md and docs/agent_handoff_v01926.md. Private
+measurements and input pins remain outside public Git. Independent new code
+and result review and actual reviewed head CI remain pending for this candidate.
+
+Keep the investigation finite. The main agent proposes the original matched
+dataset for the first flow comparison under explicitly reviewed short support
+claims. This does not bypass the existing temporal/model substitution gates.
+Read docs/flow_training_next_v01926.md. The real adapter/protocol/persistence,
+separate owner authorization and accepted scope are still needed before fitting.
+Original baselines and final reservations stay intact. Revised direct speed data
+and additional reported recordings remain separate versioned future work.
+
+Carry the prior result documentation closure in this implementation. Update
+README, AGENTS, current status, modeling plan and handoff after every accepted
+implementation/review/result. Earlier conflicting checkpoints are historical.
+
 Current 2 November 2026: PR #49 is merged and independently accepted. Its first
 owner run stopped in metadata preparation before claims, hashing, speed payloads
 or new population outcomes. This is an engineering failure and provides no

@@ -1,5 +1,50 @@
 # Minimal Path-Residual Model (MPR)
 
+## Current 3 November 2026 cached disagreement implementation
+
+The completed direct speed study is preserved and technically accepted. This
+candidate adds a bounded cached consumer for fixed disagreement and bracket
+questions, with unchanged native selector/CSV replay. It performs no MCAP
+operation, new training export, feature adoption, model fit or final exposure.
+Read docs/speed_disagreement_v01926.md and docs/agent_handoff_v01926.md. Private
+measurements and input pins remain outside public Git. Independent new code
+and result review and actual reviewed head CI remain pending for this candidate.
+
+Keep the investigation finite. The main agent proposes the original matched
+dataset for the first flow comparison under explicitly reviewed short support
+claims. This does not bypass the existing temporal/model substitution gates.
+Read docs/flow_training_next_v01926.md. The real adapter/protocol/persistence,
+separate owner authorization and accepted scope are still needed before fitting.
+Original baselines and final reservations stay intact. Revised direct speed data
+and additional reported recordings remain separate versioned future work.
+
+Carry the prior result documentation closure in this implementation. Update
+README, AGENTS, current status, modeling plan and handoff after every accepted
+implementation/review/result. Earlier conflicting checkpoints are historical.
+
+## Current checkpoint: 3 November 2026 completed direct speed diagnostic
+
+PR #50 is merged with the independently approved source and required CI. The
+bounded owner continuation completed and its original return is preserved. The
+main agent verified the execution evidence and replayed the original cached
+lineage, diagnostics and descriptive population outputs without raw access or
+fitting. Private observations and scientific qualifications stay in the private
+assessment; completion grants no feature or population adoption.
+
+Read docs/direct_speed_study_result_20261103.md and docs/agent_handoff_20261103.md.
+Preserve all completed claims, prior attempts and original model comparisons.
+Never repeat this completed study by renaming or changing a request. Keep the
+prospective candidate identity, clock conventions, comparison limits, masks and
+resets. The next limited task is cached diagnostic interpretation and an explicit
+versioned data decision, not a new raw sweep or automatic model refit.
+
+Four matched baseline configurations remain complete. Both flows await first
+real matched fits under the existing scientific gates. Additional reported long
+recordings remain prospective intake; metadata scaling needs separate review
+before that work. Keep final outings unexposed. Carry this documentation closure
+with the next authorized implementation and update continuity after each result.
+Earlier conflicting checkpoints below are historical.
+
 **Current checkpoint: 2 November 2026, v0.19.25 metadata correction.**
 PR #49 is merged with accepted independent review and required CI. The first
 owner study stopped during metadata preflight before claims, hashing, payload
