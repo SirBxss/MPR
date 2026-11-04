@@ -1,5 +1,18 @@
 # Supported commands
 
+## Matched real flow development
+
+python -m lane_residuals.cli.development_flow exposes prepare and train with
+explicit consumer tree and runtime pins. Prepare accepts only a pinned request;
+train accepts only the sealed experiment and separately adopted authorization.
+Use the concrete private delivery commands with the owner's existing checkout
+and accepted predecessor paths. Never call the synthetic learner on real data.
+Preparation fits nothing. Real fitting requires source, protocol and helper GO,
+restricted scope acceptance, supervisor visible substitution decision, actual
+source CI, merge and separate owner adoption. The private runner installs only
+a false draft. It preserves logs, process limits and execution evidence.
+Read docs/matched_flow_v01927.md. Do not rerun a started design under a new name.
+
 ## Metadata recovery operation
 
 Use the private recovery packet for the single continuation of the original

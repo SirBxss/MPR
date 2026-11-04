@@ -1,5 +1,35 @@
 # MPR agent instructions
 
+## Current 4 November 2026 matched real flow candidate
+
+The owner cached speed return has been technically checked against the v0.19.26
+candidate. Preserve it and the completed speed study. Independent candidate
+review and actual source CI are separate from that local return verification.
+No replacement speed feature or longer training population has been adopted.
+
+This implementation adds a separate real matched flow learner, exact original
+fold lineage and transform reuse, saved states, bounded training, generated
+history sampling, training only Euler calibration, matched scoring and Python
+comparison plots. Read docs/matched_flow_v01927.md and
+docs/agent_handoff_v01927.md. Previous source modules and historical results are
+unchanged. Both real flow fits remain unexecuted. Only synthetic fixtures fit
+models during local verification.
+
+The proposed first comparison uses original complete feature rows with explicit
+short temporal support claims. The restricted scope and supervisor visible
+model substitution need scientific acceptance. Source, protocol and private
+helper review, actual candidate CI, owner merge and separate adoption of six
+false draft attestations precede real fitting. This is not evidence that the
+longer temporal support gate has passed. Preserve final reservations.
+
+Four matched baseline configurations are complete. Two flow configurations
+remain, requiring fourteen outer fits on the retained seven folds, without
+selection fits. Their completed comparison precedes model freeze, separate final
+evaluation and planner assessment. The speed issue remains a separate versioned
+feature decision. Additional reported long drives remain prospective intake.
+Update all continuity documents after implementation, review and results.
+Earlier conflicting checkpoints below are historical.
+
 ## Current 3 November 2026 cached disagreement implementation
 
 The completed direct speed study is preserved and technically accepted. This

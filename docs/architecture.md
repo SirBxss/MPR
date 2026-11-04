@@ -1,5 +1,18 @@
 # Project architecture
 
+## Matched real flow development adapter
+
+The v0.19.27 implementation adds seven isolated modules. modeling.matched_flow
+provides the fixed learner and generated history sampler;
+modeling.matched_flow_calibration provides training only solver and Monte Carlo
+diagnostics; modeling.matched_flow_evaluation handles missing likelihood and
+paired comparisons. io.development_flow validates original four model lineage
+and freezes the protocol. workflows.development_flow owns claims, persistence,
+calibration, scoring and publication. cli.development_flow exposes prepare and
+train. visualization.matched_flow creates the Python comparison plot.
+The legacy synthetic trainer and all earlier source modules are unchanged.
+Read docs/matched_flow_v01927.md for scientific scope and admission.
+
 ## Metadata recovery correction
 
 The [v0.19.25 correction](direct_speed_metadata_recovery_v01925.md) adds an
