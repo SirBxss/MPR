@@ -1,5 +1,32 @@
 # Project architecture
 
+## Prospective a2 solver and launcher correction
+
+The calibration module now reports both 32 to 64 and 64 to 128 refinements and
+admits fixed 128 step scoring only from the final screen. Its tail criterion
+uses a count and denominator over row and threshold pairs, preserving the
+maximum as a diagnostic. The I/O contract has new request and authorization
+revisions. The sampler adds explicit Heun integration while retaining its Euler default.
+The admitted protocol selects Heun for both calibration and scoring; fitting
+math remains unchanged. The private launcher
+separates child success from false draft installation and publishes prepared
+markers and any partial draft even if installation fails. Existing flow claim
+evidence blocks an automatic retry across protocol revisions. Read
+matched_flow_v01927.md and agent_handoff_v01927_a2.md.
+
+## Matched real flow development adapter
+
+The v0.19.27 implementation adds seven isolated modules. modeling.matched_flow
+provides the fixed learner and generated history sampler;
+modeling.matched_flow_calibration provides training only solver and Monte Carlo
+diagnostics; modeling.matched_flow_evaluation handles missing likelihood and
+paired comparisons. io.development_flow validates original four model lineage
+and freezes the protocol. workflows.development_flow owns claims, persistence,
+calibration, scoring and publication. cli.development_flow exposes prepare and
+train. visualization.matched_flow creates the Python comparison plot.
+The legacy synthetic trainer and all earlier source modules are unchanged.
+Read docs/matched_flow_v01927.md for scientific scope and admission.
+
 ## Metadata recovery correction
 
 The [v0.19.25 correction](direct_speed_metadata_recovery_v01925.md) adds an

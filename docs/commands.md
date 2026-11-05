@@ -1,5 +1,30 @@
 # Supported commands
 
+## A2 flow correction on the same PR
+
+Apply only the new a2 delta on the already applied original v0.19.27 tree.
+Run the focused modelling, numerical calibration, revision and workflow tests.
+Push the same PR branch, obtain new actual head CI and focused independent
+source, protocol and helper review before merging. Use only the reissued private
+packet for later prepare and train commands. The original launcher and prepared
+pin are superseded. All six owner statements start false. The supervisor
+visible substitution decision remains separate. Existing or uncertain flow
+claims forbid automatic continuation. Exact owner paths and the numbered delta
+are in the new packet and the chat instructions.
+
+## Matched real flow development
+
+python -m lane_residuals.cli.development_flow exposes prepare and train with
+explicit consumer tree and runtime pins. Prepare accepts only a pinned request;
+train accepts only the sealed experiment and separately adopted authorization.
+Use the concrete private delivery commands with the owner's existing checkout
+and accepted predecessor paths. Never call the synthetic learner on real data.
+Preparation fits nothing. Real fitting requires source, protocol and helper GO,
+restricted scope acceptance, supervisor visible substitution decision, actual
+source CI, merge and separate owner adoption. The private runner installs only
+a false draft. It preserves logs, process limits and execution evidence.
+Read docs/matched_flow_v01927.md. Do not rerun a started design under a new name.
+
 ## Metadata recovery operation
 
 Use the private recovery packet for the single continuation of the original

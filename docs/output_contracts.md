@@ -1,5 +1,40 @@
 # v0.4.5 output contracts
 
+## A2 calibration and preparation evidence
+
+Each refinement adds criteria_passed, tail_probability_exceedance_fraction,
+tail_probability_exceedance_count, tail_comparison_pair_count and descriptive
+counts by threshold. maximum_tail_probability_change stays diagnostic. The
+fixed accepted solver has 128 steps, after the final 64 to 128 screen. An old
+request or authorization revision is rejected. All prior input pins, models,
+folds and scoring definitions are unchanged.
+
+The reissued private launcher reports child_exit_code separately from
+launcher_exit_code. If a successful preparation cannot install its false draft,
+it records the stage, error and unknown partial status and returns the prepared
+request, experiment marker and any partial draft with its event and log. It
+never reports success or adopts an authorization after that failure. Complete
+or partial evidence is preserved and never grants automatic retry. Read
+matched_flow_v01927.md for the numerical tolerance and scientific restrictions.
+
+## Matched flow candidate outputs
+
+The v0.19.27 experiment contains only request.json and experiment.json. Its marker
+pins the exact original lineage, folds, rows, protocol, resource settings and
+training calibration subset. The separate false authorization draft is not a
+training result or owner adoption. No model is fitted during preparation.
+
+A successful training return contains immutable diagnostic checkpoints, final
+model states and fit reports, training only calibration reports, fold scores,
+Monte Carlo sensitivity, comparison.json, a Python comparison.png, authorization,
+claim, the exact accepted one state ZIP, receipt and SHA256SUMS. Each final state
+is saved and reloaded before calibration or scoring. Flow NLL is null with an
+explicit unavailable status. A failed numerical screen saves its report and
+state and stops later fits. Failed and interrupted attempts retain all existing
+evidence; partial ZIPs are never overwritten. Parent execution evidence is a
+separate archive and does not rewrite the published scientific return.
+See docs/matched_flow_v01927.md for the complete closed protocol and limitations.
+
 ## Metadata recovery evidence
 
 The [correction](direct_speed_metadata_recovery_v01925.md) preserves the original

@@ -1,5 +1,87 @@
 # Thesis modeling plan
 
+## Current 5 November 2026 prospective solver correction
+
+Read docs/matched_flow_v01927.md and docs/agent_handoff_v01927_a2.md. Independent
+PR 51 review accepts v0.19.26 and the restricted original short support first
+comparison, but blocks the first v0.19.27 solver screen. The original reviewed PR head CI
+is green; that does not cover this correction. No BMW flow fit has begun.
+
+A2 uses Heun 32, 64 and 128 with fixed final 128 steps, and a declared tail
+exceedance fraction in place of a brittle pointwise maximum gate. Other numeric
+limits, original data, transforms, folds, training settings and scoring remain
+fixed. Report maxima and complete exceedance denominators. This is a numerical
+tolerance, not a multiple testing significance procedure or global error bound.
+
+The private runner preserves preparation evidence if false authorization
+installation fails, refuses older or uncertain flow claims, and leaves CPU
+margin above its wall limit. Request and authorization revisions and all
+reviewed pins are reissued. Preserve the original packet and reviewer evidence.
+Apply only the a2 delta on the same PR branch. Do not merge or use the old
+launcher as the basis for an operation. Focused independent delta review and
+new actual head CI precede merge. Owner adoption and supervisor acceptance
+remain separate. All six authorization statements begin false.
+
+The main agent accepts the restricted development scope: original matched
+complete population, short retained dependence only, seven outing comparison
+units, fusion pseudo reference, no speed attribution and no family wide
+optimality claim. No online speed compatibility, long rollout validity, new
+recording intake, final evaluation or planner benefit is established. Four
+baseline configurations remain complete and two flows await fourteen outer
+fits. Earlier conflicting checkpoints below are historical.
+
+## Current 4 November 2026 matched real flow candidate
+
+The owner cached speed return has been technically checked against the v0.19.26
+candidate. Preserve it and the completed speed study. Independent candidate
+review and actual source CI are separate from that local return verification.
+No replacement speed feature or longer training population has been adopted.
+
+This implementation adds a separate real matched flow learner, exact original
+fold lineage and transform reuse, saved states, bounded training, generated
+history sampling, training only Euler calibration, matched scoring and Python
+comparison plots. Read docs/matched_flow_v01927.md and
+docs/agent_handoff_v01927.md. Previous source modules and historical results are
+unchanged. Both real flow fits remain unexecuted. Only synthetic fixtures fit
+models during local verification.
+
+The proposed first comparison uses original complete feature rows with explicit
+short temporal support claims. The restricted scope and supervisor visible
+model substitution need scientific acceptance. Source, protocol and private
+helper review, actual candidate CI, owner merge and separate adoption of six
+false draft attestations precede real fitting. This is not evidence that the
+longer temporal support gate has passed. Preserve final reservations.
+
+Four matched baseline configurations are complete. Two flow configurations
+remain, requiring fourteen outer fits on the retained seven folds, without
+selection fits. Their completed comparison precedes model freeze, separate final
+evaluation and planner assessment. The speed issue remains a separate versioned
+feature decision. Additional reported long drives remain prospective intake.
+Update all continuity documents after implementation, review and results.
+Earlier conflicting checkpoints below are historical.
+
+## Current 3 November 2026 cached disagreement implementation
+
+The completed direct speed study is preserved and technically accepted. This
+candidate adds a bounded cached consumer for fixed disagreement and bracket
+questions, with unchanged native selector/CSV replay. It performs no MCAP
+operation, new training export, feature adoption, model fit or final exposure.
+Read docs/speed_disagreement_v01926.md and docs/agent_handoff_v01926.md. Private
+measurements and input pins remain outside public Git. Independent new code
+and result review and actual reviewed head CI remain pending for this candidate.
+
+Keep the investigation finite. The main agent proposes the original matched
+dataset for the first flow comparison under explicitly reviewed short support
+claims. This does not bypass the existing temporal/model substitution gates.
+Read docs/flow_training_next_v01926.md. The real adapter/protocol/persistence,
+separate owner authorization and accepted scope are still needed before fitting.
+Original baselines and final reservations stay intact. Revised direct speed data
+and additional reported recordings remain separate versioned future work.
+
+Carry the prior result documentation closure in this implementation. Update
+README, AGENTS, current status, modeling plan and handoff after every accepted
+implementation/review/result. Earlier conflicting checkpoints are historical.
+
 Current 2 November 2026: PR #49 is merged and independently accepted. Its first
 owner run stopped in metadata preparation before claims, hashing, speed payloads
 or new population outcomes. This is an engineering failure and provides no
