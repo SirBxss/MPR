@@ -175,8 +175,9 @@ def fit_matched_flow(base: MatchedGaussian, blocks: list, *, mode: str, seed: in
 
 
 def sample_matched_flow(model: MatchedFlow, x: np.ndarray, offsets: np.ndarray, *,
-                        sample_count: int, seed: int, steps: int, batch_size: int = 4096) -> np.ndarray:
-    """Euler draws on exact flat rows with independent generated sequence history.
+                        sample_count: int, seed: int, steps: int, batch_size: int = 4096,
+                        solver: str = "euler") -> np.ndarray:
+    """Euler or Heun draws with independent generated sequence history.
 
     Noise is indexed by draw and original row before computation batching, so
     solver refinement and batch size preserve the same random inputs. The
@@ -184,6 +185,8 @@ def sample_matched_flow(model: MatchedFlow, x: np.ndarray, offsets: np.ndarray, 
     """
     if not isinstance(model, MatchedFlow):
         raise ValueError("flow_real_saved_state_required")
+    if type(solver) is not str or solver not in ("euler", "heun"):
+        raise ValueError("flow_supported_solver_required")
     x = matrix(x, 6)
     o = _offsets(offsets, len(x))
     if (any(type(v) is not int or v < 1 for v in (sample_count, steps, batch_size))
@@ -208,8 +211,16 @@ def sample_matched_flow(model: MatchedFlow, x: np.ndarray, offsets: np.ndarray, 
                 if monotonic()-started > CONFIGURATION["maximum_sampling_seconds"]:
                     raise TimeoutError("flow_sampling_time_budget_preserve_attempt")
                 hi = min(lo+batch_size, len(z))
-                z[lo:hi] += model.velocity(z[lo:hi], np.full(hi-lo, step/steps), xx[lo:hi],
-                                           p[lo:hi], np.full(hi-lo, frame == 0))/steps
+                starts = np.full(hi-lo, frame == 0)
+                first = model.velocity(z[lo:hi], np.full(hi-lo, step/steps), xx[lo:hi], p[lo:hi], starts)
+                if solver == "euler":
+                    z[lo:hi] += first/steps
+                else:
+                    # Conditions and generated past stay fixed through both
+                    # probability transport stages of this driving frame.
+                    second = model.velocity(z[lo:hi]+first/steps, np.full(hi-lo, (step+1)/steps),
+                                            xx[lo:hi], p[lo:hi], starts)
+                    z[lo:hi] += (first+second)*(.5/steps)
         physical = (z*model.residual_scale + model.residual_mean).reshape(sample_count, len(rows), 21)
         if not np.isfinite(physical).all():
             raise ValueError("flow_nonfinite_generated_samples")

@@ -13,8 +13,8 @@ from ..modeling.matched_flow_calibration import CALIBRATION, calibration_conditi
 from ..modeling.matched_one_state_ar import OneStateAR, MODEL_NAME as ONE_STATE_NAME
 from . import artifact_registry as registry, development_experiment as previous, development_one_state as one, development_temporal as temporal
 
-REVISION = "v0.19.27-matched-flow-2026-11-04"
-AUTHORIZATION_REVISION = "v0.19.27-matched-flow-owner-2026-11-04"
+REVISION = "v0.19.27-matched-flow-2026-11-05-a2"
+AUTHORIZATION_REVISION = "v0.19.27-matched-flow-owner-2026-11-05-a2"
 ONE_STATE_SOURCE = ("77b533947414ed41676d3b8fff461935c2bed61a", "80add0f7ab822bfb6a50372404c47a6d5e83ec5b",
                     "c3bb400238f602a30e2326258126e261c9ecf84f25bdfbd9aec77b678d6e3fd4")
 FIELDS = {"contract_revision", "original_one_state_experiment_directory", "expected_original_one_state_experiment_sha256",
@@ -30,7 +30,8 @@ PROTOCOL = {"models": list(MODEL_NAMES), "modes": list(MODES), "configuration": 
             "training": "fixed_epochs_Adam_training_rows_only_observed_previous_only_within_sequence",
             "selection": "none_fixed_architecture_epochs_seed_no_restarts_no_outer_tuning",
             "training_seed": 20261104, "sample_count": 128, "sampling_seed": 20261022,
-            "solver": "Euler_fixed_64_after_training_only_32_to_64_screen_no_validation_selection",
+            "solver": "Heun_fixed_128_after_training_only_64_to_128_screen_no_validation_selection",
+            "tail_screen": "fraction_of_row_threshold_pairs_above_2_of_32_changes_at_most_0.02_not_a_hypothesis_test",
             "random_numbers": "mode_paired_bridge_streams_and_indexed_row_sampling_noise_not_paired_with_legacy_AR",
             "calibration_subset": "shortest_middle_longest_sequence_per_training_outing_length_and_index_only",
             "timing": "first_authorized_fit_is_timing_check_fixed_600_seconds_each_stop_preserve_on_timeout",

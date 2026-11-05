@@ -1,5 +1,35 @@
 # Current project status
 
+## Current 5 November 2026 prospective solver correction
+
+Read docs/matched_flow_v01927.md and docs/agent_handoff_v01927_a2.md. Independent
+PR 51 review accepts v0.19.26 and the restricted original short support first
+comparison, but blocks the first v0.19.27 solver screen. The original reviewed PR head CI
+is green; that does not cover this correction. No BMW flow fit has begun.
+
+A2 uses Heun 32, 64 and 128 with fixed final 128 steps, and a declared tail
+exceedance fraction in place of a brittle pointwise maximum gate. Other numeric
+limits, original data, transforms, folds, training settings and scoring remain
+fixed. Report maxima and complete exceedance denominators. This is a numerical
+tolerance, not a multiple testing significance procedure or global error bound.
+
+The private runner preserves preparation evidence if false authorization
+installation fails, refuses older or uncertain flow claims, and leaves CPU
+margin above its wall limit. Request and authorization revisions and all
+reviewed pins are reissued. Preserve the original packet and reviewer evidence.
+Apply only the a2 delta on the same PR branch. Do not merge or use the old
+launcher as the basis for an operation. Focused independent delta review and
+new actual head CI precede merge. Owner adoption and supervisor acceptance
+remain separate. All six authorization statements begin false.
+
+The main agent accepts the restricted development scope: original matched
+complete population, short retained dependence only, seven outing comparison
+units, fusion pseudo reference, no speed attribution and no family wide
+optimality claim. No online speed compatibility, long rollout validity, new
+recording intake, final evaluation or planner benefit is established. Four
+baseline configurations remain complete and two flows await fourteen outer
+fits. Earlier conflicting checkpoints below are historical.
+
 ## Current 4 November 2026 matched real flow candidate
 
 The owner cached speed return has been technically checked against the v0.19.26

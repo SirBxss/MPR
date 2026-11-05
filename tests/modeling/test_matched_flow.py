@@ -139,7 +139,7 @@ class MatchedFlowTests(unittest.TestCase):
         with patch.object(flow.MatchedFlow, "velocity", new=linear):
             report = calibration.calibrate_solver(state, [self.block])
         self.assertTrue(report["passed"])
-        self.assertEqual(report["selected_steps"], 64)
+        self.assertEqual(report["selected_steps"], 128)
         self.assertLess(report["refinements"][1]["metrics"]["paired_standardized_rmse"],
                         report["refinements"][0]["metrics"]["paired_standardized_rmse"])
         def stiff(model, z, t, x, p, s): return z*4

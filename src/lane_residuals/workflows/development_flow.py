@@ -149,13 +149,14 @@ def train(*,project,experiment_directory,expected_experiment_sha256,authorizatio
                     stage=fold['fold_id']+'_'+mode+'_scoring'
                     seed=contract.PROTOCOL['sampling_seed']+index
                     draws=sample_matched_flow(restored,held.x,held.offsets,sample_count=contract.PROTOCOL['sample_count'],
-                                              seed=seed,steps=calibration['selected_steps'])
+                                              seed=seed,steps=calibration['selected_steps'],solver=calibration['solver'])
                     metrics=evaluate_matched_samples(held.y,held.offsets,draws)
                     metrics['mean_physical_joint_nll']=None
                     row={'model':name,'fold':fold,'sampling_seed':seed,'metrics':metrics,
                          'density_status':'unavailable_no_verified_divergence_integral',
                          'base_conditional_transform_source_sha256':basepin,'model_sha256':previous.sha(model_file),
                          'solver_calibration_sha256':previous.sha(calibration_file),'solver_steps':calibration['selected_steps'],
+                         'solver':calibration['solver'],
                          'training_rows':state.training_rows,'training_sequences':state.training_sequences,
                          'training_transitions':state.training_rows-state.training_sequences,
                          'validation_archive_sha256':held.archive.summary_sha256,

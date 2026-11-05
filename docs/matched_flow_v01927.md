@@ -1,6 +1,6 @@
 # Matched real flow development protocol
 
-4 November 2026. Candidate implementation. Independent source, scientific
+5 November 2026. A2 prospective correction of the unmerged candidate. Independent source, scientific
 protocol and private helper review, actual source CI, owner merge and separate
 owner adoption are pending. Synthetic tests are engineering evidence only.
 No BMW model has been fitted by this implementation session.
@@ -14,7 +14,12 @@ folds and validation rows. This is a broader model comparison: the conditional
 model adds current conditions and previous residual history together. Their
 contrast cannot isolate speed, other features or memory separately.
 
-The original speed definition and short sequences remain unchanged. The new
+The original speed definition and short sequences remain unchanged.
+Results are conditional on the matched complete population selected by the
+existing timing rules; representativeness of all driving is not established.
+Planner integration requires a compatible online speed definition, which has
+not been validated. The baseline AIOHMM adapter has one state and represents
+no latent regime switching model. The new
 protocol requires explicit scientific acceptance of the restricted short support
 scope and a supervisor visible decision about the proposed model substitution.
 It does not assert that the previous longer temporal support gate has passed.
@@ -74,7 +79,10 @@ Training seed is 20261104 plus the fixed fold index. Independent initialization,
 noise, time and permutation streams keep bridge inputs paired across modes.
 No architecture search, inner fit, early selection, restart, clipping, held out
 selection or automatic retry is implemented. Fixed epochs do not establish
-optimizer convergence. Loss history is a training objective, never a likelihood.
+optimizer convergence. The fixed configuration is a deliberate bounded first
+comparison, not a claim that computation prevents training only selection. A
+worse result cannot refute the flow family and a better result supports only
+this configuration on this exposed development population. Loss history is a training objective, never a likelihood.
 
 A diagnostic checkpoint is preserved after epoch 1 and each tenth epoch. These
 are immutable diagnostic model states, not resumable optimizer checkpoints.
@@ -91,9 +99,9 @@ completed checkpoints. It does not permit a fresh request with a different name.
 Select shortest, middle and longest retained sequence per training outing,
 using length then original index for ties. At most 18 sequences enter solver
 calibration. No validation observations or training target values select this
-subset. With 32 indexed draws and seed 20261105, compare Euler 16, 32 and 64
-steps with common noise. Both refinement reports are retained. Use exactly 64
-steps only if the final 32 to 64 refinement passes every declared criterion:
+subset. With 32 indexed draws and seed 20261105, compare Heun 32, 64 and 128
+steps with common noise. Both refinement reports are retained. Use exactly 128
+steps only if the final 64 to 128 refinement passes every declared criterion:
 
 | Diagnostic | Maximum accepted change |
 | :--- | ---: |
@@ -102,14 +110,29 @@ steps only if the final 32 to 64 refinement passes every declared criterion:
 | Largest pointwise mean change in those units | 0.025 |
 | Largest pointwise standard deviation change in those units | 0.025 |
 | Largest 5, 50 or 95 percent quantile change in those units | 0.05 |
-| Largest pointwise profile tail probability change | 0.0625 |
+| Fraction of row and threshold pairs with probability change greater than 2/32 | 0.02 |
 | Largest pooled profile tail probability change | 0.01 |
 
 Tail thresholds are 0.5, 1 and 2 metres. Pointwise probability resolution is
-1/32, so the maximum probability tolerance allows two paired draw changes;
-the pooled criterion also screens the aggregate. These are prospective numerical
+1/32. A pair exceeds the threshold only for a change strictly greater than
+2/32. At most 2 percent of all row and threshold pairs may exceed it; the
+denominator is three thresholds times the number of calibration rows. The
+pooled criterion still screens the aggregate. The maximum pointwise change,
+exceedance count, denominator and counts by threshold remain descriptive output.
+This fraction tolerance addresses the brittleness of a single maximum over
+many pairs. It is not a statistical familywise error or false discovery
+correction and makes no independence or significance claim. These are prospective numerical
 engineering tolerances for independent review, not empirically validated error
 bounds. They were exercised only on synthetic fields before real fitting.
+Heun evaluates velocity twice per step: at the current latent state and at
+its Euler predictor, with the next transport time. The update averages those
+velocities. Current driving conditions, generated past and reset flag are
+fixed across both stages. There are at most 256 velocity evaluations per
+active sample for the admitted 128 steps, four times the original Euler 64
+budget. The indexed base noise, frame order and generated history law are
+unchanged. The sampler keeps Euler as its direct API default; the reviewed
+workflow explicitly requests Heun and saves that solver identity.
+
 The screen cannot prove global solver convergence, precise tail probabilities
 or validity outside the selected training support. A failed screen saves the
 state and report and stops scoring and subsequent fits. Do not relax criteria
@@ -120,7 +143,11 @@ rows, 10000 sequences and length 100; a sampling allocation admits at most
 16000000 scalar output values. Indexed noise fixes draw and original row before
 batching. There is no padding or dropped row in the flat adapter. Sampling is
 bounded in batches of at most 4096. The private runner adds a whole operation
-time limit and preserves termination evidence. These ceilings are not completion
+time limit and preserves termination evidence, including a failed false draft
+installation after successful preparation. It returns the prepared marker,
+request and any partial draft in its execution ZIP. Existing or uncertain flow
+claims from an older protocol revision block automatic continuation. CPU time
+has a margin above the wall limit for parent controlled interruption. These ceilings are not completion
 time forecasts or a reason to expand the admitted data.
 
 ## Matched evaluation and saved evidence
@@ -181,3 +208,28 @@ intake, split and feature decision before they can enter any final training.
 The planner interface will need current conditions, reset flags, generated
 history and the original frame, sign and station contract. Better statistical
 scores alone establish no planner benefit.
+
+## A2 prospective review correction
+
+Independent review accepted the cached v0.19.26 diagnostic and found one blocker
+in the first flow solver screen. Synthetic experiments at realistic fold scale
+showed that the old pointwise maximum tail rule and the 64 step solver could
+stop the entire operation at its first fit. No BMW flow had been fitted. This
+revision changes the numerical protocol prospectively, keeps the other six
+limits and all training settings fixed, and adds a realistic scale synthetic
+regression for both modes and Gaussian and Student t innovations.
+
+An initial prospective Euler 128 sweep still showed pooled tail failures in
+some synthetic stress cases. The final candidate uses Heun on the same fixed
+ladder to reduce discretization error, retaining that initial negative evidence.
+The synthetic experiment makes no real data acceptance or global solver claim.
+
+The request and authorization revisions now identify a2. Their old prepared
+experiment pin and any old adopted authorization are invalid for this revision.
+The source, runtime, helper and request pins are reissued in the private packet.
+The owner must apply the delta to the current PR, obtain focused independent
+review and new actual head CI, then merge before any owner preparation or fit.
+The main agent accepts the restricted short support first comparison under
+these explicit limitations. Owner adoption and the supervisor visible model
+substitution decision remain separate. No longer support, speed replacement,
+new population, final evaluation or planner admission follows from this fix.

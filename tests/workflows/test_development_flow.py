@@ -98,6 +98,8 @@ class DevelopmentFlowTests(unittest.TestCase):
             self.assertEqual(row["model_sha256"], previous.sha(self.output/(row["fold"]["fold_id"]+"_"+mode+"_model.json")))
             self.assertIsNone(row["metrics"]["mean_physical_joint_nll"])
             self.assertEqual(row["monte_carlo_diagnostics"]["draws_per_half"], 4)
+            self.assertEqual(row["solver_steps"], 128)
+            self.assertEqual(row["solver"], "heun")
         with zipfile.ZipFile(self.request["result_zip"]) as z:
             self.assertIsNone(z.testzip())
             self.assertEqual(z.read("training/accepted_one_state_ar_result.zip"), self.baseline.read_bytes())

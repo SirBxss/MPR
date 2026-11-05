@@ -1,5 +1,22 @@
 # v0.4.5 output contracts
 
+## A2 calibration and preparation evidence
+
+Each refinement adds criteria_passed, tail_probability_exceedance_fraction,
+tail_probability_exceedance_count, tail_comparison_pair_count and descriptive
+counts by threshold. maximum_tail_probability_change stays diagnostic. The
+fixed accepted solver has 128 steps, after the final 64 to 128 screen. An old
+request or authorization revision is rejected. All prior input pins, models,
+folds and scoring definitions are unchanged.
+
+The reissued private launcher reports child_exit_code separately from
+launcher_exit_code. If a successful preparation cannot install its false draft,
+it records the stage, error and unknown partial status and returns the prepared
+request, experiment marker and any partial draft with its event and log. It
+never reports success or adopts an authorization after that failure. Complete
+or partial evidence is preserved and never grants automatic retry. Read
+matched_flow_v01927.md for the numerical tolerance and scientific restrictions.
+
 ## Matched flow candidate outputs
 
 The v0.19.27 experiment contains only request.json and experiment.json. Its marker

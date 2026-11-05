@@ -5,13 +5,14 @@ import numpy as np
 
 from .matched_flow import MatchedFlow, sample_matched_flow
 
-CALIBRATION = {"steps": [16, 32, 64], "sample_count": 32, "seed": 20261105,
+CALIBRATION = {"solver": "heun", "steps": [32, 64, 128], "sample_count": 32, "seed": 20261105,
                "maximum_sequences": 18, "paired_standardized_rmse_limit": .025,
                "paired_standardized_maximum_limit": .15,
                "maximum_standardized_mean_change_limit": .025,
                "maximum_standardized_sd_change_limit": .025,
                "maximum_standardized_quantile_change_limit": .05,
-               "maximum_tail_probability_change_limit": .0625,
+               "pointwise_tail_probability_change_threshold": .0625,
+               "tail_probability_exceedance_fraction_limit": .02,
                "pooled_tail_probability_change_limit": .01}
 
 
@@ -39,21 +40,28 @@ def refinement_diagnostics(coarse: np.ndarray, fine: np.ndarray, scale: np.ndarr
     """Changes in paired paths, moments, quantiles and physical profile tails."""
     delta = (fine-coarse)/scale
     q = (.05, .5, .95)
+    thresholds = (.5, 1., 2.)
+    tail_changes = np.asarray([np.abs((np.abs(fine).max(2)>t).mean(0)-
+                                      (np.abs(coarse).max(2)>t).mean(0)) for t in thresholds])
+    exceeded = tail_changes > CALIBRATION["pointwise_tail_probability_change_threshold"]
     return {"paired_standardized_rmse": float(np.sqrt(np.square(delta).mean())),
             "paired_standardized_maximum": float(np.abs(delta).max()),
             "maximum_standardized_mean_change": float(np.max(np.abs(fine.mean(0)-coarse.mean(0))/scale)),
             "maximum_standardized_sd_change": float(np.max(np.abs(fine.std(0)-coarse.std(0))/scale)),
             "maximum_standardized_quantile_change": float(np.max(np.abs(np.quantile(fine, q, axis=0)-np.quantile(coarse, q, axis=0))/scale)),
-            "maximum_tail_probability_change": max(float(np.max(np.abs(
-                (np.abs(fine).max(2)>threshold).mean(0)-(np.abs(coarse).max(2)>threshold).mean(0))))
-                for threshold in (.5, 1., 2.)),
+            "maximum_tail_probability_change": float(tail_changes.max()),
+            "tail_probability_exceedance_fraction": float(exceeded.mean()),
+            "tail_probability_exceedance_count": int(exceeded.sum()),
+            "tail_comparison_pair_count": int(exceeded.size),
+            "tail_probability_exceedance_counts_by_threshold": {
+                str(t): int(exceeded[i].sum()) for i, t in enumerate(thresholds)},
             "pooled_tail_probability_change": max(abs(float((np.abs(fine).max(2)>threshold).mean())-
                                                       float((np.abs(coarse).max(2)>threshold).mean()))
                                                   for threshold in (.5, 1., 2.))}
 
 
 def calibrate_solver(model: MatchedFlow, training_blocks: list) -> dict:
-    """Always use 64 steps if the last paired refinement passes; else stop.
+    """Always use 128 steps if the last paired refinement passes; else stop.
 
     This bounded numerical screen does not prove global ODE convergence, tail
     accuracy or generalization. Its thresholds require scientific review before
@@ -63,15 +71,19 @@ def calibrate_solver(model: MatchedFlow, training_blocks: list) -> dict:
     prior, refinements = None, []
     for steps in CALIBRATION["steps"]:
         draws = sample_matched_flow(model, x, offsets, sample_count=CALIBRATION["sample_count"],
-                                    seed=CALIBRATION["seed"], steps=steps)
+                                    seed=CALIBRATION["seed"], steps=steps, solver=CALIBRATION["solver"])
         if prior is not None:
             metrics = refinement_diagnostics(prior, draws, model.residual_scale)
-            passed = all(value <= CALIBRATION[name+"_limit"] for name, value in metrics.items())
-            refinements.append({"coarse_steps": steps//2, "fine_steps": steps, "metrics": metrics, "passed": passed})
+            criteria = {name.removesuffix("_limit"): metrics[name.removesuffix("_limit")] <= limit
+                        for name, limit in CALIBRATION.items() if name.endswith("_limit")}
+            passed = all(criteria.values())
+            refinements.append({"coarse_steps": steps//2, "fine_steps": steps, "metrics": metrics,
+                                "criteria_passed": criteria, "passed": passed})
         prior = draws
     accepted = refinements[-1]["passed"]
     return {"configuration": dict(CALIBRATION), "subset": identities, "refinements": refinements,
-            "passed": accepted, "selected_steps": CALIBRATION["steps"][-1] if accepted else None,
+            "passed": accepted, "solver": CALIBRATION["solver"],
+            "selected_steps": CALIBRATION["steps"][-1] if accepted else None,
             "scope": "training_subset_numerical_screen_no_global_convergence_claim"}
 
 
