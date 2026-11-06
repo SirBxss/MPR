@@ -78,6 +78,16 @@ class PlannerStep:
     objective: float
 
 
+@dataclass(frozen=True)
+class PlannerHorizon:
+    """Predicted next states and inputs for a single planner solve."""
+
+    first_step: PlannerStep
+    distances_m: NDArray[np.float64]
+    lateral_error_m: NDArray[np.float64]
+    curvature_correction_per_m: NDArray[np.float64]
+
+
 def signed_curvature_at_origin(path_xy_m: NDArray[np.float64]) -> float:
     """Estimate signed curvature from the first three H100 path points."""
 
@@ -117,7 +127,7 @@ def perturb_path_left_normal(
     return path + residual[:, None] * left_normals
 
 
-def plan_reference_step(
+def _solve_reference(
     *,
     lateral_error_m: float,
     heading_error_rad: float,
@@ -127,8 +137,9 @@ def plan_reference_step(
     speed_mps: float,
     dt_s: float,
     config: ReferencePlannerConfig,
-) -> PlannerStep:
-    """Solve one unconstrained finite-horizon affine LQ tracking problem."""
+    trace: bool,
+) -> tuple[PlannerStep, PlannerHorizon | None]:
+    """Solve the shared unconstrained finite horizon tracking problem."""
 
     residual = np.asarray(residual_profile_m, dtype=np.float64)
     stations = np.asarray(stations_m, dtype=np.float64)
@@ -154,8 +165,9 @@ def plan_reference_step(
         raise ValueError("frame interval lies outside the predeclared range")
 
     step_distance = speed * dt_s
+    distances = step_distance * (np.arange(config.horizon_steps) + 1)
     references = np.interp(
-        step_distance * (np.arange(config.horizon_steps) + 1),
+        distances,
         stations,
         residual,
         right=float(residual[-1]),
@@ -213,6 +225,9 @@ def plan_reference_step(
     objective = 0.0
     first_correction: float | None = None
     first_next_state: NDArray[np.float64] | None = None
+    if trace:
+        lateral = np.empty(config.horizon_steps, dtype=np.float64)
+        controls = np.empty_like(lateral)
     for index, ((gain, offset), reference) in enumerate(
         zip(policies, references)
     ):
@@ -232,21 +247,86 @@ def plan_reference_step(
         if index == 0:
             first_correction = correction
             first_next_state = next_state.copy()
+        if trace:
+            lateral[index] = next_state[0]
+            controls[index] = correction
         state = next_state
     if first_correction is None or first_next_state is None:
         raise RuntimeError("reference-planner horizon produced no control policy")
-    return PlannerStep(
+    step = PlannerStep(
         lateral_error_m=float(first_next_state[0]),
         heading_error_rad=float(first_next_state[1]),
         curvature_correction_per_m=first_correction,
         objective=float(objective),
     )
 
+    if not trace:
+        return step, None
+    for array in (distances, lateral, controls):
+        array.setflags(write=False)
+    return step, PlannerHorizon(step, distances, lateral, controls)
+
+
+def plan_reference_step(
+    *,
+    lateral_error_m: float,
+    heading_error_rad: float,
+    previous_curvature_correction_per_m: float,
+    residual_profile_m: NDArray[np.float64],
+    stations_m: NDArray[np.float64],
+    speed_mps: float,
+    dt_s: float,
+    config: ReferencePlannerConfig,
+) -> PlannerStep:
+    """Solve one unconstrained finite horizon affine LQ tracking problem."""
+    step, _ = _solve_reference(
+        lateral_error_m=lateral_error_m,
+        heading_error_rad=heading_error_rad,
+        previous_curvature_correction_per_m=previous_curvature_correction_per_m,
+        residual_profile_m=residual_profile_m,
+        stations_m=stations_m,
+        speed_mps=speed_mps,
+        dt_s=dt_s,
+        config=config,
+        trace=False,
+    )
+    return step
+
+
+def plan_reference_horizon(
+    *,
+    lateral_error_m: float,
+    heading_error_rad: float,
+    previous_curvature_correction_per_m: float,
+    residual_profile_m: NDArray[np.float64],
+    stations_m: NDArray[np.float64],
+    speed_mps: float,
+    dt_s: float,
+    config: ReferencePlannerConfig,
+) -> PlannerHorizon:
+    """Return the full predicted path and inputs from a single planner solve."""
+    _, horizon = _solve_reference(
+        lateral_error_m=lateral_error_m,
+        heading_error_rad=heading_error_rad,
+        previous_curvature_correction_per_m=previous_curvature_correction_per_m,
+        residual_profile_m=residual_profile_m,
+        stations_m=stations_m,
+        speed_mps=speed_mps,
+        dt_s=dt_s,
+        config=config,
+        trace=True,
+    )
+    if horizon is None:
+        raise RuntimeError("reference planner produced no horizon trace")
+    return horizon
+
 
 __all__ = [
+    "PlannerHorizon",
     "PlannerStep",
     "ReferencePlannerConfig",
     "perturb_path_left_normal",
+    "plan_reference_horizon",
     "plan_reference_step",
     "signed_curvature_at_origin",
 ]
