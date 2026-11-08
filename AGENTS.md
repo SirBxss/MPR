@@ -1,5 +1,18 @@
 # MPR agent instructions
 
+## Current 6 November 2026 spatial planner benchmark candidate
+
+The original six matched development configurations are fitted and compared.
+The accepted speed definition and short temporal support still apply.
+v0.19.28 starts spatial planner work with the existing fixed lateral solver,
+a horizon trace, an affine response to signed station offsets, and a
+synthetic comparison through the matched Gaussian and unconditional flow
+samplers. Read docs/spatial_planner_v01928.md and
+docs/agent_handoff_v01928.md. A recorded replay study requires a verified
+scenario join and a prospective evaluation protocol. Keep the new drives
+separate until independent groups and their roles are established. Keep all
+owner results and reserved outings intact. Earlier checkpoints are historical.
+
 ## Current 5 November 2026 prospective solver correction
 
 Read docs/matched_flow_v01927.md and docs/agent_handoff_v01927_a2.md. Independent
