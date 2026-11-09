@@ -1,5 +1,21 @@
 # Minimal Path-Residual Model (MPR)
 
+## Current 8 November 2026 cached spatial scenario candidate
+
+PR 52 is merged with reviewed CI and reproduced owner synthetic evidence.
+v0.19.29 prepares the first original development outing from the native
+sealed experiment. It preserves row identities, speed, residuals and
+resets, and reports eligibility for the fixed spatial prediction grid.
+The experiment compares perturbation with a common nominal plan. The
+affine initial state contribution cancels, so this specific incremental
+question can use the validated caches while full coordinates and the
+observed state remain explicitly unavailable. Read
+docs/cached_planner_scenarios_v01929.md and docs/agent_handoff_v01929.md.
+The next owner action is cache only preparation after review, CI and
+merge. Model sampling, planner outcomes, new drives and final evaluation
+are subsequent tasks. Preserve prior results and reserved outing roles.
+Earlier conflicting checkpoints are historical.
+
 ## Current 6 November 2026 spatial planner benchmark candidate
 
 The original six matched development configurations are fitted and compared.
