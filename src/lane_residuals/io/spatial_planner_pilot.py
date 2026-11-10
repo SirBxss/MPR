@@ -136,3 +136,11 @@ def load_saved_models(path: Path, pin: str, marker: dict, fold: dict, held_sha: 
                 "pilot_flow_transform_provenance")
     return SavedSpatialModels(gaussian, flow, {"gaussian": gaussian_pin, "flow": sums[model_name],
                                                "flow_solver_calibration": sums[calibration_name]})
+
+
+def load_pilot_report(path: Path, pin: str) -> dict:
+    """Read the accepted aggregate pilot without extracting archive members."""
+    with _verified_zip(_pinned_bytes(path, pin)) as (archive, sums):
+        name = "pilot/pilot_report.private.json"
+        require(set(sums) == {name}, "pilot_report_member_set")
+        return registry.decode(archive.read(name))

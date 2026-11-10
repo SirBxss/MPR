@@ -63,13 +63,8 @@ def _bootstrap(contrasts: np.ndarray, block_ids: np.ndarray) -> dict:
     return {**result, "central_95_block_bootstrap_interval": np.quantile(means, [0.025, 0.975]).tolist()}
 
 
-def score_spatial_pilot(arrays: dict, rows: list[dict], arms: dict[str, np.ndarray]) -> dict:
-    """Compare recorded and simulated changes at exact per-row cached speed."""
-    if tuple(arms) != ARMS or any(
-        len(draws) != (1 if name == "nominal" else PROTOCOL["draws"])
-        for name, draws in arms.items()
-    ):
-        raise ValueError("pilot requires the fixed arms and draw counts")
+def spatial_speed_support(arrays: dict) -> tuple[np.ndarray, np.ndarray]:
+    """Return the frozen speed grid and the mask eligible at every offset."""
     config = ReferencePlannerConfig()
     speeds = arrays["speed_mps"]
     eligible = arrays["eligible"]
@@ -80,6 +75,19 @@ def score_spatial_pilot(arrays: dict, rows: list[dict], arms: dict[str, np.ndarr
     if not np.array_equal(in_support[:, 1], eligible) or not eligible.any():
         raise ValueError("pilot original eligibility differs or is empty")
     common = eligible & np.all(in_support, axis=1)
+    return shifted, common
+
+
+def score_spatial_pilot(arrays: dict, rows: list[dict], arms: dict[str, np.ndarray]) -> dict:
+    """Compare recorded and simulated changes at exact per-row cached speed."""
+    if tuple(arms) != ARMS or any(
+        len(draws) != (1 if name == "nominal" else PROTOCOL["draws"])
+        for name, draws in arms.items()
+    ):
+        raise ValueError("pilot requires the fixed arms and draw counts")
+    shifted, common = spatial_speed_support(arrays)
+    eligible = arrays["eligible"]
+    config = ReferencePlannerConfig()
     offsets = arrays["conditioned_sequence_offsets"]
     epochs = [int(rows[i]["estimate_source_time_ns_decimal"]) for i in offsets[:-1]]
     first_epoch = min(epochs)
