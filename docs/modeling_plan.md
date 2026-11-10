@@ -1,5 +1,18 @@
 # Thesis modeling plan
 
+## Current 10 November 2026 spatial planner replication candidate
+
+PR 54 is merged and the recorded spatial pilot is accepted. This
+candidate extends the fixed snapshot comparison to the seven original
+development folds with frozen models and no refit. It requires parity
+with the accepted pilot before scoring the other six outings and
+reports separate equal outing averages for all seven and for those six.
+See [protocol](spatial_planner_replication_v01931.md) and
+[handoff](agent_handoff_v01931.md). The replication awaits source
+and sealed manifest review, actual head CI, owner merge and the owner
+run. Preserve the independent reservations. Earlier checkpoints are
+historical.
+
 ## Current 9 November 2026 recorded spatial planner pilot candidate
 
 PR 53 is merged and its owner cached preparation result is accepted.
