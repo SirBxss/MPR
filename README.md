@@ -1,5 +1,19 @@
 # Minimal Path-Residual Model (MPR)
 
+## Current 9 November 2026 recorded spatial planner pilot candidate
+
+PR 53 is merged and its owner cached preparation result is accepted.
+v0.19.30 specifies the first recorded spatial engineering pilot using
+the original held out fold, the same affine planner and frozen training
+outings and model states. It adds incremental planner scoring, a
+training only empirical arm, a diagonal covariance control and a
+common support speed sensitivity check. See
+[protocol](docs/recorded_spatial_planner_v01930.md) and
+[handoff](docs/agent_handoff_v01930.md).
+The real scored pilot awaits source and helper review, CI on the reviewed
+head and owner merge. Keep existing speed semantics and the independent
+outing reservations. Earlier checkpoints are historical.
+
 ## Current 8 November 2026 cached spatial scenario candidate
 
 PR 52 is merged with reviewed CI and reproduced owner synthetic evidence.

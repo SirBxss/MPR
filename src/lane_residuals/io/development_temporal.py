@@ -99,6 +99,12 @@ def gaussian_evidence(path, expected_pin, manifest):
     """Read bounded JSON only; exact external ZIP pin and reviewed producer tuple."""
     p = previous.metadata_path(path)
     raw,_ = previous.read_bytes(p,64*1024**2)
+    return gaussian_evidence_bytes(raw, expected_pin, manifest)
+
+
+def gaussian_evidence_bytes(raw: bytes, expected_pin: str, manifest: dict):
+    """Validate Gaussian evidence embedded in a bounded successor archive."""
+    require(len(raw) <= 64*1024**2, "temporal_gaussian_result_size")
     require(hashlib.sha256(raw).hexdigest() == registry.digest(expected_pin),"temporal_gaussian_result_digest_mismatch")
     with zipfile.ZipFile(io.BytesIO(raw)) as z:
         names = z.namelist()
