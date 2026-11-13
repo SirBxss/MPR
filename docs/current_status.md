@@ -1,5 +1,19 @@
 # Current project status
 
+## Current 13 November 2026 temporal planner pilot candidate
+
+PR 55 is merged and its owner spatial replication is accepted.
+The six original matched configurations are fitted. This candidate
+tests short temporal dependence with the frozen AR states and the
+existing affine planner, carrying incremental state across recorded
+source intervals. Per frame draw permutations preserve the complete
+spatial profile ensembles for the temporal control.
+Read [protocol](temporal_planner_pilot_v01932.md) and
+[handoff](agent_handoff_v01932.md). The first temporal pilot awaits
+source, protocol, sealed manifest and helper review, actual head CI
+and owner merge. Preserve the independent reservations and accepted
+results. Earlier checkpoints are historical.
+
 ## Current 10 November 2026 spatial planner replication candidate
 
 PR 54 is merged and the recorded spatial pilot is accepted. This
