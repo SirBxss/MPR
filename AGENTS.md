@@ -1,5 +1,27 @@
 # MPR agent instructions
 
+## Current 17 November 2026 planner parameter selection candidate
+
+PR 57 is merged and the owner temporal replication is accepted. The original
+six matched configurations are fitted; spatial and temporal development
+replications are complete. Comparative results, numerical findings and their
+limitations remain in private evidence. Forecast agreement does not yet
+establish improved planner parameter selection.
+
+This candidate tests that next question with frozen laws, a fixed nine setting
+planner grid, training outing contexts only, and choices saved before any
+held response is scored. It includes zero disturbance, empirical and fixed
+planner baselines, a common nominal recovery requirement, and prespecified
+Monte Carlo and requirement sensitivities in the same run. Read the
+[protocol](docs/planner_parameter_selection_v01934.md),
+[handoff](docs/agent_handoff_v01934.md) and
+[thesis/paper roadmap](docs/thesis_paper_plan_v01934.md).
+Source, protocol and sealed private helper review, CI on the actual reviewed
+head and owner merge precede real model sampling and parameter outcomes.
+No planner parameters have been adopted. Preserve accepted and failed runs,
+independent reservations and prospective recording roles. Earlier checkpoints
+are historical.
+
 ## Current 15 November 2026 temporal planner replication candidate
 
 PR 56 is merged and its owner temporal pilot is accepted. The original
