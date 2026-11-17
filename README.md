@@ -1,5 +1,24 @@
 # Minimal Path-Residual Model (MPR)
 
+## Current 15 November 2026 temporal planner replication candidate
+
+PR 56 is merged and its owner temporal pilot is accepted. The original
+six matched configurations are fitted and spatial replication is complete.
+The private assessment preserves comparative findings, evidence limits and
+the prospective replication design. Keep all numerical and comparative
+BMW results in private evidence.
+
+This candidate keeps the frozen pilot experiment and restores every original
+development fold. It checks every fold before sampling, requires complete
+pilot score parity before the other outings, and reports equal outing
+summaries separately for the full set and the six beyond the pilot. Read
+[protocol](docs/temporal_planner_replication_v01933.md) and
+[handoff](docs/agent_handoff_v01933.md). Source, protocol, sealed manifest and
+helper review, CI on the actual reviewed head and owner merge precede the
+replication run. Planner tuning benefit remains a subsequent experiment.
+Preserve accepted returns, failed attempts, independent reservations and
+prospective recording roles. Earlier checkpoints are historical.
+
 ## Current 13 November 2026 temporal planner pilot candidate
 
 PR 55 is merged and its owner spatial replication is accepted.
