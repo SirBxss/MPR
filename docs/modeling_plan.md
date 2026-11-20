@@ -1,5 +1,27 @@
 # Thesis modeling plan
 
+## Current 20 November 2026 planner parameter selection a2 correction
+
+PR 58 a1 remains unmerged and must not be executed. Independent review found
+poor decision sensitivity and a nominal transient that dominated the proposed
+loss. The a1 engineering checks and CI did not establish an answerable
+scientific comparison. The original six fitted models and accepted spatial
+and temporal development results remain intact.
+
+A2 uses a bracketed curvature-weight axis with a fixed well-damped rate weight,
+smaller nominal tasks, and explicit nominal/law/total response decomposition.
+Increment exceedances exclude the nominal task transient. A synthetic fixture
+checks decision sensitivity and nominal bounds. A separate training-metadata
+design stage reports feasible sets, nominal gaps, synthetic moment choices
+and law-free flip bounds before any real model sampling. An uninformative
+design produces a preserved no-sampling result. Do not treat it as model failure.
+Read [a2 protocol](planner_parameter_selection_v01934_a2.md) and
+[a2 handoff](agent_handoff_v01934_a2.md). Apply the delta on the same
+PR branch, obtain focused independent review and new actual-head CI, then
+owner merge, native preflight and design-only execution. Real sampling remains
+subsequent. The old helper is historical and superseded for execution.
+Keep private evidence out of public Git and preserve all prior and failed runs.
+
 ## Current 17 November 2026 planner parameter selection candidate
 
 PR 57 is merged and the owner temporal replication is accepted. The original

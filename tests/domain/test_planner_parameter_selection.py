@@ -38,7 +38,7 @@ class PlannerParameterSelectionTests(unittest.TestCase):
         speed = np.array([12., 14., 15., 13.])
         dt = np.array([.09, .1, .11])
         for candidate in (0, policy.DEFAULT, 8):
-            actual = policy.response_costs(profiles, speed, dt, candidate)
+            actual = policy.rollout_costs(profiles, speed, dt, candidate, policy.TASKS)
             expected = {m: np.zeros((2, 4)) for m in policy.METRICS}
             for draw in range(2):
                 for task, initial in enumerate(policy.TASKS):
@@ -54,7 +54,7 @@ class PlannerParameterSelectionTests(unittest.TestCase):
                             state = np.array([state[0]+velocity*dt[t]*state[1], state[1]+velocity*dt[t]*u, u])
                     states, commands = np.array(states), np.array(commands)
                     jerk = np.diff(commands)/dt
-                    tracking = np.mean((states[1:,0]/.3)**2 + (states[1:,1]/.03)**2)
+                    tracking = np.mean((states[1:,0]/.03)**2 + (states[1:,1]/.003)**2)
                     acceleration, smoothness = np.mean((commands/3.)**2), np.mean((jerk/5.)**2)
                     values = (tracking, acceleration, smoothness, tracking+acceleration+smoothness,
                               float(np.max(np.abs(states[1:,0])) > 1.), float(np.max(np.abs(commands)) > 3.),
@@ -85,7 +85,7 @@ class PlannerParameterSelectionTests(unittest.TestCase):
         ids = [str(i) for i in range(6) for _ in range(12)]
         costs = np.full((9, 8, 2, 72, len(policy.METRICS)), 10.)
         costs[policy.DEFAULT, :, :, :, policy.METRICS.index("loss")] = 5.
-        return ids, dict(costs=costs, nominal_tracking=np.ones((9,72,4)), nominal_probe_tracking=np.ones((9,3,4)))
+        return ids, dict(costs=costs, nominal_tracking=np.ones((9,72,4)), nominal_probe_tracking=policy.nominal_probes().copy(), decomposition=np.zeros((9,8,2,72,3,4)),total_tails=np.zeros((9,8,2,72,3)))
 
     def test_nominal_probes_block_attractive_unresponsive_choice_and_prefix_is_separate(self):
         ids, grid = self.grid()
@@ -105,12 +105,12 @@ class PlannerParameterSelectionTests(unittest.TestCase):
         ix = policy.METRICS.index("loss")
         grid["costs"][:,:,:,:,ix] = 5.
         result = policy.select_parameters(grid, ids)
-        self.assertEqual(result["settings"]["draws_64_gate_0.10"]["selected_candidates"]["empirical"], policy.DEFAULT)
+        self.assertEqual(result["settings"]["draws_64_gate_0.20"]["selected_candidates"]["empirical"], policy.DEFAULT)
         grid["costs"][8,:,:,:,ix] = 1.
-        grid["nominal_tracking"][8] = 1.15
+        grid["nominal_tracking"][8] = 1.3
         result = policy.select_parameters(grid, ids)
-        self.assertEqual(result["settings"]["draws_64_gate_0.10"]["selected_candidates"]["one_state_ar"], policy.DEFAULT)
-        self.assertEqual(result["settings"]["draws_64_gate_0.20"]["selected_candidates"]["one_state_ar"], 8)
+        self.assertEqual(result["settings"]["draws_64_gate_0.20"]["selected_candidates"]["one_state_ar"], policy.DEFAULT)
+        self.assertEqual(result["settings"]["draws_64_gate_0.40"]["selected_candidates"]["one_state_ar"], 8)
         probes = policy.nominal_probes()
         self.assertEqual(probes.shape, (9,3,4))
         self.assertTrue(np.isfinite(probes).all())
@@ -133,9 +133,9 @@ class PlannerParameterSelectionTests(unittest.TestCase):
         selection = policy.select_parameters(grid, ids)
         selected = deepcopy(selection)
         held = dict(candidate_mean_metrics=[{m:float(9-i) for m in policy.METRICS} for i in range(9)],
-                    nominal_tracking_by_sequence_candidate_task=np.ones((2,9,4)).tolist())
+                    nominal_tracking_by_sequence_candidate_task=np.ones((2,9,4)).tolist(),nominal_peaks_by_sequence_candidate=np.zeros((2,9,2)).tolist())
         result = policy.compare_choices(selection,held)
-        main=result["draws_64_gate_0.10"]
+        main=result["draws_64_gate_0.20"]
         self.assertEqual(main["methods"]["one_state_ar"]["candidate"],policy.DEFAULT)
         self.assertEqual(main["retrospective_grid_oracle_loss"],1.)
         self.assertEqual(main["methods"]["one_state_ar"]["regret_vs_training_feasible_grid_oracle"],4.)
@@ -143,7 +143,7 @@ class PlannerParameterSelectionTests(unittest.TestCase):
         summary=policy.summarize({str(i):result for i in range(7)})
         self.assertFalse(summary["descriptive_primary_risk_improves"])
         self.assertTrue(summary["primary_held_nominal_requirement_passes"])
-        main["methods"]["one_state_ar"]["nominal_violating_sequence_tasks"]=1
+        main["methods"]["one_state_ar"]["nominal_violating_outings"]=1
         summary=policy.summarize({str(i):result for i in range(7)})
         self.assertFalse(summary["primary_held_nominal_requirement_passes"])
         self.assertFalse(summary["development_recommendation_supported"])

@@ -1,5 +1,12 @@
 # Thesis and paper completion roadmap, v0.19.34
 
+The first parameter-selection design was blocked before real outcomes. A2
+adds a bounded synthetic fixture and training-metadata design barrier. Use
+[the current protocol](planner_parameter_selection_v01934_a2.md). This is
+a correction within work packages 1 and 2, not a new model-training phase.
+If the metadata stage is uninformative, report the decision-specific limit
+and agree a bounded next action rather than searching for a favourable result.
+
 ## Current position
 
 The six original matched configurations are trained and compared statistically.
@@ -16,7 +23,7 @@ A failed scientific result does not justify chasing complexity indefinitely.
 | Package | Work and experiment | Completion decision |
 | --- | --- | --- |
 | 1. Planner parameter selection | Fixed nine candidate grid; training only risk selection with frozen laws; observed outer held error scoring | Accept positive, null or harmful results with all baselines and components |
-| 2. Robustness and claim audit | Same run: 32/64 draw prefix and 5/10/20% nominal requirements; inspect outing heterogeneity, defaults, empirical comparisons, exceedances and retrospective regret | Decide practical benefit and exact claim; add another ablation only if necessary to support that claim |
+| 2. Robustness and claim audit | Same run: 32/64 draw prefix and 10/20/40% outing nominal requirements with the fixed passive probe bound; inspect outing heterogeneity, defaults, empirical comparisons, exceedances and retrospective regret | Decide practical benefit and exact claim; add another ablation only if necessary to support that claim |
 | 3. Independent final validation | Establish clean independent recording groups and reference quality; freeze model/selector/protocol and recording roles; perform any required pooled training only fit, then one untouched final modelling and planner evaluation | Final evidence supports the frozen claim or clearly limits it; no tuning on final results |
 | 4. Thesis and paper synthesis | Methods, figures, evidence table, limitations, reproducibility, supervisor feedback and confidentiality clearance | Every central claim maps to an experiment and its actual limits |
 

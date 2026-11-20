@@ -9,6 +9,7 @@ from typing import Callable
 import numpy as np
 
 from ..domain import planner_parameter_selection as policy, temporal_planner_pilot as temporal
+from ..domain.planner_parameter_design import design_diagnostics
 from ..domain.artifact_registry import require
 from ..io import artifact_registry as registry, development_experiment as original
 from ..io.planner_parameter_selection import FrozenFamily, accepted_temporal, load_families
@@ -109,8 +110,9 @@ def prepare_folds(inputs, marker: dict, plan: dict, checkpoint: dict, families: 
 
 
 def run(*, project: Path, manifest_path: Path, manifest_pin: str, flow_zip: Path, temporal_zip: Path,
-        expected_tree: str, expected_runtime: str, output: Path, preflight_only: bool = False) -> tuple[dict, Path | None]:
+        expected_tree: str, expected_runtime: str, output: Path, preflight_only: bool = False, design_only: bool = False) -> tuple[dict, Path | None]:
     """Preflight all folds, write all choices, then evaluate the fixed held grid."""
+    require(not (preflight_only and design_only), "parameter_selection_modes_exclusive")
     project, manifest_path, flow_zip, temporal_zip, output = map(
         original.metadata_path, (project, manifest_path, flow_zip, temporal_zip, output))
     result, partial = (output.with_name(output.name+suffix) for suffix in ("_results.zip", "_results.zip.partial"))
@@ -154,12 +156,45 @@ def run(*, project: Path, manifest_path: Path, manifest_pin: str, flow_zip: Path
                    fold_evidence=[f.evidence for f in prepared], **SCOPE)
     if preflight_only:
         return dict(receipt, status="verified_parameter_selection_inputs_no_sampling_or_scores"), None
+    def publish():
+        """Publish either a bounded design result or the completed held study."""
+        package(partial, [(output, "parameter_selection")])
+        with partial.open("rb") as stream:
+            os.fsync(stream.fileno())
+        os.link(partial, result)
+        registry._fsync_directory(result.parent)
+        try:
+            partial.unlink()
+        except OSError:
+            print("Published result; temporary duplicate link retained.", flush=True)
+
     output.mkdir(parents=True, exist_ok=False)
     stage = "preserve_manifest"
     try:
         write(output/"selection_manifest.private.json", plan)
         stage = "synthetic_native_engineering_screen"
         write(output/"engineering_check.private.json", policy.engineering_screen())
+        designs = {}
+        # The complete metadata design barrier precedes every learned-model draw.
+        for fold in prepared:
+            oid = fold.evidence["fold"]["validation_outing"]
+            stage = "training_metadata_design_"+oid
+            print("Checking training-only decision design for held outing:", oid, flush=True)
+            designs[oid] = design_diagnostics(fold.speeds,fold.context_records)
+            write(output/(oid+"_design.private.json"),designs[oid])
+            unchanged()
+        ready = all(d["informative"] for d in designs.values())
+        design_report = dict(receipt,status="complete_parameter_selection_design_ready" if ready else
+            "complete_parameter_selection_design_not_informative",design_ready=ready,
+            all_designs_completed_before_model_sampling=True,model_sampling_performed=False,held_scoring_performed=False,
+            design_by_outing={oid:dict(informative=d["informative"],reasons=d["reasons"],
+                primary=d["settings"]["gate_0.20"]) for oid,d in designs.items()})
+        write(output/"design_report.private.json",design_report)
+        if design_only or not ready:
+            unchanged()
+            stage = "publish_design_result"
+            publish()
+            return design_report,result
         selections = {}
         # No held response is scored anywhere in this first loop.
         for fold in prepared:
@@ -197,19 +232,12 @@ def run(*, project: Path, manifest_path: Path, manifest_pin: str, flow_zip: Path
                     for oid, pin in frozen["selection_file_sha256"].items()), "parameter_selection_choices_changed")
         unchanged()
         report = dict(receipt, status="complete_development_parameter_selection", protocol=policy.PROTOCOL,
-                      all_choices_frozen_before_held_scoring=True, summary=policy.summarize(comparisons))
+                      all_choices_frozen_before_held_scoring=True,model_sampling_performed=True,held_scoring_performed=True,
+                      design_ready=True,summary=policy.summarize(comparisons))
         write(output/"selection_report.private.json", report)
         stage = "publish_result"
-        package(partial, [(output, "parameter_selection")])
-        with partial.open("rb") as stream:
-            os.fsync(stream.fileno())
-        os.link(partial, result)
-        registry._fsync_directory(result.parent)
+        publish()
     except BaseException as exc:
         write(output/"failure.private.json", dict(stage=stage, exception_type=type(exc).__name__, message=str(exc)))
         raise
-    try:
-        partial.unlink()
-    except OSError:
-        print("Published result; temporary duplicate link retained.", flush=True)
     return report, result

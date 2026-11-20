@@ -1,5 +1,10 @@
 # Agent handoff for v0.19.34
 
+**Historical a1, superseded and not authorized for execution.** Read the
+[a2 protocol](planner_parameter_selection_v01934_a2.md) and
+[a2 handoff](agent_handoff_v01934_a2.md). The review blocked the a1 design;
+its old helper must not be run. The text below preserves that design history.
+
 Start here, then read [protocol](planner_parameter_selection_v01934.md) and
 [roadmap](thesis_paper_plan_v01934.md). PR 57 is merged and its owner temporal
 replication return is accepted. The original six matched configurations are

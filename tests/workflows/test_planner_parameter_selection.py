@@ -44,6 +44,8 @@ class PlannerParameterWorkflowTests(unittest.TestCase):
     def fake_arms(self,pool,x,offsets,family,checkpoint=None):
         # Fast synthetic laws for orchestration tests. A separate test exercises
         # every native sampler, including both flow modes.
+        if self.args["output"].exists():
+            for oid in self.bundle.ids:self.assertTrue((self.args["output"]/(oid+"_design.private.json")).exists())
         rng=np.random.default_rng(193401)
         arms={name:np.zeros((1,len(x),21)) if name=="zero_disturbance" else rng.normal(0,.01,(64,len(x),21)) for name in policy.ARMS}
         if checkpoint:
@@ -59,6 +61,26 @@ class PlannerParameterWorkflowTests(unittest.TestCase):
         self.assertEqual(report["status"],"verified_parameter_selection_inputs_no_sampling_or_scores")
         self.assertEqual(len(report["fold_evidence"]),7)
         self.assertFalse(args["output"].exists())
+
+    def test_design_only_does_not_sample_or_score_held(self):
+        args=self.seal()
+        with patch.object(workflow,"sample_arms") as sample,patch.object(policy,"evaluate_held") as held:
+            report,result=workflow.run(**args,design_only=True)
+            sample.assert_not_called();held.assert_not_called()
+        self.assertEqual(report["status"],"complete_parameter_selection_design_ready")
+        self.assertFalse(report["model_sampling_performed"]);self.assertFalse(report["held_scoring_performed"])
+        with zipfile.ZipFile(result) as z:self.assertEqual(len(z.namelist()),11)
+        self.assertFalse((args["output"]/"choices_frozen.private.json").exists())
+
+    def test_uninformative_design_stops_full_run_before_real_sampling(self):
+        args=self.seal();native=workflow.design_diagnostics
+        def blocked(*a):
+            report=native(*a);report["informative"]=False;report["reasons"]=["synthetic_noninformative"];return report
+        with patch.object(workflow,"design_diagnostics",side_effect=blocked),patch.object(workflow,"sample_arms") as sample,patch.object(policy,"evaluate_held") as held:
+            report,result=workflow.run(**args)
+            sample.assert_not_called();held.assert_not_called()
+        self.assertEqual(report["status"],"complete_parameter_selection_design_not_informative")
+        self.assertTrue(result.exists());self.assertFalse((args["output"]/"choices_frozen.private.json").exists())
 
     def test_all_native_samplers_and_shared_grid_complete_one_fold(self):
         prepared=workflow.prepare_folds(self.bundle.inputs,self.bundle.marker,self.bundle.plan,self.bundle.checkpoint,self.bundle.families)[0]
@@ -83,7 +105,7 @@ class PlannerParameterWorkflowTests(unittest.TestCase):
         self.assertTrue(report["all_choices_frozen_before_held_scoring"])
         self.assertFalse(report["model_refitted"]);self.assertFalse(report["planner_parameters_adopted"])
         with zipfile.ZipFile(result) as z:
-            self.assertEqual(len(z.namelist()),82)
+            self.assertEqual(len(z.namelist()),90)
             self.assertIsNone(z.testzip())
             for line in z.read("SHA256SUMS").decode().splitlines():
                 pin,name=line.split("  ",1);self.assertEqual(hashlib.sha256(z.read(name)).hexdigest(),pin)
@@ -106,7 +128,7 @@ class PlannerParameterWorkflowTests(unittest.TestCase):
         self.assertFalse((args["output"]/"choices_frozen.private.json").exists())
 
     def test_drift_stops_before_held_scoring_and_preserves_selection(self):
-        args=self.seal();self.bundle.native.unchanged.side_effect=[None,ValueError("synthetic_drift")]
+        args=self.seal();self.bundle.native.unchanged.side_effect=[None]*8+[ValueError("synthetic_drift")]
         with patch.object(workflow,"sample_arms",side_effect=self.fake_arms),patch.object(policy,"evaluate_held") as held:
             self.assertRaisesRegex(ValueError,"synthetic_drift",workflow.run,**args);held.assert_not_called()
         self.assertTrue((args["output"]/"synthetic_0_selection.private.json").exists())

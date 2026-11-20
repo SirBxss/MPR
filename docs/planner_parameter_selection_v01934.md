@@ -1,5 +1,10 @@
 # Prospective development planner parameter selection, v0.19.34
 
+**Historical a1, superseded and not authorized for execution.** Read the
+[a2 protocol](planner_parameter_selection_v01934_a2.md) and
+[a2 handoff](agent_handoff_v01934_a2.md). The review blocked the a1 design;
+its old helper must not be run. The text below preserves that design history.
+
 ## Question and scope
 
 Does selecting the correction effort and correction rate weights using a
