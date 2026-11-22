@@ -1,5 +1,49 @@
 # Minimal Path-Residual Model (MPR)
 
+## Current 20 November 2026 planner parameter selection a2 correction
+
+PR 58 a1 remains unmerged and must not be executed. Independent review found
+poor decision sensitivity and a nominal transient that dominated the proposed
+loss. The a1 engineering checks and CI did not establish an answerable
+scientific comparison. The original six fitted models and accepted spatial
+and temporal development results remain intact.
+
+A2 uses a bracketed curvature-weight axis with a fixed well-damped rate weight,
+smaller nominal tasks, and explicit nominal/law/total response decomposition.
+Increment exceedances exclude the nominal task transient. A synthetic fixture
+checks decision sensitivity and nominal bounds. A separate training-metadata
+design stage reports feasible sets, nominal gaps, synthetic moment choices
+and law-free flip bounds before any real model sampling. An uninformative
+design produces a preserved no-sampling result. Do not treat it as model failure.
+Read [a2 protocol](docs/planner_parameter_selection_v01934_a2.md) and
+[a2 handoff](docs/agent_handoff_v01934_a2.md). Apply the delta on the same
+PR branch, obtain focused independent review and new actual-head CI, then
+owner merge, native preflight and design-only execution. Real sampling remains
+subsequent. The old helper is historical and superseded for execution.
+Keep private evidence out of public Git and preserve all prior and failed runs.
+
+## Current 17 November 2026 planner parameter selection candidate
+
+PR 57 is merged and the owner temporal replication is accepted. The original
+six matched configurations are fitted; spatial and temporal development
+replications are complete. Comparative results, numerical findings and their
+limitations remain in private evidence. Forecast agreement does not yet
+establish improved planner parameter selection.
+
+This candidate tests that next question with frozen laws, a fixed nine setting
+planner grid, training outing contexts only, and choices saved before any
+held response is scored. It includes zero disturbance, empirical and fixed
+planner baselines, a common nominal recovery requirement, and prespecified
+Monte Carlo and requirement sensitivities in the same run. Read the
+[protocol](docs/planner_parameter_selection_v01934.md),
+[handoff](docs/agent_handoff_v01934.md) and
+[thesis/paper roadmap](docs/thesis_paper_plan_v01934.md).
+Source, protocol and sealed private helper review, CI on the actual reviewed
+head and owner merge precede real model sampling and parameter outcomes.
+No planner parameters have been adopted. Preserve accepted and failed runs,
+independent reservations and prospective recording roles. Earlier checkpoints
+are historical.
+
 ## Current 15 November 2026 temporal planner replication candidate
 
 PR 56 is merged and its owner temporal pilot is accepted. The original
