@@ -6,9 +6,9 @@ Measure the calibration data required by learned residual laws and
 sequence-based empirical resampling to reach comparable held planner
 tuning performance. The accepted local recovery study supplies
 development evidence. A prospective changing-curvature task starts
-with the [recorded geometry check](recorded_replay_geometry.md), followed
-by a reviewed input join, frozen nominal requirements and a
-training-only tuning protocol. An independent test and a potential
+with the [recorded geometry check](recorded_replay_geometry.md). After
+one verified frame, establish sequence and lookahead support, nominal
+requirements and a training-only tuning protocol. An independent test and a potential
 second perception version answer separate claims.
 
 ## Current 20 November 2026 planner parameter selection a2 correction

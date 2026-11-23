@@ -6,8 +6,8 @@ The a2 development tuning return and persisted audit are complete.
 Use [recorded replay geometry](docs/recorded_replay_geometry.md) for
 the next proposed planner data-efficiency study. Validate archived
 row geometry and the vehicle reference projection separately. The
-current check is synthetic-only. A recorded data join still needs
-verified frame, epoch, nominal geometry and rear-axle pose evidence.
+one-frame input join is implemented and exercised with synthetic MCAP.
+A BMW-side run requires recorded frame and epoch evidence.
 Preserve original archives and prospective holdout roles. Keep private
 result values out of public Git. Earlier run instructions are historical.
 

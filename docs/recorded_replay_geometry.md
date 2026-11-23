@@ -43,16 +43,38 @@ implementation stage.
 
 ## Recorded input feasibility follow-up
 
-Start with one prospectively declared original development recording and its
-archived rows. Reuse the staged geometry converter and source-clock
-definitions on that raw identity. Verify the archive's recording, pair,
-estimate and reference message identities and clock values before applying the
-geometry check. Establish rear-axle localization and the reference-frame
-transform at the evaluated epoch. Record the source of the previous
-curvature command, or predeclare a common initialization policy as a
-simulator condition and assess it separately. Use the original eligibility
-and reset boundaries, and record counts of identity, pose, coverage and
-geometry failures before inspecting planner outcomes.
+The `lane_residuals.cli.recorded_replay_inputs` module now exposes two
+operations. `describe` reads one prospectively specified original matched
+development row from the sealed experiment and prints a private evidence form.
+It does not open the MCAP. The form identifies the raw bytes, original matched
+row and geometry profile, both raw message positions, pair index, source
+epochs, and the estimator's recorded input time.
+
+`verify` requires a completed and digest-pinned form. It reads the registered
+MCAP once for byte identity and reuses the original bounded indexed decoder,
+scientific sink and geometry converter. The checker reconciles the preserved
+inventory and stream integrity, canonical pair and clock bindings, and the
+estimate descriptor. It uses an exact-epoch, conflict-free rear-axle odometry
+sample logged by the estimate log time. This recorded-clock criterion does
+not establish real-time input availability.
+
+The owner evidence must identify both coordinate frames, the basis for the
+physical frame and pose declarations, and the path frame origin and yaw in
+odometry coordinates at the estimate source epoch. The original EDP and RLMB
+paths must already share that physical frame at that epoch for this stage.
+The reported pose uses the existing rigid transform. The routine neither
+guesses a transform from topic names nor accepts arrays supplied in place of
+raw odometry. Keep the populated form, frame evidence and receipt private.
+
+The receipt supplies nominal points, station offsets and initial geometric
+state for this frame if every check passes. The original sequence bounds are
+retained as identifiers. The receipt does not establish that the sequence is
+replayable. A valid one-frame receipt, an unsupported pose or projection, and
+an inconclusive input or source check lead to different next decisions.
+Only a successful recorded check warrants extending this input path.
+Previous curvature command and full lookahead support are separate planner
+inputs. Require a recorded command or predeclare a common simulator
+initialization policy before a rollout.
 
 Archive-parity validation is specific to the old geometry mapping. A motion
 compensation or time-base change that fails parity defines a new versioned
@@ -70,8 +92,8 @@ pipeline version is a separate requirement for an update-transfer claim.
 
 ## Verification and scope
 
-The tests cover different residual and vehicle origins, the signed lateral
-and heading conventions, invalid profile shape, archived alignment mismatch,
-and projection clipping. This patch exercises the new check on synthetic
-geometry. The existing development archives, fitted laws and audited tuning
-results are immutable evidence.
+The geometry tests cover station origins, signed state, archived alignment
+and endpoint clipping. The input tests exercise a real synthetic protobuf
+MCAP through the original numeric producer and indexed replay. They also
+check wrong row, wrong epoch, changed bytes, missing or unusable odometry and
+output protection. The BMW-side recorded check is pending.

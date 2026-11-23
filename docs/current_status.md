@@ -7,9 +7,10 @@ within the scope of its persisted-result audit. The next development
 candidate implements a [one-frame geometry check](recorded_replay_geometry.md)
 for reference-following feasibility. It reconciles the original
 residual station anchor and separately derives the initial geometric
-state from a supplied observed pose. Verification uses synthetic input.
-The owner-side geometry/pose join and actual controller evaluation remain
-separate stages. The previous operational instructions are historical.
+state from a recorded pose. The indexed input join passes synthetic
+MCAP verification. The owner-side recorded check needs frame evidence,
+followed by a controller feasibility evaluation. Earlier operational
+instructions are historical.
 
 ## Current 20 November 2026 planner parameter selection a2 correction
 
