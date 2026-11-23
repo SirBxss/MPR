@@ -1,5 +1,16 @@
 # Current project status
 
+## Current 23 November 2026 recorded replay geometry
+
+PR 58 a2 is merged and its bounded local tuning return is accepted
+within the scope of its persisted-result audit. The next development
+candidate implements a [one-frame geometry check](recorded_replay_geometry.md)
+for reference-following feasibility. It reconciles the original
+residual station anchor and separately derives the initial geometric
+state from a supplied observed pose. Verification uses synthetic input.
+The owner-side geometry/pose join and actual controller evaluation remain
+separate stages. The previous operational instructions are historical.
+
 ## Current 20 November 2026 planner parameter selection a2 correction
 
 PR 58 a1 remains unmerged and must not be executed. Independent review found
