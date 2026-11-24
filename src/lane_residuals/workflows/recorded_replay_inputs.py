@@ -10,14 +10,17 @@ from ..domain.geometry_validation import GeometryValidationError
 from ..io import artifact_registry as registry, development_experiment as original
 from ..io.numeric_export_inputs import read_json
 from ..io.recorded_replay_inputs import (
-    ReplayFrame, frame_evidence_template, recover_frame, select_frame, validate_frame_evidence,
+    OdometryQualifierError, ReplayFrame, census_odometry_qualifier, frame_evidence_template,
+    recover_frame, select_frame, validate_frame_evidence,
 )
 from ..io.recording_readiness_resources import scientific_failure
 from .bounded_recording_readiness import _resources
 from .development_experiment import protected_inputs, source_guard
 from .locked_development_export import write
+from .recording_ingestion import _resources as _decode_resources
 
-REVISION = "recorded-replay-one-frame-inputs-v2"
+REVISION = "recorded-replay-one-frame-inputs-v3"
+CENSUS_REVISION = "recorded-replay-odometry-qualifier-census-v1"
 
 
 def load_frame(
@@ -36,6 +39,65 @@ def describe(project: Path, experiment: Path, experiment_sha256: str, outing: st
     return frame_evidence_template(frame)
 
 
+def _private_destination(source, project, inputs, experiment, evidence, frame, scratch, output):
+    protected = protected_inputs(project, inputs.request) + [
+        original.resolve(project, str(experiment)), evidence, frame.raw_path,
+    ]
+    output = original.metadata_path(output)
+    require(output.name.endswith(".private.json") and output.parent.is_dir()
+            and not os.path.lexists(output), "replay_new_private_receipt_required")
+    registry.separate_output(output, protected)
+    registry.separate_output(scratch, protected + [output])
+    for checkout in {source, project}:
+        if output.is_relative_to(checkout):
+            require(output.is_relative_to(checkout / "outputs/diagnostics/private"),
+                    "replay_private_diagnostic_location_required")
+    require(scratch.is_dir(), "replay_scratch_directory_required")
+    return output
+
+
+def census(
+    *, source: Path, project: Path, experiment: Path, experiment_sha256: str, outing: str,
+    matched_row: int, evidence: Path, evidence_sha256: str, available_symbol: str,
+    scratch: Path, output: Path, expected_tree: str, expected_runtime: str,
+) -> dict:
+    """Publish counts only using the summary-only descriptor receipt."""
+    source = original.metadata_path(source)
+    project = original.metadata_path(project)
+    evidence = original.metadata_path(evidence)
+    scratch = original.metadata_path(scratch)
+    source_identity = source_guard(source, expected_tree, expected_runtime)
+    inputs, frame = load_frame(project, experiment, experiment_sha256, outing, matched_row)
+    declared, digest, _ = read_json(evidence, maximum=64 * 1024)
+    require(digest == evidence_sha256, "replay_census_schema_receipt_digest_mismatch")
+    require(type(declared) is dict and declared.get("row") == frame.identity, "replay_census_schema_receipt_row_mismatch")
+    require(type(declared.get("enum_values")) is dict and available_symbol in declared["enum_values"],
+            "replay_census_schema_receipt_enum_required")
+    binding = {"schema_data_sha256": declared.get("schema_sha256"),
+               "field": declared.get("field"), "available_symbol": available_symbol}
+    output = _private_destination(source, project, inputs, experiment, evidence, frame, scratch, output)
+    _decode_resources(scratch)
+    report = {
+        "revision": CENSUS_REVISION, "source": source_identity, "experiment_sha256": experiment_sha256,
+        "schema_receipt_sha256": digest, "row": frame.identity,
+    }
+    try:
+        counts = census_odometry_qualifier(frame, binding, scratch, lambda: _decode_resources(scratch))
+        inputs.unchanged()
+        require(read_json(evidence, maximum=64 * 1024)[1] == digest, "replay_census_schema_receipt_changed")
+        require(source_guard(source, expected_tree, expected_runtime) == source_identity, "replay_source_changed")
+    except GeometryValidationError as error:
+        report.update(status="recorded_odometry_census_inconclusive", failure_code=error.code)
+    except Exception as error:
+        report.update(status="recorded_odometry_census_inconclusive", failure_code=(
+            str(error) if isinstance(error, RegistryError) else scientific_failure(error)
+        ))
+    else:
+        report.update(status="recorded_odometry_census_complete", **counts)
+    write(output, report)
+    return report
+
+
 def run(
     *, source: Path, project: Path, experiment: Path, experiment_sha256: str, outing: str,
     matched_row: int, evidence: Path, evidence_sha256: str, scratch: Path, output: Path,
@@ -51,19 +113,7 @@ def run(
     declared, digest, _ = read_json(evidence, maximum=64 * 1024)
     require(digest == evidence_sha256, "replay_frame_evidence_digest_mismatch")
     origin, qualifier = validate_frame_evidence(declared, frame)
-    protected = protected_inputs(project, inputs.request) + [
-        original.resolve(project, str(experiment)), evidence, frame.raw_path,
-    ]
-    output = original.metadata_path(output)
-    require(output.name.endswith(".private.json") and output.parent.is_dir()
-            and not os.path.lexists(output), "replay_new_private_receipt_required")
-    registry.separate_output(output, protected)
-    registry.separate_output(scratch, protected + [output])
-    for checkout in {source, project}:
-        if output.is_relative_to(checkout):
-            require(output.is_relative_to(checkout / "outputs/diagnostics/private"),
-                    "replay_private_diagnostic_location_required")
-    require(scratch.is_dir(), "replay_scratch_directory_required")
+    output = _private_destination(source, project, inputs, experiment, evidence, frame, scratch, output)
     _resources(scratch, initial=True)
     report = {
         "revision": REVISION, "source": source_identity, "experiment_sha256": experiment_sha256,
@@ -85,6 +135,8 @@ def run(
             else "recorded_frame_unsupported"
         )
         report.update(status=status, failure_code=error.code)
+        if isinstance(error, OdometryQualifierError):
+            report["odometry"] = error.counts
     except Exception as error:
         # Use static diagnostics for I/O and decoder exceptions.
         report.update(status="recorded_frame_inconclusive", failure_code=(

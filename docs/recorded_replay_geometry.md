@@ -43,12 +43,22 @@ implementation stage.
 
 ## Recorded input feasibility follow-up
 
-The `lane_residuals.cli.recorded_replay_inputs` module now exposes two
+The `lane_residuals.cli.recorded_replay_inputs` module exposes three
 operations. `describe` reads one prospectively specified original matched
 development row from the sealed experiment and prints a private evidence form.
 It does not open the MCAP. The form identifies the raw bytes, original matched
 row and geometry profile, both raw message positions, pair index, source
 epochs, and the estimator's recorded input time.
+
+`qualifier-census` uses the sealed row, its digest-pinned private schema
+receipt and the bound full-availability symbol. It verifies the recording
+and runs bounded indexed odometry decoding. It counts omitted tags,
+explicit zeros, explicit nonzero values by declared value or an unknown bin,
+and ambiguous encodings. It includes separate availability counts for the
+selected source epoch. It produces a new private receipt with counts and no
+pose or path coordinates. Use it to screen the feasibility of this recorded
+pilot before investing in frame provenance. A count of omissions gives no
+independent proof of available poses, causal receipt or path-frame identity.
 
 `verify` requires a completed and digest-pinned form. It reads the registered
 MCAP once for byte identity and reuses the original bounded indexed decoder,
@@ -64,17 +74,26 @@ log ordering only.
 The exact kept sample must contain one explicit full-availability enum value.
 The reader inspects original bytes in the indexed pass. A scalar without
 presence can decode an absent field to the same enum value as availability.
+Standard proto3 serialization omits an implicit-presence scalar with its
+default value, so a recorded zero-default stream may provide no explicit
+full-availability evidence.
 Replay treats omission as ambiguous until applicable producer evidence
 establishes its meaning. Reduced availability, unavailable or unknown values
 and repeated qualifier tags cannot pass this feasibility check. Identical pose
-duplicates retain the earliest log and publish time as before. Tied
-representatives must agree on the availability check. Earlier archive speed
-extraction continues using its established input contract.
+duplicates retain the earliest log and publish time. Every duplicate at
+the selected source epoch must explicitly support availability. This is an
+offline consistency check and includes duplicates logged after the estimate.
+An unavailable or ambiguous duplicate can invalidate the offline frame.
+The previous log-order check on the kept sample still applies. Earlier
+archive speed extraction continues using its established input contract.
 
 The owner evidence must identify both coordinate frames, the basis for the
 physical frame and pose declarations, and the path frame origin and yaw in
 odometry coordinates at the estimate source epoch. The original EDP and RLMB
 paths must already share that physical frame at that epoch for this stage.
+Setting the path-frame origin from the same odometry pose gives a zero
+relative pose by construction. Establish the path origin and epoch using
+independent evidence.
 The reported pose uses the existing rigid transform. The routine neither
 guesses a transform from topic names nor accepts arrays supplied in place of
 raw odometry. Keep the populated form, frame evidence and receipt private.

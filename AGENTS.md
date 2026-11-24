@@ -10,7 +10,8 @@ one-frame input join is implemented and exercised with synthetic MCAP.
 A replay-only delta binds the archived odometry schema and checks explicit
 availability at the kept sample's recorded clocks. See the replay protocol
 for how an omitted default and duplicate receipt clocks are handled.
-A BMW-side run requires recorded frame and epoch evidence.
+The counts-only qualifier census screens the recorded wire encoding.
+A BMW-side geometry verification requires recorded frame and epoch evidence.
 Preserve original archives and prospective holdout roles. Keep private
 result values out of public Git. Earlier run instructions are historical.
 
