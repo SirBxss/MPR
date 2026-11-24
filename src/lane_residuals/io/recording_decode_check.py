@@ -264,7 +264,8 @@ def _support_record(opcode, raw, selected, schemas):
             _fail("decode_in_chunk_channel_disagrees_with_summary")
 
 
-def _messages(data, channels, schemas, selected, decoders, counts, deadline, state, scientific_sink=None):
+def _messages(data, channels, schemas, selected, decoders, counts, deadline, state,
+              scientific_sink=None, payload_observer=None):
     position, records = 0, 0
     while position < len(data):
         if records % 256 == 0:
@@ -299,9 +300,12 @@ def _messages(data, channels, schemas, selected, decoders, counts, deadline, sta
                     _fail("decode_channel_count_exceeds_advertised")
                 if state["decoded_selected_message_count"] > MAX_TOTAL_MESSAGES:
                     _fail("decode_actual_message_budget_exceeded")
-                if scientific_sink is not None:
+                if scientific_sink is not None or payload_observer is not None:
                     _, _, log_time, publish_time = struct.unpack_from("<HIQQ", data, position)
+                if scientific_sink is not None:
                     scientific_sink.consume(key, log_time, publish_time, message)
+                if payload_observer is not None:
+                    payload_observer(selected[key]["topic"], log_time, publish_time, message, payload)
                 del message, payload
                 state.update(phase="chunk_records", channel_id=None, schema_id=None)
         position = end
@@ -335,11 +339,14 @@ def _decompress(chunk):
 
 
 def check_decoding(stream, size, inventory, topics, scratch, resource_check=lambda: None, *,
-                   scientific_sink=None, processing_deadline=None, index_connection=None):
+                   scientific_sink=None, processing_deadline=None, index_connection=None,
+                   payload_observer=None):
     """Process selected indexed streams; complete return or safe failure context.
 
     No SeekingReader, whole index list, decoded-message retention, timestamps
     sorting, geometry/feature construction, scan fallback or raw writes.
+    The optional observer receives the decoded message and its original
+    payload during the same indexed pass.
     """
     state = {"phase": "selection", "indexed_chunk_ordinal": None, "chunk_start_offset_bytes": None,
         "completed_selected_chunk_count": 0, "decoded_selected_message_count": 0,
@@ -403,7 +410,8 @@ def check_decoding(stream, size, inventory, topics, scratch, resource_check=lamb
                     else:
                         unavailable += 1
                     state["phase"] = "chunk_records"
-                    _messages(data, channels, schemas, selected, decoders, counts, deadline, state, scientific_sink)
+                    _messages(data, channels, schemas, selected, decoders, counts, deadline, state,
+                              scientific_sink, payload_observer)
                     del data
                     state["completed_selected_chunk_count"] += 1
                 state["phase"] = "count_reconciliation"

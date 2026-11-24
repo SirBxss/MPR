@@ -13,6 +13,7 @@ from ..domain.artifact_registry import require
 from ..domain.geometry_validation import GeometryValidationError
 from ..domain.motion import Pose2D, ego_frame_transform
 from ..domain.pairing import EgoRelativePath, mutual_nearest_timestamp_pairs
+from ..domain.path_source_probe import _field_is_repeated
 from ..domain.recorded_replay_geometry import RecordedReplayGeometry, check_recorded_replay_geometry
 from . import development_experiment as original, recording_decode_check as decoder
 from .bounded_recording_readiness import ScientificSink, TOPIC_LIMITS
@@ -20,6 +21,7 @@ from .direct_speed_study import object_json
 from .exploratory_residuals import _time_key
 from .numeric_export_inputs import equal
 from .numeric_residuals import NumericObserver
+from .odometry import DEFAULT_ODOMETRY_TOPIC, _timestamp_ns
 from .recording_ingestion import file_state, sha256_stream
 from .recording_inventory import read_inventory
 from .recording_pair_feasibility import _unpack_path
@@ -29,6 +31,7 @@ IDENTITY_FIELDS = (
     "recording_id", "candidate_index", "pair_index",
     "estimate_message_index", "reference_message_index",
 )
+QUALIFIER_BINDING_FIELDS = ("schema_data_sha256", "field", "available_symbol")
 
 
 @dataclass(frozen=True)
@@ -103,11 +106,12 @@ def frame_evidence_template(frame: ReplayFrame) -> dict:
         "frame_and_pose_evidence_reference": None,
         "both_original_paths_verified_in_same_frame_at_epoch": False,
         "recorded_rear_axle_pose_valid_at_epoch": False,
+        "odometry_qualifier": dict.fromkeys(QUALIFIER_BINDING_FIELDS),
         "path_frame_in_odometry": {"x_m": None, "y_m": None, "yaw_rad": None},
     }
 
 
-def validate_frame_evidence(value: dict, frame: ReplayFrame) -> Pose2D:
+def validate_frame_evidence(value: dict, frame: ReplayFrame) -> tuple[Pose2D, dict]:
     """Check the declared binding; physical frame semantics come from the owner."""
     require(type(value) is dict and set(value) == set(frame_evidence_template(frame)),
             "replay_frame_evidence_schema")
@@ -122,11 +126,84 @@ def validate_frame_evidence(value: dict, frame: ReplayFrame) -> Pose2D:
     pose = value["path_frame_in_odometry"]
     require(type(pose) is dict and set(pose) == {"x_m", "y_m", "yaw_rad"} and
             all(type(v) in (int, float) for v in pose.values()), "replay_frame_origin_pose_required")
-    return Pose2D(**pose)
+    qualifier = value["odometry_qualifier"]
+    _validate_qualifier_binding(qualifier, frame)
+    return Pose2D(**pose), qualifier
+
+
+def _validate_qualifier_binding(qualifier: dict, frame: ReplayFrame) -> None:
+    require(type(qualifier) is dict and set(qualifier) == set(QUALIFIER_BINDING_FIELDS)
+            and all(type(item) is str and item.strip() for item in qualifier.values()),
+            "replay_odometry_qualifier_binding_required")
+    archived_schemas = {row["schema_data_sha256"] for row in frame.stream_integrity["channel_versions"]
+                        if row["topic"] == DEFAULT_ODOMETRY_TOPIC}
+    require(archived_schemas == {qualifier["schema_data_sha256"]},
+            "replay_odometry_qualifier_binding_mismatch")
+
+
+def _qualifier_failure(decoded, payload: bytes, binding: dict) -> str | None:
+    """Require one explicit Available tag in the original top-level wire fields."""
+    from google.protobuf.empty_pb2 import Empty
+    from google.protobuf.unknown_fields import UnknownFieldSet
+
+    field = decoded.DESCRIPTOR.fields_by_name.get(binding["field"])
+    if field is None or field.enum_type is None or _field_is_repeated(field):
+        return "replay_odometry_qualifier_descriptor_unsupported"
+    available = field.enum_type.values_by_name.get(binding["available_symbol"])
+    if available is None or sum(value.number == available.number for value in field.enum_type.values) != 1:
+        return "replay_odometry_qualifier_descriptor_unsupported"
+
+    # Empty has no declared fields, so the runtime preserves the original
+    # occurrences, including explicit zero, wrong wire types and duplicates.
+    wire = Empty.FromString(payload)
+    occurrences = (item for item in UnknownFieldSet(wire) if item.field_number == field.number)
+    first = next(occurrences, None)
+    if first is None:
+        return "replay_odometry_qualifier_implicit"
+    if first.wire_type != 0 or next(occurrences, None) is not None:
+        return "replay_odometry_qualifier_wire_ambiguous"
+    if first.data != available.number % (1 << 64) or getattr(decoded, field.name) != available.number:
+        return "replay_odometry_qualifier_not_available"
+    return None
+
+
+class _ExactOdometryQualifier:
+    """Observe availability for the same representative used by the pose store."""
+
+    def __init__(self, source_time: int, binding: dict):
+        self.source_time = source_time
+        self.binding = binding
+        self.clocks: tuple[int, int] | None = None
+        self.failure: str | None = None
+
+    def observe(self, topic: str, log: int, publish: int, decoded, payload: bytes) -> None:
+        if topic != DEFAULT_ODOMETRY_TOPIC:
+            return
+        try:
+            source_time = _timestamp_ns(decoded)
+        except (ValueError, TypeError, OverflowError):
+            # The scientific sink already records invalid odometry messages.
+            return
+        clocks = (log, publish)
+        if source_time != self.source_time or (self.clocks is not None and clocks > self.clocks):
+            return
+        failure = _qualifier_failure(decoded, payload, self.binding)
+        if clocks == self.clocks and failure != self.failure:
+            self.failure = "replay_odometry_qualifier_clock_tie"
+        else:
+            self.clocks, self.failure = clocks, failure
+
+    def require_available(self, log: int, publish: int) -> None:
+        if self.clocks != (log, publish):
+            raise GeometryValidationError("replay_odometry_qualifier_sample_mismatch",
+                                          "qualifier must bind to the selected pose")
+        if self.failure is not None:
+            raise GeometryValidationError(self.failure, "exact rear-axle pose requires explicit availability")
 
 
 def reconcile_staged_frame(
-    sink: ScientificSink, frame: ReplayFrame, path_frame_in_odometry: Pose2D
+    sink: ScientificSink, frame: ReplayFrame, path_frame_in_odometry: Pose2D,
+    qualifier: _ExactOdometryQualifier,
 ) -> tuple[RecordedReplayGeometry, dict]:
     row, db = frame.identity, sink.db
     estimate, reference = row["estimate_message_index"], row["reference_message_index"]
@@ -168,6 +245,7 @@ def reconcile_staged_frame(
         raise GeometryValidationError("replay_odometry_conflict_or_late", "conflicting or late rear-axle evidence")
     if sink.odometry.descriptor_unavailable or sink.odometry.failures or len(sink.odometry.schemas) != 1:
         raise GeometryValidationError("replay_odometry_stream_unsupported", "original odometry binding required")
+    qualifier.require_available(int(log), int(publish))
     transform = ego_frame_transform(Pose2D(x, y, yaw), path_frame_in_odometry)
     geometry = check_recorded_replay_geometry(
         read_path("estimate", estimate), read_path("reference", reference),
@@ -179,13 +257,16 @@ def reconcile_staged_frame(
     return geometry, {
         "source_time_ns": str(estimate_time), "log_time_ns": str(int(log)),
         "publish_time_ns": str(int(publish)), "identical_pose_message_count": multiplicity,
+        "availability_evidence": "explicit_available_wire_value",
     }
 
 
 def recover_frame(
-    frame: ReplayFrame, path_frame_in_odometry: Pose2D, scratch: Path, resource_check
+    frame: ReplayFrame, path_frame_in_odometry: Pose2D, scratch: Path, resource_check, *,
+    qualifier_binding: dict,
 ) -> tuple[RecordedReplayGeometry, dict]:
     """Verify bytes and replay the original indexed conversion on one open file."""
+    _validate_qualifier_binding(qualifier_binding, frame)
     path = frame.raw_path
     require(path.is_absolute() and path.resolve() == path, "replay_registered_raw_path_required")
     fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
@@ -199,16 +280,17 @@ def recover_frame(
         deadline = time.monotonic() + PROCESSING_SECONDS
         with Workspace(scratch, resource_check, Observations(), deadline) as workspace:
             sink = ScientificSink(workspace)
+            qualifier = _ExactOdometryQualifier(int(frame.identity["estimate_source_time_ns"]), qualifier_binding)
             integrity = decoder.check_decoding(
                 stream, before[2], inventory, sorted(TOPIC_LIMITS), scratch, workspace.checkpoint,
                 scientific_sink=NumericObserver(sink), processing_deadline=deadline,
-                index_connection=workspace.index,
+                index_connection=workspace.index, payload_observer=qualifier.observe,
             )
             equal(integrity, frame.stream_integrity, "replay_original_stream_integrity_mismatch")
             require(sink.failure_code is None, sink.failure_code or "replay_scientific_decode_failed")
             workspace.checkpoint()
             try:
-                return reconcile_staged_frame(sink, frame, path_frame_in_odometry)
+                return reconcile_staged_frame(sink, frame, path_frame_in_odometry, qualifier)
             finally:
                 workspace.checkpoint()
                 require(file_state(stream=stream) == before and file_state(path) == before,

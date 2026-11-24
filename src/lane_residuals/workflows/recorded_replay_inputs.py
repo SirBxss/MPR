@@ -17,7 +17,7 @@ from .bounded_recording_readiness import _resources
 from .development_experiment import protected_inputs, source_guard
 from .locked_development_export import write
 
-REVISION = "recorded-replay-one-frame-inputs-v1"
+REVISION = "recorded-replay-one-frame-inputs-v2"
 
 
 def load_frame(
@@ -50,7 +50,7 @@ def run(
     inputs, frame = load_frame(project, experiment, experiment_sha256, outing, matched_row)
     declared, digest, _ = read_json(evidence, maximum=64 * 1024)
     require(digest == evidence_sha256, "replay_frame_evidence_digest_mismatch")
-    origin = validate_frame_evidence(declared, frame)
+    origin, qualifier = validate_frame_evidence(declared, frame)
     protected = protected_inputs(project, inputs.request) + [
         original.resolve(project, str(experiment)), evidence, frame.raw_path,
     ]
@@ -75,7 +75,9 @@ def run(
         "original_speed_mps": frame.original_speed_mps,
     }
     try:
-        geometry, odometry = recover_frame(frame, origin, scratch, lambda: _resources(scratch))
+        geometry, odometry = recover_frame(
+            frame, origin, scratch, lambda: _resources(scratch), qualifier_binding=qualifier,
+        )
     except GeometryValidationError as error:
         status = (
             "recorded_frame_inconclusive"

@@ -55,8 +55,21 @@ MCAP once for byte identity and reuses the original bounded indexed decoder,
 scientific sink and geometry converter. The checker reconciles the preserved
 inventory and stream integrity, canonical pair and clock bindings, and the
 estimate descriptor. It uses an exact-epoch, conflict-free rear-axle odometry
-sample logged by the estimate log time. This recorded-clock criterion does
-not establish real-time input availability.
+sample logged by the estimate log time. The private evidence form binds the
+availability field and its full-availability enum symbol to the archived
+odometry schema digest. The replay receipt records whether original wire
+evidence supports the kept sample. The recorded-clock criterion establishes
+log ordering only.
+
+The exact kept sample must contain one explicit full-availability enum value.
+The reader inspects original bytes in the indexed pass. A scalar without
+presence can decode an absent field to the same enum value as availability.
+Replay treats omission as ambiguous until applicable producer evidence
+establishes its meaning. Reduced availability, unavailable or unknown values
+and repeated qualifier tags cannot pass this feasibility check. Identical pose
+duplicates retain the earliest log and publish time as before. Tied
+representatives must agree on the availability check. Earlier archive speed
+extraction continues using its established input contract.
 
 The owner evidence must identify both coordinate frames, the basis for the
 physical frame and pose declarations, and the path frame origin and yaw in
@@ -96,4 +109,7 @@ The geometry tests cover station origins, signed state, archived alignment
 and endpoint clipping. The input tests exercise a real synthetic protobuf
 MCAP through the original numeric producer and indexed replay. They also
 check wrong row, wrong epoch, changed bytes, missing or unusable odometry and
-output protection. The BMW-side recorded check is pending.
+output protection. Replay-specific coverage includes explicit and omitted
+default-valued qualifiers, non-available and unknown values, ambiguous wire
+tags and duplicate pose receipt ordering. The BMW-side recorded check is
+pending.
