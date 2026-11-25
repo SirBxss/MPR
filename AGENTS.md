@@ -1,6 +1,15 @@
 # MPR agent instructions
 
-## Current 20 November 2026 planner parameter selection a2 correction
+## Current 25 November 2026 a2 calibration-budget pilot
+
+PR 58 a2 is merged and its recorded-residual development run is accepted.
+Use the [pilot protocol](docs/a2_calibration_budget_pilot.md) for the
+next tuning question. Preserve all four failed curved-task receipts and
+the BMW source register. Start with nominal feasibility and archive
+support. Freeze all choices before the inner audit. Keep the outer held
+outcomes and final validation outside this pilot.
+
+## Historical 20 November 2026 planner parameter selection a2 correction
 
 PR 58 a1 remains unmerged and must not be executed. Independent review found
 poor decision sensitivity and a nominal transient that dominated the proposed

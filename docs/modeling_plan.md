@@ -1,6 +1,14 @@
 # Thesis modeling plan
 
-## Current 20 November 2026 planner parameter selection a2 correction
+## Current 25 November 2026 a2 calibration-budget pilot
+
+The accepted a2 run supplies the local-recovery tuning task. The
+[budget pilot](a2_calibration_budget_pilot.md) measures tuning loss
+against empirical resampling using the existing archived residuals.
+The inner development audit follows the sealed choices. A full
+learning curve and independent final evaluation are separate stages.
+
+## Historical 20 November 2026 planner parameter selection a2 correction
 
 PR 58 a1 remains unmerged and must not be executed. Independent review found
 poor decision sensitivity and a nominal transient that dominated the proposed
