@@ -116,7 +116,7 @@ def stream_items(values):
             SimpleNamespace(topic=TOPICS[role],message_encoding="protobuf"),SimpleNamespace(log_time=T+2_000_000_000,publish_time=T+2_000_000_001),value)
 
 
-def recording(*, compression="ZSTD",crcs=True,extra_streams=(),**options):
+def recording(*, compression="ZSTD",crcs=True,extra_streams=(),odometry_records=None,**options):
     from mcap.writer import CompressionType, Writer
     values=messages(**options);E,R,O=classes(options.get("mutate"))
     buffer=BytesIO();writer=Writer(buffer,compression=getattr(CompressionType,compression),chunk_size=1,enable_crcs=crcs);writer.start()
@@ -126,7 +126,12 @@ def recording(*, compression="ZSTD",crcs=True,extra_streams=(),**options):
         schema=writer.register_schema(kind.DESCRIPTOR.full_name,"protobuf",file.SerializeToString())
         channels[kind.DESCRIPTOR.full_name]=writer.register_channel(topic,"protobuf",schema)
     for i,(_,_,message,value) in enumerate(stream_items(values)):
-        writer.add_message(channels[value.DESCRIPTOR.full_name],message.log_time,value.SerializeToString(),message.publish_time,sequence=i)
+        name = value.DESCRIPTOR.full_name
+        if odometry_records is not None and name == O.DESCRIPTOR.full_name:
+            for log, publish, payload in odometry_records(message, value):
+                writer.add_message(channels[name], log, payload, publish, sequence=i)
+        else:
+            writer.add_message(channels[name],message.log_time,value.SerializeToString(),message.publish_time,sequence=i)
     for topic,kind,extra_values in extra_streams:
         file=descriptor_pb2.FileDescriptorSet();file.file.add().ParseFromString(kind.DESCRIPTOR.file.serialized_pb)
         schema=writer.register_schema(kind.DESCRIPTOR.full_name,"protobuf",file.SerializeToString())

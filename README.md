@@ -1,5 +1,16 @@
 # Minimal Path-Residual Model (MPR)
 
+## Recorded reference-following feasibility
+
+The bounded development planner-selection study has returned and its
+persisted result has been reviewed. The next paper question is data
+efficiency relative to empirical resampling. This candidate adds an indexed
+one-frame input check that reconciles the original H100 profile and
+projects the recorded vehicle separately from the residual anchor. The
+[recorded replay contract](docs/recorded_replay_geometry.md) describes the
+required inputs and next decision. The earlier a2
+execution instructions below describe the completed checkpoint.
+
 ## Current 20 November 2026 planner parameter selection a2 correction
 
 PR 58 a1 remains unmerged and must not be executed. Independent review found

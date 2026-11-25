@@ -1,5 +1,17 @@
 # v0.4.5 output contracts
 
+## Recorded one-frame replay inputs
+
+The metadata-only `describe` command prints a private row-bound evidence
+form. The `verify` command writes a new private JSON receipt, preserving the
+original matched-row and source-clock identities, the experiment and evidence
+digests, and the source tree. A verified geometry receipt includes the
+original sequence bounds, 21 nominal reference points, signed station
+positions from the rear axle, initial geometric errors and odometry clocks.
+An unsupported receipt records a geometric or pose stop code. An
+inconclusive receipt records an input, source or execution failure. See
+[the recorded replay contract](recorded_replay_geometry.md).
+
 ## A2 calibration and preparation evidence
 
 Each refinement adds criteria_passed, tail_probability_exceedance_fraction,
