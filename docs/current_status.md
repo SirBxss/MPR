@@ -1,6 +1,15 @@
 # Current project status
 
-## Current 20 November 2026 planner parameter selection a2 correction
+## Current 25 November 2026 a2 calibration-budget pilot
+
+PR 58 a2 is merged and the owner development result is accepted. The
+current [pilot candidate](a2_calibration_budget_pilot.md) asks how the
+training-outing budget affects selected planner weights under AR and
+intact-sequence empirical resampling. The synthetic curved-task stop
+receipts are retained. The separate recorded-replay branch supports an
+optional physical reconstruction claim.
+
+## Historical 20 November 2026 planner parameter selection a2 correction
 
 PR 58 a1 remains unmerged and must not be executed. Independent review found
 poor decision sensitivity and a nominal transient that dominated the proposed

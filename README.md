@@ -1,6 +1,15 @@
 # Minimal Path-Residual Model (MPR)
 
-## Current 20 November 2026 planner parameter selection a2 correction
+## Current 25 November 2026 a2 calibration-budget pilot
+
+PR 58 a2 is merged and its bounded planner-tuning development result is
+accepted. The next candidate reuses that task and processed archives
+for a [one-fold tuning-budget pilot](docs/a2_calibration_budget_pilot.md).
+Run the metadata and nominal gates first, then freeze empirical and
+one-state AR choices before opening the inner audit labels. The outer
+held archive stays outside the pilot.
+
+## Historical 20 November 2026 planner parameter selection a2 correction
 
 PR 58 a1 remains unmerged and must not be executed. Independent review found
 poor decision sensitivity and a nominal transient that dominated the proposed
