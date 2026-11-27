@@ -1,6 +1,15 @@
 # MPR agent instructions
 
-## Current 25 November 2026 a2 calibration-budget pilot
+## Current 27 November 2026 a2 steering-rate design check
+
+PR 60 is merged. The bounded budget pilot returned the same limiting
+controller across its calibration budgets and methods. Use the
+[steering-rate design protocol](docs/a2_steering_rate_design.md) on the
+pinned PR 60 calibration panel. Carry forward the accepted a2 task and
+preserve earlier synthetic receipts and the BMW evidence register. Keep
+residual array decoding, new fitting and held outcome scoring outside this step.
+
+## Historical 25 November 2026 a2 calibration-budget pilot
 
 PR 58 a2 is merged and its recorded-residual development run is accepted.
 Use the [pilot protocol](docs/a2_calibration_budget_pilot.md) for the

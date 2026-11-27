@@ -1,6 +1,16 @@
 # Thesis modeling plan
 
-## Current 25 November 2026 a2 calibration-budget pilot
+## Current 27 November 2026 a2 steering-rate design check
+
+Use the [steering-rate design check](a2_steering_rate_design.md) to assess
+nominal feasibility and decision margins on the accepted a2 recovery task.
+The next data-efficiency estimand remains the loss or regret of a controller
+selected with a limited calibration budget. Decision stability at small
+budgets can differ when full-budget decisions agree. Keep response forecast
+efficiency secondary and reference independent held roles in any future
+protocol.
+
+## Historical 25 November 2026 a2 calibration-budget pilot
 
 The accepted a2 run supplies the local-recovery tuning task. The
 [budget pilot](a2_calibration_budget_pilot.md) measures tuning loss

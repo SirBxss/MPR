@@ -1,6 +1,16 @@
 # Current project status
 
-## Current 25 November 2026 a2 calibration-budget pilot
+## Current 27 November 2026 a2 steering-rate design check
+
+PR 60 is merged and its bounded calibration-budget pilot is complete.
+The empirical and learned selectors chose the same feasible boundary.
+The [steering-rate design check](a2_steering_rate_design.md) now tests
+nominal feasibility and declared synthetic sensitivity on the same
+calibration contexts. Preserve the existing development and failed
+synthetic receipts. Fresh fitting and held outcome evaluation are outside
+the design stage.
+
+## Historical 25 November 2026 a2 calibration-budget pilot
 
 PR 58 a2 is merged and the owner development result is accepted. The
 current [pilot candidate](a2_calibration_budget_pilot.md) asks how the

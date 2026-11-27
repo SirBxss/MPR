@@ -72,14 +72,17 @@ def config(index: int) -> ReferencePlannerConfig:
                    weight_curvature_rate=BASE.weight_curvature_rate*rate)
 
 
-@lru_cache(maxsize=8192)
 def control_map(index: int, speed: float) -> tuple[np.ndarray, np.ndarray]:
+    return control_map_for_config(config(index), speed)
+
+
+@lru_cache(maxsize=8192)
+def control_map_for_config(cfg: ReferencePlannerConfig, speed: float) -> tuple[np.ndarray, np.ndarray]:
     """Compute the native Riccati first control map for 21 profile coordinates.
 
     Propagating the linear term as a 3 by 21 matrix gives all station gains
     in one backward recursion instead of 24 separate native unit solves.
     """
-    cfg = config(index)
     require(np.isfinite(speed) and cfg.minimum_speed_mps <= speed <= 40., "parameter_selection_speed")
     d = speed*.1
     distances = d*(np.arange(cfg.horizon_steps)+1)
@@ -108,12 +111,17 @@ def control_map(index: int, speed: float) -> tuple[np.ndarray, np.ndarray]:
 
 def rollout_costs(profiles: np.ndarray, speeds: np.ndarray, intervals: np.ndarray,
                   candidate: int, tasks: np.ndarray) -> dict:
+    return rollout_costs_for_config(profiles, speeds, intervals, config(candidate), tasks)
+
+
+def rollout_costs_for_config(profiles: np.ndarray, speeds: np.ndarray, intervals: np.ndarray,
+                             cfg: ReferencePlannerConfig, tasks: np.ndarray) -> dict:
     """Roll out specified initial states; peaks are diagnostics, not constraints."""
     y, speeds, intervals = map(lambda v: np.asarray(v, dtype=float), (profiles, speeds, intervals))
     require(y.ndim == 3 and y.shape[1:] == (len(speeds), 21) and len(y) > 0 and len(speeds) >= 3,
             "parameter_selection_sequence_shape")
     require(intervals.shape == (len(speeds)-1,) and np.isfinite(y).all() and np.isfinite(intervals).all()
-            and np.all((intervals >= BASE.minimum_dt_s) & (intervals <= BASE.maximum_dt_s)),
+            and np.all((intervals >= cfg.minimum_dt_s) & (intervals <= cfg.maximum_dt_s)),
             "parameter_selection_sequence_intervals")
     require(tasks.ndim == 2 and tasks.shape[1] == 3 and len(tasks) > 0 and np.isfinite(tasks).all(),
             "parameter_selection_tasks")
@@ -122,7 +130,7 @@ def rollout_costs(profiles: np.ndarray, speeds: np.ndarray, intervals: np.ndarra
     max_lateral = tracking.copy(); max_acceleration = tracking.copy(); max_jerk = tracking.copy()
     previous_acceleration = None
     for t, speed in enumerate(speeds):
-        k, g = control_map(candidate, float(speed))
+        k, g = control_map_for_config(cfg, float(speed))
         command = state@k + (y[:, t]@g)[:, None]
         acc = speed**2*command
         acceleration += (acc/3.)**2
