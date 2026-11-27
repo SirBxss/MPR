@@ -78,3 +78,34 @@ decision or regret for a useful learning curve. Distinct population-law
 optima are unnecessary. If the bracket is uninformative, preserve the
 result alongside the original pilot and revisit the research claim before
 changing the task. Physical recorded replay is a separate extension.
+
+## Bounded upper extension
+
+An upper-edge choice whose rate passes every nominal gate leaves the
+choice outside the tested range unresolved. An absence of nominal
+tracking–jerk trade-offs has its own interpretation. Assess the
+synthetic choices and their practical bands independently.
+
+The extension requires a sealed original owner receipt and exact
+reproduction of its fixed bracket on the pinned calibration contexts.
+At least one synthetic probe must choose the original upper weight and
+exclude a feasible setting from its 2% band. This is a criterion for
+investigating the range of the design, with no inference about a
+population optimum.
+
+Hold the original task, clocks, gates, covariance probes and weighting
+fixed. Double the rate upward from 16,384 to 32,768, 65,536, 131,072,
+262,144, 524,288 and 1,048,576. The cap bounds the work to six additional
+settings and follows the range considered in synthetic review. It
+has no interpretation as an engineering limit. Stop after the first
+new weight that fails a nominal gate, or after testing the cap. Save
+the status and gate diagnostics for the last tested rate. Compute the
+six synthetic probes once the nominal range is established, on tested
+feasible settings.
+
+Each choice reports the status of its immediate neighbours. A failed
+neighbour establishes a sampled gate restriction in that direction.
+A winning feasible cap still leaves the choice outside the searched
+grid unresolved. Preserve either result. Use the independent evidence
+and a separately frozen whole-outing protocol before beginning a
+finite-budget study.

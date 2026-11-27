@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import numpy as np
 
-from lane_residuals.domain import a2_rate_design as rate, planner_parameter_design as moments
+from lane_residuals.domain import a2_budget_pilot as budget, a2_rate_design as rate, planner_parameter_design as moments
 from lane_residuals.domain import planner_parameter_selection as a2
 from lane_residuals.domain.artifact_registry import RegistryError
 from lane_residuals.domain.recording_ingestion import RecordingIngestionError
@@ -19,6 +19,74 @@ from .test_a2_budget_pilot import PilotFixture
 
 
 class A2RateDesignTests(unittest.TestCase):
+    def test_upper_search_stops_at_first_new_failed_gate(self):
+        outings = [str(i) for i in range(5)]
+        panel = budget.Panel(tuple(budget.Sequence(oid, 0, 0, 3, (100_000_000, 100_000_000))
+                                   for oid in outings), (), {})
+        covariates = {oid: np.full((3, 1), 15.) for oid in outings}
+        nominal = {"training_outing_ids": outings, "grid_best_tracking_by_outing": [1.] * 5}
+        fail = "nominal_peak_envelope_failed"
+        with patch.object(rate, "_candidate_reasons", side_effect=[[]] * 5 + [[fail]]) as gates:
+            result = rate.diagnose(panel, covariates, nominal, extend_upper=True)
+        self.assertEqual(gates.call_count, 6)
+        self.assertEqual(result["upper_stop"], "first_upper_nominal_gate_failure")
+        self.assertEqual(result["candidates"][-1]["curvature_rate_weight"], 32768.)
+        self.assertEqual(result["candidates"][-1]["nominal_gate_failures"], [fail])
+        self.assertEqual(result["feasible_candidates"], list(range(5)))
+        for probe in result["synthetic_covariance_probes"]:
+            self.assertNotIn("5", probe["losses_by_candidate"])
+            if probe["choice"] == 4:
+                self.assertEqual(probe["upper_boundary"], "adjacent_weight_failed_nominal_gate")
+
+    def test_upper_bracket_reuses_pins_and_metadata_without_held_files(self):
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            project = root / "project"
+            project.mkdir()
+            fixture = PilotFixture(project)
+            versions = {"numpy": "unchanged_fixture"}
+            pr60 = {"consumer_git_tree": workflow.PR60_TREE,
+                    "consumer_runtime_source_sha256": workflow.PR60_RUNTIME,
+                    "consumer_runtime_versions": versions}
+            pr61 = {**pr60, "consumer_git_tree": workflow.PR61_TREE,
+                    "consumer_runtime_source_sha256": workflow.PR61_RUNTIME}
+            with patch.object(prior, "source_guard", return_value=pr60):
+                args = fixture.arguments(root / "preflight")
+                self.assertEqual(prior.preflight(**args)["status"], prior.READY)
+            preflight = args["output"] / prior.PREFLIGHT
+            with patch.object(prior, "source_guard", return_value=pr61):
+                args.update(output=root / "design", preflight=preflight, preflight_sha256=original.sha(preflight))
+                self.assertEqual(workflow.run_design(**args)["status"], workflow.COMPLETE)
+            completed = args["output"] / workflow.RECEIPT
+            fixture.numeric_paths[fixture.outings[-1]].unlink()
+            args.update(output=root / "upper", previous_design=completed, previous_design_sha256=original.sha(completed))
+            source = {**pr61, "consumer_git_tree": "4" * 40}
+            changed_environment = {**source, "consumer_runtime_versions": {"numpy": "different"}}
+            with (patch.object(prior, "source_guard", return_value=changed_environment),
+                  patch.object(reader, "open_accepted_outing") as opened):
+                with self.assertRaisesRegex(RecordingIngestionError, "rate_design_pr61_runtime_versions"):
+                    workflow.run_design(**args)
+                opened.assert_not_called()
+                self.assertFalse(args["output"].exists())
+            with (patch.object(prior, "source_guard", return_value=source),
+                  patch.object(reader, "_read_member", wraps=reader._read_member) as members,
+                  patch.object(reader, "open_accepted_outing", wraps=reader.open_accepted_outing) as opened):
+                result = workflow.run_design(**args)
+                self.assertEqual(result["status"], workflow.EXTENSION_COMPLETE)
+                self.assertEqual(result["pr61_design_sha256"], args["previous_design_sha256"])
+                self.assertFalse(result["calibration_budget_selection_authorized"])
+                self.assertEqual(result["design"]["upper_stop"], "feasible_upper_cap")
+                self.assertEqual(result["design"]["candidates"][-1]["curvature_rate_weight"], 1048576.)
+                self.assertTrue(any(probe["upper_boundary"] == "tested_range_edge"
+                                    for probe in result["design"]["synthetic_covariance_probes"]))
+                self.assertTrue(all(call.kwargs == {"labels": False} for call in opened.call_args_list))
+                self.assertEqual([call.args[0].outing_id for call in opened.call_args_list], fixture.outings[1:6])
+                self.assertNotIn("residuals_m", [call.args[1] for call in members.call_args_list])
+                self.assertTrue((args["output"] / workflow.EXTENSION_RECEIPT).exists())
+                with self.assertRaises(FileExistsError):
+                    workflow.run_design(**args)
+            self.assertEqual(original.sha(completed), args["previous_design_sha256"])
+
     def test_rate_map_native_parity_and_analytic_expectation(self):
         rng = np.random.default_rng(1127)
         speeds = (12., 12.1, 12.2, 12.3)
@@ -30,7 +98,7 @@ class A2RateDesignTests(unittest.TestCase):
         # A symmetric quadrature with exactly this covariance. This avoids an MC tolerance.
         samples = np.linalg.cholesky(covariance).T * sigma * np.sqrt(len(covariance))
         profiles = np.concatenate((samples, -samples)).reshape((-1, len(speeds), 21))
-        for cfg in rate.CONFIGS:
+        for cfg in rate.CONFIGS + rate.UPPER_CONFIGS:
             with self.subTest(rate=cfg.weight_curvature_rate):
                 native = a2.plan_reference_step(lateral_error_m=state[0], heading_error_rad=state[1],
                     previous_curvature_correction_per_m=state[2], residual_profile_m=profile,

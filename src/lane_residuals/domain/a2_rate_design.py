@@ -14,6 +14,8 @@ RATE_SCALES = (.25, .5, 1., 2., 4.)
 CONFIGS = tuple(replace(a2.BASE, weight_curvature_rate=a2.BASE.weight_curvature_rate * scale)
                 for scale in RATE_SCALES)
 DEFAULT = RATE_SCALES.index(1.)
+UPPER_CONFIGS = tuple(replace(CONFIGS[-1], weight_curvature_rate=CONFIGS[-1].weight_curvature_rate * 2 ** step)
+                      for step in range(1, 7))
 PROTOCOL = {
     "a2_revision": a2.REVISION,
     "context_panel": budget.REVISION,
@@ -31,6 +33,12 @@ PROTOCOL = {
     "spatial_length_m": a2.PROTOCOL["design_diagnostic"]["spatial_length_m"],
     "maximum_frames": a2.PROTOCOL["design_diagnostic"]["maximum_frames"],
     "weighting": "equal_tasks_and_sequences_within_each_outing_then_equal_outings",
+}
+EXTENSION_PROTOCOL = {
+    **PROTOCOL,
+    "curvature_rate_weights": [cfg.weight_curvature_rate for cfg in CONFIGS + UPPER_CONFIGS],
+    "upper_search_stop": "first_new_nominal_gate_failure_or_last_declared_weight",
+    "synthetic_scoring": "after_nominal_search_on_tested_feasible_candidates",
 }
 
 
@@ -83,14 +91,15 @@ def _loss_summary(losses: np.ndarray, feasible: list[int]) -> dict:
             "losses_by_candidate": {str(i): float(losses[i]) for i in feasible}}
 
 
-def _synthetic_losses(contexts: list[tuple], weights: np.ndarray, feasible: list[int], macro: np.ndarray) -> list[dict]:
+def _synthetic_losses(contexts: list[tuple], weights: np.ndarray, feasible: list[int], macro: np.ndarray,
+                      configs: tuple[ReferencePlannerConfig, ...]) -> list[dict]:
     results = []
     for rho in PROTOCOL["synthetic_rhos"]:
-        slopes = np.zeros(len(CONFIGS))
+        slopes = np.zeros(len(macro))
         for weight, (speeds, intervals) in zip(weights, contexts):
             covariance = moments.unit_covariance(len(speeds), rho)
             for i in feasible:
-                matrix = moments.quadratic_map_for_config(speeds, intervals, CONFIGS[i])
+                matrix = moments.quadratic_map_for_config(speeds, intervals, configs[i])
                 slopes[i] += weight * float(np.sum(matrix * covariance))
         for sigma in PROTOCOL["synthetic_sigmas_m"]:
             losses = macro[:, -1] + sigma ** 2 * slopes
@@ -98,7 +107,8 @@ def _synthetic_losses(contexts: list[tuple], weights: np.ndarray, feasible: list
     return results
 
 
-def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_nominal: dict) -> dict:
+def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_nominal: dict, *,
+             extend_upper: bool = False) -> dict:
     """Compare rate settings with zero disturbances first, then fixed covariance probes."""
     groups = original_nominal["training_outing_ids"]
     group_index = np.array([groups.index(sequence.outing) for sequence in panel.contexts])
@@ -114,7 +124,8 @@ def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_no
     passive = a2.passive_probes()
     require(np.all(passive > 0), "rate_design_passive_tracking_scale")
     reports, feasible = [], []
-    for i, config in enumerate(CONFIGS):
+    configs = CONFIGS + UPPER_CONFIGS if extend_upper else CONFIGS
+    for i, config in enumerate(configs):
         summaries = [nominal_summary(np.asarray(v), np.asarray(dt), config) for v, dt in contexts]
         by_context, _, context_peaks = map(np.array, zip(*summaries))
         by_outing = np.stack([by_context[group_index == j].mean(axis=0) for j in range(len(groups))])
@@ -138,10 +149,12 @@ def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_no
             "worst_context_peaks": context_peaks.max(axis=0).tolist(),
             "probe_peaks": probe_peaks.tolist(),
         })
+        if i >= len(CONFIGS) and reasons:
+            break
     macro = np.asarray([report["macro_components"] for report in reports])
     weights = np.array([1 / (len(groups) * np.count_nonzero(group_index == j)) for j in group_index])
     tradeoffs = describe_tradeoffs(feasible, macro)
-    synthetic = _synthetic_losses(contexts, weights, feasible, macro) if len(feasible) >= 2 else []
+    synthetic = _synthetic_losses(contexts, weights, feasible, macro, configs) if len(feasible) >= 2 else []
     nominal = _loss_summary(macro[:, -1], feasible) if feasible else None
     if len(feasible) < 2:
         finding = "fewer_than_two_nominally_feasible_rates"
@@ -149,9 +162,31 @@ def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_no
         finding = "no_material_nominal_tracking_jerk_tradeoff"
     else:
         finding = "material_nominal_tracking_jerk_tradeoff"
-    return {
+    design = {
         "finding": finding, "context_count": len(contexts), "outings": groups,
         "original_grid_best_tracking": original_best.tolist(), "tracking_limit": tracking_limit.tolist(),
         "component_order": list(a2.COMPONENTS), "candidates": reports, "feasible_candidates": feasible,
         "nominal_choice_diagnostic": nominal, "nominal_tradeoffs": tradeoffs, "synthetic_covariance_probes": synthetic,
     }
+    if extend_upper:
+        describe_upper_stop(design)
+    return design
+
+
+def describe_upper_stop(design: dict) -> None:
+    """Record the observed boundary on each side of a reported choice."""
+    tested = design["candidates"]
+    design["upper_stop"] = ("first_upper_nominal_gate_failure" if tested[-1]["nominal_gate_failures"]
+                            else "feasible_upper_cap")
+    choices = [design["nominal_choice_diagnostic"], *design["synthetic_covariance_probes"]]
+    for summary in choices:
+        if summary is None:
+            continue
+        for side, index in (("lower", summary["choice"] - 1), ("upper", summary["choice"] + 1)):
+            if not 0 <= index < len(tested):
+                status = "tested_range_edge"
+            elif tested[index]["nominal_gate_failures"]:
+                status = "adjacent_weight_failed_nominal_gate"
+            else:
+                status = "adjacent_weight_feasible"
+            summary[side + "_boundary"] = status
