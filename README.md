@@ -1,6 +1,13 @@
 # Minimal Path-Residual Model (MPR)
 
-## Current 25 November 2026 a2 calibration-budget pilot
+## Current 27 November 2026 a2 steering-rate design check
+
+PR 60 is merged. The budget pilot returned a common choice at the
+feasible boundary. The [steering-rate design check](docs/a2_steering_rate_design.md)
+reuses its calibration contexts and checks nominal feasibility and
+tracking–jerk trade-offs before any new fitting or audit.
+
+## Historical 25 November 2026 a2 calibration-budget pilot
 
 PR 58 a2 is merged and its bounded planner-tuning development result is
 accepted. The next candidate reuses that task and processed archives

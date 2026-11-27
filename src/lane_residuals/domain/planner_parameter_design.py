@@ -10,22 +10,28 @@ import numpy as np
 
 from .artifact_registry import require
 from . import planner_parameter_selection as policy
+from .reference_planner import ReferencePlannerConfig
+
+
+def quadratic_map(speeds: tuple[float, ...], intervals: tuple[float, ...], candidate: int) -> np.ndarray:
+    return quadratic_map_for_config(speeds, intervals, policy.config(candidate))
 
 
 @lru_cache(maxsize=24)
-def quadratic_map(speeds: tuple[float, ...], intervals: tuple[float, ...], candidate: int) -> np.ndarray:
+def quadratic_map_for_config(speeds: tuple[float, ...], intervals: tuple[float, ...],
+                             cfg: ReferencePlannerConfig) -> np.ndarray:
     """Return M with zero-state quadratic loss y' M y, in row/station order."""
     length = len(speeds)
     require(3 <= length <= policy.PROTOCOL["design_diagnostic"]["maximum_frames"]
             and len(intervals) == length-1, "parameter_design_quadratic_budget")
     require(np.isfinite(speeds).all() and np.isfinite(intervals).all()
-            and all(.1 <= v <= 40. for v in speeds)
-            and all(policy.BASE.minimum_dt_s <= dt <= policy.BASE.maximum_dt_s for dt in intervals),
+            and all(cfg.minimum_speed_mps <= v <= 40. for v in speeds)
+            and all(cfg.minimum_dt_s <= dt <= cfg.maximum_dt_s for dt in intervals),
             "parameter_design_clock_or_speed")
     size = 21*length
     state = np.zeros((3,size)); matrix = np.zeros((size,size)); previous = None
     for t,speed in enumerate(speeds):
-        k,g = policy.control_map(candidate,float(speed))
+        k,g = policy.control_map_for_config(cfg,float(speed))
         command = k@state
         command[t*21:(t+1)*21] += g
         acceleration = speed**2*command
