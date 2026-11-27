@@ -8,6 +8,8 @@ controller across its calibration budgets and methods. Use the
 pinned PR 60 calibration panel. Carry forward the accepted a2 task and
 preserve earlier synthetic receipts and the BMW evidence register. Keep
 residual array decoding, new fitting and held outcome scoring outside this step.
+Use the protocol's bounded upper extension only after sealing the original
+owner design receipt with a material feasible upper-edge choice.
 
 ## Historical 25 November 2026 a2 calibration-budget pilot
 
