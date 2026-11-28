@@ -1,6 +1,15 @@
 # Minimal Path-Residual Model (MPR)
 
-## Current 27 November 2026 a2 steering-rate design check
+## Current 28 November 2026 repeated steering-rate budget support
+
+The steering-rate design is complete. The
+[common-support check](docs/a2_repeated_budget_support.md) tests whether
+repeated whole-outing subsets can use one shared calibration panel for
+the sealed settings. It checks the nominal anchor on that same panel
+and reports empirical exact-replay exposure. This stage uses calibration
+metadata.
+
+## Historical 27 November 2026 a2 steering-rate design check
 
 PR 60 is merged. The budget pilot returned a common choice at the
 feasible boundary. The [steering-rate design check](docs/a2_steering_rate_design.md)

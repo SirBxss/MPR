@@ -60,22 +60,27 @@ class PilotFixture:
         self.objects.add(digest)
         return digest, path
 
+    def sequence_lengths(self, number):
+        return (6,) * 14
+
     def make_outing(self, number):
         outing = self.outings[number]
-        width, repeats = 6, 14
-        count = width * repeats
+        lengths = self.sequence_lengths(number)
+        offsets = np.cumsum((0, *lengths))
+        starts = set(offsets[:-1].tolist())
+        repeats, count = len(lengths), int(offsets[-1])
         x = self.rng.normal(size=(count, 6))
         x[:, 0] = 19. + np.tanh(x[:, 0])
-        times = 5_000_000_000 + 100_000_000 * np.arange(count) + 400_000_000 * (np.arange(count) // width)
+        times = 5_000_000_000 + 100_000_000 * np.arange(count) + 400_000_000 * np.repeat(np.arange(repeats), lengths)
         residuals = self.rng.normal(0, .06, size=(count, 21))
         for index in range(count):
-            if index % width:
+            if index not in starts:
                 residuals[index] += .67 * residuals[index - 1]
         arrays = {
             "stations_m": STATIONS_M, "condition_names": BMW_CONDITION_FEATURE_NAMES,
             "residuals_m": residuals, "conditions": x, "conditioned_profile_indices": np.arange(count),
-            "conditioned_sequence_offsets": np.arange(0, count + 1, width),
-            "geometry_sequence_offsets": np.arange(0, count + 1, width),
+            "conditioned_sequence_offsets": offsets,
+            "geometry_sequence_offsets": offsets,
             "recording_id": np.full(count, f"recording_{number}"),
             "estimate_source_time_ns_decimal": times.astype(str), "reference_source_time_ns_decimal": times.astype(str),
         }

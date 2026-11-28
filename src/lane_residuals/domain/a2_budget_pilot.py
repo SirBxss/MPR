@@ -123,29 +123,18 @@ def panel_layout(panel: Panel, covariates: dict[str, np.ndarray]) -> tuple[np.nd
     return conditions, offsets
 
 
-def nominal_panel(panel: Panel, covariates: dict[str, np.ndarray], offsets: dict[str, np.ndarray]) -> dict:
-    """Recheck a2's nominal gates without a model or residual draw."""
-    ids = sorted(covariates)
-    issues = []
-    if any(count < a2.CONTEXTS_PER_OUTING for count in panel.support["eligible_sequences_by_outing"].values()):
-        issues.append("a2_context_quota_unavailable")
-    if any(count == 0 for count in panel.support["common_contexts_by_outing"].values()):
-        issues.append("empty_common_donor_support_for_outing")
-    budgets = {}
-    for budget in BUDGETS:
-        lengths = np.concatenate([np.diff(offsets[oid]) for oid in ids[:budget]])
-        budgets[str(budget)] = {
-            "outing_ids": ids[:budget], "frames": int(lengths.sum()), "sequences": len(lengths),
-            "transitions": int(lengths.sum()) - len(lengths), "padded_frames": len(lengths) * int(lengths.max()),
-        }
-        if (int(lengths.sum()) < 8 or int(lengths.sum()) == len(lengths)
-                or budgets[str(budget)]["padded_frames"] > MAX_PADDED_FRAMES):
-            issues.append(f"budget_{budget}_native_fit_support_or_resource_bound")
-    if panel.contexts and DRAWS * len(panel.contexts) * max(s.length for s in panel.contexts) > MAX_SAMPLED_PADDED_FRAMES:
-        issues.append("native_sampling_resource_bound")
-    result = {"support": panel.support, "budgets": budgets, "feasible_candidates": [], "reasons": issues}
-    if issues:
-        return result
+def training_counts(offsets: dict[str, np.ndarray], outings: tuple[str, ...] | list[str]) -> dict:
+    lengths = np.concatenate([np.diff(offsets[oid]) for oid in outings])
+    return {"outing_ids": list(outings), "frames": int(lengths.sum()), "sequences": len(lengths),
+            "transitions": int(lengths.sum()) - len(lengths), "padded_frames": len(lengths) * int(lengths.max())}
+
+
+def native_fit_supported(counts: dict) -> bool:
+    return counts["frames"] >= 8 and counts["transitions"] > 0 and counts["padded_frames"] <= MAX_PADDED_FRAMES
+
+
+def nominal_curvature_grid(panel: Panel, covariates: dict[str, np.ndarray]) -> tuple[np.ndarray, dict, np.ndarray]:
+    """Evaluate the original nine settings and their tracking anchor on this panel."""
     values = np.empty((len(a2.CANDIDATES), len(panel.contexts), len(a2.TASKS)))
     reference_peaks = []
     for index, context in enumerate(panel.contexts):
@@ -158,7 +147,28 @@ def nominal_panel(panel: Panel, covariates: dict[str, np.ndarray], offsets: dict
                 reference_peaks.append([float(nominal["peak_acceleration"].max()), float(nominal["peak_jerk"].max())])
     feasible, evidence = a2.feasible_candidates(values, a2.nominal_probes(), [s.outing for s in panel.contexts],
                                                  PROTOCOL["nominal_gate"])
-    peaks = np.max(reference_peaks, axis=0)
+    return feasible, evidence, np.max(reference_peaks, axis=0)
+
+
+def nominal_panel(panel: Panel, covariates: dict[str, np.ndarray], offsets: dict[str, np.ndarray]) -> dict:
+    """Recheck a2's nominal gates without a model or residual draw."""
+    ids = sorted(covariates)
+    issues = []
+    if any(count < a2.CONTEXTS_PER_OUTING for count in panel.support["eligible_sequences_by_outing"].values()):
+        issues.append("a2_context_quota_unavailable")
+    if any(count == 0 for count in panel.support["common_contexts_by_outing"].values()):
+        issues.append("empty_common_donor_support_for_outing")
+    budgets = {}
+    for budget in BUDGETS:
+        budgets[str(budget)] = training_counts(offsets, ids[:budget])
+        if not native_fit_supported(budgets[str(budget)]):
+            issues.append(f"budget_{budget}_native_fit_support_or_resource_bound")
+    if panel.contexts and DRAWS * len(panel.contexts) * max(s.length for s in panel.contexts) > MAX_SAMPLED_PADDED_FRAMES:
+        issues.append("native_sampling_resource_bound")
+    result = {"support": panel.support, "budgets": budgets, "feasible_candidates": [], "reasons": issues}
+    if issues:
+        return result
+    feasible, evidence, peaks = nominal_curvature_grid(panel, covariates)
     if np.any(peaks > NOMINAL_PEAK_LIMIT):
         issues.append("a2_reference_nominal_envelope_failed")
     if np.count_nonzero(feasible) < 2:

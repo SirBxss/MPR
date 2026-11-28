@@ -1,6 +1,15 @@
 # Current project status
 
-## Current 27 November 2026 a2 steering-rate design check
+## Current 28 November 2026 repeated steering-rate budget support
+
+PR #62 merged after the owner completed the bounded steering-rate design.
+The [common-support check](a2_repeated_budget_support.md) considers every
+one-, three-, and five-outing calibration subset. It reads the passing
+settings from the sealed design and uses calibration metadata. The next
+decision depends on common-panel coverage, like-for-like nominal gates,
+and empirical exact-replay exposure.
+
+## Historical 27 November 2026 a2 steering-rate design check
 
 PR 60 is merged and its bounded calibration-budget pilot is complete.
 The empirical and learned selectors chose the same feasible boundary.

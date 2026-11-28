@@ -107,9 +107,7 @@ def _synthetic_losses(contexts: list[tuple], weights: np.ndarray, feasible: list
     return results
 
 
-def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_nominal: dict, *,
-             extend_upper: bool = False) -> dict:
-    """Compare rate settings with zero disturbances first, then fixed covariance probes."""
+def _nominal_inputs(panel, covariates, original_nominal):
     groups = original_nominal["training_outing_ids"]
     group_index = np.array([groups.index(sequence.outing) for sequence in panel.contexts])
     require(len(groups) == budget.BUDGETS[-1] and set(group_index) == set(range(len(groups))),
@@ -120,12 +118,15 @@ def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_no
 
     original_best = np.asarray(original_nominal["grid_best_tracking_by_outing"])
     tracking_limit = (1 + PROTOCOL["tracking_allowance"]) * original_best
+    return groups, group_index, contexts, original_best, tracking_limit
+
+
+def _candidate_reports(groups, group_index, contexts, tracking_limit, configs, indices):
     probes = a2.PROTOCOL["nominal_probes"]
     passive = a2.passive_probes()
     require(np.all(passive > 0), "rate_design_passive_tracking_scale")
-    reports, feasible = [], []
-    configs = CONFIGS + UPPER_CONFIGS if extend_upper else CONFIGS
-    for i, config in enumerate(configs):
+    for i in indices:
+        config = configs[i]
         summaries = [nominal_summary(np.asarray(v), np.asarray(dt), config) for v, dt in contexts]
         by_context, _, context_peaks = map(np.array, zip(*summaries))
         by_outing = np.stack([by_context[group_index == j].mean(axis=0) for j in range(len(groups))])
@@ -137,9 +138,7 @@ def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_no
         probe_peaks = np.array([summary[2] for summary in probe_summaries])
         reasons = _candidate_reasons(by_outing[:, 0], tracking_limit, probe_ratio,
                                      np.concatenate((context_peaks, probe_peaks)))
-        if not reasons:
-            feasible.append(i)
-        reports.append({
+        yield {
             "candidate": i, "curvature_rate_weight": config.weight_curvature_rate, "nominal_gate_failures": reasons,
             "macro_components": by_outing.mean(axis=0).tolist(),
             "components_by_outing": by_outing.tolist(),
@@ -148,7 +147,28 @@ def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_no
             "probe_tracking_fraction_of_passive": probe_ratio.tolist(),
             "worst_context_peaks": context_peaks.max(axis=0).tolist(),
             "probe_peaks": probe_peaks.tolist(),
-        })
+        }
+
+
+def check_nominal_candidates(panel: budget.Panel, covariates: dict[str, np.ndarray],
+                             original_nominal: dict, indices: tuple[int, ...]) -> list[dict]:
+    """Check only the accepted rate settings on a restricted calibration panel."""
+    groups, group_index, contexts, _, tracking_limit = _nominal_inputs(panel, covariates, original_nominal)
+    return list(_candidate_reports(groups, group_index, contexts, tracking_limit, CONFIGS + UPPER_CONFIGS, indices))
+
+
+def diagnose(panel: budget.Panel, covariates: dict[str, np.ndarray], original_nominal: dict, *,
+             extend_upper: bool = False) -> dict:
+    """Compare rate settings with zero disturbances first, then fixed covariance probes."""
+    groups, group_index, contexts, original_best, tracking_limit = _nominal_inputs(panel, covariates, original_nominal)
+    configs = CONFIGS + UPPER_CONFIGS if extend_upper else CONFIGS
+    reports, feasible = [], []
+    for report in _candidate_reports(groups, group_index, contexts, tracking_limit, configs, range(len(configs))):
+        reports.append(report)
+        i = report["candidate"]
+        reasons = report["nominal_gate_failures"]
+        if not reasons:
+            feasible.append(i)
         if i >= len(CONFIGS) and reasons:
             break
     macro = np.asarray([report["macro_components"] for report in reports])
