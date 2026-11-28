@@ -1,0 +1,65 @@
+name: CI sharding benchmark
+
+on:
+  push:
+    branches: [ci/mpr-test-sharding-benchmark]
+
+permissions:
+  contents: read
+
+jobs:
+  test-shard:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [py310-current, py312-current, py312-frozen-reader]
+        shard: [0, 1, 2, 3]
+    env:
+      MPLBACKEND: Agg
+      MPLCONFIGDIR: /tmp/mpr-matplotlib
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.profile == 'py310-current' && '3.10' || '3.12' }}
+          cache: pip
+      - name: Install package and MCAP readers
+        if: matrix.profile != 'py312-frozen-reader'
+        run: python -m pip install --upgrade pip && python -m pip install -e '.[mcap,test]'
+      - name: Install frozen reader compatibility dependencies
+        if: matrix.profile == 'py312-frozen-reader'
+        run: >-
+          python -m pip install -e '.[mcap,test]'
+          'mcap==1.4.0' 'mcap-protobuf-support==0.5.4' 'mcap-ros1-support==0.7.4'
+          'numpy==2.5.1' 'protobuf==7.35.1' 'lz4==4.4.5' 'zstandard==0.25.0'
+      - name: Compile sources and tests
+        run: python -m compileall -q src tests
+      - name: Run unittest module shard
+        run: >-
+          python scripts/benchmarks/unittest_shards.py run
+          --profile "${{ matrix.profile }}" --shard "${{ matrix.shard }}"
+          --output "trial-${{ matrix.profile }}-${{ matrix.shard }}.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trial-${{ matrix.profile }}-${{ matrix.shard }}
+          path: trial-${{ matrix.profile }}-${{ matrix.shard }}.json
+          if-no-files-found: error
+          retention-days: 7
+
+  coverage:
+    if: always()
+    needs: [test-shard]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: trial-*
+          path: trial-reports
+      - name: Verify execution matches discovery
+        run: python3 scripts/benchmarks/unittest_shards.py reconcile trial-reports
