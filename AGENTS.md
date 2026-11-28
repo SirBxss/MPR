@@ -1,6 +1,14 @@
 # MPR agent instructions
 
-## Current 27 November 2026 a2 steering-rate design check
+## Current 28 November 2026 repeated steering-rate budget support
+
+PR #62 merged and the owner steering-rate design closed the tested grid.
+Use the [common-support protocol](docs/a2_repeated_budget_support.md)
+to enumerate repeated whole-outing budgets with metadata only. Require
+exact prior receipt parity and preserve the original six passing
+settings. A support receipt authorizes no fit or held evaluation.
+
+## Historical 27 November 2026 a2 steering-rate design check
 
 PR 60 is merged. The bounded budget pilot returned the same limiting
 controller across its calibration budgets and methods. Use the

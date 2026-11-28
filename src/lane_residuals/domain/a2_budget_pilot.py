@@ -123,6 +123,16 @@ def panel_layout(panel: Panel, covariates: dict[str, np.ndarray]) -> tuple[np.nd
     return conditions, offsets
 
 
+def training_counts(offsets: dict[str, np.ndarray], outings: tuple[str, ...] | list[str]) -> dict:
+    lengths = np.concatenate([np.diff(offsets[oid]) for oid in outings])
+    return {"outing_ids": list(outings), "frames": int(lengths.sum()), "sequences": len(lengths),
+            "transitions": int(lengths.sum()) - len(lengths), "padded_frames": len(lengths) * int(lengths.max())}
+
+
+def native_fit_supported(counts: dict) -> bool:
+    return counts["frames"] >= 8 and counts["transitions"] > 0 and counts["padded_frames"] <= MAX_PADDED_FRAMES
+
+
 def nominal_panel(panel: Panel, covariates: dict[str, np.ndarray], offsets: dict[str, np.ndarray]) -> dict:
     """Recheck a2's nominal gates without a model or residual draw."""
     ids = sorted(covariates)
@@ -133,13 +143,8 @@ def nominal_panel(panel: Panel, covariates: dict[str, np.ndarray], offsets: dict
         issues.append("empty_common_donor_support_for_outing")
     budgets = {}
     for budget in BUDGETS:
-        lengths = np.concatenate([np.diff(offsets[oid]) for oid in ids[:budget]])
-        budgets[str(budget)] = {
-            "outing_ids": ids[:budget], "frames": int(lengths.sum()), "sequences": len(lengths),
-            "transitions": int(lengths.sum()) - len(lengths), "padded_frames": len(lengths) * int(lengths.max()),
-        }
-        if (int(lengths.sum()) < 8 or int(lengths.sum()) == len(lengths)
-                or budgets[str(budget)]["padded_frames"] > MAX_PADDED_FRAMES):
+        budgets[str(budget)] = training_counts(offsets, ids[:budget])
+        if not native_fit_supported(budgets[str(budget)]):
             issues.append(f"budget_{budget}_native_fit_support_or_resource_bound")
     if panel.contexts and DRAWS * len(panel.contexts) * max(s.length for s in panel.contexts) > MAX_SAMPLED_PADDED_FRAMES:
         issues.append("native_sampling_resource_bound")
