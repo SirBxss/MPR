@@ -26,6 +26,11 @@ def main(argv: list[str] | None = None) -> int:
         print("Outing budget", budget, "subsets", len(rows), "supported parent contexts", min(counts), "to", max(counts))
     print("Fixed weights failing common-panel gates",
           [row["curvature_rate_weight"] for row in report["nominal_fixed_grid"] if row["nominal_gate_failures"]])
+    print("Fixed weights failing against the original anchor (diagnostic)",
+          [row["curvature_rate_weight"] for row in report["nominal_fixed_grid_original_anchor"]
+           if row["nominal_gate_failures"]])
+    print("Max self-only common contexts in any subset",
+          max(row["common_panel_self_donation"]["self_only_context_count"] for row in result["subsets"]))
     print("Stop reasons", result["reasons"])
     return 0 if report["status"] == workflow.READY else 3
 

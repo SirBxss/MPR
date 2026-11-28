@@ -4,9 +4,10 @@
 
 PR #62 merged after the owner completed the bounded steering-rate design.
 The [common-support check](a2_repeated_budget_support.md) considers every
-one-, three-, and five-outing calibration subset. It preserves the six
-passing settings and reads calibration metadata only. The next decision
-depends on the common panel coverage and the same nominal gates.
+one-, three-, and five-outing calibration subset. It reads the passing
+settings from the sealed design and uses calibration metadata. The next
+decision depends on common-panel coverage, like-for-like nominal gates,
+and empirical exact-replay exposure.
 
 ## Historical 27 November 2026 a2 steering-rate design check
 

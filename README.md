@@ -5,7 +5,9 @@
 The steering-rate design is complete. The
 [common-support check](docs/a2_repeated_budget_support.md) tests whether
 repeated whole-outing subsets can use one shared calibration panel for
-the six frozen settings. This stage uses calibration metadata.
+the sealed settings. It checks the nominal anchor on that same panel
+and reports empirical exact-replay exposure. This stage uses calibration
+metadata.
 
 ## Historical 27 November 2026 a2 steering-rate design check
 

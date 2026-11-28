@@ -133,6 +133,23 @@ def native_fit_supported(counts: dict) -> bool:
     return counts["frames"] >= 8 and counts["transitions"] > 0 and counts["padded_frames"] <= MAX_PADDED_FRAMES
 
 
+def nominal_curvature_grid(panel: Panel, covariates: dict[str, np.ndarray]) -> tuple[np.ndarray, dict, np.ndarray]:
+    """Evaluate the original nine settings and their tracking anchor on this panel."""
+    values = np.empty((len(a2.CANDIDATES), len(panel.contexts), len(a2.TASKS)))
+    reference_peaks = []
+    for index, context in enumerate(panel.contexts):
+        speed = covariates[context.outing][context.start:context.stop, 0]
+        zeros = np.zeros((1, context.length, 21))
+        for candidate in range(len(a2.CANDIDATES)):
+            nominal = a2.rollout_costs(zeros, speed, context.intervals(), candidate, a2.TASKS)
+            values[candidate, index] = nominal["tracking"][0]
+            if candidate == a2.DEFAULT:
+                reference_peaks.append([float(nominal["peak_acceleration"].max()), float(nominal["peak_jerk"].max())])
+    feasible, evidence = a2.feasible_candidates(values, a2.nominal_probes(), [s.outing for s in panel.contexts],
+                                                 PROTOCOL["nominal_gate"])
+    return feasible, evidence, np.max(reference_peaks, axis=0)
+
+
 def nominal_panel(panel: Panel, covariates: dict[str, np.ndarray], offsets: dict[str, np.ndarray]) -> dict:
     """Recheck a2's nominal gates without a model or residual draw."""
     ids = sorted(covariates)
@@ -151,19 +168,7 @@ def nominal_panel(panel: Panel, covariates: dict[str, np.ndarray], offsets: dict
     result = {"support": panel.support, "budgets": budgets, "feasible_candidates": [], "reasons": issues}
     if issues:
         return result
-    values = np.empty((len(a2.CANDIDATES), len(panel.contexts), len(a2.TASKS)))
-    reference_peaks = []
-    for index, context in enumerate(panel.contexts):
-        speed = covariates[context.outing][context.start:context.stop, 0]
-        zeros = np.zeros((1, context.length, 21))
-        for candidate in range(len(a2.CANDIDATES)):
-            nominal = a2.rollout_costs(zeros, speed, context.intervals(), candidate, a2.TASKS)
-            values[candidate, index] = nominal["tracking"][0]
-            if candidate == a2.DEFAULT:
-                reference_peaks.append([float(nominal["peak_acceleration"].max()), float(nominal["peak_jerk"].max())])
-    feasible, evidence = a2.feasible_candidates(values, a2.nominal_probes(), [s.outing for s in panel.contexts],
-                                                 PROTOCOL["nominal_gate"])
-    peaks = np.max(reference_peaks, axis=0)
+    feasible, evidence, peaks = nominal_curvature_grid(panel, covariates)
     if np.any(peaks > NOMINAL_PEAK_LIMIT):
         issues.append("a2_reference_nominal_envelope_failed")
     if np.count_nonzero(feasible) < 2:
